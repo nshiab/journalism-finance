@@ -1,0 +1,6 @@
+node_modules
+test/output/
+.DS_Store
+.env
+cov_profile
+docs.json
