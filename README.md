@@ -39,7 +39,7 @@ bunx jsr add @nshiab/journalism-finance
 If you run your code in a browser, use the `web` entry point:
 
 ```js
-import { formatNumber } from "@nshiab/journalism-finance/web";
+import { adjustToInflation } from "@nshiab/journalism-finance/web";
 ```
 
 If you wish to contribute, please check the
