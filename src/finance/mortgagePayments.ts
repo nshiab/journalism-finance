@@ -5,7 +5,7 @@ import { round } from "@nshiab/journalism-format";
  *
  * The function is flexible, supporting various payment frequencies (weekly, bi-weekly, monthly, semi-monthly, accelerated weekly, accelerated bi-weekly) and allowing for the specification of the mortgage amount, interest rate, term, and amortization period. It also includes options for rounding payment values and enabling debug logging.
  *
- * @param mortageAmount - The total amount of the mortgage loan.
+ * @param mortgageAmount - The total amount of the mortgage loan.
  * @param rate - The annual interest rate of the mortgage (e.g., `6.00` for 6.00%).
  * @param paymentFrequency - The frequency at which mortgage payments are made. Supported values are: `"weekly"`, `"biWeekly"`, `"monthly"`, `"semiMonthly"`, `"acceleratedWeekly"`, `"acceleratedBiWeekly"`.
  * @param term - The term of the mortgage in years. This is the length of the current mortgage contract.
@@ -70,7 +70,7 @@ import { round } from "@nshiab/journalism-format";
  */
 
 export default function mortgagePayments(
-  mortageAmount: number,
+  mortgageAmount: number,
   rate: number,
   paymentFrequency:
     | "weekly"
@@ -127,9 +127,9 @@ export default function mortgagePayments(
 
   // The monthly rate and the montly payment
   const monthlyRate = computePeriodicRate(1 / 12);
-  const amortizationPeriodinMonths = amortizationPeriod * 12;
-  const monthlyPayment = (monthlyRate * mortageAmount) /
-    (1 - Math.pow(1 + monthlyRate, -amortizationPeriodinMonths));
+  const amortizationPeriodInMonths = amortizationPeriod * 12;
+  const monthlyPayment = (monthlyRate * mortgageAmount) /
+    (1 - Math.pow(1 + monthlyRate, -amortizationPeriodInMonths));
 
   let numberOfPaymentsinTerm: number;
   let periodicInterestRate: number;
@@ -189,7 +189,7 @@ export default function mortgagePayments(
       monthlyPayment,
       periodicInterestRate,
       numberOfPaymentsinTerm,
-      amortizationPeriodinMonths,
+      amortizationPeriodInMonths,
     });
 
   // Three variables we will increment as we loop over the payments.
@@ -202,11 +202,11 @@ export default function mortgagePayments(
     // We calculate the interest, the capital, and the balance of each payment. For the interest and the balance, we need the balance of the previous payment. If there is none (first payment), we use the mortgageAmount.
     const interest = paymentSchedule[i - 1]
       ? paymentSchedule[i - 1].balance * periodicInterestRate
-      : mortageAmount * periodicInterestRate;
+      : mortgageAmount * periodicInterestRate;
     const capital = periodicPayment - interest;
     const balance = paymentSchedule[i - 1]
       ? paymentSchedule[i - 1].balance - capital
-      : mortageAmount - capital;
+      : mortgageAmount - capital;
 
     // We increment the amountPaid, interestPaid, and capitalPaid to have cumulative values.
     amountPaid += periodicPayment;
