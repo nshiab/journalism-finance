@@ -203,20 +203,26 @@ export default function mortgagePayments(
     const interest = paymentSchedule[i - 1]
       ? paymentSchedule[i - 1].balance * periodicInterestRate
       : mortgageAmount * periodicInterestRate;
-    const capital = periodicPayment - interest;
-    const balance = paymentSchedule[i - 1]
+    let capital = periodicPayment - interest;
+    let balance = paymentSchedule[i - 1]
       ? paymentSchedule[i - 1].balance - capital
       : mortgageAmount - capital;
 
+    if (balance < 0) {
+      // If the balance is negative, it means we have to pay less than the periodic payment, so we just pay the remaining balance.
+      capital = mortgageAmount - capitalPaid;
+      balance = 0;
+    }
+
     // We increment the amountPaid, interestPaid, and capitalPaid to have cumulative values.
-    amountPaid += periodicPayment;
+    amountPaid += capital + interest;
     interestPaid += interest;
     capitalPaid += capital;
 
     // We round the values after all the calculations.
     paymentSchedule.push({
       paymentId: i,
-      payment: round(periodicPayment, options),
+      payment: round(capital + interest, options),
       interest: round(interest, options),
       capital: round(capital, options),
       balance: round(balance, options),
@@ -224,6 +230,11 @@ export default function mortgagePayments(
       interestPaid: round(interestPaid, options),
       capitalPaid: round(capitalPaid, options),
     });
+
+    // If the balance is zero, we stop the loop as the mortgage is fully paid.
+    if (balance <= 0) {
+      break;
+    }
   }
 
   // If there is an id as options, we add it to the objects before returning the array.
