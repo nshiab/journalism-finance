@@ -368,3 +368,237 @@ Deno.test("should return the accelerated weekly mortgage payments for a $100k lo
     },
   );
 });
+Deno.test("should return a final balance of 0 for the last weekly mortgage payment for a $100k loan with a 5.00% rate when the term and amortization period are the same.", () => {
+  // Checking against https://itools-ioutils.fcac-acfc.gc.ca/MC-CH/MCCalc-CHCalc-eng.aspx and https://apps.royalbank.com/apps/mortgages/mortgage-payment-calculator/
+  const payments = mortgagePayments(
+    100_000,
+    5,
+    "weekly",
+    5,
+    5,
+  );
+  const firstPayment = payments[0];
+  const lastPayment = payments[payments.length - 1];
+
+  assertEquals(
+    { firstPayment, lastPayment, nbPayments: payments.length },
+    {
+      firstPayment: {
+        paymentId: 0,
+        payment: 434.95,
+        interest: 94.76,
+        capital: 340.19,
+        balance: 99659.81,
+        amountPaid: 434.95,
+        interestPaid: 94.76,
+        capitalPaid: 340.19,
+      },
+      lastPayment: {
+        paymentId: 259,
+        payment: 190.5,
+        interest: 0.18,
+        capital: 190.32,
+        balance: 0,
+        amountPaid: 112841.99,
+        interestPaid: 12841.99,
+        capitalPaid: 100000,
+      },
+      nbPayments: 260,
+    },
+  );
+});
+Deno.test("should return a final balance of 0 for the last biWeekly mortgage payment for a $100k loan with a 5.00% rate when the term and amortization period are the same.", () => {
+  // Checking against https://itools-ioutils.fcac-acfc.gc.ca/MC-CH/MCCalc-CHCalc-eng.aspx and https://apps.royalbank.com/apps/mortgages/mortgage-payment-calculator/
+  const payments = mortgagePayments(
+    100_000,
+    5,
+    "biWeekly",
+    5,
+    5,
+  );
+  const firstPayment = payments[0];
+  const lastPayment = payments[payments.length - 1];
+
+  assertEquals(
+    { firstPayment, lastPayment, nbPayments: payments.length },
+    {
+      firstPayment: {
+        paymentId: 0,
+        payment: 869.9,
+        interest: 189.6,
+        capital: 680.29,
+        balance: 99319.71,
+        amountPaid: 869.9,
+        interestPaid: 189.6,
+        capitalPaid: 680.29,
+      },
+      lastPayment: {
+        paymentId: 129,
+        payment: 686.14,
+        interest: 1.3,
+        capital: 684.84,
+        balance: 0,
+        amountPaid: 112902.67,
+        interestPaid: 12902.67,
+        capitalPaid: 100000,
+      },
+      nbPayments: 130,
+    },
+  );
+});
+Deno.test("should return a final balance of 0 for the last monthly mortgage payment for a $100k loan with a 5.00% rate when the term and amortization period are the same.", () => {
+  // Checking against https://itools-ioutils.fcac-acfc.gc.ca/MC-CH/MCCalc-CHCalc-eng.aspx and https://apps.royalbank.com/apps/mortgages/mortgage-payment-calculator/
+  const payments = mortgagePayments(
+    100_000,
+    5,
+    "monthly",
+    5,
+    5,
+  );
+  const firstPayment = payments[0];
+  const lastPayment = payments[payments.length - 1];
+
+  assertEquals(
+    { firstPayment, lastPayment, nbPayments: payments.length },
+    {
+      firstPayment: {
+        paymentId: 0,
+        payment: 1884.77,
+        interest: 412.39,
+        capital: 1472.38,
+        balance: 98527.62,
+        amountPaid: 1884.77,
+        interestPaid: 412.39,
+        capitalPaid: 1472.38,
+      },
+      lastPayment: {
+        paymentId: 59,
+        payment: 1884.77,
+        interest: 7.74,
+        capital: 1877.03,
+        balance: 0.06,
+        amountPaid: 113086.44,
+        interestPaid: 13086.44,
+        capitalPaid: 99999.99,
+      },
+      nbPayments: 60,
+    },
+  );
+});
+Deno.test("should return a final balance of 0 for the last semiMonthly mortgage payment for a $100k loan with a 5.00% rate when the term and amortization period are the same.", () => {
+  // Checking against https://itools-ioutils.fcac-acfc.gc.ca/MC-CH/MCCalc-CHCalc-eng.aspx and https://apps.royalbank.com/apps/mortgages/mortgage-payment-calculator/
+  const payments = mortgagePayments(
+    100_000,
+    5,
+    "semiMonthly",
+    5,
+    5,
+  );
+  const firstPayment = payments[0];
+  const lastPayment = payments[payments.length - 1];
+
+  assertEquals(
+    { firstPayment, lastPayment, nbPayments: payments.length },
+    {
+      firstPayment: {
+        paymentId: 0,
+        payment: 942.39,
+        interest: 205.98,
+        capital: 736.4,
+        balance: 99263.6,
+        amountPaid: 942.39,
+        interestPaid: 205.98,
+        capitalPaid: 736.4,
+      },
+      lastPayment: {
+        paymentId: 119,
+        payment: 810.55,
+        interest: 1.67,
+        capital: 808.88,
+        balance: 0,
+        amountPaid: 112954.6,
+        interestPaid: 12954.6,
+        capitalPaid: 100000,
+      },
+      nbPayments: 120,
+    },
+  );
+});
+Deno.test("should return a final balance of 0 for the last acceleratedWeekly mortgage payment for a $100k loan with a 5.00% rate when the term and amortization period are the same.", () => {
+  // Checking against https://itools-ioutils.fcac-acfc.gc.ca/MC-CH/MCCalc-CHCalc-eng.aspx and https://apps.royalbank.com/apps/mortgages/mortgage-payment-calculator/
+  const payments = mortgagePayments(
+    100_000,
+    5,
+    "acceleratedWeekly",
+    5,
+    5,
+  );
+  const firstPayment = payments[0];
+  const lastPayment = payments[payments.length - 1];
+
+  assertEquals(
+    { firstPayment, lastPayment, nbPayments: payments.length },
+    {
+      firstPayment: {
+        paymentId: 0,
+        payment: 471.19,
+        interest: 94.76,
+        capital: 376.44,
+        balance: 99623.56,
+        amountPaid: 471.19,
+        interestPaid: 94.76,
+        capitalPaid: 376.44,
+      },
+      lastPayment: {
+        paymentId: 237,
+        payment: 25.64,
+        interest: 0.02,
+        capital: 25.61,
+        balance: 0,
+        amountPaid: 111698.49,
+        interestPaid: 11698.49,
+        capitalPaid: 100000,
+      },
+      nbPayments: 238,
+    },
+  );
+});
+Deno.test("should return a final balance of 0 for the last acceleratedWeekly mortgage payment for a $100k loan with a 5.00% rate when the term and amortization period are the same.", () => {
+  // Checking against https://itools-ioutils.fcac-acfc.gc.ca/MC-CH/MCCalc-CHCalc-eng.aspx and https://apps.royalbank.com/apps/mortgages/mortgage-payment-calculator/
+  const payments = mortgagePayments(
+    100_000,
+    5,
+    "acceleratedBiWeekly",
+    5,
+    5,
+  );
+  const firstPayment = payments[0];
+  const lastPayment = payments[payments.length - 1];
+
+  assertEquals(
+    { firstPayment, lastPayment, nbPayments: payments.length },
+    {
+      firstPayment: {
+        paymentId: 0,
+        payment: 942.39,
+        interest: 189.6,
+        capital: 752.78,
+        balance: 99247.22,
+        amountPaid: 942.39,
+        interestPaid: 189.6,
+        capitalPaid: 752.78,
+      },
+      lastPayment: {
+        paymentId: 118,
+        payment: 556.37,
+        interest: 1.05,
+        capital: 555.32,
+        balance: 0,
+        amountPaid: 111758.03,
+        interestPaid: 11758.03,
+        capitalPaid: 100000,
+      },
+      nbPayments: 119,
+    },
+  );
+});
