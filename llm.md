@@ -370,7 +370,7 @@ enabling debug logging.
 
 ```typescript
 function mortgagePayments(
-  mortageAmount: number,
+  mortgageAmount: number,
   rate: number,
   paymentFrequency:
     | "weekly"
@@ -402,7 +402,7 @@ function mortgagePayments(
 
 ### Parameters
 
-- **`mortageAmount`**: - The total amount of the mortgage loan.
+- **`mortgageAmount`**: - The total amount of the mortgage loan.
 - **`rate`**: - The annual interest rate of the mortgage (e.g., `6.00` for
   6.00%).
 - **`paymentFrequency`**: - The frequency at which mortgage payments are made.
