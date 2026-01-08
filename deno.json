@@ -23,7 +23,9 @@
   },
   "nodeModulesDir": "auto",
   "imports": {
-    "@nshiab/journalism-format": "jsr:@nshiab/journalism-format@^1.0.2"
+    "@nshiab/journalism-dataviz": "jsr:@nshiab/journalism-dataviz@^1.0.1",
+    "@nshiab/journalism-format": "jsr:@nshiab/journalism-format@^1.0.2",
+    "@observablehq/plot": "npm:@observablehq/plot@^0.6.17"
   },
   "compilerOptions": {
     "lib": [
@@ -35,5 +37,6 @@
     "include": [
       "src/**/*.ts"
     ]
-  }
+  },
+  "allowScripts": ["npm:playwright-chromium@1.57.0"]
 }

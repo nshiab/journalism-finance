@@ -40,7 +40,7 @@ export default function precomputeMortgagePayments(
   }[] = [];
   for (let i = 0; i < allMortgagePayments.length; i += 12) {
     annualMortgagePayments.push({
-      year: i / 12,
+      year: (i / 12) + 1, // 1-indexed years
       balance: Math.round(allMortgagePayments[i + 11].balance),
       interest: Math.round(
         allMortgagePayments.slice(i, i + 12).reduce(

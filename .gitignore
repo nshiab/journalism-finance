@@ -4,3 +4,4 @@ test/output/
 .env
 cov_profile
 docs.json
+output
