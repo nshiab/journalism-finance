@@ -46,8 +46,7 @@ export default function simulateRentVsBuy(parameters: {
       | "gains"
       | "balance"
       | "assets"
-      | "renterAssetsDifference"
-      | "buyerAssetsDifference"
+      | "difference"
       | "mortgageCapital"
       | "mortgageInterests"
       | "maintenance"
@@ -516,13 +515,13 @@ export default function simulateRentVsBuy(parameters: {
     results.push({
       year,
       category: "renter",
-      variable: "renterAssetsDifference",
+      variable: "difference",
       amount: renterAssets - buyerAssets,
     });
     results.push({
       year,
       category: "buyer",
-      variable: "buyerAssetsDifference",
+      variable: "difference",
       amount: buyerAssets - renterAssets,
     });
 

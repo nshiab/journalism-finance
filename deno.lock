@@ -330,6 +330,7 @@
       "jsr:@nshiab/journalism-dataviz@^1.0.1",
       "jsr:@nshiab/journalism-format@^1.0.2",
       "npm:@observablehq/plot@~0.6.17",
+      "npm:d3-array@^3.2.4",
       "npm:d3-random@^3.0.1"
     ]
   }

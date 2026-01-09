@@ -1,7 +1,7 @@
 import { assertEquals } from "jsr:@std/assert";
 import simulateRentVsBuy from "../../src/finance/simulateRentVsBuy.ts";
 import { saveChart } from "@nshiab/journalism-dataviz";
-import { barY, dot, line, plot } from "@observablehq/plot";
+import { barY, plot } from "@observablehq/plot";
 import getRandomValues from "../../src/finance/getRandomValues.ts";
 
 Deno.test("should compute the total expenses and savings of a renter and buyer", async () => {
@@ -470,11 +470,10 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
     { style: "body { width: 700px; }" },
   );
 
-  // Net Worth
+  // Difference in assets
   const assetsDifference = results.filter((d) =>
     [
-      "renterAssetsDifference",
-      "buyerAssetsDifference",
+      "difference",
     ].includes(d.variable)
   );
   await saveChart(
@@ -507,7 +506,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           barY(data, {
             x: "year",
             y: "amount",
-            fill: "variable",
+            fill: "category",
             // fx: "category",
           }),
         ],
