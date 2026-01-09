@@ -2,17 +2,64 @@ import { assertEquals } from "jsr:@std/assert";
 import simulateRentVsBuy from "../../src/finance/simulateRentVsBuy.ts";
 import { saveChart } from "@nshiab/journalism-dataviz";
 import { barY, dot, line, plot } from "@observablehq/plot";
+import getRandomValues from "../../src/finance/getRandomValues.ts";
 
 Deno.test("should compute the total expenses and savings of a renter and buyer", async () => {
+  const numberOfYears = 25;
+  const annualMarketReturnRate = getRandomValues(
+    numberOfYears,
+    0.06,
+    0.02,
+    { decimals: 4 },
+  );
+  const annualRentIncrease = getRandomValues(numberOfYears, 0.03, 0.01, {
+    decimals: 4,
+  });
+  const renterAnnualInsuranceIncrease = getRandomValues(
+    numberOfYears,
+    0.03,
+    0.01,
+    { decimals: 4 },
+  );
+  const annualMaintenanceIncrease = getRandomValues(
+    numberOfYears,
+    0.02,
+    0.01,
+    { decimals: 4 },
+  );
+  const annualPropertyTaxIncrease = getRandomValues(
+    numberOfYears,
+    0.02,
+    0.01,
+    { decimals: 4 },
+  );
+  const annualCondoFeeIncrease = getRandomValues(
+    numberOfYears,
+    0.02,
+    0.01,
+    { decimals: 4 },
+  );
+  const buyerAnnualInsuranceIncrease = getRandomValues(
+    numberOfYears,
+    0.03,
+    0.01,
+    { decimals: 4 },
+  );
+  const appreciationIncrease = getRandomValues(
+    numberOfYears,
+    0.05,
+    0.01,
+    { decimals: 4 },
+  );
   const results = simulateRentVsBuy({
-    numberOfYears: 25,
-    annualMarketReturnRate: 0.06,
+    numberOfYears,
+    annualMarketReturnRate,
     renter: {
       startingMonthlyRent: 1500,
-      annualRentIncrease: 0.04,
+      annualRentIncrease,
       securityDeposit: 1500,
       startingMonthlyInsurance: 75,
-      annualInsuranceIncrease: 0.03,
+      annualInsuranceIncrease: renterAnnualInsuranceIncrease,
     },
     buyer: {
       downPayment: 50_000,
@@ -20,14 +67,14 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       interestRate: 0.05,
       purchaseFixedFees: 25_000,
       startingAnnualMaintenanceCost: 2500,
-      annualMaintenanceIncrease: 0.03,
+      annualMaintenanceIncrease,
       startingAnnualPropertyTax: 3500,
-      annualPropertyTaxIncrease: 0.02,
+      annualPropertyTaxIncrease,
       startingMonthlyCondoFees: 100,
-      annualCondoFeeIncrease: 0.02,
+      annualCondoFeeIncrease,
       startingMonthlyInsurance: 250,
-      annualInsuranceIncrease: 0.03,
-      appreciationRate: 0.05,
+      annualInsuranceIncrease: buyerAnnualInsuranceIncrease,
+      appreciationIncrease,
     },
   });
 

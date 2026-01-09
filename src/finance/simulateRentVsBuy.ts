@@ -3,13 +3,13 @@ import mortgageInsurancePremium from "./mortgageInsurancePremium.ts";
 
 export default function simulateRentVsBuy(parameters: {
   numberOfYears: number;
-  annualMarketReturnRate: number;
+  annualMarketReturnRate: number[];
   renter: {
     startingMonthlyRent: number;
-    annualRentIncrease: number;
+    annualRentIncrease: number[];
     securityDeposit: number;
     startingMonthlyInsurance: number;
-    annualInsuranceIncrease: number;
+    annualInsuranceIncrease: number[];
   };
   buyer: {
     downPayment: number;
@@ -17,14 +17,14 @@ export default function simulateRentVsBuy(parameters: {
     interestRate: number;
     purchaseFixedFees: number;
     startingAnnualMaintenanceCost: number;
-    annualMaintenanceIncrease: number;
+    annualMaintenanceIncrease: number[];
     startingAnnualPropertyTax: number;
-    annualPropertyTaxIncrease: number;
+    annualPropertyTaxIncrease: number[];
     startingMonthlyCondoFees: number;
-    annualCondoFeeIncrease: number;
+    annualCondoFeeIncrease: number[];
     startingMonthlyInsurance: number;
-    annualInsuranceIncrease: number;
-    appreciationRate: number;
+    annualInsuranceIncrease: number[];
+    appreciationIncrease: number[];
   };
 }) {
   const results: {
@@ -80,6 +80,8 @@ export default function simulateRentVsBuy(parameters: {
   );
 
   for (let year = 1; year <= parameters.numberOfYears; year++) {
+    const yearIndex = year - 1;
+
     // RENTER SETUP
     // Expenses
     const annualRent = rent * 12;
@@ -149,7 +151,7 @@ export default function simulateRentVsBuy(parameters: {
 
     // Market gains
     const renterMarketGains = Math.round(
-      renterStocks * parameters.annualMarketReturnRate,
+      renterStocks * parameters.annualMarketReturnRate[yearIndex],
     );
     results.push({
       year,
@@ -169,7 +171,7 @@ export default function simulateRentVsBuy(parameters: {
 
     // BUYER SETUP
     // We retrieve the mortgage payments for this year
-    const mortgagePaymentsForThisYear = annualMortgagePayments[year - 1];
+    const mortgagePaymentsForThisYear = annualMortgagePayments[yearIndex];
     // We make sure everything is per year
     const buyAnnualCondoFees = buyMonthlyCondoFees * 12;
     const buyAnnualInsurance = buyMonthlyInsurance * 12;
@@ -326,7 +328,7 @@ export default function simulateRentVsBuy(parameters: {
 
     // Market gains
     const buyerMarketGains = Math.round(
-      buyerStocks * parameters.annualMarketReturnRate,
+      buyerStocks * parameters.annualMarketReturnRate[yearIndex],
     );
     results.push({
       year,
@@ -346,7 +348,7 @@ export default function simulateRentVsBuy(parameters: {
 
     // We appreciate the home value for the buyer
     const homeValueIncrease = Math.round(
-      homeValue * parameters.buyer.appreciationRate,
+      homeValue * parameters.buyer.appreciationIncrease[yearIndex],
     );
     results.push({
       year,
@@ -507,23 +509,29 @@ export default function simulateRentVsBuy(parameters: {
 
     // We adjust for following year
     // RENTER
-    rent = Math.round(rent * (1 + parameters.renter.annualRentIncrease));
+    rent = Math.round(
+      rent * (1 + parameters.renter.annualRentIncrease[yearIndex]),
+    );
     rentInsurance = Math.round(
-      rentInsurance * (1 + parameters.renter.annualInsuranceIncrease),
+      rentInsurance *
+        (1 + parameters.renter.annualInsuranceIncrease[yearIndex]),
     );
     // BUYER
     buyAnnualMaintenanceCost = Math.round(
       buyAnnualMaintenanceCost *
-        (1 + parameters.buyer.annualMaintenanceIncrease),
+        (1 + parameters.buyer.annualMaintenanceIncrease[yearIndex]),
     );
     buyAnnualPropertyTax = Math.round(
-      buyAnnualPropertyTax * (1 + parameters.buyer.annualPropertyTaxIncrease),
+      buyAnnualPropertyTax *
+        (1 + parameters.buyer.annualPropertyTaxIncrease[yearIndex]),
     );
     buyMonthlyCondoFees = Math.round(
-      buyMonthlyCondoFees * (1 + parameters.buyer.annualCondoFeeIncrease),
+      buyMonthlyCondoFees *
+        (1 + parameters.buyer.annualCondoFeeIncrease[yearIndex]),
     );
     buyMonthlyInsurance = Math.round(
-      buyMonthlyInsurance * (1 + parameters.buyer.annualInsuranceIncrease),
+      buyMonthlyInsurance *
+        (1 + parameters.buyer.annualInsuranceIncrease[yearIndex]),
     );
   }
 
