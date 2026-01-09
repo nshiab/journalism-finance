@@ -33,14 +33,39 @@ export default function simulateRentVsBuy(parameters: {
     amount: number;
   }[] = [];
 
+  // Initial values in local variables to be able to adjust them year after year
+  // Renter
   let rent = parameters.renter.startingMonthlyRent;
   let rentInsurance = parameters.renter.startingMonthlyInsurance;
-
+  // Buyer
   let buyAnnualMaintenanceCost = parameters.buyer.startingAnnualMaintenanceCost;
   let buyAnnualPropertyTax = parameters.buyer.startingAnnualPropertyTax;
   let buyMonthlyCondoFees = parameters.buyer.startingMonthlyCondoFees;
   let buyMonthlyInsurance = parameters.buyer.startingMonthlyInsurance;
+  let homeValue = parameters.buyer.purchasePrice;
+  let homeEquity = 0;
 
+  // Local variables for cumulative calculations
+  // Renter
+  let renterCumulativeRent = 0;
+  let renterCumulativeInsurance = 0;
+  let renterCumulativeExpenses = 0;
+  let renterStocks = 0;
+  let renterCumulativeMarketGains = 0;
+  let renterAssets = 0;
+  // Buyer
+  let buyerCumulativeMortgageCapital = 0;
+  let buyerCumulativeMortgageInterests = 0;
+  let buyerCumulativeMaintenance = 0;
+  let buyerCumulativePropertyTax = 0;
+  let buyerCumulativeCondoFees = 0;
+  let buyerCumulativeInsurance = 0;
+  let buyerCumulativeExpenses = 0;
+  let buyerStocks = 0;
+  let buyerCumulativeMarketGains = 0;
+  let buyerAssets = 0;
+
+  // We precompute the mortgage payments for the buyer for the entire period
   const annualMortgagePayments = precomputeMortgagePayments(
     parameters.numberOfYears,
     parameters.buyer.purchasePrice - parameters.buyer.downPayment,
@@ -48,61 +73,31 @@ export default function simulateRentVsBuy(parameters: {
   );
 
   for (let year = 1; year <= parameters.numberOfYears; year++) {
-    // RENTER
-
+    // RENTER SETUP
+    // Expenses
     const annualRent = rent * 12;
-    const annualRentInsurance = rentInsurance * 12;
-
     results.push({
       year,
       category: "renter",
       variable: "rent",
       amount: annualRent,
     });
+    const annualRentInsurance = rentInsurance * 12;
     results.push({
       year,
       category: "renter",
       variable: "insurance",
       amount: annualRentInsurance,
     });
-
-    // We retrieve the cumulative rent paid so far
-    const renterPreviousYearCumulativeRentObject = results
-      .find((r) =>
-        r.category === "renter" && r.variable === "cumulativeRent" &&
-        r.year === year - 1
-      );
-    if (year !== 1 && renterPreviousYearCumulativeRentObject === undefined) {
-      throw new Error("renterPreviousYearCumulativeRentObject not found");
-    }
-    const renterPreviousYearCumulativeRent = year === 1
-      ? 0
-      : renterPreviousYearCumulativeRentObject!.amount;
-    const renterCumulativeRent = renterPreviousYearCumulativeRent + annualRent;
+    // We keep track of cumulative expenses
+    renterCumulativeRent += annualRent;
     results.push({
       year,
       category: "renter",
       variable: "cumulativeRent",
       amount: renterCumulativeRent,
     });
-    // Same thing for insurance
-    const renterPreviousYearCumulativeInsuranceObject = results
-      .find((r) =>
-        r.category === "renter" && r.variable === "cumulativeInsurance" &&
-        r.year === year - 1
-      );
-    if (
-      year !== 1 && renterPreviousYearCumulativeInsuranceObject === undefined
-    ) {
-      throw new Error(
-        "renterPreviousYearCumulativeInsuranceObject not found",
-      );
-    }
-    const renterPreviousYearCumulativeInsurance = year === 1
-      ? 0
-      : renterPreviousYearCumulativeInsuranceObject!.amount;
-    const renterCumulativeInsurance = renterPreviousYearCumulativeInsurance +
-      annualRentInsurance;
+    renterCumulativeInsurance += annualRentInsurance;
     results.push({
       year,
       category: "renter",
@@ -110,20 +105,16 @@ export default function simulateRentVsBuy(parameters: {
       amount: renterCumulativeInsurance,
     });
 
-    // For following year
-    rent = Math.round(rent * (1 + parameters.renter.annualRentIncrease));
-    rentInsurance = Math.round(
-      rentInsurance * (1 + parameters.renter.annualInsuranceIncrease),
-    );
-
     // Non-recurring expenses
     const securityDeposit = year === 1 ? parameters.renter.securityDeposit : 0;
-    results.push({
-      year,
-      category: "renter",
-      variable: "securityDeposit",
-      amount: securityDeposit,
-    });
+    if (year === 1) {
+      results.push({
+        year,
+        category: "renter",
+        variable: "securityDeposit",
+        amount: securityDeposit,
+      });
+    }
     results.push({
       year,
       category: "renter",
@@ -134,27 +125,59 @@ export default function simulateRentVsBuy(parameters: {
     // Total expenses, that we keep for comparison later
     const renterExpenses = annualRent + annualRentInsurance +
       securityDeposit;
-
     results.push({
       year,
       category: "renter",
       variable: "expenses",
       amount: renterExpenses,
     });
+    // We keep track of cumulative expenses
+    renterCumulativeExpenses += renterExpenses;
+    results.push({
+      year,
+      category: "renter",
+      variable: "cumulativeExpenses",
+      amount: renterCumulativeExpenses,
+    });
 
-    // BUYER
+    // Market gains
+    const renterMarketGains = Math.round(
+      renterStocks * parameters.annualMarketReturnRate,
+    );
+    results.push({
+      year,
+      category: "renter",
+      variable: "marketGains",
+      amount: renterMarketGains,
+    });
+    renterCumulativeMarketGains += renterMarketGains;
+    results.push({
+      year,
+      category: "renter",
+      variable: "cumulativeMarketGains",
+      amount: renterCumulativeMarketGains,
+    });
+    // We will push the stocks later after adjusting for the difference between renter and buyer expenses
+    renterStocks += renterMarketGains;
 
+    // BUYER SETUP
+    // We retrieve the mortgage payments for this year
+    const mortgagePaymentsForThisYear = annualMortgagePayments[year - 1];
+    // We make sure everything is per year
+    const buyAnnualCondoFees = buyMonthlyCondoFees * 12;
+    const buyAnnualInsurance = buyMonthlyInsurance * 12;
+    // Expenses
     results.push({
       year,
       category: "buyer",
       variable: "mortgageCapital",
-      amount: annualMortgagePayments[year - 1].capital,
+      amount: mortgagePaymentsForThisYear.capital,
     });
     results.push({
       year,
       category: "buyer",
-      variable: "mortgageInterest",
-      amount: annualMortgagePayments[year - 1].interest,
+      variable: "mortgageInterests",
+      amount: mortgagePaymentsForThisYear.interests,
     });
     results.push({
       year,
@@ -172,157 +195,52 @@ export default function simulateRentVsBuy(parameters: {
       year,
       category: "buyer",
       variable: "condoFees",
-      amount: buyMonthlyCondoFees * 12,
+      amount: buyAnnualCondoFees,
     });
     results.push({
       year,
       category: "buyer",
       variable: "insurance",
-      amount: buyMonthlyInsurance * 12,
+      amount: buyAnnualInsurance,
     });
 
-    // We retrieve the cumulative mortgageCapital paid so far
-    const buyerPreviousYearCumulativeMortgageCapitalObject = results
-      .find((r) =>
-        r.category === "buyer" && r.variable === "cumulativeMortgageCapital" &&
-        r.year === year - 1
-      );
-    if (
-      year !== 1 &&
-      buyerPreviousYearCumulativeMortgageCapitalObject === undefined
-    ) {
-      throw new Error(
-        "buyerPreviousYearCumulativeMortgageCapitalObject not found",
-      );
-    }
-    const buyerPreviousYearCumulativeMortgageCapital = year === 1
-      ? 0
-      : buyerPreviousYearCumulativeMortgageCapitalObject!.amount;
-    const buyerCumulativeMortgageCapital =
-      buyerPreviousYearCumulativeMortgageCapital +
-      annualMortgagePayments[year - 1].capital;
+    // We keep track of cumulative expenses
+    buyerCumulativeMortgageCapital += mortgagePaymentsForThisYear.capital;
     results.push({
       year,
       category: "buyer",
       variable: "cumulativeMortgageCapital",
       amount: buyerCumulativeMortgageCapital,
     });
-    // Same thing for the mortgage interest
-    const buyerPreviousYearCumulativeMortgageInterestObject = results
-      .find((r) =>
-        r.category === "buyer" && r.variable === "cumulativeMortgageInterest" &&
-        r.year === year - 1
-      );
-    if (
-      year !== 1 &&
-      buyerPreviousYearCumulativeMortgageInterestObject === undefined
-    ) {
-      throw new Error(
-        "buyerPreviousYearCumulativeMortgageInterestObject not found",
-      );
-    }
-    const buyerPreviousYearCumulativeMortgageInterest = year === 1
-      ? 0
-      : buyerPreviousYearCumulativeMortgageInterestObject!.amount;
-    const buyerCumulativeMortgageInterest =
-      buyerPreviousYearCumulativeMortgageInterest +
-      annualMortgagePayments[year - 1].interest;
+    buyerCumulativeMortgageInterests += mortgagePaymentsForThisYear.interests;
     results.push({
       year,
       category: "buyer",
-      variable: "cumulativeMortgageInterest",
-      amount: buyerCumulativeMortgageInterest,
+      variable: "cumulativeMortgageInterests",
+      amount: buyerCumulativeMortgageInterests,
     });
-    // Same thing for maintenance
-    const buyerPreviousYearCumulativeMaintenanceObject = results
-      .find((r) =>
-        r.category === "buyer" && r.variable === "cumulativeMaintenance" &&
-        r.year === year - 1
-      );
-    if (
-      year !== 1 && buyerPreviousYearCumulativeMaintenanceObject === undefined
-    ) {
-      throw new Error(
-        "buyerPreviousYearCumulativeMaintenanceObject not found",
-      );
-    }
-    const buyerPreviousYearCumulativeMaintenance = year === 1
-      ? 0
-      : buyerPreviousYearCumulativeMaintenanceObject!.amount;
-    const buyerCumulativeMaintenance = buyerPreviousYearCumulativeMaintenance +
-      buyAnnualMaintenanceCost;
+    buyerCumulativeMaintenance += buyAnnualMaintenanceCost;
     results.push({
       year,
       category: "buyer",
       variable: "cumulativeMaintenance",
       amount: buyerCumulativeMaintenance,
     });
-    // Same thing for property tax
-    const buyerPreviousYearCumulativePropertyTaxObject = results
-      .find((r) =>
-        r.category === "buyer" && r.variable === "cumulativePropertyTax" &&
-        r.year === year - 1
-      );
-    if (
-      year !== 1 && buyerPreviousYearCumulativePropertyTaxObject === undefined
-    ) {
-      throw new Error(
-        "buyerPreviousYearCumulativePropertyTaxObject not found",
-      );
-    }
-    const buyerPreviousYearCumulativePropertyTax = year === 1
-      ? 0
-      : buyerPreviousYearCumulativePropertyTaxObject!.amount;
-    const buyerCumulativePropertyTax = buyerPreviousYearCumulativePropertyTax +
-      buyAnnualPropertyTax;
+    buyerCumulativePropertyTax += buyAnnualPropertyTax;
     results.push({
       year,
       category: "buyer",
       variable: "cumulativePropertyTax",
       amount: buyerCumulativePropertyTax,
     });
-    // Same thing for condo fees
-    const buyerPreviousYearCumulativeCondoFeesObject = results
-      .find((r) =>
-        r.category === "buyer" && r.variable === "cumulativeCondoFees" &&
-        r.year === year - 1
-      );
-    if (
-      year !== 1 && buyerPreviousYearCumulativeCondoFeesObject === undefined
-    ) {
-      throw new Error(
-        "buyerPreviousYearCumulativeCondoFeesObject not found",
-      );
-    }
-    const buyerPreviousYearCumulativeCondoFees = year === 1
-      ? 0
-      : buyerPreviousYearCumulativeCondoFeesObject!.amount;
-    const buyerCumulativeCondoFees = buyerPreviousYearCumulativeCondoFees +
-      buyMonthlyCondoFees * 12;
+    buyerCumulativeCondoFees += buyAnnualCondoFees;
     results.push({
       year,
       category: "buyer",
       variable: "cumulativeCondoFees",
       amount: buyerCumulativeCondoFees,
     });
-    // Same thing for insurance
-    const buyerPreviousYearCumulativeInsuranceObject = results
-      .find((r) =>
-        r.category === "buyer" && r.variable === "cumulativeInsurance" &&
-        r.year === year - 1
-      );
-    if (
-      year !== 1 && buyerPreviousYearCumulativeInsuranceObject === undefined
-    ) {
-      throw new Error(
-        "buyerPreviousYearCumulativeInsuranceObject not found",
-      );
-    }
-    const buyerPreviousYearCumulativeInsurance = year === 1
-      ? 0
-      : buyerPreviousYearCumulativeInsuranceObject!.amount;
-    const buyerCumulativeInsurance = buyerPreviousYearCumulativeInsurance +
-      buyMonthlyInsurance * 12;
+    buyerCumulativeInsurance += buyAnnualInsurance;
     results.push({
       year,
       category: "buyer",
@@ -330,32 +248,25 @@ export default function simulateRentVsBuy(parameters: {
       amount: buyerCumulativeInsurance,
     });
 
-    // For following year
-    buyAnnualMaintenanceCost = Math.round(
-      buyAnnualMaintenanceCost *
-        (1 + parameters.buyer.annualMaintenanceIncrease),
-    );
-    buyAnnualPropertyTax = Math.round(
-      buyAnnualPropertyTax * (1 + parameters.buyer.annualPropertyTaxIncrease),
-    );
-    buyMonthlyCondoFees = Math.round(
-      buyMonthlyCondoFees * (1 + parameters.buyer.annualCondoFeeIncrease),
-    );
-    buyMonthlyInsurance = Math.round(
-      buyMonthlyInsurance * (1 + parameters.buyer.annualInsuranceIncrease),
-    );
-
     // Non-recurring expenses
     const downPayment = year === 1 ? parameters.buyer.downPayment : 0;
     const purchaseFixedFees = year === 1
       ? parameters.buyer.purchaseFixedFees
       : 0;
-    results.push({
-      year,
-      category: "buyer",
-      variable: "downPayment",
-      amount: downPayment,
-    });
+    if (year === 1) {
+      results.push({
+        year,
+        category: "buyer",
+        variable: "downPayment",
+        amount: downPayment,
+      });
+      results.push({
+        year,
+        category: "buyer",
+        variable: "purchaseFixedFees",
+        amount: purchaseFixedFees,
+      });
+    }
     results.push({
       year,
       category: "buyer",
@@ -365,23 +276,17 @@ export default function simulateRentVsBuy(parameters: {
     results.push({
       year,
       category: "buyer",
-      variable: "purchaseFixedFees",
-      amount: purchaseFixedFees,
-    });
-    results.push({
-      year,
-      category: "buyer",
       variable: "cumulativePurchaseFixedFees",
       amount: parameters.buyer.purchaseFixedFees,
     });
 
     // Total expenses, that we keep for comparison later
-    const buyerExpenses = annualMortgagePayments[year - 1].capital +
-      annualMortgagePayments[year - 1].interest +
+    const buyerExpenses = mortgagePaymentsForThisYear.capital +
+      mortgagePaymentsForThisYear.interests +
       buyAnnualMaintenanceCost +
       buyAnnualPropertyTax +
-      buyMonthlyCondoFees * 12 +
-      buyMonthlyInsurance * 12 +
+      buyAnnualCondoFees +
+      buyAnnualInsurance +
       downPayment +
       purchaseFixedFees;
     results.push({
@@ -390,8 +295,75 @@ export default function simulateRentVsBuy(parameters: {
       variable: "expenses",
       amount: buyerExpenses,
     });
+    // We keep track of cumulative expenses
+    buyerCumulativeExpenses += buyerExpenses;
+    results.push({
+      year,
+      category: "buyer",
+      variable: "cumulativeExpenses",
+      amount: buyerCumulativeExpenses,
+    });
 
-    // We compare annual expenses of renter and buyer and decide where the savings should go to. We keep track of it for later.
+    // Market gains
+    const buyerMarketGains = Math.round(
+      buyerStocks * parameters.annualMarketReturnRate,
+    );
+    results.push({
+      year,
+      category: "buyer",
+      variable: "marketGains",
+      amount: buyerMarketGains,
+    });
+    buyerCumulativeMarketGains += buyerMarketGains;
+    results.push({
+      year,
+      category: "buyer",
+      variable: "cumulativeMarketGains",
+      amount: buyerCumulativeMarketGains,
+    });
+    // We will push the stocks later after adjusting for the difference between renter and buyer expenses
+    buyerStocks += buyerMarketGains;
+
+    // We appreciate the home value for the buyer
+    const homeValueIncrease = Math.round(
+      homeValue * parameters.buyer.appreciationRate,
+    );
+    results.push({
+      year,
+      category: "buyer",
+      variable: "homeValueIncrease",
+      amount: homeValueIncrease,
+    });
+    homeValue += homeValueIncrease;
+    results.push({
+      year,
+      category: "buyer",
+      variable: "homeValue",
+      amount: homeValue,
+    });
+
+    // We store the previous year home equity for later calculations
+    const previousYearHomeEquity = homeEquity;
+    // We calculate the home equity for the buyer
+    homeEquity = homeValue -
+      mortgagePaymentsForThisYear.balance;
+    results.push({
+      year,
+      category: "buyer",
+      variable: "homeEquity",
+      amount: homeEquity,
+    });
+    // We calculate the home equity gains for this year
+    const homeEquityGains = homeEquity - previousYearHomeEquity;
+    results.push({
+      year,
+      category: "buyer",
+      variable: "homeEquityGains",
+      amount: homeEquityGains,
+    });
+
+    // COMPARISON AND ADJUSTMENTS
+    // We compare annual expenses of renter and buyer and decide where the difference should go to. We keep track of it for later.
     let renterSavings = 0;
     let buyerSavings = 0;
     if (renterExpenses < buyerExpenses) {
@@ -416,215 +388,31 @@ export default function simulateRentVsBuy(parameters: {
       amount: buyerSavings,
     });
 
-    // We add the cumulativeSavings
-    const renterPreviousYearCumulativeSavingsObject = results
-      .find((r) =>
-        r.category === "renter" && r.variable === "cumulativeSavings" &&
-        r.year === year - 1
-      );
-    if (
-      year !== 1 && renterPreviousYearCumulativeSavingsObject === undefined
-    ) {
-      throw new Error("renterPreviousYearCumulativeSavingsObject not found");
-    }
-    const renterPreviousYearCumulativeSavings = year === 1
-      ? 0
-      : renterPreviousYearCumulativeSavingsObject!.amount;
-    const renterCumulativeSavings = renterPreviousYearCumulativeSavings +
-      renterSavings;
+    // We adjust the stocks accordingly and now can push it
+    renterStocks += renterSavings;
     results.push({
       year,
       category: "renter",
-      variable: "cumulativeSavings",
-      amount: renterCumulativeSavings,
+      variable: "stocks",
+      amount: renterStocks,
     });
-
-    const buyerPreviousYearCumulativeSavingsObject = results
-      .find((r) =>
-        r.category === "buyer" && r.variable === "cumulativeSavings" &&
-        r.year === year - 1
-      );
-    if (
-      year !== 1 && buyerPreviousYearCumulativeSavingsObject === undefined
-    ) {
-      throw new Error("buyerPreviousYearCumulativeSavingsObject not found");
-    }
-    const buyerPreviousYearCumulativeSavings = year === 1
-      ? 0
-      : buyerPreviousYearCumulativeSavingsObject!.amount;
-    const buyerCumulativeSavings = buyerPreviousYearCumulativeSavings +
-      buyerSavings;
+    buyerStocks += buyerSavings;
     results.push({
       year,
       category: "buyer",
-      variable: "cumulativeSavings",
-      amount: buyerCumulativeSavings,
-    });
-
-    // We retrieve the total savings from previous year
-    const renterPreviousYearSavingsObject = results
-      .find((r) =>
-        r.category === "renter" && r.variable === "totalSavings" &&
-        r.year === year - 1
-      );
-    if (year !== 1 && renterPreviousYearSavingsObject === undefined) {
-      throw new Error("renterPreviousYearSavingsObject not found");
-    }
-    const renterPreviousYearSavings = year === 1
-      ? 0
-      : renterPreviousYearSavingsObject!.amount;
-
-    const buyerPreviousYearSavingsObject = results
-      .find((r) =>
-        r.category === "buyer" && r.variable === "totalSavings" &&
-        r.year === year - 1
-      );
-    if (year !== 1 && buyerPreviousYearSavingsObject === undefined) {
-      throw new Error("buyerPreviousYearSavingsObject not found");
-    }
-    const buyerPreviousYearSavings = year === 1
-      ? 0
-      : buyerPreviousYearSavingsObject!.amount;
-
-    // We calculate the annual gains from the market return rate
-    const renterMarketGains = Math.round(
-      renterPreviousYearSavings * parameters.annualMarketReturnRate,
-    );
-    results.push({
-      year,
-      category: "renter",
-      variable: "marketGains",
-      amount: renterMarketGains,
-    });
-    const buyerMarketGains = Math.round(
-      buyerPreviousYearSavings * parameters.annualMarketReturnRate,
-    );
-    results.push({
-      year,
-      category: "buyer",
-      variable: "marketGains",
-      amount: buyerMarketGains,
-    });
-
-    // We calculate the cumulative market gains
-    const renterPreviousYearCumulativeMarketGainsObject = results
-      .find((r) =>
-        r.category === "renter" && r.variable === "cumulativeMarketGains" &&
-        r.year === year - 1
-      );
-    if (
-      year !== 1 &&
-      renterPreviousYearCumulativeMarketGainsObject === undefined
-    ) {
-      throw new Error(
-        "renterPreviousYearCumulativeMarketGainsObject not found",
-      );
-    }
-    const renterPreviousYearCumulativeMarketGains = year === 1
-      ? 0
-      : renterPreviousYearCumulativeMarketGainsObject!.amount;
-    const renterCumulativeMarketGains =
-      renterPreviousYearCumulativeMarketGains +
-      renterMarketGains;
-    results.push({
-      year,
-      category: "renter",
-      variable: "cumulativeMarketGains",
-      amount: renterCumulativeMarketGains,
-    });
-
-    const buyerPreviousYearCumulativeMarketGainsObject = results
-      .find((r) =>
-        r.category === "buyer" && r.variable === "cumulativeMarketGains" &&
-        r.year === year - 1
-      );
-    if (
-      year !== 1 &&
-      buyerPreviousYearCumulativeMarketGainsObject === undefined
-    ) {
-      throw new Error(
-        "buyerPreviousYearCumulativeMarketGainsObject not found",
-      );
-    }
-    const buyerPreviousYearCumulativeMarketGains = year === 1
-      ? 0
-      : buyerPreviousYearCumulativeMarketGainsObject!.amount;
-    const buyerCumulativeMarketGains = buyerPreviousYearCumulativeMarketGains +
-      buyerMarketGains;
-    results.push({
-      year,
-      category: "buyer",
-      variable: "cumulativeMarketGains",
-      amount: buyerCumulativeMarketGains,
-    });
-
-    // We appreciate the home value for the buyer
-    const previousYearHomeValueObject = results
-      .find((r) =>
-        r.category === "buyer" && r.variable === "homeValue" &&
-        r.year === year - 1
-      );
-    if (year !== 1 && previousYearHomeValueObject === undefined) {
-      throw new Error("previousYearHomeValueObject not found");
-    }
-    const previousYearHomeValue = year === 1
-      ? parameters.buyer.purchasePrice
-      : previousYearHomeValueObject!.amount;
-
-    const homeValueIncrease = Math.round(
-      previousYearHomeValue * parameters.buyer.appreciationRate,
-    );
-    const homeValue = previousYearHomeValue + homeValueIncrease;
-    results.push({
-      year,
-      category: "buyer",
-      variable: "homeValue",
-      amount: homeValue,
-    });
-
-    // We retrieve the previous home equity
-    const previousYearHomeEquityObject = results
-      .find((r) =>
-        r.category === "buyer" && r.variable === "homeEquity" &&
-        r.year === year - 1
-      );
-    if (
-      year !== 1 && previousYearHomeEquityObject === undefined
-    ) {
-      throw new Error("previousYearHomeEquityObject not found");
-    }
-    const previousYearHomeEquity = year === 1
-      ? parameters.buyer.downPayment
-      : previousYearHomeEquityObject!.amount;
-
-    // We calculate the current home equity
-    const homeEquity = homeValue -
-      annualMortgagePayments[year - 1].balance;
-    results.push({
-      year,
-      category: "buyer",
-      variable: "homeEquity",
-      amount: homeEquity,
-    });
-    // We calculate the home equity gains
-    const homeEquityGains = homeEquity - previousYearHomeEquity;
-    results.push({
-      year,
-      category: "buyer",
-      variable: "homeEquityGains",
-      amount: homeEquityGains,
+      variable: "stocks",
+      amount: buyerStocks,
     });
 
     // We calculate the total gains for this year
-    const renterGains = renterSavings + renterMarketGains;
+    const renterGains = renterMarketGains + renterSavings;
     results.push({
       year,
       category: "renter",
       variable: "gains",
       amount: renterGains,
     });
-    // No home equity gains here because not real money until selling the home
-    const buyerGains = buyerSavings + buyerMarketGains; //+ homeEquityGains;
+    const buyerGains = buyerMarketGains + buyerSavings + homeEquityGains;
     results.push({
       year,
       category: "buyer",
@@ -633,7 +421,6 @@ export default function simulateRentVsBuy(parameters: {
     });
 
     // We adjust the balances
-
     const renterBalance = renterGains - renterExpenses;
     results.push({
       year,
@@ -641,8 +428,8 @@ export default function simulateRentVsBuy(parameters: {
       variable: "balance",
       amount: renterBalance,
     });
-    // We want to include home equity gains as well here
-    const buyerBalance = buyerGains - buyerExpenses + homeEquityGains;
+    // The buyer balance includes home equity gains
+    const buyerBalance = buyerGains - buyerExpenses;
     results.push({
       year,
       category: "buyer",
@@ -650,84 +437,60 @@ export default function simulateRentVsBuy(parameters: {
       amount: buyerBalance,
     });
 
-    // We calculate the overall savings so far
-    const renterTotalSavings = renterPreviousYearSavings + renterGains;
+    // We calculate the overall assets so far
+    renterAssets = renterStocks;
     results.push({
       year,
       category: "renter",
-      variable: "totalSavings",
-      amount: renterTotalSavings,
+      variable: "assets",
+      amount: renterAssets,
     });
-    // Including home equity gains here as well
-    const buyerTotalSavings = buyerPreviousYearSavings + buyerGains +
-      homeEquityGains;
+    buyerAssets = buyerStocks + homeEquity;
     results.push({
       year,
       category: "buyer",
-      variable: "totalSavings",
-      amount: buyerTotalSavings,
+      variable: "assets",
+      amount: buyerAssets,
     });
 
-    // We calculate the overall expenses so far
-    const renterPreviousYearCumulativeExpensesObject = results
-      .find((r) =>
-        r.category === "renter" && r.variable === "cumulativeExpenses" &&
-        r.year === year - 1
-      );
-    if (
-      year !== 1 && renterPreviousYearCumulativeExpensesObject === undefined
-    ) {
-      throw new Error("renterPreviousYearCumulativeExpensesObject not found");
-    }
-    const renterPreviousYearCumulativeExpenses = year === 1
-      ? 0
-      : renterPreviousYearCumulativeExpensesObject!.amount;
-    const renterCumulativeExpenses = renterPreviousYearCumulativeExpenses +
-      renterExpenses;
+    // We calculate the net worth so far
+    // No debts for renter
+    const renterNetWorth = renterAssets;
     results.push({
       year,
       category: "renter",
-      variable: "cumulativeExpenses",
-      amount: renterCumulativeExpenses,
+      variable: "netWorth",
+      amount: renterNetWorth,
     });
-
-    const buyerPreviousYearCumulativeExpensesObject = results
-      .find((r) =>
-        r.category === "buyer" && r.variable === "cumulativeExpenses" &&
-        r.year === year - 1
-      );
-    if (
-      year !== 1 && buyerPreviousYearCumulativeExpensesObject === undefined
-    ) {
-      throw new Error("buyerPreviousYearCumulativeExpensesObject not found");
-    }
-    const buyerPreviousYearCumulativeExpenses = year === 1
-      ? 0
-      : buyerPreviousYearCumulativeExpensesObject!.amount;
-    const buyerCumulativeExpenses = buyerPreviousYearCumulativeExpenses +
-      buyerExpenses;
+    // Buyer net worth includes remaining mortgage balance as debt
+    const buyerNetWorth = buyerAssets - mortgagePaymentsForThisYear.balance;
     results.push({
       year,
       category: "buyer",
-      variable: "cumulativeExpenses",
-      amount: buyerCumulativeExpenses,
+      variable: "netWorth",
+      amount: buyerNetWorth,
     });
 
-    // We calculate the overall balance so far
-    const renterTotalBalance = renterTotalSavings - renterCumulativeExpenses;
-    results.push({
-      year,
-      category: "renter",
-      variable: "totalBalance",
-      amount: renterTotalBalance,
-    });
-    const buyerTotalBalance = buyerTotalSavings - buyerCumulativeExpenses;
-    results.push({
-      year,
-      category: "buyer",
-      variable: "totalBalance",
-      amount: buyerTotalBalance,
-    });
+    // We adjust for following year
+    // RENTER
+    rent = Math.round(rent * (1 + parameters.renter.annualRentIncrease));
+    rentInsurance = Math.round(
+      rentInsurance * (1 + parameters.renter.annualInsuranceIncrease),
+    );
+    // BUYER
+    buyAnnualMaintenanceCost = Math.round(
+      buyAnnualMaintenanceCost *
+        (1 + parameters.buyer.annualMaintenanceIncrease),
+    );
+    buyAnnualPropertyTax = Math.round(
+      buyAnnualPropertyTax * (1 + parameters.buyer.annualPropertyTaxIncrease),
+    );
+    buyMonthlyCondoFees = Math.round(
+      buyMonthlyCondoFees * (1 + parameters.buyer.annualCondoFeeIncrease),
+    );
+    buyMonthlyInsurance = Math.round(
+      buyMonthlyInsurance * (1 + parameters.buyer.annualInsuranceIncrease),
+    );
   }
 
   return results;

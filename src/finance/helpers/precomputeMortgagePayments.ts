@@ -33,7 +33,7 @@ export default function precomputeMortgagePayments(
 
   const annualMortgagePayments: {
     year: number;
-    interest: number;
+    interests: number;
     capital: number;
     mortgage: number;
     balance: number;
@@ -42,7 +42,7 @@ export default function precomputeMortgagePayments(
     annualMortgagePayments.push({
       year: (i / 12) + 1, // 1-indexed years
       balance: Math.round(allMortgagePayments[i + 11].balance),
-      interest: Math.round(
+      interests: Math.round(
         allMortgagePayments.slice(i, i + 12).reduce(
           (sum, mortgagePayment) => sum + mortgagePayment.interest,
           0,
