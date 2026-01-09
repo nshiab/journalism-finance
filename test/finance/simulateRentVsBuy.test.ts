@@ -9,46 +9,46 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
   const annualMarketReturnRate = getRandomValues(
     numberOfYears,
     0.06,
-    0.02,
+    0,
     { decimals: 4 },
   );
-  const annualRentIncrease = getRandomValues(numberOfYears, 0.03, 0.01, {
+  const annualRentIncrease = getRandomValues(numberOfYears, 0.03, 0, {
     decimals: 4,
   });
   const renterAnnualInsuranceIncrease = getRandomValues(
     numberOfYears,
     0.03,
-    0.01,
+    0,
     { decimals: 4 },
   );
   const annualMaintenanceIncrease = getRandomValues(
     numberOfYears,
     0.02,
-    0.01,
+    0,
     { decimals: 4 },
   );
   const annualPropertyTaxIncrease = getRandomValues(
     numberOfYears,
     0.02,
-    0.01,
+    0,
     { decimals: 4 },
   );
   const annualCondoFeeIncrease = getRandomValues(
     numberOfYears,
     0.02,
-    0.01,
+    0,
     { decimals: 4 },
   );
   const buyerAnnualInsuranceIncrease = getRandomValues(
     numberOfYears,
     0.03,
-    0.01,
+    0,
     { decimals: 4 },
   );
   const appreciationIncrease = getRandomValues(
     numberOfYears,
     0.05,
-    0.01,
+    0,
     { decimals: 4 },
   );
   const results = simulateRentVsBuy({
@@ -471,62 +471,17 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
   );
 
   // Net Worth
-  const netWorth = results.filter((d) =>
+  const assetsDifference = results.filter((d) =>
     [
-      "netWorth",
+      "renterAssetsDifference",
+      "buyerAssetsDifference",
     ].includes(d.variable)
   );
   await saveChart(
-    netWorth,
+    assetsDifference,
     (data) =>
       plot({
-        title: "Net worth",
-        y: {
-          nice: true,
-          label: null,
-          tickFormat: (d) =>
-            Math.abs(d) < 1000
-              ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
-              : Math.abs(d) < 1_000_000
-              ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
-              : d < 0
-              ? `-$${Math.abs(d) / 1_000_000}M`
-              : `$${d / 1_000_000}M`,
-        },
-        x: { ticks: [1, 5, 10, 15, 20, 25] },
-        fx: {
-          label: null,
-        },
-        marginLeft: 60,
-        color: {
-          legend: true,
-        },
-        grid: true,
-        marks: [
-          barY(data, {
-            x: "year",
-            y: "amount",
-            fill: "variable",
-            fx: "category",
-          }),
-        ],
-      }),
-    "test/output/net-worth.png",
-    { style: "body { width: 700px; }" },
-  );
-
-  // Net Worth
-  const netWorthDifference = results.filter((d) =>
-    [
-      "renterNetWorthDifference",
-      "buyerNetWorthDifference",
-    ].includes(d.variable)
-  );
-  await saveChart(
-    netWorthDifference,
-    (data) =>
-      plot({
-        title: "Net worth difference",
+        title: "Assets difference",
         y: {
           nice: true,
           label: null,
@@ -557,7 +512,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           }),
         ],
       }),
-    "test/output/net-worth-difference.png",
+    "test/output/assets-difference.png",
     { style: "body { width: 700px; }" },
   );
 

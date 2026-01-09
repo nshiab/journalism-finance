@@ -30,7 +30,44 @@ export default function simulateRentVsBuy(parameters: {
   const results: {
     year: number;
     category: "renter" | "buyer";
-    variable: string;
+    variable:
+      | "rent"
+      | "insurance"
+      | "cumulativeRent"
+      | "cumulativeInsurance"
+      | "securityDeposit"
+      | "cumulativeSecurityDeposit"
+      | "expenses"
+      | "cumulativeExpenses"
+      | "marketGains"
+      | "cumulativeMarketGains"
+      | "stocks"
+      | "savings"
+      | "gains"
+      | "balance"
+      | "assets"
+      | "renterAssetsDifference"
+      | "buyerAssetsDifference"
+      | "mortgageCapital"
+      | "mortgageInterests"
+      | "maintenance"
+      | "propertyTax"
+      | "condoFees"
+      | "cumulativeMortgageCapital"
+      | "cumulativeMortgageInterests"
+      | "cumulativeMaintenance"
+      | "cumulativePropertyTax"
+      | "cumulativeCondoFees"
+      | "downPayment"
+      | "purchaseFixedFees"
+      | "insurancePremium"
+      | "cumulativeDownPayment"
+      | "cumulativePurchaseFixedFees"
+      | "cumulativeInsurancePremium"
+      | "homeValueIncrease"
+      | "homeValue"
+      | "homeEquity"
+      | "homeEquityGains";
     amount: number;
   }[] = [];
 
@@ -475,36 +512,18 @@ export default function simulateRentVsBuy(parameters: {
       amount: buyerAssets,
     });
 
-    // We calculate the net worth so far
-    // No debts for renter
-    const renterNetWorth = renterAssets;
+    // Now we can check who has the highest assets
     results.push({
       year,
       category: "renter",
-      variable: "netWorth",
-      amount: renterNetWorth,
-    });
-    // Buyer net worth includes remaining mortgage balance as debt
-    const buyerNetWorth = buyerAssets - mortgagePaymentsForThisYear.balance;
-    results.push({
-      year,
-      category: "buyer",
-      variable: "netWorth",
-      amount: buyerNetWorth,
-    });
-
-    // Now we can check who has the highest net worth
-    results.push({
-      year,
-      category: "renter",
-      variable: "renterNetWorthDifference",
-      amount: renterNetWorth - buyerNetWorth,
+      variable: "renterAssetsDifference",
+      amount: renterAssets - buyerAssets,
     });
     results.push({
       year,
       category: "buyer",
-      variable: "buyerNetWorthDifference",
-      amount: buyerNetWorth - renterNetWorth,
+      variable: "buyerAssetsDifference",
+      amount: buyerAssets - renterAssets,
     });
 
     // We adjust for following year
