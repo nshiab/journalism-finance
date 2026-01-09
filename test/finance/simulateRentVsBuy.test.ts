@@ -23,11 +23,11 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       annualMaintenanceIncrease: 0.03,
       startingAnnualPropertyTax: 3500,
       annualPropertyTaxIncrease: 0.02,
-      startingMonthlyCondoFees: 0,
+      startingMonthlyCondoFees: 100,
       annualCondoFeeIncrease: 0.02,
       startingMonthlyInsurance: 250,
       annualInsuranceIncrease: 0.03,
-      appreciationRate: 0.04,
+      appreciationRate: 0.05,
     },
   });
 
@@ -43,6 +43,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       "insurance",
       "downPayment",
       "purchaseFixedFees",
+      "insurancePremium",
       // renter
       "rent",
       "insurance",
@@ -100,6 +101,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       "cumulativeInsurance",
       "cumulativeDownPayment",
       "cumulativePurchaseFixedFees",
+      "cumulativeInsurancePremium",
       // renter
       "cumulativeRent",
       "cumulativeInsurance",
@@ -421,7 +423,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
     { style: "body { width: 700px; }" },
   );
 
-  // Assets
+  // Net Worth
   const netWorth = results.filter((d) =>
     [
       "netWorth",
@@ -431,7 +433,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
     netWorth,
     (data) =>
       plot({
-        title: "Net Worth",
+        title: "Net worth",
         y: {
           nice: true,
           label: null,
@@ -462,7 +464,53 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           }),
         ],
       }),
-    "test/output/netWorth.png",
+    "test/output/net-worth.png",
+    { style: "body { width: 700px; }" },
+  );
+
+  // Net Worth
+  const netWorthDifference = results.filter((d) =>
+    [
+      "renterNetWorthDifference",
+      "buyerNetWorthDifference",
+    ].includes(d.variable)
+  );
+  await saveChart(
+    netWorthDifference,
+    (data) =>
+      plot({
+        title: "Net worth difference",
+        y: {
+          nice: true,
+          label: null,
+          tickFormat: (d) =>
+            Math.abs(d) < 1000
+              ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
+              : Math.abs(d) < 1_000_000
+              ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
+              : d < 0
+              ? `-$${Math.abs(d) / 1_000_000}M`
+              : `$${d / 1_000_000}M`,
+        },
+        x: { ticks: [1, 5, 10, 15, 20, 25] },
+        fx: {
+          label: null,
+        },
+        marginLeft: 60,
+        color: {
+          legend: true,
+        },
+        grid: true,
+        marks: [
+          barY(data, {
+            x: "year",
+            y: "amount",
+            fill: "variable",
+            // fx: "category",
+          }),
+        ],
+      }),
+    "test/output/net-worth-difference.png",
     { style: "body { width: 700px; }" },
   );
 

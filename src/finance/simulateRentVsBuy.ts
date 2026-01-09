@@ -1,4 +1,5 @@
 import precomputeMortgagePayments from "./helpers/precomputeMortgagePayments.ts";
+import mortgageInsurancePremium from "./mortgageInsurancePremium.ts";
 
 export default function simulateRentVsBuy(parameters: {
   numberOfYears: number;
@@ -70,6 +71,12 @@ export default function simulateRentVsBuy(parameters: {
     parameters.numberOfYears,
     parameters.buyer.purchasePrice - parameters.buyer.downPayment,
     parameters.buyer.interestRate,
+  );
+
+  // We precompute the insurance premium for the buyer
+  const insurancePremium = mortgageInsurancePremium(
+    parameters.buyer.purchasePrice,
+    parameters.buyer.downPayment,
   );
 
   for (let year = 1; year <= parameters.numberOfYears; year++) {
@@ -253,6 +260,7 @@ export default function simulateRentVsBuy(parameters: {
     const purchaseFixedFees = year === 1
       ? parameters.buyer.purchaseFixedFees
       : 0;
+    const insurancePremiumThisYear = year === 1 ? insurancePremium : 0;
     if (year === 1) {
       results.push({
         year,
@@ -265,6 +273,12 @@ export default function simulateRentVsBuy(parameters: {
         category: "buyer",
         variable: "purchaseFixedFees",
         amount: purchaseFixedFees,
+      });
+      results.push({
+        year,
+        category: "buyer",
+        variable: "insurancePremium",
+        amount: insurancePremiumThisYear,
       });
     }
     results.push({
@@ -279,6 +293,12 @@ export default function simulateRentVsBuy(parameters: {
       variable: "cumulativePurchaseFixedFees",
       amount: parameters.buyer.purchaseFixedFees,
     });
+    results.push({
+      year,
+      category: "buyer",
+      variable: "cumulativeInsurancePremium",
+      amount: insurancePremium,
+    });
 
     // Total expenses, that we keep for comparison later
     const buyerExpenses = mortgagePaymentsForThisYear.capital +
@@ -288,7 +308,7 @@ export default function simulateRentVsBuy(parameters: {
       buyAnnualCondoFees +
       buyAnnualInsurance +
       downPayment +
-      purchaseFixedFees;
+      purchaseFixedFees + insurancePremiumThisYear;
     results.push({
       year,
       category: "buyer",
@@ -469,6 +489,20 @@ export default function simulateRentVsBuy(parameters: {
       category: "buyer",
       variable: "netWorth",
       amount: buyerNetWorth,
+    });
+
+    // Now we can check who has the highest net worth
+    results.push({
+      year,
+      category: "renter",
+      variable: "renterNetWorthDifference",
+      amount: renterNetWorth - buyerNetWorth,
+    });
+    results.push({
+      year,
+      category: "buyer",
+      variable: "buyerNetWorthDifference",
+      amount: buyerNetWorth - renterNetWorth,
     });
 
     // We adjust for following year
