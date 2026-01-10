@@ -13,12 +13,12 @@ import {
 
 Deno.test("should run a monte carlor simulation of rent vs buy", async () => {
   const simulationResults = simulateRentVsBuyMonteCarlo({
-    iterations: 1_000,
+    iterations: 10_000,
     numberOfYears: 25,
     annualAvgMarketReturnRate: 0.07,
     annualMarketReturnStdDev: 0.05,
     renter: {
-      startingMonthlyRent: 1250,
+      startingMonthlyRent: 1500,
       annualRentIncreaseAvg: 0.03,
       annualRentIncreaseStdDev: 0.03,
       securityDeposit: 2000,
@@ -311,70 +311,59 @@ Deno.test("should run a monte carlor simulation of rent vs buy", async () => {
   );
 
   // Final year difference distribution
+  // We remap buyer/renter
   const differenceAtFinalYear = simulationResults.finalYearResults.filter((d) =>
     [
       "difference",
-    ].includes(d.variable)
-  );
+    ].includes(d.variable) && d.category === "buyer"
+  ).map((d) => ({
+    ...d,
+    category: d.amount >= 0 ? "buyerHasMore" : "renterHasMore",
+  }));
   await saveChart(
     differenceAtFinalYear,
     (data) => {
-      // @ts-ignore
-      const totalBuyer = data.filter((d) => d.category === "buyer").length;
-      const totalBuyerPositive =
-        // @ts-ignore
-        data.filter((d) => d.category === "buyer" && d.amount > 0).length;
-      const percentageBuyerPositive = Math.round(
-        totalBuyerPositive / totalBuyer * 100,
-      );
-
-      // @ts-ignore
-      const totalRenter = data.filter((d) => d.category === "renter").length;
-      const totalRenterPositive =
-        // @ts-ignore
-        data.filter((d) => d.category === "renter" && d.amount > 0).length;
-      const percentageRenterPositive = Math.round(
-        totalRenterPositive / totalRenter * 100,
-      );
-
-      let averageDifference = 0;
-      if (percentageBuyerPositive > percentageRenterPositive) {
-        // @ts-ignore
-        const buyerData = data.filter((d) => d.category === "buyer");
-        const totalDifference = buyerData.reduce(
-          (acc: number, curr: { amount: number }) => acc + curr.amount,
-          0,
-        );
-        averageDifference = totalDifference / buyerData.length;
-      } else {
-        // @ts-ignore
-        const renterData = data.filter((d) => d.category === "renter");
-        const totalDifference = renterData.reduce(
-          (acc: number, curr: { amount: number }) => acc + curr.amount,
-          0,
-        );
-        averageDifference = totalDifference / renterData.length;
+      // Percentage of time buyer is positive
+      if (Array.isArray(data) === false) {
+        throw new Error("Data is not an array");
       }
-      averageDifference = Math.round(averageDifference);
-      const averageDifferenceFormatted = averageDifference < 1000
-        ? `${averageDifference}`
-        : averageDifference < 1_000_000
-        ? `${Math.round(averageDifference / 1000)}k`
-        : `${Math.round(averageDifference / 1_000_000)}M`;
+      const totalCount = data.length;
+
+      const buyer = data.filter((d) => d.category === "buyerHasMore");
+      const renter = data.filter((d) => d.category === "renterHasMore");
+      const buyerPositiveCount = buyer.length;
+      const renterPositiveCount = renter.length;
+      const percentageBuyerPositive = Math.round(
+        buyerPositiveCount / totalCount * 100,
+      );
+      const percentageRenterPositive = Math.round(
+        renterPositiveCount / totalCount * 100,
+      );
+      // We calculate the average assets for renter and buyer
+      let averageBuyerAssets =
+        buyer.reduce((acc, curr) => acc + curr.amount, 0) / buyer.length;
+      averageBuyerAssets = averageBuyerAssets < 0 ? 0 : averageBuyerAssets;
+      let averageRenterAssets =
+        renter.reduce((acc, curr) => acc + curr.amount, 0) / renter.length;
+      averageRenterAssets = averageRenterAssets > 0
+        ? 0
+        : Math.abs(averageRenterAssets);
 
       return plot({
-        title: "Difference in assets at final year",
-        height: 400,
+        title: "Is it better to buy or to rent after 25 years?",
+        subtitle:
+          "Each dot represents the assets difference between buyer and renter of one of 10k simulations.",
+        height: 450,
         x: {
           nice: true,
           label: null,
           tickFormat: (d) =>
             (Math.abs(d) < 1000
-              ? d < 0 ? `-$${Math.abs(d)}` : `+$${d}`
+              ? d < 0 ? `+$${Math.abs(d)}` : `+$${d}`
               : Math.abs(d) < 1_000_000
-              ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `+$${d / 1000}k`
+              ? d < 0 ? `+$${Math.abs(d) / 1000}k` : `+$${d / 1000}k`
               : d < 0
-              ? `-$${Math.abs(d) / 1_000_000}M`
+              ? `+$${Math.abs(d) / 1_000_000}M`
               : `+$${d / 1_000_000}M`).replace("+$0", "$0"),
         },
         fx: {
@@ -386,41 +375,53 @@ Deno.test("should run a monte carlor simulation of rent vs buy", async () => {
         },
         grid: true,
         marks: [
-          ruleX([0], { stroke: "black" }),
           dotX(
             data,
             dodgeY({
               x: "amount",
               fill: "category",
-              r: 1.5,
-              padding: 1,
+              r: 1,
+              padding: 0,
               //   fy: "category",
             }),
           ),
           textX([{
             amount: 0,
-            category: percentageBuyerPositive > percentageRenterPositive
-              ? "buyer"
-              : "renter",
+            category: "buyerHasMore",
+            text:
+              `The buyer ends up with more assets ${percentageBuyerPositive}% of the time with $${
+                Math.round(averageBuyerAssets).toLocaleString()
+              } more on average.`,
           }], {
-            text: (d) =>
-              percentageBuyerPositive > percentageRenterPositive
-                ? `The buyer was better off\nthan the renter ${percentageBuyerPositive}% of time${
-                  averageDifference > 0
-                    ? `\nwith $${averageDifferenceFormatted} more on average`
-                    : ""
-                }`
-                : `The renter was better off\nthan the buyer ${percentageRenterPositive}% of time${
-                  averageDifference > 0
-                    ? `\nwith $${averageDifferenceFormatted} more on average`
-                    : ""
-                }`,
+            lineWidth: 10,
             x: "amount",
-            fill: "category",
+            text: "text",
+            textAnchor: "start",
             fontWeight: "bold",
             fontSize: 12,
+            dy: -100,
+            dx: 100,
+            fill: "category",
             stroke: "white",
-            dy: -160,
+          }),
+          textX([{
+            amount: 0,
+            category: "renterHasMore",
+            text:
+              `The renter ends up with more assets ${percentageRenterPositive}% of the time with $${
+                Math.round(averageRenterAssets).toLocaleString()
+              } more on average.`,
+          }], {
+            lineWidth: 10,
+            x: "amount",
+            text: "text",
+            textAnchor: "end",
+            fontWeight: "bold",
+            fontSize: 12,
+            dy: -100,
+            dx: -100,
+            fill: "category",
+            stroke: "white",
           }),
         ],
       });
