@@ -3,7 +3,7 @@ import mortgagePayments from "../mortgagePayments.ts";
 export default function precomputeMortgagePayments(
   numberOfYears: number,
   startingMortgageAmount: number,
-  interestRate: number,
+  interestRates: number[],
 ) {
   // We precompute all mortgage payments for the entire period
   const allMortgagePayments: {
@@ -23,7 +23,7 @@ export default function precomputeMortgagePayments(
       : startingMortgageAmount;
     const payments = mortgagePayments(
       mortgageAmount,
-      interestRate * 100,
+      interestRates[year / term] * 100,
       "monthly",
       term,
       25 - year,

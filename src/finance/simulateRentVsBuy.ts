@@ -18,7 +18,7 @@ export default function simulateRentVsBuy(parameters: {
   buyer: {
     downPayment: number;
     purchasePrice: number;
-    interestRate: number;
+    interestRates: number[];
     purchaseFixedFees: number;
     startingAnnualMaintenanceCost: number;
     annualMaintenanceIncrease: number[];
@@ -141,7 +141,7 @@ export default function simulateRentVsBuy(parameters: {
     parameters.numberOfYears,
     (parameters.buyer.purchasePrice - parameters.buyer.downPayment) +
       insurancePremium,
-    parameters.buyer.interestRate,
+    parameters.buyer.interestRates,
   );
 
   for (

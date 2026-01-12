@@ -74,7 +74,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
     buyer: {
       downPayment: 50_000,
       purchasePrice: 500_000,
-      interestRate: 0.05,
+      interestRates: [0.01, 0.02, 0.03, 0.04, 0.05],
       purchaseFixedFees: 25_000,
       startingAnnualMaintenanceCost: 2500,
       annualMaintenanceIncrease,
