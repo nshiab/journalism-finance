@@ -51,12 +51,19 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
     0,
     { decimals: 4 },
   );
+  const sellingFixedFeesIncrease = getRandomValues(
+    numberOfYears,
+    0.03,
+    0,
+    { decimals: 4 },
+  );
 
   const results = simulateRentVsBuy({
     startingYear: 2000,
     numberOfYears,
     annualMarketReturnRate,
     tfsaContributions: true,
+    combinedTaxRate: 0.25,
     renter: {
       startingMonthlyRent: 1750,
       annualRentIncrease,
@@ -78,6 +85,9 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       startingMonthlyInsurance: 250,
       annualInsuranceIncrease: buyerAnnualInsuranceIncrease,
       appreciationIncrease,
+      sellingFixedFees: 2000,
+      sellingFixedFeesIncrease,
+      sellingCommissionRate: 0.04,
     },
   });
 

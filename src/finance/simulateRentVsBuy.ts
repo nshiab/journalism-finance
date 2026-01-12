@@ -7,6 +7,7 @@ export default function simulateRentVsBuy(parameters: {
   numberOfYears: number;
   annualMarketReturnRate: number[];
   tfsaContributions: boolean;
+  combinedTaxRate: number;
   renter: {
     startingMonthlyRent: number;
     annualRentIncrease: number[];
@@ -28,6 +29,9 @@ export default function simulateRentVsBuy(parameters: {
     startingMonthlyInsurance: number;
     annualInsuranceIncrease: number[];
     appreciationIncrease: number[];
+    sellingFixedFees: number;
+    sellingFixedFeesIncrease: number[];
+    sellingCommissionRate: number;
   };
 }) {
   const results: {
@@ -45,6 +49,7 @@ export default function simulateRentVsBuy(parameters: {
       | "marketGains"
       | "cumulativeMarketGains"
       | "stocks"
+      | "stocksPurchased"
       | "tfsaGains"
       | "tfsaContributions"
       | "cumulativeTfsaContributions"
@@ -74,7 +79,9 @@ export default function simulateRentVsBuy(parameters: {
       | "homeValueIncrease"
       | "homeValue"
       | "homeEquity"
-      | "homeEquityGains";
+      | "homeEquityGains"
+      | "sellingCosts";
+
     amount: number;
   }[] = [];
 
@@ -89,6 +96,7 @@ export default function simulateRentVsBuy(parameters: {
   let buyMonthlyInsurance = parameters.buyer.startingMonthlyInsurance;
   let homeValue = parameters.buyer.purchasePrice;
   let homeEquity = 0;
+  let sellingFixedFees = parameters.buyer.sellingFixedFees;
 
   // Local variables for cumulative calculations
   // Renter
@@ -96,6 +104,7 @@ export default function simulateRentVsBuy(parameters: {
   let renterCumulativeInsurance = 0;
   let renterCumulativeExpenses = 0;
   let renterStocks = 0;
+  let renterStocksPurchased = 0;
   let renterCumulativeMarketGains = 0;
   let renterTfsa = 0;
   let renterTfsaGains = 0;
@@ -112,6 +121,7 @@ export default function simulateRentVsBuy(parameters: {
   let buyerCumulativeInsurance = 0;
   let buyerCumulativeExpenses = 0;
   let buyerStocks = 0;
+  let buyerStocksPurchased = 0;
   let buyerCumulativeMarketGains = 0;
   let buyerTfsa = 0;
   let buyerTfsaGains = 0;
@@ -120,17 +130,18 @@ export default function simulateRentVsBuy(parameters: {
   let buyerCumulativeTfsaContributions = 0;
   let buyerAssets = 0;
 
-  // We precompute the mortgage payments for the buyer for the entire period
-  const annualMortgagePayments = precomputeMortgagePayments(
-    parameters.numberOfYears,
-    parameters.buyer.purchasePrice - parameters.buyer.downPayment,
-    parameters.buyer.interestRate,
-  );
-
   // We precompute the insurance premium for the buyer
   const insurancePremium = mortgageInsurancePremium(
     parameters.buyer.purchasePrice,
     parameters.buyer.downPayment,
+  );
+
+  // We precompute the mortgage payments for the buyer for the entire period
+  const annualMortgagePayments = precomputeMortgagePayments(
+    parameters.numberOfYears,
+    (parameters.buyer.purchasePrice - parameters.buyer.downPayment) +
+      insurancePremium,
+    parameters.buyer.interestRate,
   );
 
   for (
@@ -346,9 +357,6 @@ export default function simulateRentVsBuy(parameters: {
     const purchaseFixedFees = year === parameters.startingYear
       ? parameters.buyer.purchaseFixedFees
       : 0;
-    const insurancePremiumThisYear = year === parameters.startingYear
-      ? insurancePremium
-      : 0;
     if (year === parameters.startingYear) {
       results.push({
         year,
@@ -361,12 +369,6 @@ export default function simulateRentVsBuy(parameters: {
         category: "buyer",
         variable: "purchaseFixedFees",
         amount: purchaseFixedFees,
-      });
-      results.push({
-        year,
-        category: "buyer",
-        variable: "insurancePremium",
-        amount: insurancePremiumThisYear,
       });
     }
     results.push({
@@ -396,7 +398,7 @@ export default function simulateRentVsBuy(parameters: {
       buyAnnualCondoFees +
       buyAnnualInsurance +
       downPayment +
-      purchaseFixedFees + insurancePremiumThisYear;
+      purchaseFixedFees;
     results.push({
       year,
       category: "buyer",
@@ -591,12 +593,26 @@ export default function simulateRentVsBuy(parameters: {
       variable: "stocks",
       amount: renterStocks,
     });
+    renterStocksPurchased += renterSavings;
+    results.push({
+      year,
+      category: "renter",
+      variable: "stocksPurchased",
+      amount: renterStocksPurchased,
+    });
     buyerStocks += buyerSavings;
     results.push({
       year,
       category: "buyer",
       variable: "stocks",
       amount: buyerStocks,
+    });
+    buyerStocksPurchased += buyerSavings;
+    results.push({
+      year,
+      category: "buyer",
+      variable: "stocksPurchased",
+      amount: buyerStocksPurchased,
     });
 
     // We calculate the total gains for this year
@@ -689,7 +705,59 @@ export default function simulateRentVsBuy(parameters: {
       buyMonthlyInsurance *
         (1 + parameters.buyer.annualInsuranceIncrease[yearIndex]),
     );
+    sellingFixedFees = Math.round(
+      sellingFixedFees *
+        (1 + parameters.buyer.sellingFixedFeesIncrease[yearIndex]),
+    );
   }
+
+  // We sell everything at the end
+  // Renter
+  const renterFinalStockGains = renterStocks - renterStocksPurchased;
+  const renterStockTaxes = Math.round(Math.max(
+    (Math.max(0, renterFinalStockGains) /
+      2) * parameters.combinedTaxRate,
+  ));
+  const renterSellingCosts = renterStockTaxes;
+  results.push({
+    year: parameters.startingYear + parameters.numberOfYears,
+    category: "renter",
+    variable: "sellingCosts",
+    amount: renterSellingCosts,
+  });
+  // We don't forget to return the security deposit
+  const renterAssetsAfterSelling = (renterAssets - renterSellingCosts) +
+    parameters.renter.securityDeposit;
+  results.push({
+    year: parameters.startingYear + parameters.numberOfYears,
+    category: "renter",
+    variable: "assets",
+    amount: renterAssetsAfterSelling,
+  });
+  // Buyer
+  const buyerFinalStockGains = buyerStocks - buyerStocksPurchased;
+  const buyerStockTaxes = Math.round(Math.max(
+    (Math.max(0, buyerFinalStockGains) /
+      2) * parameters.combinedTaxRate,
+  ));
+  const buyerHomeSellingCosts = Math.round(
+    homeValue * parameters.buyer.sellingCommissionRate +
+      sellingFixedFees,
+  );
+  const buyerSellingCosts = buyerStockTaxes + buyerHomeSellingCosts;
+  results.push({
+    year: parameters.startingYear + parameters.numberOfYears,
+    category: "buyer",
+    variable: "sellingCosts",
+    amount: buyerSellingCosts,
+  });
+  const buyerAssetsAfterSelling = buyerAssets - buyerSellingCosts;
+  results.push({
+    year: parameters.startingYear + parameters.numberOfYears,
+    category: "buyer",
+    variable: "assets",
+    amount: buyerAssetsAfterSelling,
+  });
 
   return results;
 }
