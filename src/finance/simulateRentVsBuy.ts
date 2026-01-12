@@ -1,9 +1,12 @@
+import getTfsaContribution from "./helpers/getTfsaContribution.ts";
 import precomputeMortgagePayments from "./helpers/precomputeMortgagePayments.ts";
 import mortgageInsurancePremium from "./mortgageInsurancePremium.ts";
 
 export default function simulateRentVsBuy(parameters: {
+  startingYear: number;
   numberOfYears: number;
   annualMarketReturnRate: number[];
+  tfsaContributions: boolean;
   renter: {
     startingMonthlyRent: number;
     annualRentIncrease: number[];
@@ -42,7 +45,12 @@ export default function simulateRentVsBuy(parameters: {
       | "marketGains"
       | "cumulativeMarketGains"
       | "stocks"
-      | "savings"
+      | "tfsaGains"
+      | "tfsaContributions"
+      | "cumulativeTfsaContributions"
+      | "cumulativeTfsaGains"
+      | "tfsa"
+      | "newStocks"
       | "gains"
       | "balance"
       | "assets"
@@ -89,6 +97,11 @@ export default function simulateRentVsBuy(parameters: {
   let renterCumulativeExpenses = 0;
   let renterStocks = 0;
   let renterCumulativeMarketGains = 0;
+  let renterTfsa = 0;
+  let renterTfsaGains = 0;
+  let renterCumulativeTfsaGains = 0;
+  let renterTfsaContributions = 0;
+  let renterCumulativeTfsaContributions = 0;
   let renterAssets = 0;
   // Buyer
   let buyerCumulativeMortgageCapital = 0;
@@ -100,6 +113,11 @@ export default function simulateRentVsBuy(parameters: {
   let buyerCumulativeExpenses = 0;
   let buyerStocks = 0;
   let buyerCumulativeMarketGains = 0;
+  let buyerTfsa = 0;
+  let buyerTfsaGains = 0;
+  let buyerCumulativeTfsaGains = 0;
+  let buyerTfsaContributions = 0;
+  let buyerCumulativeTfsaContributions = 0;
   let buyerAssets = 0;
 
   // We precompute the mortgage payments for the buyer for the entire period
@@ -115,8 +133,12 @@ export default function simulateRentVsBuy(parameters: {
     parameters.buyer.downPayment,
   );
 
-  for (let year = 1; year <= parameters.numberOfYears; year++) {
-    const yearIndex = year - 1;
+  for (
+    let year = parameters.startingYear;
+    year < parameters.startingYear + parameters.numberOfYears;
+    year++
+  ) {
+    const yearIndex = year - parameters.startingYear;
 
     // RENTER SETUP
     // Expenses
@@ -151,8 +173,10 @@ export default function simulateRentVsBuy(parameters: {
     });
 
     // Non-recurring expenses
-    const securityDeposit = year === 1 ? parameters.renter.securityDeposit : 0;
-    if (year === 1) {
+    const securityDeposit = year === parameters.startingYear
+      ? parameters.renter.securityDeposit
+      : 0;
+    if (year === parameters.startingYear) {
       results.push({
         year,
         category: "renter",
@@ -184,6 +208,28 @@ export default function simulateRentVsBuy(parameters: {
       variable: "cumulativeExpenses",
       amount: renterCumulativeExpenses,
     });
+
+    // TFSA gains
+    if (parameters.tfsaContributions) {
+      renterTfsaGains = Math.round(
+        renterTfsa * parameters.annualMarketReturnRate[yearIndex],
+      );
+      results.push({
+        year,
+        category: "renter",
+        variable: "tfsaGains",
+        amount: renterTfsaGains,
+      });
+      renterCumulativeTfsaGains += renterTfsaGains;
+      results.push({
+        year,
+        category: "renter",
+        variable: "cumulativeTfsaGains",
+        amount: renterCumulativeTfsaGains,
+      });
+      // We will push the tfsa later after adjusting for the difference between renter and buyer expenses
+      renterTfsa += renterTfsaGains;
+    }
 
     // Market gains
     const renterMarketGains = Math.round(
@@ -294,12 +340,16 @@ export default function simulateRentVsBuy(parameters: {
     });
 
     // Non-recurring expenses
-    const downPayment = year === 1 ? parameters.buyer.downPayment : 0;
-    const purchaseFixedFees = year === 1
+    const downPayment = year === parameters.startingYear
+      ? parameters.buyer.downPayment
+      : 0;
+    const purchaseFixedFees = year === parameters.startingYear
       ? parameters.buyer.purchaseFixedFees
       : 0;
-    const insurancePremiumThisYear = year === 1 ? insurancePremium : 0;
-    if (year === 1) {
+    const insurancePremiumThisYear = year === parameters.startingYear
+      ? insurancePremium
+      : 0;
+    if (year === parameters.startingYear) {
       results.push({
         year,
         category: "buyer",
@@ -361,6 +411,28 @@ export default function simulateRentVsBuy(parameters: {
       variable: "cumulativeExpenses",
       amount: buyerCumulativeExpenses,
     });
+
+    // TFSA gains
+    if (parameters.tfsaContributions) {
+      buyerTfsaGains = Math.round(
+        buyerTfsa * parameters.annualMarketReturnRate[yearIndex],
+      );
+      results.push({
+        year,
+        category: "buyer",
+        variable: "tfsaGains",
+        amount: buyerTfsaGains,
+      });
+      buyerCumulativeTfsaGains += buyerTfsaGains;
+      results.push({
+        year,
+        category: "buyer",
+        variable: "cumulativeTfsaGains",
+        amount: buyerCumulativeTfsaGains,
+      });
+      // We will push the tfsa later after adjusting for the difference between renter and buyer expenses
+      buyerTfsa += buyerTfsaGains;
+    }
 
     // Market gains
     const buyerMarketGains = Math.round(
@@ -433,16 +505,81 @@ export default function simulateRentVsBuy(parameters: {
       buyerSavings = renterExpenses -
         buyerExpenses;
     }
+
+    // We adjust TFSA contributions if applicable
+    if (parameters.tfsaContributions) {
+      const renterContributionRoom = getTfsaContribution(
+        year,
+        renterCumulativeTfsaContributions,
+      );
+      renterTfsaContributions = Math.min(
+        renterContributionRoom,
+        renterSavings,
+      );
+      results.push({
+        year,
+        category: "renter",
+        variable: "tfsaContributions",
+        amount: renterTfsaContributions,
+      });
+      renterCumulativeTfsaContributions += renterTfsaContributions;
+      results.push({
+        year,
+        category: "renter",
+        variable: "cumulativeTfsaContributions",
+        amount: renterCumulativeTfsaContributions,
+      });
+      renterTfsa += renterTfsaContributions;
+      results.push({
+        year,
+        category: "renter",
+        variable: "tfsa",
+        amount: renterTfsa,
+      });
+
+      const buyerContributionRoom = getTfsaContribution(
+        year,
+        buyerCumulativeTfsaContributions,
+      );
+      buyerTfsaContributions = Math.min(
+        buyerContributionRoom,
+        buyerSavings,
+      );
+      results.push({
+        year,
+        category: "buyer",
+        variable: "tfsaContributions",
+        amount: buyerTfsaContributions,
+      });
+      buyerCumulativeTfsaContributions += buyerTfsaContributions;
+      results.push({
+        year,
+        category: "buyer",
+        variable: "cumulativeTfsaContributions",
+        amount: buyerCumulativeTfsaContributions,
+      });
+      buyerTfsa += buyerTfsaContributions;
+      results.push({
+        year,
+        category: "buyer",
+        variable: "tfsa",
+        amount: buyerTfsa,
+      });
+    }
+
+    // We adjust and push the savings as new stocks after TFSA contributions
+    renterSavings -= renterTfsaContributions;
+    buyerSavings -= buyerTfsaContributions;
     results.push({
       year,
       category: "renter",
-      variable: "savings",
+      variable: "newStocks",
       amount: renterSavings,
     });
     results.push({
       year,
       category: "buyer",
-      variable: "savings",
+      variable: "newStocks",
       amount: buyerSavings,
     });
 
@@ -463,14 +600,15 @@ export default function simulateRentVsBuy(parameters: {
     });
 
     // We calculate the total gains for this year
-    const renterGains = renterMarketGains + renterSavings;
+    const renterGains = renterMarketGains + renterTfsaGains + renterSavings;
     results.push({
       year,
       category: "renter",
       variable: "gains",
       amount: renterGains,
     });
-    const buyerGains = buyerMarketGains + buyerSavings + homeEquityGains;
+    const buyerGains = buyerMarketGains + buyerTfsaGains + buyerSavings +
+      homeEquityGains;
     results.push({
       year,
       category: "buyer",
@@ -496,14 +634,14 @@ export default function simulateRentVsBuy(parameters: {
     });
 
     // We calculate the overall assets so far
-    renterAssets = renterStocks;
+    renterAssets = renterStocks + renterTfsa;
     results.push({
       year,
       category: "renter",
       variable: "assets",
       amount: renterAssets,
     });
-    buyerAssets = buyerStocks + homeEquity;
+    buyerAssets = buyerStocks + buyerTfsa + homeEquity;
     results.push({
       year,
       category: "buyer",

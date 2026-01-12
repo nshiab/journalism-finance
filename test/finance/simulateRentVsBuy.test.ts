@@ -8,7 +8,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
   const numberOfYears = 25;
   const annualMarketReturnRate = getRandomValues(
     numberOfYears,
-    0.06,
+    0.05,
     0,
     { decimals: 4 },
   );
@@ -51,13 +51,16 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
     0,
     { decimals: 4 },
   );
+
   const results = simulateRentVsBuy({
+    startingYear: 2000,
     numberOfYears,
     annualMarketReturnRate,
+    tfsaContributions: true,
     renter: {
-      startingMonthlyRent: 1500,
+      startingMonthlyRent: 1750,
       annualRentIncrease,
-      securityDeposit: 1500,
+      securityDeposit: 1750,
       startingMonthlyInsurance: 75,
       annualInsuranceIncrease: renterAnnualInsuranceIncrease,
     },
@@ -114,7 +117,10 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
               ? `-$${Math.abs(d) / 1_000_000}M`
               : `$${d / 1_000_000}M`,
         },
-        x: { ticks: [1, 5, 10, 15, 20, 25] },
+        x: {
+          ticks: [2000, 2004, 2009, 2014, 2019, 2024],
+          tickFormat: (d) => d.toString(),
+        },
         fx: {
           label: null,
         },
@@ -172,7 +178,10 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
               ? `-$${Math.abs(d) / 1_000_000}M`
               : `$${d / 1_000_000}M`,
         },
-        x: { ticks: [1, 5, 10, 15, 20, 25] },
+        x: {
+          ticks: [2000, 2004, 2009, 2014, 2019, 2024],
+          tickFormat: (d) => d.toString(),
+        },
         fx: {
           label: null,
         },
@@ -220,7 +229,8 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
               : `$${d / 1_000_000}M`,
         },
         x: {
-          ticks: [1, 5, 10, 15, 20, 25],
+          ticks: [2000, 2004, 2009, 2014, 2019, 2024],
+          tickFormat: (d) => d.toString(),
         },
         marginLeft: 60,
         color: {
@@ -265,7 +275,8 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
               : `$${d / 1_000_000}M`,
         },
         x: {
-          ticks: [1, 5, 10, 15, 20, 25],
+          ticks: [2000, 2004, 2009, 2014, 2019, 2024],
+          tickFormat: (d) => d.toString(),
         },
         marginLeft: 60,
         color: {
@@ -289,7 +300,9 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
   const gains = results.filter((d) =>
     [
       "marketGains",
-      "savings",
+      "tfsaGains",
+      "tfsaContributions",
+      "newStocks",
       // buyer
       "homeEquityGains",
     ].includes(d.variable)
@@ -311,7 +324,10 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
               ? `-$${Math.abs(d) / 1_000_000}M`
               : `$${d / 1_000_000}M`,
         },
-        x: { ticks: [1, 5, 10, 15, 20, 25] },
+        x: {
+          ticks: [2000, 2004, 2009, 2014, 2019, 2024],
+          tickFormat: (d) => d.toString(),
+        },
         fx: {
           label: null,
         },
@@ -337,6 +353,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
   const cumulativeGains = results.filter((d) =>
     [
       "stocks",
+      "tfsa",
       // buyer
       "homeEquity",
     ].includes(d.variable)
@@ -358,7 +375,10 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
               ? `-$${Math.abs(d) / 1_000_000}M`
               : `$${d / 1_000_000}M`,
         },
-        x: { ticks: [1, 5, 10, 15, 20, 25] },
+        x: {
+          ticks: [2000, 2004, 2009, 2014, 2019, 2024],
+          tickFormat: (d) => d.toString(),
+        },
         fx: {
           label: null,
         },
@@ -403,7 +423,10 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
               ? `-$${Math.abs(d) / 1_000_000}M`
               : `$${d / 1_000_000}M`,
         },
-        x: { ticks: [1, 5, 10, 15, 20, 25] },
+        x: {
+          ticks: [2000, 2004, 2009, 2014, 2019, 2024],
+          tickFormat: (d) => d.toString(),
+        },
         fx: {
           label: null,
         },
@@ -448,7 +471,10 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
               ? `-$${Math.abs(d) / 1_000_000}M`
               : `$${d / 1_000_000}M`,
         },
-        x: { ticks: [1, 5, 10, 15, 20, 25] },
+        x: {
+          ticks: [2000, 2004, 2009, 2014, 2019, 2024],
+          tickFormat: (d) => d.toString(),
+        },
         fx: {
           label: null,
         },
@@ -493,7 +519,10 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
               ? `-$${Math.abs(d) / 1_000_000}M`
               : `$${d / 1_000_000}M`,
         },
-        x: { ticks: [1, 5, 10, 15, 20, 25] },
+        x: {
+          ticks: [2000, 2004, 2009, 2014, 2019, 2024],
+          tickFormat: (d) => d.toString(),
+        },
         fx: {
           label: null,
         },
