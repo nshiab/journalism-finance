@@ -34,56 +34,83 @@ export default function simulateRentVsBuy(parameters: {
     sellingCommissionRate: number;
   };
 }) {
-  const results: {
-    year: number;
-    category: "renter" | "buyer";
-    variable:
-      | "rent"
-      | "insurance"
-      | "cumulativeRent"
-      | "cumulativeInsurance"
-      | "securityDeposit"
-      | "cumulativeSecurityDeposit"
-      | "expenses"
-      | "cumulativeExpenses"
-      | "marketGains"
-      | "cumulativeMarketGains"
-      | "stocks"
-      | "stocksPurchased"
-      | "tfsaGains"
-      | "tfsaContributions"
-      | "cumulativeTfsaContributions"
-      | "cumulativeTfsaGains"
-      | "tfsa"
-      | "newStocks"
-      | "gains"
-      | "balance"
-      | "assets"
-      | "difference"
-      | "mortgageCapital"
-      | "mortgageInterests"
-      | "maintenance"
-      | "propertyTax"
-      | "condoFees"
-      | "cumulativeMortgageCapital"
-      | "cumulativeMortgageInterests"
-      | "cumulativeMaintenance"
-      | "cumulativePropertyTax"
-      | "cumulativeCondoFees"
-      | "downPayment"
-      | "purchaseFixedFees"
-      | "insurancePremium"
-      | "cumulativeDownPayment"
-      | "cumulativePurchaseFixedFees"
-      | "cumulativeInsurancePremium"
-      | "homeValueIncrease"
-      | "homeValue"
-      | "homeEquity"
-      | "homeEquityGains"
-      | "sellingCosts";
-
-    amount: number;
-  }[] = [];
+  const results: (
+    & { year: number; amount: number }
+    & (
+      | {
+        category: "renter";
+      }
+        & (
+          | {
+            group: "annualExpenses" | "cumulativeExpenses";
+            variable:
+              | "rent"
+              | "insurance"
+              | "securityDeposit"
+              | "stockTaxes";
+          }
+          | {
+            group: "annualGains" | "cumulativeGains";
+            variable:
+              | "tfsaGains"
+              | "tfsaContribution"
+              | "marketGains"
+              | "newStocks";
+          }
+          | {
+            group: "assets";
+            variable:
+              | "tfsa"
+              | "stocks";
+          }
+          | {
+            group: "summary";
+            variable: "difference";
+          }
+        )
+      | {
+        category: "buyer";
+      }
+        & (
+          | {
+            group: "annualExpenses" | "cumulativeExpenses";
+            variable:
+              | "insurance"
+              | "mortgageCapital"
+              | "mortgageInterests"
+              | "maintenance"
+              | "propertyTax"
+              | "condoFees"
+              | "downPayment"
+              | "purchaseFixedFees"
+              | "insurancePremium"
+              | "stockTaxes"
+              | "homeSellingCommission"
+              | "homeSellingFixedFees";
+          }
+          | {
+            group: "annualGains" | "cumulativeGains";
+            variable:
+              | "tfsaGains"
+              | "tfsaContribution"
+              | "marketGains"
+              | "newStocks"
+              | "homeEquityGains";
+          }
+          | {
+            group: "assets";
+            variable:
+              | "tfsa"
+              | "stocks"
+              | "homeEquity";
+          }
+          | {
+            group: "summary";
+            variable: "sellingCosts";
+          }
+        )
+    )
+  )[] = [];
 
   // Initial values in local variables to be able to adjust them year after year
   // Renter
@@ -139,8 +166,7 @@ export default function simulateRentVsBuy(parameters: {
   // We precompute the mortgage payments for the buyer for the entire period
   const annualMortgagePayments = precomputeMortgagePayments(
     parameters.numberOfYears,
-    (parameters.buyer.purchasePrice - parameters.buyer.downPayment) +
-      insurancePremium,
+    parameters.buyer.purchasePrice - parameters.buyer.downPayment,
     parameters.buyer.interestRates,
   );
 
@@ -157,6 +183,7 @@ export default function simulateRentVsBuy(parameters: {
     results.push({
       year,
       category: "renter",
+      group: "annualExpenses",
       variable: "rent",
       amount: annualRent,
     });
@@ -164,6 +191,7 @@ export default function simulateRentVsBuy(parameters: {
     results.push({
       year,
       category: "renter",
+      group: "annualExpenses",
       variable: "insurance",
       amount: annualRentInsurance,
     });
@@ -172,14 +200,16 @@ export default function simulateRentVsBuy(parameters: {
     results.push({
       year,
       category: "renter",
-      variable: "cumulativeRent",
+      group: "cumulativeExpenses",
+      variable: "rent",
       amount: renterCumulativeRent,
     });
     renterCumulativeInsurance += annualRentInsurance;
     results.push({
       year,
       category: "renter",
-      variable: "cumulativeInsurance",
+      group: "cumulativeExpenses",
+      variable: "insurance",
       amount: renterCumulativeInsurance,
     });
 
@@ -191,6 +221,7 @@ export default function simulateRentVsBuy(parameters: {
       results.push({
         year,
         category: "renter",
+        group: "annualExpenses",
         variable: "securityDeposit",
         amount: securityDeposit,
       });
@@ -198,27 +229,16 @@ export default function simulateRentVsBuy(parameters: {
     results.push({
       year,
       category: "renter",
-      variable: "cumulativeSecurityDeposit",
+      group: "cumulativeExpenses",
+      variable: "securityDeposit",
       amount: parameters.renter.securityDeposit,
     });
 
     // Total expenses, that we keep for comparison later
     const renterExpenses = annualRent + annualRentInsurance +
       securityDeposit;
-    results.push({
-      year,
-      category: "renter",
-      variable: "expenses",
-      amount: renterExpenses,
-    });
     // We keep track of cumulative expenses
     renterCumulativeExpenses += renterExpenses;
-    results.push({
-      year,
-      category: "renter",
-      variable: "cumulativeExpenses",
-      amount: renterCumulativeExpenses,
-    });
 
     // TFSA gains
     if (parameters.tfsaContributions) {
@@ -228,6 +248,7 @@ export default function simulateRentVsBuy(parameters: {
       results.push({
         year,
         category: "renter",
+        group: "annualGains",
         variable: "tfsaGains",
         amount: renterTfsaGains,
       });
@@ -235,7 +256,8 @@ export default function simulateRentVsBuy(parameters: {
       results.push({
         year,
         category: "renter",
-        variable: "cumulativeTfsaGains",
+        group: "cumulativeGains",
+        variable: "tfsaGains",
         amount: renterCumulativeTfsaGains,
       });
       // We will push the tfsa later after adjusting for the difference between renter and buyer expenses
@@ -249,6 +271,7 @@ export default function simulateRentVsBuy(parameters: {
     results.push({
       year,
       category: "renter",
+      group: "annualGains",
       variable: "marketGains",
       amount: renterMarketGains,
     });
@@ -256,7 +279,8 @@ export default function simulateRentVsBuy(parameters: {
     results.push({
       year,
       category: "renter",
-      variable: "cumulativeMarketGains",
+      group: "cumulativeGains",
+      variable: "marketGains",
       amount: renterCumulativeMarketGains,
     });
     // We will push the stocks later after adjusting for the difference between renter and buyer expenses
@@ -272,36 +296,42 @@ export default function simulateRentVsBuy(parameters: {
     results.push({
       year,
       category: "buyer",
+      group: "annualExpenses",
       variable: "mortgageCapital",
       amount: mortgagePaymentsForThisYear.capital,
     });
     results.push({
       year,
       category: "buyer",
+      group: "annualExpenses",
       variable: "mortgageInterests",
       amount: mortgagePaymentsForThisYear.interests,
     });
     results.push({
       year,
       category: "buyer",
+      group: "annualExpenses",
       variable: "maintenance",
       amount: buyAnnualMaintenanceCost,
     });
     results.push({
       year,
       category: "buyer",
+      group: "annualExpenses",
       variable: "propertyTax",
       amount: buyAnnualPropertyTax,
     });
     results.push({
       year,
       category: "buyer",
+      group: "annualExpenses",
       variable: "condoFees",
       amount: buyAnnualCondoFees,
     });
     results.push({
       year,
       category: "buyer",
+      group: "annualExpenses",
       variable: "insurance",
       amount: buyAnnualInsurance,
     });
@@ -311,42 +341,48 @@ export default function simulateRentVsBuy(parameters: {
     results.push({
       year,
       category: "buyer",
-      variable: "cumulativeMortgageCapital",
+      group: "cumulativeExpenses",
+      variable: "mortgageCapital",
       amount: buyerCumulativeMortgageCapital,
     });
     buyerCumulativeMortgageInterests += mortgagePaymentsForThisYear.interests;
     results.push({
       year,
       category: "buyer",
-      variable: "cumulativeMortgageInterests",
+      group: "cumulativeExpenses",
+      variable: "mortgageInterests",
       amount: buyerCumulativeMortgageInterests,
     });
     buyerCumulativeMaintenance += buyAnnualMaintenanceCost;
     results.push({
       year,
       category: "buyer",
-      variable: "cumulativeMaintenance",
+      group: "cumulativeExpenses",
+      variable: "maintenance",
       amount: buyerCumulativeMaintenance,
     });
     buyerCumulativePropertyTax += buyAnnualPropertyTax;
     results.push({
       year,
       category: "buyer",
-      variable: "cumulativePropertyTax",
+      group: "cumulativeExpenses",
+      variable: "propertyTax",
       amount: buyerCumulativePropertyTax,
     });
     buyerCumulativeCondoFees += buyAnnualCondoFees;
     results.push({
       year,
       category: "buyer",
-      variable: "cumulativeCondoFees",
+      group: "cumulativeExpenses",
+      variable: "condoFees",
       amount: buyerCumulativeCondoFees,
     });
     buyerCumulativeInsurance += buyAnnualInsurance;
     results.push({
       year,
       category: "buyer",
-      variable: "cumulativeInsurance",
+      group: "cumulativeExpenses",
+      variable: "insurance",
       amount: buyerCumulativeInsurance,
     });
 
@@ -357,36 +393,51 @@ export default function simulateRentVsBuy(parameters: {
     const purchaseFixedFees = year === parameters.startingYear
       ? parameters.buyer.purchaseFixedFees
       : 0;
+    const insurancePremiumForCurrentYear = year === parameters.startingYear
+      ? insurancePremium
+      : 0;
     if (year === parameters.startingYear) {
       results.push({
         year,
         category: "buyer",
+        group: "annualExpenses",
         variable: "downPayment",
         amount: downPayment,
       });
       results.push({
         year,
         category: "buyer",
+        group: "annualExpenses",
         variable: "purchaseFixedFees",
         amount: purchaseFixedFees,
+      });
+      results.push({
+        year,
+        category: "buyer",
+        group: "annualExpenses",
+        variable: "insurancePremium",
+        amount: insurancePremiumForCurrentYear,
       });
     }
     results.push({
       year,
       category: "buyer",
-      variable: "cumulativeDownPayment",
+      group: "cumulativeExpenses",
+      variable: "downPayment",
       amount: parameters.buyer.downPayment,
     });
     results.push({
       year,
       category: "buyer",
-      variable: "cumulativePurchaseFixedFees",
+      group: "cumulativeExpenses",
+      variable: "purchaseFixedFees",
       amount: parameters.buyer.purchaseFixedFees,
     });
     results.push({
       year,
       category: "buyer",
-      variable: "cumulativeInsurancePremium",
+      group: "cumulativeExpenses",
+      variable: "insurancePremium",
       amount: insurancePremium,
     });
 
@@ -398,21 +449,9 @@ export default function simulateRentVsBuy(parameters: {
       buyAnnualCondoFees +
       buyAnnualInsurance +
       downPayment +
-      purchaseFixedFees;
-    results.push({
-      year,
-      category: "buyer",
-      variable: "expenses",
-      amount: buyerExpenses,
-    });
+      purchaseFixedFees + insurancePremiumForCurrentYear;
     // We keep track of cumulative expenses
     buyerCumulativeExpenses += buyerExpenses;
-    results.push({
-      year,
-      category: "buyer",
-      variable: "cumulativeExpenses",
-      amount: buyerCumulativeExpenses,
-    });
 
     // TFSA gains
     if (parameters.tfsaContributions) {
@@ -422,6 +461,7 @@ export default function simulateRentVsBuy(parameters: {
       results.push({
         year,
         category: "buyer",
+        group: "annualGains",
         variable: "tfsaGains",
         amount: buyerTfsaGains,
       });
@@ -429,7 +469,8 @@ export default function simulateRentVsBuy(parameters: {
       results.push({
         year,
         category: "buyer",
-        variable: "cumulativeTfsaGains",
+        group: "cumulativeGains",
+        variable: "tfsaGains",
         amount: buyerCumulativeTfsaGains,
       });
       // We will push the tfsa later after adjusting for the difference between renter and buyer expenses
@@ -443,6 +484,7 @@ export default function simulateRentVsBuy(parameters: {
     results.push({
       year,
       category: "buyer",
+      group: "annualGains",
       variable: "marketGains",
       amount: buyerMarketGains,
     });
@@ -450,7 +492,8 @@ export default function simulateRentVsBuy(parameters: {
     results.push({
       year,
       category: "buyer",
-      variable: "cumulativeMarketGains",
+      group: "cumulativeGains",
+      variable: "marketGains",
       amount: buyerCumulativeMarketGains,
     });
     // We will push the stocks later after adjusting for the difference between renter and buyer expenses
@@ -460,19 +503,7 @@ export default function simulateRentVsBuy(parameters: {
     const homeValueIncrease = Math.round(
       homeValue * parameters.buyer.appreciationIncrease[yearIndex],
     );
-    results.push({
-      year,
-      category: "buyer",
-      variable: "homeValueIncrease",
-      amount: homeValueIncrease,
-    });
     homeValue += homeValueIncrease;
-    results.push({
-      year,
-      category: "buyer",
-      variable: "homeValue",
-      amount: homeValue,
-    });
 
     // We store the previous year home equity for later calculations
     const previousYearHomeEquity = homeEquity;
@@ -482,6 +513,7 @@ export default function simulateRentVsBuy(parameters: {
     results.push({
       year,
       category: "buyer",
+      group: "assets",
       variable: "homeEquity",
       amount: homeEquity,
     });
@@ -490,6 +522,7 @@ export default function simulateRentVsBuy(parameters: {
     results.push({
       year,
       category: "buyer",
+      group: "annualGains",
       variable: "homeEquityGains",
       amount: homeEquityGains,
     });
@@ -521,20 +554,23 @@ export default function simulateRentVsBuy(parameters: {
       results.push({
         year,
         category: "renter",
-        variable: "tfsaContributions",
+        group: "annualGains",
+        variable: "tfsaContribution",
         amount: renterTfsaContributions,
       });
       renterCumulativeTfsaContributions += renterTfsaContributions;
       results.push({
         year,
         category: "renter",
-        variable: "cumulativeTfsaContributions",
+        group: "cumulativeGains",
+        variable: "tfsaContribution",
         amount: renterCumulativeTfsaContributions,
       });
       renterTfsa += renterTfsaContributions;
       results.push({
         year,
         category: "renter",
+        group: "assets",
         variable: "tfsa",
         amount: renterTfsa,
       });
@@ -550,20 +586,23 @@ export default function simulateRentVsBuy(parameters: {
       results.push({
         year,
         category: "buyer",
-        variable: "tfsaContributions",
+        group: "annualGains",
+        variable: "tfsaContribution",
         amount: buyerTfsaContributions,
       });
       buyerCumulativeTfsaContributions += buyerTfsaContributions;
       results.push({
         year,
         category: "buyer",
-        variable: "cumulativeTfsaContributions",
+        group: "cumulativeGains",
+        variable: "tfsaContribution",
         amount: buyerCumulativeTfsaContributions,
       });
       buyerTfsa += buyerTfsaContributions;
       results.push({
         year,
         category: "buyer",
+        group: "assets",
         variable: "tfsa",
         amount: buyerTfsa,
       });
@@ -575,12 +614,14 @@ export default function simulateRentVsBuy(parameters: {
     results.push({
       year,
       category: "renter",
+      group: "annualGains",
       variable: "newStocks",
       amount: renterSavings,
     });
     results.push({
       year,
       category: "buyer",
+      group: "annualGains",
       variable: "newStocks",
       amount: buyerSavings,
     });
@@ -590,93 +631,42 @@ export default function simulateRentVsBuy(parameters: {
     results.push({
       year,
       category: "renter",
+      group: "assets",
       variable: "stocks",
       amount: renterStocks,
     });
     renterStocksPurchased += renterSavings;
-    results.push({
-      year,
-      category: "renter",
-      variable: "stocksPurchased",
-      amount: renterStocksPurchased,
-    });
     buyerStocks += buyerSavings;
     results.push({
       year,
       category: "buyer",
+      group: "assets",
       variable: "stocks",
       amount: buyerStocks,
     });
     buyerStocksPurchased += buyerSavings;
-    results.push({
-      year,
-      category: "buyer",
-      variable: "stocksPurchased",
-      amount: buyerStocksPurchased,
-    });
 
     // We calculate the total gains for this year
     const renterGains = renterMarketGains + renterTfsaGains + renterSavings;
-    results.push({
-      year,
-      category: "renter",
-      variable: "gains",
-      amount: renterGains,
-    });
     const buyerGains = buyerMarketGains + buyerTfsaGains + buyerSavings +
       homeEquityGains;
-    results.push({
-      year,
-      category: "buyer",
-      variable: "gains",
-      amount: buyerGains,
-    });
 
     // We adjust the balances
-    const renterBalance = renterGains - renterExpenses;
-    results.push({
-      year,
-      category: "renter",
-      variable: "balance",
-      amount: renterBalance,
-    });
+    const _renterBalance = renterGains - renterExpenses;
     // The buyer balance includes home equity gains
-    const buyerBalance = buyerGains - buyerExpenses;
-    results.push({
-      year,
-      category: "buyer",
-      variable: "balance",
-      amount: buyerBalance,
-    });
+    const _buyerBalance = buyerGains - buyerExpenses;
 
     // We calculate the overall assets so far
     renterAssets = renterStocks + renterTfsa;
-    results.push({
-      year,
-      category: "renter",
-      variable: "assets",
-      amount: renterAssets,
-    });
     buyerAssets = buyerStocks + buyerTfsa + homeEquity;
-    results.push({
-      year,
-      category: "buyer",
-      variable: "assets",
-      amount: buyerAssets,
-    });
 
     // Now we can check who has the highest assets
     results.push({
       year,
       category: "renter",
+      group: "summary",
       variable: "difference",
       amount: renterAssets - buyerAssets,
-    });
-    results.push({
-      year,
-      category: "buyer",
-      variable: "difference",
-      amount: buyerAssets - renterAssets,
     });
 
     // We adjust for following year
@@ -718,46 +708,56 @@ export default function simulateRentVsBuy(parameters: {
     (Math.max(0, renterFinalStockGains) /
       2) * parameters.combinedTaxRate,
   ));
-  const renterSellingCosts = renterStockTaxes;
   results.push({
     year: parameters.startingYear + parameters.numberOfYears,
     category: "renter",
-    variable: "sellingCosts",
-    amount: renterSellingCosts,
+    group: "annualExpenses",
+    variable: "stockTaxes",
+    amount: renterStockTaxes,
   });
   // We don't forget to return the security deposit
-  const renterAssetsAfterSelling = (renterAssets - renterSellingCosts) +
+  const _renterAssetsAfterSelling = (renterAssets - renterStockTaxes) +
     parameters.renter.securityDeposit;
-  results.push({
-    year: parameters.startingYear + parameters.numberOfYears,
-    category: "renter",
-    variable: "assets",
-    amount: renterAssetsAfterSelling,
-  });
   // Buyer
   const buyerFinalStockGains = buyerStocks - buyerStocksPurchased;
   const buyerStockTaxes = Math.round(Math.max(
     (Math.max(0, buyerFinalStockGains) /
       2) * parameters.combinedTaxRate,
   ));
-  const buyerHomeSellingCosts = Math.round(
-    homeValue * parameters.buyer.sellingCommissionRate +
-      sellingFixedFees,
-  );
-  const buyerSellingCosts = buyerStockTaxes + buyerHomeSellingCosts;
   results.push({
     year: parameters.startingYear + parameters.numberOfYears,
     category: "buyer",
+    group: "annualExpenses",
+    variable: "stockTaxes",
+    amount: buyerStockTaxes,
+  });
+  const buyerHomeSellingCommission = Math.round(
+    homeValue * parameters.buyer.sellingCommissionRate,
+  );
+  results.push({
+    year: parameters.startingYear + parameters.numberOfYears,
+    category: "buyer",
+    group: "annualExpenses",
+    variable: "homeSellingCommission",
+    amount: buyerHomeSellingCommission,
+  });
+  results.push({
+    year: parameters.startingYear + parameters.numberOfYears,
+    category: "buyer",
+    group: "annualExpenses",
+    variable: "homeSellingFixedFees",
+    amount: sellingFixedFees,
+  });
+  const buyerSellingCosts = buyerStockTaxes + buyerHomeSellingCommission +
+    sellingFixedFees;
+  results.push({
+    year: parameters.startingYear + parameters.numberOfYears,
+    category: "buyer",
+    group: "summary",
     variable: "sellingCosts",
     amount: buyerSellingCosts,
   });
-  const buyerAssetsAfterSelling = buyerAssets - buyerSellingCosts;
-  results.push({
-    year: parameters.startingYear + parameters.numberOfYears,
-    category: "buyer",
-    variable: "assets",
-    amount: buyerAssetsAfterSelling,
-  });
+  const _buyerAssetsAfterSelling = buyerAssets - buyerSellingCosts;
 
   return results;
 }
