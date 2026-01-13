@@ -533,6 +533,518 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
     { style: "body { width: 700px; }" },
   );
 
+  const annualGains = results.filter((d) =>
+    d.group === "annualGains" &&
+    d.year !== 2025
+  );
+  // NEED TESTS
+
+  await saveChart(
+    annualGains,
+    (data) =>
+      plot({
+        title: "Annual gains over time (excluding last year selling gains)",
+        y: {
+          nice: true,
+          label: null,
+          tickFormat: (d) =>
+            Math.abs(d) < 1000
+              ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
+              : Math.abs(d) < 1_000_000
+              ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
+              : d < 0
+              ? `-$${Math.abs(d) / 1_000_000}M`
+              : `$${d / 1_000_000}M`,
+        },
+        x: {
+          ticks: [2000, 2005, 2010, 2015, 2020, 2025],
+          tickFormat: (d) => d.toString(),
+        },
+        fx: {
+          label: null,
+        },
+        marginLeft: 60,
+        color: {
+          legend: true,
+        },
+        grid: true,
+        marks: [
+          barY(data, {
+            x: "year",
+            y: "amount",
+            fill: "variable",
+            fx: "category",
+          }),
+        ],
+      }),
+    "test/output/annual-gains.png",
+    { style: "body { width: 700px; }" },
+  );
+
+  const cumulativeGains = results.filter((d) =>
+    d.group === "cumulativeGains" &&
+    d.year !== 2025
+  );
+  // NEED TESTS
+
+  const renterLastYearCumulativeGains = cumulativeGains.filter((d) =>
+    d.year === 2024 && d.category === "renter"
+  ).reduce((acc, curr) => acc + curr.amount, 0);
+  const buyerLastYearCumulativeGains = cumulativeGains.filter((d) =>
+    d.year === 2024 && d.category === "buyer"
+  ).reduce((acc, curr) => acc + curr.amount, 0);
+
+  await t.step("last year cumulative gains for renter", async () => {
+    assertEquals(renterLastYearCumulativeGains, 1023699);
+  });
+
+  await t.step("last year cumulative gains for buyer", async () => {
+    assertEquals(buyerLastYearCumulativeGains, 1693175);
+  });
+
+  // NEED TESTS
+  await saveChart(
+    cumulativeGains,
+    (data) =>
+      plot({
+        title: "Cumulative gains over time (excluding last year selling gains)",
+        y: {
+          nice: true,
+          label: null,
+          tickFormat: (d) =>
+            Math.abs(d) < 1000
+              ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
+              : Math.abs(d) < 1_000_000
+              ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
+              : d < 0
+              ? `-$${Math.abs(d) / 1_000_000}M`
+              : `$${d / 1_000_000}M`,
+        },
+        x: {
+          ticks: [2000, 2005, 2010, 2015, 2020, 2025],
+          tickFormat: (d) => d.toString(),
+        },
+        fx: {
+          label: null,
+        },
+        marginLeft: 60,
+        color: {
+          legend: true,
+        },
+        grid: true,
+        marks: [
+          barY(data, {
+            x: "year",
+            y: "amount",
+            fill: "variable",
+            fx: "category",
+          }),
+        ],
+      }),
+    "test/output/cumulative-gains.png",
+    { style: "body { width: 700px; }" },
+  );
+
+  const assets = results.filter((d) =>
+    d.group === "assets" &&
+    d.year !== 2025
+  );
+
+  const buyerLastYearAssets = assets.filter((d) =>
+    d.year === 2024 && d.category === "buyer"
+  );
+  await t.step("last year assets for buyer", async () => {
+    assertEquals(buyerLastYearAssets, [
+      {
+        year: 2024,
+        category: "buyer",
+        group: "assets",
+        variable: "homeEquity",
+        amount: 1693175,
+      },
+      {
+        year: 2024,
+        category: "buyer",
+        group: "assets",
+        variable: "tfsa",
+        amount: 0,
+      },
+      {
+        year: 2024,
+        category: "buyer",
+        group: "assets",
+        variable: "stocks",
+        amount: 0,
+      },
+    ]);
+  });
+
+  const renterLastYearAssets = assets.filter((d) =>
+    d.year === 2024 && d.category === "renter"
+  );
+  await t.step("last year assets for renter", async () => {
+    assertEquals(renterLastYearAssets, [
+      {
+        year: 2024,
+        category: "renter",
+        group: "assets",
+        variable: "tfsa",
+        amount: 138152,
+      },
+      {
+        year: 2024,
+        category: "renter",
+        group: "assets",
+        variable: "stocks",
+        amount: 885547,
+      },
+    ]);
+  });
+
+  // NEED TESTS
+  await saveChart(
+    assets,
+    (data) =>
+      plot({
+        title: "Assets over time (excluding last year selling gains)",
+        y: {
+          nice: true,
+          label: null,
+          tickFormat: (d) =>
+            Math.abs(d) < 1000
+              ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
+              : Math.abs(d) < 1_000_000
+              ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
+              : d < 0
+              ? `-$${Math.abs(d) / 1_000_000}M`
+              : `$${d / 1_000_000}M`,
+        },
+        x: {
+          ticks: [2000, 2005, 2010, 2015, 2020, 2025],
+          tickFormat: (d) => d.toString(),
+        },
+        fx: {
+          label: null,
+        },
+        marginLeft: 60,
+        color: {
+          legend: true,
+        },
+        grid: true,
+        marks: [
+          barY(data, {
+            x: "year",
+            y: "amount",
+            fill: "variable",
+            fx: "category",
+          }),
+        ],
+      }),
+    "test/output/assets.png",
+    { style: "body { width: 700px; }" },
+  );
+
+  const balance = results.filter((d) =>
+    d.group === "summary" &&
+    d.variable === "balance"
+  );
+
+  // NEED TESTS
+
+  await saveChart(
+    balance,
+    (data) =>
+      plot({
+        title: "Balance over time (excluding last selling year)",
+        y: {
+          nice: true,
+          label: null,
+          tickFormat: (d) =>
+            Math.abs(d) < 1000
+              ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
+              : Math.abs(d) < 1_000_000
+              ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
+              : d < 0
+              ? `-$${Math.abs(d) / 1_000_000}M`
+              : `$${d / 1_000_000}M`,
+        },
+        x: {
+          ticks: [2000, 2005, 2010, 2015, 2020, 2025],
+          tickFormat: (d) => d.toString(),
+        },
+        fx: {
+          label: null,
+        },
+        marginLeft: 60,
+        color: {
+          legend: true,
+        },
+        grid: true,
+        marks: [
+          barY(data, {
+            x: "year",
+            y: "amount",
+            fill: "variable",
+            fx: "category",
+          }),
+        ],
+      }),
+    "test/output/balance.png",
+    { style: "body { width: 700px; }" },
+  );
+
+  const finalExpenses = results.filter((d) =>
+    d.group === "annualExpenses" && d.year === 2025
+  );
+
+  await t.step("final year expenses", async () => {
+    assertEquals(finalExpenses, [
+      {
+        year: 2025,
+        category: "renter",
+        group: "annualExpenses",
+        variable: "stockTaxes",
+        amount: 66877,
+      },
+      {
+        year: 2025,
+        category: "buyer",
+        group: "annualExpenses",
+        variable: "stockTaxes",
+        amount: 0,
+      },
+      {
+        year: 2025,
+        category: "buyer",
+        group: "annualExpenses",
+        variable: "homeSellingCommission",
+        amount: 67727,
+      },
+      {
+        year: 2025,
+        category: "buyer",
+        group: "annualExpenses",
+        variable: "homeSellingFixedFees",
+        amount: 4191,
+      },
+    ]);
+  });
+
+  await saveChart(
+    finalExpenses,
+    (data) =>
+      plot({
+        title: "Selling year expenses (2025)",
+        y: {
+          nice: true,
+          label: null,
+          tickFormat: (d) =>
+            Math.abs(d) < 1000
+              ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
+              : Math.abs(d) < 1_000_000
+              ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
+              : d < 0
+              ? `-$${Math.abs(d) / 1_000_000}M`
+              : `$${d / 1_000_000}M`,
+        },
+        x: {
+          ticks: [2000, 2005, 2010, 2015, 2020, 2025],
+          tickFormat: (d) => d.toString(),
+        },
+        fx: {
+          label: null,
+        },
+        marginLeft: 60,
+        color: {
+          legend: true,
+        },
+        grid: true,
+        marks: [
+          barY(data, {
+            x: "year",
+            y: "amount",
+            fill: "variable",
+            fx: "category",
+          }),
+        ],
+      }),
+    "test/output/final-expenses.png",
+    { style: "body { width: 700px; }" },
+  );
+
+  const finalAssets = results.filter((d) =>
+    d.group === "assets" && d.year === 2025
+  );
+  await t.step("proceeds from selling assets", async () => {
+    assertEquals(finalAssets, [
+      {
+        year: 2025,
+        category: "renter",
+        group: "assets",
+        variable: "stocks",
+        amount: 818670,
+      },
+      {
+        year: 2025,
+        category: "renter",
+        group: "assets",
+        variable: "tfsa",
+        amount: 138152,
+      },
+      {
+        year: 2025,
+        category: "renter",
+        group: "assets",
+        variable: "securityDeposit",
+        amount: 1750,
+      },
+      {
+        year: 2025,
+        category: "buyer",
+        group: "assets",
+        variable: "stocks",
+        amount: 0,
+      },
+      {
+        year: 2025,
+        category: "buyer",
+        group: "assets",
+        variable: "tfsa",
+        amount: 0,
+      },
+      {
+        year: 2025,
+        category: "buyer",
+        group: "assets",
+        variable: "homeEquity",
+        amount: 1621257,
+      },
+    ]);
+  });
+
+  await saveChart(
+    finalAssets,
+    (data) =>
+      plot({
+        title: "Proceeds from selling assets (2025)",
+        y: {
+          nice: true,
+          label: null,
+          tickFormat: (d) =>
+            Math.abs(d) < 1000
+              ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
+              : Math.abs(d) < 1_000_000
+              ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
+              : d < 0
+              ? `-$${Math.abs(d) / 1_000_000}M`
+              : `$${d / 1_000_000}M`,
+        },
+        x: {
+          ticks: [2000, 2005, 2010, 2015, 2020, 2025],
+          tickFormat: (d) => d.toString(),
+        },
+        fx: {
+          label: null,
+        },
+        marginLeft: 60,
+        color: {
+          legend: true,
+        },
+        grid: true,
+        marks: [
+          barY(data, {
+            x: "year",
+            y: "amount",
+            fill: "variable",
+            fx: "category",
+          }),
+        ],
+      }),
+    "test/output/proceeds-from-selling-assets.png",
+    { style: "body { width: 700px; }" },
+  );
+
+  const finalBalance = results.filter((d) =>
+    d.group === "summary" && d.variable === "balance" && d.year === 2025
+  );
+
+  await t.step("final year balance", async () => {
+    assertEquals(finalBalance, [
+      {
+        year: 2025,
+        category: "renter",
+        group: "summary",
+        variable: "balance",
+        amount: 158078,
+      },
+      {
+        year: 2025,
+        category: "buyer",
+        group: "summary",
+        variable: "balance",
+        amount: 375234,
+      },
+    ]);
+  });
+
+  await saveChart(
+    finalBalance,
+    (data) =>
+      plot({
+        title: "Final balance (2025)",
+        y: {
+          nice: true,
+          label: null,
+          tickFormat: (d) =>
+            Math.abs(d) < 1000
+              ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
+              : Math.abs(d) < 1_000_000
+              ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
+              : d < 0
+              ? `-$${Math.abs(d) / 1_000_000}M`
+              : `$${d / 1_000_000}M`,
+        },
+        x: {
+          ticks: [2000, 2005, 2010, 2015, 2020, 2025],
+          tickFormat: (d) => d.toString(),
+        },
+        fx: {
+          label: null,
+        },
+        marginLeft: 60,
+        color: {
+          legend: true,
+        },
+        grid: true,
+        marks: [
+          barY(data, {
+            x: "year",
+            y: "amount",
+            fill: "variable",
+            fx: "category",
+          }),
+        ],
+      }),
+    "test/output/final-balance.png",
+    { style: "body { width: 700px; }" },
+  );
+
+  const difference = results.filter((d) =>
+    d.group === "summary" && d.variable === "difference"
+  );
+
+  await t.step("final difference", async () => {
+    assertEquals(difference, [
+      {
+        year: 2025,
+        category: "renter",
+        group: "summary",
+        variable: "difference",
+        amount: 217156,
+      },
+    ]);
+  });
+
   //Just for now
   assertEquals(true, true);
 });
