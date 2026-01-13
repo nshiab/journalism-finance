@@ -4,9 +4,12 @@ import { quantile } from "d3-array";
 
 export default function simulateRentVsBuyMonteCarlo(parameters: {
   iterations: number;
+  startingYear: number;
   numberOfYears: number;
   annualAvgMarketReturnRate: number;
   annualMarketReturnStdDev: number;
+  tfsaContributions: boolean;
+  combinedTaxRate: number;
   renter: {
     startingMonthlyRent: number;
     annualRentIncreaseAvg: number;
@@ -19,7 +22,8 @@ export default function simulateRentVsBuyMonteCarlo(parameters: {
   buyer: {
     downPayment: number;
     purchasePrice: number;
-    interestRate: number;
+    interestRateAvg: number;
+    interestRateStdDev: number;
     purchaseFixedFees: number;
     startingAnnualMaintenanceCost: number;
     annualMaintenanceIncreaseAvg: number;
@@ -35,6 +39,10 @@ export default function simulateRentVsBuyMonteCarlo(parameters: {
     annualInsuranceIncreaseStdDev: number;
     appreciationRateAvg: number;
     appreciationRateStdDev: number;
+    sellingFixedFees: number;
+    sellingFixedIncreaseAvg: number;
+    sellingFixedIncreaseStdDev: number;
+    sellingCommissionRate: number;
   };
 }) {
   const allIterationsResults = [];
@@ -60,6 +68,13 @@ export default function simulateRentVsBuyMonteCarlo(parameters: {
       parameters.numberOfYears,
       parameters.renter.annualInsuranceIncreaseAvg,
       parameters.renter.annualInsuranceIncreaseStdDev,
+      { decimals: 4 },
+    );
+    // Not all will be used, but we generate them all here for simplicity
+    const interestRates = getRandomValues(
+      parameters.numberOfYears,
+      parameters.buyer.interestRateAvg,
+      parameters.buyer.interestRateStdDev,
       { decimals: 4 },
     );
     const annualMaintenanceIncrease = getRandomValues(
@@ -92,9 +107,18 @@ export default function simulateRentVsBuyMonteCarlo(parameters: {
       parameters.buyer.appreciationRateStdDev,
       { decimals: 4 },
     );
+    const sellingFixedFeesIncrease = getRandomValues(
+      parameters.numberOfYears,
+      parameters.buyer.sellingFixedIncreaseAvg,
+      parameters.buyer.sellingFixedIncreaseStdDev,
+      { decimals: 4 },
+    );
     const iterationResults = simulateRentVsBuy({
+      startingYear: parameters.startingYear,
       numberOfYears: parameters.numberOfYears,
       annualMarketReturnRate,
+      tfsaContributions: parameters.tfsaContributions,
+      combinedTaxRate: parameters.combinedTaxRate,
       renter: {
         startingMonthlyRent: parameters.renter.startingMonthlyRent,
         annualRentIncrease,
@@ -105,7 +129,7 @@ export default function simulateRentVsBuyMonteCarlo(parameters: {
       buyer: {
         downPayment: parameters.buyer.downPayment,
         purchasePrice: parameters.buyer.purchasePrice,
-        interestRate: parameters.buyer.interestRate,
+        interestRates: interestRates,
         purchaseFixedFees: parameters.buyer.purchaseFixedFees,
         startingAnnualMaintenanceCost:
           parameters.buyer.startingAnnualMaintenanceCost,
@@ -117,18 +141,15 @@ export default function simulateRentVsBuyMonteCarlo(parameters: {
         startingMonthlyInsurance: parameters.buyer.startingMonthlyInsurance,
         annualInsuranceIncrease: buyerAnnualInsuranceIncrease,
         appreciationIncrease,
+        sellingFixedFees: parameters.buyer.sellingFixedFees,
+        sellingFixedFeesIncrease,
+        sellingCommissionRate: parameters.buyer.sellingCommissionRate,
       },
     });
 
     allIterationsResults.push(
       ...iterationResults.filter((d) =>
-        ["cumulativeExpenses", "assets", "difference"].includes(d.variable)
-      ),
-    );
-    finalYearResults.push(
-      ...iterationResults.filter((d) =>
-        d.year === parameters.numberOfYears &&
-        ["cumulativeExpenses", "assets", "difference"].includes(d.variable)
+        ["cumulativeExpenses", "assets", "summary"].includes(d.group)
       ),
     );
   }
@@ -136,49 +157,80 @@ export default function simulateRentVsBuyMonteCarlo(parameters: {
   const results: {
     year: number;
     category: "renter" | "buyer";
-    variable: "cumulativeExpenses" | "assets" | "difference";
+    variable: "cumulativeExpenses" | "assets" | "difference" | "balance";
     q10: number;
     q50: number;
     q90: number;
   }[] = [];
 
-  for (let year = 1; year <= parameters.numberOfYears; year++) {
+  for (
+    let year = parameters.startingYear;
+    year < parameters.startingYear + parameters.numberOfYears + 1;
+    year++
+  ) {
     for (const category of ["renter", "buyer"] as const) {
-      for (
-        const variable of [
-          "cumulativeExpenses",
-          "assets",
-          "difference",
-        ] as const
-      ) {
-        const filteredData = allIterationsResults.filter(
-          (d) =>
-            d.year === year && d.category === category &&
-            d.variable === variable,
-        );
-        results.push({
-          year,
-          category,
-          variable,
-          q10: quantile(
-            filteredData,
-            0.1,
-            (d: { amount: number }) => d.amount,
-          ),
-          q50: quantile(
-            filteredData,
-            0.5,
-            (d: { amount: number }) => d.amount,
-          ),
-          q90: quantile(
-            filteredData,
-            0.9,
-            (d: { amount: number }) => d.amount,
-          ),
-        });
-      }
+      // cumulative expenses
+      const filteredExpenses = allIterationsResults.filter(
+        (d) =>
+          d.year === year && d.category === category &&
+          d.group === "cumulativeExpenses",
+      );
+      results.push({
+        year,
+        category,
+        variable: "cumulativeExpenses",
+        q10: quantile(
+          filteredExpenses,
+          0.1,
+          (d: { amount: number }) => d.amount,
+        ),
+        q50: quantile(
+          filteredExpenses,
+          0.5,
+          (d: { amount: number }) => d.amount,
+        ),
+        q90: quantile(
+          filteredExpenses,
+          0.9,
+          (d: { amount: number }) => d.amount,
+        ),
+      });
+
+      // for (
+      //   const variable of [
+      //     "cumulativeExpenses",
+      //     "assets",
+      //     "difference",
+      //   ] as const
+      // ) {
+      //   const filteredData = allIterationsResults.filter(
+      //     (d) =>
+      //       d.year === year && d.category === category &&
+      //       d.variable === variable,
+      //   );
+      //   results.push({
+      //     year,
+      //     category,
+      //     variable,
+      //     q10: quantile(
+      //       filteredData,
+      //       0.1,
+      //       (d: { amount: number }) => d.amount,
+      //     ),
+      //     q50: quantile(
+      //       filteredData,
+      //       0.5,
+      //       (d: { amount: number }) => d.amount,
+      //     ),
+      //     q90: quantile(
+      //       filteredData,
+      //       0.9,
+      //       (d: { amount: number }) => d.amount,
+      //     ),
+      //   });
+      // }
     }
   }
 
-  return { results, finalYearResults };
+  return results;
 }
