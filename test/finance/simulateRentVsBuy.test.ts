@@ -246,518 +246,292 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
   );
 
   // Annual expenses
-  // const annualExpenses = results.filter((d) =>
-  //   [
-  //     // buyer
-  //     "mortgageCapital",
-  //     "mortgageInterests",
-  //     "maintenance",
-  //     "propertyTax",
-  //     "condoFees",
-  //     "insurance",
-  //     "downPayment",
-  //     "purchaseFixedFees",
-  //     "insurancePremium",
-  //     // renter
-  //     "rent",
-  //     "insurance",
-  //     "securityDeposit",
-  //   ].includes(d.variable)
-  // );
-  // const annualExpensesSecondYear = annualExpenses.filter((d) =>
-  //   d.year === 2001
-  // );
-  // t.step("second year expenses", async () => {
-  //   assertEquals(annualExpensesSecondYear, [
-  //     { year: 2001, category: "renter", variable: "rent", amount: 21636 },
-  //     {
-  //       year: 2001,
-  //       category: "renter",
-  //       variable: "insurance",
-  //       amount: 924,
-  //     },
-  //     {
-  //       year: 2001,
-  //       category: "buyer",
-  //       variable: "mortgageCapital",
-  //       amount: 9821,
-  //     },
-  //     {
-  //       year: 2001,
-  //       category: "buyer",
-  //       variable: "mortgageInterests",
-  //       amount: 21586,
-  //     },
-  //     {
-  //       year: 2001,
-  //       category: "buyer",
-  //       variable: "maintenance",
-  //       amount: 2575,
-  //     },
-  //     {
-  //       year: 2001,
-  //       category: "buyer",
-  //       variable: "propertyTax",
-  //       amount: 3605,
-  //     },
-  //     {
-  //       year: 2001,
-  //       category: "buyer",
-  //       variable: "condoFees",
-  //       amount: 1236,
-  //     },
-  //     {
-  //       year: 2001,
-  //       category: "buyer",
-  //       variable: "insurance",
-  //       amount: 3096,
-  //     },
-  //   ]);
-  // });
+  const annualExpenses = results.filter((d) => d.group === "annualExpenses");
+  const annualExpensesSecondYear = annualExpenses.filter((d) =>
+    d.year === 2001
+  );
+  await t.step("second year expenses", async () => {
+    assertEquals(annualExpensesSecondYear, [
+      {
+        year: 2001,
+        category: "renter",
+        group: "annualExpenses",
+        variable: "rent",
+        amount: 21636,
+      },
+      {
+        year: 2001,
+        category: "renter",
+        group: "annualExpenses",
+        variable: "insurance",
+        amount: 924,
+      },
+      {
+        year: 2001,
+        category: "buyer",
+        group: "annualExpenses",
+        variable: "mortgageCapital",
+        amount: 9821,
+      },
+      {
+        year: 2001,
+        category: "buyer",
+        group: "annualExpenses",
+        variable: "mortgageInterests",
+        amount: 21586,
+      },
+      {
+        year: 2001,
+        category: "buyer",
+        group: "annualExpenses",
+        variable: "maintenance",
+        amount: 2575,
+      },
+      {
+        year: 2001,
+        category: "buyer",
+        group: "annualExpenses",
+        variable: "propertyTax",
+        amount: 3605,
+      },
+      {
+        year: 2001,
+        category: "buyer",
+        group: "annualExpenses",
+        variable: "condoFees",
+        amount: 1236,
+      },
+      {
+        year: 2001,
+        category: "buyer",
+        group: "annualExpenses",
+        variable: "insurance",
+        amount: 3096,
+      },
+    ]);
+  });
 
-  // await saveChart(
-  //   annualExpenses,
-  //   (data) =>
-  //     plot({
-  //       title: "Annual expenses over time",
-  //       y: {
-  //         nice: true,
-  //         label: null,
-  //         tickFormat: (d) =>
-  //           Math.abs(d) < 1000
-  //             ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
-  //             : Math.abs(d) < 1_000_000
-  //             ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
-  //             : d < 0
-  //             ? `-$${Math.abs(d) / 1_000_000}M`
-  //             : `$${d / 1_000_000}M`,
-  //       },
-  //       x: {
-  //         ticks: [2000, 2004, 2009, 2014, 2019, 2024],
-  //         tickFormat: (d) => d.toString(),
-  //       },
-  //       fx: {
-  //         label: null,
-  //       },
-  //       marginLeft: 60,
-  //       color: {
-  //         legend: true,
-  //       },
-  //       grid: true,
-  //       marks: [
-  //         barY(data, {
-  //           x: "year",
-  //           y: "amount",
-  //           fill: "variable",
-  //           fx: "category",
-  //         }),
-  //       ],
-  //     }),
-  //   "test/output/annual-expenses.png",
-  //   { style: "body { width: 700px; }" },
-  // );
+  const renterTotalExpensesSecondYear = annualExpensesSecondYear.filter((d) =>
+    d.category === "renter"
+  ).reduce((acc, curr) => acc + curr.amount, 0);
 
-  // // Cumulative expenses
-  // const cumulativeExpenses = results.filter((d) =>
-  //   [
-  //     // buyer
-  //     "cumulativeMortgageCapital",
-  //     "cumulativeMortgageInterests",
-  //     "cumulativeMaintenance",
-  //     "cumulativePropertyTax",
-  //     "cumulativeCondoFees",
-  //     "cumulativeInsurance",
-  //     "cumulativeDownPayment",
-  //     "cumulativePurchaseFixedFees",
-  //     "cumulativeInsurancePremium",
-  //     // renter
-  //     "cumulativeRent",
-  //     "cumulativeInsurance",
-  //     "cumulativeSecurityDeposit",
-  //   ].includes(d.variable)
-  // );
-  // await saveChart(
-  //   cumulativeExpenses,
-  //   (data) =>
-  //     plot({
-  //       title: "Cumulative expenses",
-  //       y: {
-  //         nice: true,
-  //         label: null,
-  //         tickFormat: (d) =>
-  //           Math.abs(d) < 1000
-  //             ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
-  //             : Math.abs(d) < 1_000_000
-  //             ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
-  //             : d < 0
-  //             ? `-$${Math.abs(d) / 1_000_000}M`
-  //             : `$${d / 1_000_000}M`,
-  //       },
-  //       x: {
-  //         ticks: [2000, 2004, 2009, 2014, 2019, 2024],
-  //         tickFormat: (d) => d.toString(),
-  //       },
-  //       fx: {
-  //         label: null,
-  //       },
-  //       marginLeft: 60,
-  //       color: {
-  //         legend: true,
-  //       },
-  //       grid: true,
-  //       marks: [
-  //         barY(data, {
-  //           x: "year",
-  //           y: "amount",
-  //           fill: "variable",
-  //           fx: "category",
-  //         }),
-  //       ],
-  //     }),
-  //   "test/output/cumulative-expenses.png",
-  //   { style: "body { width: 700px; }" },
-  // );
+  await t.step("renter second year total expenses", async () => {
+    assertEquals(renterTotalExpensesSecondYear, 22560);
+  });
 
-  // // Buyer home value and equity
-  // const buyerHomeValue = results.filter((d) =>
-  //   d.category === "buyer" &&
-  //   [
-  //     "homeValue",
-  //     "homeEquity",
-  //   ].includes(d.variable)
-  // );
-  // await saveChart(
-  //   buyerHomeValue,
-  //   (data) =>
-  //     plot({
-  //       title: "Buyer - Home value and equity",
-  //       y: {
-  //         nice: true,
-  //         label: null,
-  //         tickFormat: (d) =>
-  //           Math.abs(d) < 1000
-  //             ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
-  //             : Math.abs(d) < 1_000_000
-  //             ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
-  //             : d < 0
-  //             ? `-$${Math.abs(d) / 1_000_000}M`
-  //             : `$${d / 1_000_000}M`,
-  //       },
-  //       x: {
-  //         ticks: [2000, 2004, 2009, 2014, 2019, 2024],
-  //         tickFormat: (d) => d.toString(),
-  //       },
-  //       marginLeft: 60,
-  //       color: {
-  //         legend: true,
-  //       },
-  //       grid: true,
-  //       marks: [
-  //         barY(data, {
-  //           x: "year",
-  //           y: "amount",
-  //           fill: "variable",
-  //           fx: "variable",
-  //         }),
-  //       ],
-  //     }),
-  //   "test/output/buyer-home-value-equity.png",
-  //   { style: "body { width: 700px; }" },
-  // );
-  // // Buyer home value increase and equity gains
-  // const buyerHomeValueEquityIncrease = results.filter((d) =>
-  //   d.category === "buyer" &&
-  //   [
-  //     "homeValueIncrease",
-  //     "homeEquityGains",
-  //   ].includes(d.variable)
-  // );
-  // await saveChart(
-  //   buyerHomeValueEquityIncrease,
-  //   (data) =>
-  //     plot({
-  //       title: "Buyer - Home value and equity increase",
-  //       y: {
-  //         nice: true,
-  //         label: null,
-  //         tickFormat: (d) =>
-  //           Math.abs(d) < 1000
-  //             ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
-  //             : Math.abs(d) < 1_000_000
-  //             ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
-  //             : d < 0
-  //             ? `-$${Math.abs(d) / 1_000_000}M`
-  //             : `$${d / 1_000_000}M`,
-  //       },
-  //       x: {
-  //         ticks: [2000, 2004, 2009, 2014, 2019, 2024],
-  //         tickFormat: (d) => d.toString(),
-  //       },
-  //       marginLeft: 60,
-  //       color: {
-  //         legend: true,
-  //       },
-  //       grid: true,
-  //       marks: [
-  //         barY(data, {
-  //           x: "year",
-  //           y: "amount",
-  //           fill: "variable",
-  //           fx: "variable",
-  //         }),
-  //       ],
-  //     }),
-  //   "test/output/buyer-home-value-equity-increase.png",
-  //   { style: "body { width: 700px; }" },
-  // );
+  const buyerTotalExpensesSecondYear = annualExpensesSecondYear.filter((d) =>
+    d.category === "buyer"
+  ).reduce((acc, curr) => acc + curr.amount, 0);
 
-  // // GAINS
-  // const gains = results.filter((d) =>
-  //   [
-  //     "marketGains",
-  //     "tfsaGains",
-  //     "tfsaContributions",
-  //     "newStocks",
-  //     // buyer
-  //     "homeEquityGains",
-  //   ].includes(d.variable)
-  // );
-  // await saveChart(
-  //   gains,
-  //   (data) =>
-  //     plot({
-  //       title: "Annual gains",
-  //       y: {
-  //         nice: true,
-  //         label: null,
-  //         tickFormat: (d) =>
-  //           Math.abs(d) < 1000
-  //             ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
-  //             : Math.abs(d) < 1_000_000
-  //             ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
-  //             : d < 0
-  //             ? `-$${Math.abs(d) / 1_000_000}M`
-  //             : `$${d / 1_000_000}M`,
-  //       },
-  //       x: {
-  //         ticks: [2000, 2004, 2009, 2014, 2019, 2024],
-  //         tickFormat: (d) => d.toString(),
-  //       },
-  //       fx: {
-  //         label: null,
-  //       },
-  //       marginLeft: 60,
-  //       color: {
-  //         legend: true,
-  //       },
-  //       grid: true,
-  //       marks: [
-  //         barY(data, {
-  //           x: "year",
-  //           y: "amount",
-  //           fill: "variable",
-  //           fx: "category",
-  //         }),
-  //       ],
-  //     }),
-  //   "test/output/annual-gains.png",
-  //   { style: "body { width: 700px; }" },
-  // );
+  await t.step("buyer second year total expenses", async () => {
+    assertEquals(buyerTotalExpensesSecondYear, 41919);
+  });
 
-  // // CUMULATIVE GAINS
-  // const cumulativeGains = results.filter((d) =>
-  //   [
-  //     "stocks",
-  //     "tfsa",
-  //     // buyer
-  //     "homeEquity",
-  //   ].includes(d.variable)
-  // );
-  // await saveChart(
-  //   cumulativeGains,
-  //   (data) =>
-  //     plot({
-  //       title: "Cumulative gains",
-  //       y: {
-  //         nice: true,
-  //         label: null,
-  //         tickFormat: (d) =>
-  //           Math.abs(d) < 1000
-  //             ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
-  //             : Math.abs(d) < 1_000_000
-  //             ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
-  //             : d < 0
-  //             ? `-$${Math.abs(d) / 1_000_000}M`
-  //             : `$${d / 1_000_000}M`,
-  //       },
-  //       x: {
-  //         ticks: [2000, 2004, 2009, 2014, 2019, 2024],
-  //         tickFormat: (d) => d.toString(),
-  //       },
-  //       fx: {
-  //         label: null,
-  //       },
-  //       marginLeft: 60,
-  //       color: {
-  //         legend: true,
-  //       },
-  //       grid: true,
-  //       marks: [
-  //         barY(data, {
-  //           x: "year",
-  //           y: "amount",
-  //           fill: "variable",
-  //           fx: "category",
-  //         }),
-  //       ],
-  //     }),
-  //   "test/output/cumulative-gains.png",
-  //   { style: "body { width: 700px; }" },
-  // );
+  const renterTotalExpensesLastYear = annualExpenses.filter((d) =>
+    d.category === "renter" && d.year === 2024
+  ).reduce((acc, curr) => acc + curr.amount, 0);
 
-  // // Balance
-  // const balance = results.filter((d) =>
-  //   [
-  //     "balance",
-  //   ].includes(d.variable)
-  // );
-  // await saveChart(
-  //   balance,
-  //   (data) =>
-  //     plot({
-  //       title: "Annual balance (gains - expenses)",
-  //       y: {
-  //         nice: true,
-  //         label: null,
-  //         tickFormat: (d) =>
-  //           Math.abs(d) < 1000
-  //             ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
-  //             : Math.abs(d) < 1_000_000
-  //             ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
-  //             : d < 0
-  //             ? `-$${Math.abs(d) / 1_000_000}M`
-  //             : `$${d / 1_000_000}M`,
-  //       },
-  //       x: {
-  //         ticks: [2000, 2004, 2009, 2014, 2019, 2024],
-  //         tickFormat: (d) => d.toString(),
-  //       },
-  //       fx: {
-  //         label: null,
-  //       },
-  //       marginLeft: 60,
-  //       color: {
-  //         legend: true,
-  //       },
-  //       grid: true,
-  //       marks: [
-  //         barY(data, {
-  //           x: "year",
-  //           y: "amount",
-  //           fill: "variable",
-  //           fx: "category",
-  //         }),
-  //       ],
-  //     }),
-  //   "test/output/annual-balance.png",
-  //   { style: "body { width: 700px; }" },
-  // );
+  await t.step("renter last year total expenses", async () => {
+    assertEquals(renterTotalExpensesLastYear, 44544);
+  });
 
-  // // Assets
-  // const assets = results.filter((d) =>
-  //   [
-  //     "assets",
-  //   ].includes(d.variable)
-  // );
-  // await saveChart(
-  //   assets,
-  //   (data) =>
-  //     plot({
-  //       title: "Assets",
-  //       y: {
-  //         nice: true,
-  //         label: null,
-  //         tickFormat: (d) =>
-  //           Math.abs(d) < 1000
-  //             ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
-  //             : Math.abs(d) < 1_000_000
-  //             ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
-  //             : d < 0
-  //             ? `-$${Math.abs(d) / 1_000_000}M`
-  //             : `$${d / 1_000_000}M`,
-  //       },
-  //       x: {
-  //         ticks: [2000, 2004, 2009, 2014, 2019, 2024],
-  //         tickFormat: (d) => d.toString(),
-  //       },
-  //       fx: {
-  //         label: null,
-  //       },
-  //       marginLeft: 60,
-  //       color: {
-  //         legend: true,
-  //       },
-  //       grid: true,
-  //       marks: [
-  //         barY(data, {
-  //           x: "year",
-  //           y: "amount",
-  //           fill: "variable",
-  //           fx: "category",
-  //         }),
-  //       ],
-  //     }),
-  //   "test/output/assets.png",
-  //   { style: "body { width: 700px; }" },
-  // );
+  const buyerTotalExpensesLastYear = annualExpenses.filter((d) =>
+    d.category === "buyer" && d.year === 2024
+  ).reduce((acc, curr) => acc + curr.amount, 0);
 
-  // // Difference in assets
-  // const assetsDifference = results.filter((d) =>
-  //   [
-  //     "difference",
-  //   ].includes(d.variable)
-  // );
-  // await saveChart(
-  //   assetsDifference,
-  //   (data) =>
-  //     plot({
-  //       title: "Assets difference",
-  //       y: {
-  //         nice: true,
-  //         label: null,
-  //         tickFormat: (d) =>
-  //           Math.abs(d) < 1000
-  //             ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
-  //             : Math.abs(d) < 1_000_000
-  //             ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
-  //             : d < 0
-  //             ? `-$${Math.abs(d) / 1_000_000}M`
-  //             : `$${d / 1_000_000}M`,
-  //       },
-  //       x: {
-  //         ticks: [2000, 2004, 2009, 2014, 2019, 2024],
-  //         tickFormat: (d) => d.toString(),
-  //       },
-  //       fx: {
-  //         label: null,
-  //       },
-  //       marginLeft: 60,
-  //       color: {
-  //         legend: true,
-  //       },
-  //       grid: true,
-  //       marks: [
-  //         barY(data, {
-  //           x: "year",
-  //           y: "amount",
-  //           fill: "category",
-  //           // fx: "category",
-  //         }),
-  //       ],
-  //     }),
-  //   "test/output/assets-difference.png",
-  //   { style: "body { width: 700px; }" },
-  // );
+  await t.step("buyer last year total expenses", async () => {
+    assertEquals(buyerTotalExpensesLastYear, 52148);
+  });
+
+  await saveChart(
+    annualExpenses,
+    (data) =>
+      plot({
+        title: "Annual expenses over time",
+        y: {
+          nice: true,
+          label: null,
+          tickFormat: (d) =>
+            Math.abs(d) < 1000
+              ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
+              : Math.abs(d) < 1_000_000
+              ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
+              : d < 0
+              ? `-$${Math.abs(d) / 1_000_000}M`
+              : `$${d / 1_000_000}M`,
+        },
+        x: {
+          ticks: [2000, 2005, 2010, 2015, 2020, 2025],
+          tickFormat: (d) => d.toString(),
+        },
+        fx: {
+          label: null,
+        },
+        marginLeft: 60,
+        color: {
+          legend: true,
+        },
+        grid: true,
+        marks: [
+          barY(data, {
+            x: "year",
+            y: "amount",
+            fill: "variable",
+            fx: "category",
+          }),
+        ],
+      }),
+    "test/output/annual-expenses.png",
+    { style: "body { width: 700px; }" },
+  );
+
+  const cumulativeAnnualExpenses = results.filter((d) =>
+    d.group === "cumulativeExpenses"
+  );
+
+  const cumulativeRenterFirstYearExpenses = cumulativeAnnualExpenses.filter((
+    d,
+  ) => d.year === 2000 && d.category === "renter").reduce(
+    (acc, curr) => acc + curr.amount,
+    0,
+  );
+  await t.step("cumulative expenses on first year for renter", async () => {
+    assertEquals(
+      cumulativeRenterFirstYearExpenses,
+      renterFirstYearTotalExpenses,
+    );
+  });
+
+  const cumulativeBuyerFirstYearExpenses = cumulativeAnnualExpenses.filter((
+    d,
+  ) => d.year === 2000 && d.category === "buyer").reduce(
+    (acc, curr) => acc + curr.amount,
+    0,
+  );
+  await t.step("cumulative expenses on first year for buyer", async () => {
+    assertEquals(
+      cumulativeBuyerFirstYearExpenses,
+      buyerFirstYearTotalExpenses,
+    );
+  });
+
+  const cumulativeRenterSecondYearExpenses = cumulativeAnnualExpenses.filter((
+    d,
+  ) => d.year === 2001 && d.category === "renter").reduce(
+    (acc, curr) => acc + curr.amount,
+    0,
+  );
+  await t.step("cumulative expenses on second year for renter", async () => {
+    assertEquals(
+      cumulativeRenterSecondYearExpenses,
+      renterFirstYearTotalExpenses + renterTotalExpensesSecondYear,
+    );
+  });
+
+  const cumulativeBuyerSecondYearExpenses = cumulativeAnnualExpenses.filter((
+    d,
+  ) => d.year === 2001 && d.category === "buyer").reduce(
+    (acc, curr) => acc + curr.amount,
+    0,
+  );
+  await t.step("cumulative expenses on second year for buyer", async () => {
+    assertEquals(
+      cumulativeBuyerSecondYearExpenses,
+      buyerFirstYearTotalExpenses + buyerTotalExpensesSecondYear,
+    );
+  });
+
+  const cumulativeRenterLastYearExpenses = cumulativeAnnualExpenses.filter((
+    d,
+  ) => d.year === 2025 && d.category === "renter").reduce(
+    (acc, curr) => acc + curr.amount,
+    0,
+  );
+  const renterExpectedCumulativeExpenses = annualExpenses.filter((d) =>
+    d.category === "renter"
+  ).reduce((acc, curr) => acc + curr.amount, 0);
+  await t.step("cumulative expenses on last year for renter", async () => {
+    assertEquals(
+      cumulativeRenterLastYearExpenses,
+      renterExpectedCumulativeExpenses,
+    );
+  });
+  await t.step(
+    "cumulative expenses on last year for renter (actual number)",
+    async () => {
+      assertEquals(
+        cumulativeRenterLastYearExpenses,
+        867371,
+      );
+    },
+  );
+
+  const cumulativeBuyerLastYearExpenses = cumulativeAnnualExpenses.filter((
+    d,
+  ) => d.year === 2025 && d.category === "buyer").reduce(
+    (acc, curr) => acc + curr.amount,
+    0,
+  );
+  const buyerExpectedCumulativeExpenses = annualExpenses.filter((d) =>
+    d.category === "buyer"
+  ).reduce((acc, curr) => acc + curr.amount, 0);
+  await t.step("cumulative expenses on last year for buyer", async () => {
+    assertEquals(
+      cumulativeBuyerLastYearExpenses,
+      buyerExpectedCumulativeExpenses,
+    );
+  });
+  await t.step(
+    "cumulative expenses on last year for buyer (actual number)",
+    async () => {
+      assertEquals(
+        cumulativeBuyerLastYearExpenses,
+        1317941,
+      );
+    },
+  );
+
+  await saveChart(
+    cumulativeAnnualExpenses,
+    (data) =>
+      plot({
+        title: "Cumulative expenses over time",
+        y: {
+          nice: true,
+          label: null,
+          tickFormat: (d) =>
+            Math.abs(d) < 1000
+              ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
+              : Math.abs(d) < 1_000_000
+              ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
+              : d < 0
+              ? `-$${Math.abs(d) / 1_000_000}M`
+              : `$${d / 1_000_000}M`,
+        },
+        x: {
+          ticks: [2000, 2005, 2010, 2015, 2020, 2025],
+          tickFormat: (d) => d.toString(),
+        },
+        fx: {
+          label: null,
+        },
+        marginLeft: 60,
+        color: {
+          legend: true,
+        },
+        grid: true,
+        marks: [
+          barY(data, {
+            x: "year",
+            y: "amount",
+            fill: "variable",
+            fx: "category",
+          }),
+        ],
+      }),
+    "test/output/cumulative-expenses.png",
+    { style: "body { width: 700px; }" },
+  );
 
   //Just for now
   assertEquals(true, true);
