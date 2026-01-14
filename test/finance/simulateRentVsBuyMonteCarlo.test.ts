@@ -17,55 +17,62 @@ Deno.test("should run a monte carlor simulation of rent vs buy", async () => {
     startingYear: 2000,
     numberOfYears: 25,
     annualAvgMarketReturnRate: 0.05,
-    annualMarketReturnStdDev: 0.02,
+    annualMarketReturnStdDev: 0.01,
     tfsaContributions: true,
     combinedTaxRate: 0.25,
     renter: {
       startingMonthlyRent: 1750,
       annualRentIncreaseAvg: 0.03,
-      annualRentIncreaseStdDev: 0.02,
+      annualRentIncreaseStdDev: 0.01,
       securityDeposit: 1750,
       startingMonthlyInsurance: 75,
       annualInsuranceIncreaseAvg: 0.03,
-      annualInsuranceIncreaseStdDev: 0.02,
+      annualInsuranceIncreaseStdDev: 0.01,
     },
     buyer: {
       downPayment: 50_000,
       purchasePrice: 500_000,
       interestRateAvg: 0.05,
-      interestRateStdDev: 0.02,
+      interestRateStdDev: 0.01,
+      fourYearInterestRateAvg: 0.045,
+      fourYearInterestRateStdDev: 0.001,
+      threeYearInterestRateAvg: 0.04,
+      threeYearInterestRateStdDev: 0.001,
+      twoYearInterestRateAvg: 0.035,
+      twoYearInterestRateStdDev: 0.001,
+      oneYearInterestRateAvg: 0.03,
+      oneYearInterestRateStdDev: 0.001,
       purchaseFixedFees: 25_000,
       startingAnnualMaintenanceCost: 2500,
       annualMaintenanceIncreaseAvg: 0.03,
-      annualMaintenanceIncreaseStdDev: 0.02,
+      annualMaintenanceIncreaseStdDev: 0.01,
       startingAnnualPropertyTax: 3500,
       annualPropertyTaxIncreaseAvg: 0.03,
-      annualPropertyTaxIncreaseStdDev: 0.02,
+      annualPropertyTaxIncreaseStdDev: 0.01,
       startingMonthlyCondoFee: 100,
       annualCondoFeeIncreaseAvg: 0.03,
-      annualCondoFeeIncreaseStdDev: 0.02,
+      annualCondoFeeIncreaseStdDev: 0.01,
       startingMonthlyInsurance: 250,
       annualInsuranceIncreaseAvg: 0.03,
-      annualInsuranceIncreaseStdDev: 0.02,
+      annualInsuranceIncreaseStdDev: 0.01,
       appreciationRateAvg: 0.05,
-      appreciationRateStdDev: 0.02,
+      appreciationRateStdDev: 0.01,
       sellingFixedFees: 2000,
       sellingFixedIncreaseAvg: 0.03,
-      sellingFixedIncreaseStdDev: 0.02,
+      sellingFixedIncreaseStdDev: 0.01,
       sellingCommissionRate: 0.04,
     },
   });
 
-  const cumulativeExpenses = simulationResults.filter((d) =>
-    d.variable === "cumulativeExpenses"
+  const balanceAfterSelling = simulationResults.results.filter((d) =>
+    d.variable === "balanceAfterSelling"
   );
 
-  // Cumulative Expenses
   await saveChart(
-    cumulativeExpenses,
+    balanceAfterSelling,
     (data) =>
       plot({
-        title: "Cumulative expenses over time",
+        title: "Balance after selling assets",
         y: {
           nice: true,
           label: null,
@@ -79,7 +86,7 @@ Deno.test("should run a monte carlor simulation of rent vs buy", async () => {
               : `$${d / 1_000_000}M`,
         },
         x: {
-          ticks: [2000, 2005, 2010, 2015, 2020, 2025],
+          ticks: [2000, 2005, 2010, 2015, 2020],
           tickFormat: (d) => d.toString(),
         },
         fx: {
@@ -121,18 +128,19 @@ Deno.test("should run a monte carlor simulation of rent vs buy", async () => {
           }),
         ],
       }),
-    "test/output/monte-carlo-cumulative-expenses.png",
+    "test/output/monte-carlo-balance-after-selling.png",
     { style: "body { width: 700px; }" },
   );
 
-  const assets = simulationResults.filter((d) => d.variable === "assets");
+  const differenceAfterSelling = simulationResults.results.filter((d) =>
+    d.variable === "differenceAfterSelling"
+  );
 
-  // Assets
   await saveChart(
-    assets,
+    differenceAfterSelling,
     (data) =>
       plot({
-        title: "Assets over time",
+        title: "Difference in balance after selling assets",
         y: {
           nice: true,
           label: null,
@@ -146,7 +154,7 @@ Deno.test("should run a monte carlor simulation of rent vs buy", async () => {
               : `$${d / 1_000_000}M`,
         },
         x: {
-          ticks: [2000, 2005, 2010, 2015, 2020, 2025],
+          ticks: [2000, 2005, 2010, 2015, 2020],
           tickFormat: (d) => d.toString(),
         },
         fx: {
@@ -188,18 +196,18 @@ Deno.test("should run a monte carlor simulation of rent vs buy", async () => {
           }),
         ],
       }),
-    "test/output/monte-carlo-assets.png",
+    "test/output/monte-carlo-difference-after-selling.png",
     { style: "body { width: 700px; }" },
   );
 
-  const balance = simulationResults.filter((d) => d.variable === "balance");
+  const lastYearDifferenceAfterSelling =
+    simulationResults.lastYearDifferenceResults;
 
-  // Balance
   await saveChart(
-    balance,
+    lastYearDifferenceAfterSelling,
     (data) =>
       plot({
-        title: "Balance over time",
+        title: "Final difference in balance after selling assets",
         y: {
           nice: true,
           label: null,
@@ -212,50 +220,25 @@ Deno.test("should run a monte carlor simulation of rent vs buy", async () => {
               ? `-$${Math.abs(d) / 1_000_000}M`
               : `$${d / 1_000_000}M`,
         },
-        x: {
-          ticks: [2000, 2005, 2010, 2015, 2020, 2025],
-          tickFormat: (d) => d.toString(),
-        },
-        fx: {
-          label: null,
-        },
+        height: 450,
         marginLeft: 60,
         color: {
           legend: true,
         },
         grid: true,
         marks: [
-          areaY(data, {
-            x: "year",
-            y1: "q10",
-            y2: "q90",
-            fill: "category",
-            fillOpacity: 0.3,
-            fx: "category",
-          }),
-          line(data, {
-            x: "year",
-            y: "q10",
-            stroke: "category",
-            strokeOpacity: 0.5,
-            fx: "category",
-          }),
-          line(data, {
-            x: "year",
-            y: "q50",
-            stroke: "category",
-            fx: "category",
-          }),
-          line(data, {
-            x: "year",
-            y: "q90",
-            stroke: "category",
-            strokeOpacity: 0.5,
-            fx: "category",
-          }),
+          dotX(
+            data,
+            dodgeY({
+              x: "amount",
+              fill: "hasMore",
+              r: 1.1,
+              padding: 0.1,
+            }),
+          ),
         ],
       }),
-    "test/output/monte-carlo-balance.png",
+    "test/output/monte-carlo-final-result.png",
     { style: "body { width: 700px; }" },
   );
 

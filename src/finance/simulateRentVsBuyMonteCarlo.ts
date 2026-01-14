@@ -24,6 +24,14 @@ export default function simulateRentVsBuyMonteCarlo(parameters: {
     purchasePrice: number;
     interestRateAvg: number;
     interestRateStdDev: number;
+    fourYearInterestRateAvg: number;
+    fourYearInterestRateStdDev: number;
+    threeYearInterestRateAvg: number;
+    threeYearInterestRateStdDev: number;
+    twoYearInterestRateAvg: number;
+    twoYearInterestRateStdDev: number;
+    oneYearInterestRateAvg: number;
+    oneYearInterestRateStdDev: number;
     purchaseFixedFees: number;
     startingAnnualMaintenanceCost: number;
     annualMaintenanceIncreaseAvg: number;
@@ -46,6 +54,7 @@ export default function simulateRentVsBuyMonteCarlo(parameters: {
   };
 }) {
   const allIterationsResults = [];
+  const lastYearDifferenceResults = [];
 
   for (let i = 0; i < parameters.iterations; i++) {
     // We create the arrays for the rates for each year
@@ -74,6 +83,30 @@ export default function simulateRentVsBuyMonteCarlo(parameters: {
       parameters.numberOfYears,
       parameters.buyer.interestRateAvg,
       parameters.buyer.interestRateStdDev,
+      { decimals: 4 },
+    );
+    const fourYearInterestRates = getRandomValues(
+      parameters.numberOfYears,
+      parameters.buyer.fourYearInterestRateAvg,
+      parameters.buyer.fourYearInterestRateStdDev,
+      { decimals: 4 },
+    );
+    const threeYearInterestRates = getRandomValues(
+      parameters.numberOfYears,
+      parameters.buyer.threeYearInterestRateAvg,
+      parameters.buyer.threeYearInterestRateStdDev,
+      { decimals: 4 },
+    );
+    const twoYearInterestRates = getRandomValues(
+      parameters.numberOfYears,
+      parameters.buyer.twoYearInterestRateAvg,
+      parameters.buyer.twoYearInterestRateStdDev,
+      { decimals: 4 },
+    );
+    const oneYearInterestRates = getRandomValues(
+      parameters.numberOfYears,
+      parameters.buyer.oneYearInterestRateAvg,
+      parameters.buyer.oneYearInterestRateStdDev,
       { decimals: 4 },
     );
     const annualMaintenanceIncrease = getRandomValues(
@@ -128,7 +161,11 @@ export default function simulateRentVsBuyMonteCarlo(parameters: {
       buyer: {
         downPayment: parameters.buyer.downPayment,
         purchasePrice: parameters.buyer.purchasePrice,
-        interestRates: interestRates,
+        interestRates,
+        fourYearInterestRates,
+        threeYearInterestRates,
+        twoYearInterestRates,
+        oneYearInterestRates,
         purchaseFixedFees: parameters.buyer.purchaseFixedFees,
         startingAnnualMaintenanceCost:
           parameters.buyer.startingAnnualMaintenanceCost,
@@ -147,61 +184,61 @@ export default function simulateRentVsBuyMonteCarlo(parameters: {
     });
 
     const iterationResultsFiltered = iterationResults.filter((d) =>
-      ["cumulativeExpenses", "assets", "summary"].includes(d.group)
+      d.variable === "balanceAfterSelling" ||
+      d.variable === "differenceAfterSelling"
     );
 
     for (
       let year = parameters.startingYear;
-      year < parameters.startingYear + parameters.numberOfYears + 1;
+      year < parameters.startingYear + parameters.numberOfYears;
       year++
     ) {
       for (const category of ["renter", "buyer"] as const) {
-        // cumulative expenses
-        const cumulativeExpensesData = iterationResultsFiltered.filter(
-          (d) =>
-            d.year === year && d.category === category &&
-            d.group === "cumulativeExpenses",
-        ).reduce((acc, curr) => acc += curr.amount, 0);
-        allIterationsResults.push({
-          year,
-          category,
-          group: "cumulativeExpenses",
-          amount: cumulativeExpensesData,
-        });
-
-        // assets
-        const assetsData = iterationResultsFiltered.filter(
-          (d) =>
-            d.year === year && d.category === category &&
-            d.group === "assets",
-        ).reduce((acc, curr) => acc += curr.amount, 0);
-        allIterationsResults.push({
-          year,
-          category,
-          group: "assets",
-          amount: assetsData,
-        });
-
-        // balance
+        // balance after selling
         const balanceData = iterationResultsFiltered.filter(
           (d) =>
             d.year === year && d.category === category &&
-            d.group === "summary" && d.variable === "balance",
+            d.variable === "balanceAfterSelling",
         )[0].amount;
         allIterationsResults.push({
           year,
           category,
-          group: "balance",
+          group: "balanceAfterSelling",
           amount: balanceData,
+        });
+
+        // difference after selling
+        const differenceData = iterationResultsFiltered.filter(
+          (d) =>
+            d.year === year && d.category === category &&
+            d.variable === "differenceAfterSelling",
+        )[0].amount;
+        allIterationsResults.push({
+          year,
+          category,
+          group: "differenceAfterSelling",
+          amount: differenceData,
         });
       }
     }
+
+    const lastYearDifference = iterationResultsFiltered.filter(
+      (d) =>
+        d.year === parameters.startingYear + parameters.numberOfYears - 1 &&
+        d.variable === "differenceAfterSelling" && d.category === "buyer",
+    );
+    lastYearDifferenceResults.push(
+      ...lastYearDifference.map((d) => ({
+        hasMore: d.amount > 0 ? "buyer" : "renter",
+        amount: d.amount,
+      })),
+    );
   }
 
   const results: {
     year: number;
     category: "renter" | "buyer";
-    variable: "cumulativeExpenses" | "assets" | "difference" | "balance";
+    variable: "balanceAfterSelling" | "differenceAfterSelling";
     q10: number;
     q50: number;
     q90: number;
@@ -213,80 +250,55 @@ export default function simulateRentVsBuyMonteCarlo(parameters: {
     year++
   ) {
     for (const category of ["renter", "buyer"] as const) {
-      // cumulative expenses
-      const filteredExpenses = allIterationsResults.filter(
+      // balance after selling
+      const filteredBalanceAfterSelling = allIterationsResults.filter(
         (d) =>
           d.year === year && d.category === category &&
-          d.group === "cumulativeExpenses",
+          d.group === "balanceAfterSelling",
       );
       results.push({
         year,
         category,
-        variable: "cumulativeExpenses",
+        variable: "balanceAfterSelling",
         q10: quantile(
-          filteredExpenses,
+          filteredBalanceAfterSelling,
           0.1,
           (d: { amount: number }) => d.amount,
         ),
         q50: quantile(
-          filteredExpenses,
+          filteredBalanceAfterSelling,
           0.5,
           (d: { amount: number }) => d.amount,
         ),
         q90: quantile(
-          filteredExpenses,
+          filteredBalanceAfterSelling,
           0.9,
           (d: { amount: number }) => d.amount,
         ),
       });
 
-      // assets
-      const filteredAssets = allIterationsResults.filter(
+      // difference after selling
+      const filteredDifferenceAfterSelling = allIterationsResults.filter(
         (d) =>
-          d.year === year && d.category === category && d.group === "assets",
+          d.year === year && d.category === category &&
+          d.group === "differenceAfterSelling",
       );
       results.push({
         year,
         category,
-        variable: "assets",
+        variable: "differenceAfterSelling",
         q10: quantile(
-          filteredAssets,
+          filteredDifferenceAfterSelling,
           0.1,
           (d: { amount: number }) => d.amount,
         ),
         q50: quantile(
-          filteredAssets,
+          filteredDifferenceAfterSelling,
           0.5,
           (d: { amount: number }) => d.amount,
         ),
         q90: quantile(
-          filteredAssets,
-          0.9,
-          (d: { amount: number }) => d.amount,
-        ),
-      });
-
-      // balance
-      const filteredBalance = allIterationsResults.filter(
-        (d) =>
-          d.year === year && d.category === category && d.group === "balance",
-      );
-      results.push({
-        year,
-        category,
-        variable: "balance",
-        q10: quantile(
-          filteredBalance,
-          0.1,
-          (d: { amount: number }) => d.amount,
-        ),
-        q50: quantile(
-          filteredBalance,
-          0.5,
-          (d: { amount: number }) => d.amount,
-        ),
-        q90: quantile(
-          filteredBalance,
+          filteredDifferenceAfterSelling,
           0.9,
           (d: { amount: number }) => d.amount,
         ),
@@ -294,5 +306,5 @@ export default function simulateRentVsBuyMonteCarlo(parameters: {
     }
   }
 
-  return results;
+  return { results, lastYearDifferenceResults };
 }
