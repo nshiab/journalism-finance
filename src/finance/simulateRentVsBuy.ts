@@ -66,7 +66,7 @@ export default function simulateRentVsBuy(parameters: {
               | "securityDeposit";
           }
           | {
-            group: "summary";
+            group: "summary" | "summaryCumulative";
             variable: "difference" | "balance";
           }
         )
@@ -109,7 +109,7 @@ export default function simulateRentVsBuy(parameters: {
               | "homeEquity";
           }
           | {
-            group: "summary";
+            group: "summary" | "summaryCumulative";
             variable: "difference" | "balance";
           }
         )
@@ -515,6 +515,7 @@ export default function simulateRentVsBuy(parameters: {
     // We calculate the home equity for the buyer
     homeEquity = homeValue -
       mortgagePaymentsForThisYear.balance;
+
     results.push({
       year,
       category: "buyer",
@@ -683,7 +684,7 @@ export default function simulateRentVsBuy(parameters: {
     const buyerGains = buyerMarketGains + buyerTfsaGains + buyerNewStocks +
       buyerTfsaContribution + homeEquityGains;
 
-    // We adjust the balances
+    // We adjust the annual balances
     const renterBalance = renterGains - renterExpenses;
     results.push({
       year,
@@ -704,6 +705,40 @@ export default function simulateRentVsBuy(parameters: {
     // We calculate the overall assets so far
     renterAssets = renterStocks + renterTfsa;
     buyerAssets = buyerStocks + buyerTfsa + homeEquity;
+
+    // We calculate the overall balances so far
+    const renterOverallBalance = renterAssets - renterCumulativeExpenses;
+    results.push({
+      year,
+      category: "renter",
+      group: "summaryCumulative",
+      variable: "balance",
+      amount: renterOverallBalance,
+    });
+    const buyerOverallBalance = buyerAssets - buyerCumulativeExpenses;
+    results.push({
+      year,
+      category: "buyer",
+      group: "summaryCumulative",
+      variable: "balance",
+      amount: buyerOverallBalance,
+    });
+
+    // We calculate the difference in overall balance
+    results.push({
+      year,
+      category: "renter",
+      group: "summaryCumulative",
+      variable: "difference",
+      amount: renterOverallBalance - buyerOverallBalance,
+    });
+    results.push({
+      year,
+      category: "buyer",
+      group: "summaryCumulative",
+      variable: "difference",
+      amount: buyerOverallBalance - renterOverallBalance,
+    });
 
     // We adjust for following year
     // RENTER
@@ -992,7 +1027,7 @@ export default function simulateRentVsBuy(parameters: {
   results.push({
     year: parameters.startingYear + parameters.numberOfYears,
     category: "renter",
-    group: "summary",
+    group: "summaryCumulative",
     variable: "balance",
     amount: renterFinalBalance,
   });
@@ -1004,16 +1039,23 @@ export default function simulateRentVsBuy(parameters: {
   results.push({
     year: parameters.startingYear + parameters.numberOfYears,
     category: "buyer",
-    group: "summary",
+    group: "summaryCumulative",
     variable: "balance",
     amount: buyerFinalBalance,
   });
 
-  // We can know calculate the final difference
+  // We can now calculate the final difference
   results.push({
     year: parameters.startingYear + parameters.numberOfYears,
     category: "renter",
-    group: "summary",
+    group: "summaryCumulative",
+    variable: "difference",
+    amount: renterFinalBalance - buyerFinalBalance,
+  });
+  results.push({
+    year: parameters.startingYear + parameters.numberOfYears,
+    category: "buyer",
+    group: "summaryCumulative",
     variable: "difference",
     amount: buyerFinalBalance - renterFinalBalance,
   });

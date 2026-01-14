@@ -46,7 +46,6 @@ export default function simulateRentVsBuyMonteCarlo(parameters: {
   };
 }) {
   const allIterationsResults = [];
-  const finalYearResults = [];
 
   for (let i = 0; i < parameters.iterations; i++) {
     // We create the arrays for the rates for each year
@@ -147,11 +146,56 @@ export default function simulateRentVsBuyMonteCarlo(parameters: {
       },
     });
 
-    allIterationsResults.push(
-      ...iterationResults.filter((d) =>
-        ["cumulativeExpenses", "assets", "summary"].includes(d.group)
-      ),
+    const iterationResultsFiltered = iterationResults.filter((d) =>
+      ["cumulativeExpenses", "assets", "summary"].includes(d.group)
     );
+
+    for (
+      let year = parameters.startingYear;
+      year < parameters.startingYear + parameters.numberOfYears + 1;
+      year++
+    ) {
+      for (const category of ["renter", "buyer"] as const) {
+        // cumulative expenses
+        const cumulativeExpensesData = iterationResultsFiltered.filter(
+          (d) =>
+            d.year === year && d.category === category &&
+            d.group === "cumulativeExpenses",
+        ).reduce((acc, curr) => acc += curr.amount, 0);
+        allIterationsResults.push({
+          year,
+          category,
+          group: "cumulativeExpenses",
+          amount: cumulativeExpensesData,
+        });
+
+        // assets
+        const assetsData = iterationResultsFiltered.filter(
+          (d) =>
+            d.year === year && d.category === category &&
+            d.group === "assets",
+        ).reduce((acc, curr) => acc += curr.amount, 0);
+        allIterationsResults.push({
+          year,
+          category,
+          group: "assets",
+          amount: assetsData,
+        });
+
+        // balance
+        const balanceData = iterationResultsFiltered.filter(
+          (d) =>
+            d.year === year && d.category === category &&
+            d.group === "summary" && d.variable === "balance",
+        )[0].amount;
+        allIterationsResults.push({
+          year,
+          category,
+          group: "balance",
+          amount: balanceData,
+        });
+      }
+    }
   }
 
   const results: {
@@ -196,39 +240,57 @@ export default function simulateRentVsBuyMonteCarlo(parameters: {
         ),
       });
 
-      // for (
-      //   const variable of [
-      //     "cumulativeExpenses",
-      //     "assets",
-      //     "difference",
-      //   ] as const
-      // ) {
-      //   const filteredData = allIterationsResults.filter(
-      //     (d) =>
-      //       d.year === year && d.category === category &&
-      //       d.variable === variable,
-      //   );
-      //   results.push({
-      //     year,
-      //     category,
-      //     variable,
-      //     q10: quantile(
-      //       filteredData,
-      //       0.1,
-      //       (d: { amount: number }) => d.amount,
-      //     ),
-      //     q50: quantile(
-      //       filteredData,
-      //       0.5,
-      //       (d: { amount: number }) => d.amount,
-      //     ),
-      //     q90: quantile(
-      //       filteredData,
-      //       0.9,
-      //       (d: { amount: number }) => d.amount,
-      //     ),
-      //   });
-      // }
+      // assets
+      const filteredAssets = allIterationsResults.filter(
+        (d) =>
+          d.year === year && d.category === category && d.group === "assets",
+      );
+      results.push({
+        year,
+        category,
+        variable: "assets",
+        q10: quantile(
+          filteredAssets,
+          0.1,
+          (d: { amount: number }) => d.amount,
+        ),
+        q50: quantile(
+          filteredAssets,
+          0.5,
+          (d: { amount: number }) => d.amount,
+        ),
+        q90: quantile(
+          filteredAssets,
+          0.9,
+          (d: { amount: number }) => d.amount,
+        ),
+      });
+
+      // balance
+      const filteredBalance = allIterationsResults.filter(
+        (d) =>
+          d.year === year && d.category === category && d.group === "balance",
+      );
+      results.push({
+        year,
+        category,
+        variable: "balance",
+        q10: quantile(
+          filteredBalance,
+          0.1,
+          (d: { amount: number }) => d.amount,
+        ),
+        q50: quantile(
+          filteredBalance,
+          0.5,
+          (d: { amount: number }) => d.amount,
+        ),
+        q90: quantile(
+          filteredBalance,
+          0.9,
+          (d: { amount: number }) => d.amount,
+        ),
+      });
     }
   }
 
