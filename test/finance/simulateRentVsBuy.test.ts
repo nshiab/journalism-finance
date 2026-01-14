@@ -57,6 +57,30 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
     0,
     { decimals: 4 },
   );
+  const fourYearInterestRates = getRandomValues(
+    numberOfYears,
+    0.045,
+    0,
+    { decimals: 4 },
+  );
+  const threeYearInterestRates = getRandomValues(
+    numberOfYears,
+    0.04,
+    0,
+    { decimals: 4 },
+  );
+  const twoYearInterestRates = getRandomValues(
+    numberOfYears,
+    0.035,
+    0,
+    { decimals: 4 },
+  );
+  const oneYearInterestRates = getRandomValues(
+    numberOfYears,
+    0.03,
+    0,
+    { decimals: 4 },
+  );
 
   const results = simulateRentVsBuy({
     startingYear: 2000,
@@ -75,6 +99,10 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       downPayment: 50_000,
       purchasePrice: 500_000,
       interestRates: [0.05, 0.05, 0.05, 0.05, 0.05],
+      fourYearInterestRates,
+      threeYearInterestRates,
+      twoYearInterestRates,
+      oneYearInterestRates,
       purchaseFixedFees: 25_000,
       startingAnnualMaintenanceCost: 2500,
       annualMaintenanceIncrease,
@@ -1209,7 +1237,85 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
   );
 
   const saleCosts = results.filter((d) => d.group === "saleCosts");
-  // NEED TESTS
+  const saleCostsFirstAndSecondYear = saleCosts.filter((d) =>
+    d.year === 2000 || d.year === 2001
+  );
+
+  await t.step("first and second year sale costs", async () => {
+    assertEquals(saleCostsFirstAndSecondYear, [
+      {
+        year: 2000,
+        category: "renter",
+        group: "saleCosts",
+        variable: "stockTaxes",
+        amount: 0,
+      },
+      {
+        year: 2000,
+        category: "buyer",
+        group: "saleCosts",
+        variable: "stockTaxes",
+        amount: 0,
+      },
+      {
+        year: 2000,
+        category: "buyer",
+        group: "saleCosts",
+        variable: "homeSellingCommission",
+        amount: 21000,
+      },
+      {
+        year: 2000,
+        category: "buyer",
+        group: "saleCosts",
+        variable: "homeSellingFixedFees",
+        amount: 2060,
+      },
+      {
+        year: 2000,
+        category: "buyer",
+        group: "saleCosts",
+        variable: "mortgagePenalty",
+        amount: 8813,
+      },
+      {
+        year: 2001,
+        category: "renter",
+        group: "saleCosts",
+        variable: "stockTaxes",
+        amount: 668,
+      },
+      {
+        year: 2001,
+        category: "buyer",
+        group: "saleCosts",
+        variable: "stockTaxes",
+        amount: 0,
+      },
+      {
+        year: 2001,
+        category: "buyer",
+        group: "saleCosts",
+        variable: "homeSellingCommission",
+        amount: 22050,
+      },
+      {
+        year: 2001,
+        category: "buyer",
+        group: "saleCosts",
+        variable: "homeSellingFixedFees",
+        amount: 2122,
+      },
+      {
+        year: 2001,
+        category: "buyer",
+        group: "saleCosts",
+        variable: "mortgagePenalty",
+        amount: 12925,
+      },
+    ]);
+  });
+
   await saveChart(
     saleCosts,
     (data) =>
@@ -1253,7 +1359,86 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
   );
 
   const saleGains = results.filter((d) => d.group === "saleGains");
-  // NEED TESTS
+
+  const saleGainsFirstAndSecondYear = saleGains.filter((d) =>
+    d.year === 2000 || d.year === 2001
+  );
+
+  await t.step("first and second year sale gains", async () => {
+    assertEquals(saleGainsFirstAndSecondYear, [
+      {
+        year: 2000,
+        category: "renter",
+        group: "saleGains",
+        variable: "stockSellingGains",
+        amount: 106907,
+      },
+      {
+        year: 2000,
+        category: "renter",
+        group: "saleGains",
+        variable: "tsfaSellingGains",
+        amount: 0,
+      },
+      {
+        year: 2000,
+        category: "buyer",
+        group: "saleGains",
+        variable: "stockSellingGains",
+        amount: 0,
+      },
+      {
+        year: 2000,
+        category: "buyer",
+        group: "saleGains",
+        variable: "tsfaSellingGains",
+        amount: 0,
+      },
+      {
+        year: 2000,
+        category: "buyer",
+        group: "saleGains",
+        variable: "homeSellingGains",
+        amount: 52475,
+      },
+      {
+        year: 2001,
+        category: "renter",
+        group: "saleGains",
+        variable: "stockSellingGains",
+        amount: 130943,
+      },
+      {
+        year: 2001,
+        category: "renter",
+        group: "saleGains",
+        variable: "tsfaSellingGains",
+        amount: 0,
+      },
+      {
+        year: 2001,
+        category: "buyer",
+        group: "saleGains",
+        variable: "stockSellingGains",
+        amount: 0,
+      },
+      {
+        year: 2001,
+        category: "buyer",
+        group: "saleGains",
+        variable: "tsfaSellingGains",
+        amount: 0,
+      },
+      {
+        year: 2001,
+        category: "buyer",
+        group: "saleGains",
+        variable: "homeSellingGains",
+        amount: 83322,
+      },
+    ]);
+  });
+
   await saveChart(
     saleGains,
     (data) =>
@@ -1299,7 +1484,44 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
   const balanceAfterSelling = results.filter((d) =>
     d.group === "summaryCumulative" && d.variable === "balanceAfterSelling"
   );
-  // NEED TESTS
+
+  const firstAndSecondYearBalanceAfterSelling = balanceAfterSelling.filter((
+    d,
+  ) => d.year === 2000 || d.year === 2001);
+
+  await t.step("first and second year balance after selling", async () => {
+    assertEquals(firstAndSecondYearBalanceAfterSelling, [
+      {
+        year: 2000,
+        category: "renter",
+        group: "summaryCumulative",
+        variable: "balanceAfterSelling",
+        amount: 83257,
+      },
+      {
+        year: 2000,
+        category: "buyer",
+        group: "summaryCumulative",
+        variable: "balanceAfterSelling",
+        amount: -78082,
+      },
+      {
+        year: 2001,
+        category: "renter",
+        group: "summaryCumulative",
+        variable: "balanceAfterSelling",
+        amount: 84733,
+      },
+      {
+        year: 2001,
+        category: "buyer",
+        group: "summaryCumulative",
+        variable: "balanceAfterSelling",
+        amount: -89154,
+      },
+    ]);
+  });
+
   await saveChart(
     balanceAfterSelling,
     (data) =>
@@ -1345,7 +1567,45 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
   const differenceAfterSelling = results.filter((d) =>
     d.group === "summaryCumulative" && d.variable === "differenceAfterSelling"
   );
-  // NEED TESTS
+
+  const firstAndSecondYearDifferenceAfterSelling = differenceAfterSelling
+    .filter((
+      d,
+    ) => d.year === 2000 || d.year === 2001);
+
+  await t.step("first and second year difference after selling", async () => {
+    assertEquals(firstAndSecondYearDifferenceAfterSelling, [
+      {
+        year: 2000,
+        category: "renter",
+        group: "summaryCumulative",
+        variable: "differenceAfterSelling",
+        amount: 161339,
+      },
+      {
+        year: 2000,
+        category: "buyer",
+        group: "summaryCumulative",
+        variable: "differenceAfterSelling",
+        amount: -161339,
+      },
+      {
+        year: 2001,
+        category: "renter",
+        group: "summaryCumulative",
+        variable: "differenceAfterSelling",
+        amount: 173887,
+      },
+      {
+        year: 2001,
+        category: "buyer",
+        group: "summaryCumulative",
+        variable: "differenceAfterSelling",
+        amount: -173887,
+      },
+    ]);
+  });
+
   await saveChart(
     differenceAfterSelling,
     (data) =>

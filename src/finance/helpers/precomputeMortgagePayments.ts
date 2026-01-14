@@ -15,20 +15,24 @@ export default function precomputeMortgagePayments(
     amountPaid: number;
     interestPaid: number;
     capitalPaid: number;
+    originalInterestRate: number;
   }[] = [];
   const term = 5;
   for (let year = 0; year < numberOfYears; year += term) {
+    const originalInterestRate = interestRates[year / term] * 100;
     const mortgageAmount = allMortgagePayments[allMortgagePayments.length - 1]
       ? allMortgagePayments[allMortgagePayments.length - 1].balance
       : startingMortgageAmount;
     const payments = mortgagePayments(
       mortgageAmount,
-      interestRates[year / term] * 100,
+      originalInterestRate,
       "monthly",
       term,
       25 - year,
     );
-    allMortgagePayments.push(...payments);
+    allMortgagePayments.push(
+      ...payments.map((payment) => ({ ...payment, originalInterestRate })),
+    );
   }
 
   const annualMortgagePayments: {
@@ -37,6 +41,7 @@ export default function precomputeMortgagePayments(
     capital: number;
     mortgage: number;
     balance: number;
+    originalInterestRate: number;
   }[] = [];
   for (let i = 0; i < allMortgagePayments.length; i += 12) {
     annualMortgagePayments.push({
@@ -60,6 +65,7 @@ export default function precomputeMortgagePayments(
           0,
         ),
       ),
+      originalInterestRate: allMortgagePayments[i].originalInterestRate,
     });
   }
 

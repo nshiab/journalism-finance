@@ -1,3 +1,4 @@
+import getMortgagePenalty from "./helpers/getMortgagePenalty.ts";
 import getTfsaContribution from "./helpers/getTfsaContribution.ts";
 import precomputeMortgagePayments from "./helpers/precomputeMortgagePayments.ts";
 import mortgageInsurancePremium from "./mortgageInsurancePremium.ts";
@@ -19,6 +20,10 @@ export default function simulateRentVsBuy(parameters: {
     downPayment: number;
     purchasePrice: number;
     interestRates: number[];
+    fourYearInterestRates: number[];
+    threeYearInterestRates: number[];
+    twoYearInterestRates: number[];
+    oneYearInterestRates: number[];
     purchaseFixedFees: number;
     startingAnnualMaintenanceCost: number;
     annualMaintenanceIncrease: number[];
@@ -127,7 +132,8 @@ export default function simulateRentVsBuy(parameters: {
             variable:
               | "stockTaxes"
               | "homeSellingCommission"
-              | "homeSellingFixedFees";
+              | "homeSellingFixedFees"
+              | "mortgagePenalty";
           }
           | {
             group: "saleGains";
@@ -841,6 +847,24 @@ export default function simulateRentVsBuy(parameters: {
       amount: sellingFixedFees,
     });
 
+    const remainingYearsToTerm = 5 - ((yearIndex % 5) + 1);
+    const mortgagePenalty = getMortgagePenalty(
+      remainingYearsToTerm,
+      mortgagePaymentsForThisYear.balance,
+      mortgagePaymentsForThisYear.originalInterestRate / 100,
+      parameters.buyer.fourYearInterestRates[yearIndex],
+      parameters.buyer.threeYearInterestRates[yearIndex],
+      parameters.buyer.twoYearInterestRates[yearIndex],
+      parameters.buyer.oneYearInterestRates[yearIndex],
+    );
+    results.push({
+      year,
+      category: "buyer",
+      group: "saleCosts",
+      variable: "mortgagePenalty",
+      amount: mortgagePenalty,
+    });
+
     // Then the selling gains
     const renterStockSellingGains = renterStocks - renterStockTaxes;
     results.push({
@@ -874,7 +898,7 @@ export default function simulateRentVsBuy(parameters: {
       amount: buyerTfsa,
     });
     const buyerHomeSellingGains = homeValue -
-      mortgagePaymentsForThisYear.balance -
+      mortgagePaymentsForThisYear.balance - mortgagePenalty -
       buyerHomeSellingCommission -
       sellingFixedFees;
     results.push({
