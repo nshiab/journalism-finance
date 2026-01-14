@@ -246,9 +246,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
   );
 
   // Annual expenses
-  const annualExpenses = results.filter((d) =>
-    d.group === "annualExpenses" && d.year !== 2025
-  );
+  const annualExpenses = results.filter((d) => d.group === "annualExpenses");
   const annualExpensesSecondYear = annualExpenses.filter((d) =>
     d.year === 2001
   );
@@ -349,8 +347,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
     annualExpenses,
     (data) =>
       plot({
-        title:
-          "Annual expenses over time (excluding last year selling expenses)",
+        title: "Annual expenses over time",
         y: {
           nice: true,
           label: null,
@@ -389,7 +386,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
   );
 
   const cumulativeAnnualExpenses = results.filter((d) =>
-    d.group === "cumulativeExpenses" && d.year !== 2025
+    d.group === "cumulativeExpenses"
   );
 
   const cumulativeRenterFirstYearExpenses = cumulativeAnnualExpenses.filter((
@@ -498,8 +495,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
     cumulativeAnnualExpenses,
     (data) =>
       plot({
-        title:
-          "Cumulative expenses over time (excluding last year selling expenses)",
+        title: "Cumulative expenses over time",
         y: {
           nice: true,
           label: null,
@@ -537,10 +533,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
     { style: "body { width: 700px; }" },
   );
 
-  const annualGains = results.filter((d) =>
-    d.group === "annualGains" &&
-    d.year !== 2025
-  );
+  const annualGains = results.filter((d) => d.group === "annualGains");
 
   const firstAndSecondYearGains = annualGains.filter((d) =>
     d.year === 2000 || d.year === 2001
@@ -679,7 +672,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
   const year2009And2010Gains = annualGains.filter((d) =>
     d.year === 2009 || d.year === 2010
   );
-  await t.step("2009 and 2010 gains", async () => {
+  await t.step("2009 and 2010 gains to check TFSA", async () => {
     assertEquals(year2009And2010Gains, [
       {
         year: 2009,
@@ -814,7 +807,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
     annualGains,
     (data) =>
       plot({
-        title: "Annual gains over time (excluding last year selling gains)",
+        title: "Annual gains over time",
         y: {
           nice: true,
           label: null,
@@ -852,10 +845,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
     { style: "body { width: 700px; }" },
   );
 
-  const cumulativeGains = results.filter((d) =>
-    d.group === "cumulativeGains" &&
-    d.year !== 2025
-  );
+  const cumulativeGains = results.filter((d) => d.group === "cumulativeGains");
 
   const cumulativeGainsFirstAndSecondYear = cumulativeGains.filter((d) =>
     d.year === 2000 || d.year === 2001
@@ -1039,10 +1029,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
     },
   );
 
-  const assets = results.filter((d) =>
-    d.group === "assets" &&
-    d.year !== 2025
-  );
+  const assets = results.filter((d) => d.group === "assets");
 
   const buyerLastYearAssets = assets.filter((d) =>
     d.year === 2024 && d.category === "buyer"
@@ -1099,7 +1086,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
     assets,
     (data) =>
       plot({
-        title: "Assets over time (excluding last year selling gains)",
+        title: "Assets over time",
         y: {
           nice: true,
           label: null,
@@ -1139,7 +1126,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
 
   const balance = results.filter((d) =>
     d.group === "summary" &&
-    d.variable === "balance" && d.year !== 2025
+    d.variable === "balance"
   );
 
   const firstAndSecondYearBalance = balance.filter((d) =>
@@ -1183,7 +1170,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
     balance,
     (data) =>
       plot({
-        title: "Annual balance over time (excluding last selling year)",
+        title: "Annual balance over time",
         y: {
           nice: true,
           label: null,
@@ -1221,48 +1208,13 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
     { style: "body { width: 700px; }" },
   );
 
-  const finalExpenses = results.filter((d) =>
-    d.group === "annualExpenses" && d.year === 2025
-  );
-
-  await t.step("final year expenses", async () => {
-    assertEquals(finalExpenses, [
-      {
-        year: 2025,
-        category: "renter",
-        group: "annualExpenses",
-        variable: "stockTaxes",
-        amount: 66877,
-      },
-      {
-        year: 2025,
-        category: "buyer",
-        group: "annualExpenses",
-        variable: "stockTaxes",
-        amount: 0,
-      },
-      {
-        year: 2025,
-        category: "buyer",
-        group: "annualExpenses",
-        variable: "homeSellingCommission",
-        amount: 67727,
-      },
-      {
-        year: 2025,
-        category: "buyer",
-        group: "annualExpenses",
-        variable: "homeSellingFixedFees",
-        amount: 4191,
-      },
-    ]);
-  });
-
+  const saleCosts = results.filter((d) => d.group === "saleCosts");
+  // NEED TESTS
   await saveChart(
-    finalExpenses,
+    saleCosts,
     (data) =>
       plot({
-        title: "Selling year expenses (2025)",
+        title: "Sale costs, if assets were sold",
         y: {
           nice: true,
           label: null,
@@ -1296,65 +1248,17 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           }),
         ],
       }),
-    "test/output/final-expenses.png",
+    "test/output/sale-costs.png",
     { style: "body { width: 700px; }" },
   );
 
-  const finalAssets = results.filter((d) =>
-    d.group === "assets" && d.year === 2025
-  );
-  await t.step("proceeds from selling assets", async () => {
-    assertEquals(finalAssets, [
-      {
-        year: 2025,
-        category: "renter",
-        group: "assets",
-        variable: "stocks",
-        amount: 818670,
-      },
-      {
-        year: 2025,
-        category: "renter",
-        group: "assets",
-        variable: "tfsa",
-        amount: 138152,
-      },
-      {
-        year: 2025,
-        category: "renter",
-        group: "assets",
-        variable: "securityDeposit",
-        amount: 1750,
-      },
-      {
-        year: 2025,
-        category: "buyer",
-        group: "assets",
-        variable: "stocks",
-        amount: 0,
-      },
-      {
-        year: 2025,
-        category: "buyer",
-        group: "assets",
-        variable: "tfsa",
-        amount: 0,
-      },
-      {
-        year: 2025,
-        category: "buyer",
-        group: "assets",
-        variable: "homeEquity",
-        amount: 1621257,
-      },
-    ]);
-  });
-
+  const saleGains = results.filter((d) => d.group === "saleGains");
+  // NEED TESTS
   await saveChart(
-    finalAssets,
+    saleGains,
     (data) =>
       plot({
-        title: "Proceeds from selling assets (2025)",
+        title: "Sale gains, if assets were sold",
         y: {
           nice: true,
           label: null,
@@ -1388,39 +1292,19 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           }),
         ],
       }),
-    "test/output/proceeds-from-selling-assets.png",
+    "test/output/sale-gains.png",
     { style: "body { width: 700px; }" },
   );
 
-  const cumulativeBalance = results.filter((d) =>
-    d.group === "summaryCumulative" && d.variable === "balance"
+  const balanceAfterSelling = results.filter((d) =>
+    d.group === "summaryCumulative" && d.variable === "balanceAfterSelling"
   );
-  const finalBalance = cumulativeBalance.filter((d) => d.year === 2025);
-
-  await t.step("final year balance", async () => {
-    assertEquals(finalBalance, [
-      {
-        year: 2025,
-        category: "renter",
-        group: "summaryCumulative",
-        variable: "balance",
-        amount: 158078,
-      },
-      {
-        year: 2025,
-        category: "buyer",
-        group: "summaryCumulative",
-        variable: "balance",
-        amount: 375234,
-      },
-    ]);
-  });
-
+  // NEED TESTS
   await saveChart(
-    cumulativeBalance,
+    balanceAfterSelling,
     (data) =>
       plot({
-        title: "Overall balance over time (including selling year)",
+        title: "Balance after selling assets",
         y: {
           nice: true,
           label: null,
@@ -1454,40 +1338,19 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           }),
         ],
       }),
-    "test/output/overall-balance.png",
+    "test/output/balance-after-selling.png",
     { style: "body { width: 700px; }" },
   );
 
-  const difference = results.filter((d) =>
-    d.group === "summaryCumulative" && d.variable === "difference"
+  const differenceAfterSelling = results.filter((d) =>
+    d.group === "summaryCumulative" && d.variable === "differenceAfterSelling"
   );
-  const lastYearDifference = difference.filter((d) => d.year === 2025);
-
-  await t.step("final difference", async () => {
-    assertEquals(lastYearDifference, [
-      {
-        year: 2025,
-        category: "renter",
-        group: "summaryCumulative",
-        variable: "difference",
-        amount: -217156,
-      },
-      {
-        year: 2025,
-        category: "buyer",
-        group: "summaryCumulative",
-        variable: "difference",
-        amount: 217156,
-      },
-    ]);
-  });
-
+  // NEED TESTS
   await saveChart(
-    difference,
+    differenceAfterSelling,
     (data) =>
       plot({
-        title:
-          "Difference in overall balance over time (including selling year)",
+        title: "Difference in balance after selling assets",
         y: {
           nice: true,
           label: null,
@@ -1521,7 +1384,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           }),
         ],
       }),
-    "test/output/overall-difference.png",
+    "test/output/difference-after-selling.png",
     { style: "body { width: 700px; }" },
   );
 
