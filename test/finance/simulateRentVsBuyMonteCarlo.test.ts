@@ -37,8 +37,8 @@ Deno.test("should run a monte carlor simulation of rent vs buy", async () => {
     buyer: {
       downPayment: 50_000,
       purchasePrice: 500_000,
-      interestRateAvg: 0.05,
-      interestRateStdDev: 0.01,
+      fiveYearInterestRateAvg: 0.05,
+      fiveYearInterestRateStdDev: 0.01,
       fourYearInterestRateAvg: 0.045,
       fourYearInterestRateStdDev: 0.01,
       threeYearInterestRateAvg: 0.04,
@@ -78,7 +78,7 @@ Deno.test("should run a monte carlor simulation of rent vs buy", async () => {
         throw new Error("Data should be an array");
       }
 
-      const n = 2; // number of facet columns
+      const n = 3; // number of facet columns
       const keys = Array.from(new Set(data.map((d) => d.variable)));
       const index = new Map(keys.map((key, i) => [key, i]));
       //@ts-expect-error It's okay
@@ -93,7 +93,8 @@ Deno.test("should run a monte carlor simulation of rent vs buy", async () => {
             .toLocaleString()
         } iterations.`,
         y: { insetTop: 20 },
-        height: 800,
+        height: 500,
+        width: 800,
         x: { tickFormat: "%", grid: true, ticks: 4 },
         fx: { tickFormat: (d) => "" },
         fy: { tickFormat: (d) => "" },
@@ -129,7 +130,7 @@ Deno.test("should run a monte carlor simulation of rent vs buy", async () => {
         ],
       });
     },
-    "test/output/monte-carlo-market-rates.png",
+    "test/output/monte-carlo-rates.png",
     { style: "body { width: 700px; }" },
   );
 
@@ -322,7 +323,7 @@ Deno.test("should run a monte carlor simulation of rent vs buy", async () => {
             dodgeY({
               x: "amount",
               fill: "hasMore",
-              r: 1,
+              r: 0.1,
               padding: 0.1,
             }),
           ),

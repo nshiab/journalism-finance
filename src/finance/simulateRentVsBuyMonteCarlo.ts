@@ -22,8 +22,8 @@ export default function simulateRentVsBuyMonteCarlo(parameters: {
   buyer: {
     downPayment: number;
     purchasePrice: number;
-    interestRateAvg: number;
-    interestRateStdDev: number;
+    fiveYearInterestRateAvg: number;
+    fiveYearInterestRateStdDev: number;
     fourYearInterestRateAvg: number;
     fourYearInterestRateStdDev: number;
     threeYearInterestRateAvg: number;
@@ -92,16 +92,15 @@ export default function simulateRentVsBuyMonteCarlo(parameters: {
       variable: "renterAnnualInsuranceIncrease",
       value: renterAnnualInsuranceIncrease[0],
     });
-    // Not all will be used, but we generate them all here for simplicity
-    const interestRates = getRandomValues(
+    const fiveYearInterestRates = getRandomValues(
       parameters.numberOfYears,
-      parameters.buyer.interestRateAvg,
-      parameters.buyer.interestRateStdDev,
+      parameters.buyer.fiveYearInterestRateAvg,
+      parameters.buyer.fiveYearInterestRateStdDev,
       { decimals: 4 },
     );
     rates.push({
-      variable: "interestRates",
-      value: interestRates[0],
+      variable: "fiveYearInterestRates",
+      value: fiveYearInterestRates[0],
     });
     const fourYearInterestRates = getRandomValues(
       parameters.numberOfYears,
@@ -219,7 +218,7 @@ export default function simulateRentVsBuyMonteCarlo(parameters: {
       buyer: {
         downPayment: parameters.buyer.downPayment,
         purchasePrice: parameters.buyer.purchasePrice,
-        interestRates,
+        fiveYearInterestRates,
         fourYearInterestRates,
         threeYearInterestRates,
         twoYearInterestRates,
