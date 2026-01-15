@@ -323,7 +323,7 @@ Deno.test("should run a monte carlor simulation of rent vs buy", async () => {
             dodgeY({
               x: "amount",
               fill: "hasMore",
-              r: 0.1,
+              r: 1,
               padding: 0.1,
             }),
           ),
