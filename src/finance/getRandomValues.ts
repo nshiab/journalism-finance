@@ -7,14 +7,15 @@ export default function getRandomValues(
   stdDev: number,
   options: { decimals: number },
 ): number[] {
-  const random = randomNormal(avg, stdDev);
+  const random = randomNormal(avg, stdDev)();
+
   return typeof options.decimals === "number"
     ? Array.from(
       { length: numberOfValues },
-      () => round(random(), { decimals: options.decimals }),
+      () => round(random, { decimals: options.decimals }),
     )
     : Array.from(
       { length: numberOfValues },
-      () => random(),
+      () => random,
     );
 }
