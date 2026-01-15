@@ -19,7 +19,7 @@ export default function simulateRentVsBuy(parameters: {
   buyer: {
     downPayment: number;
     purchasePrice: number;
-    interestRates: number[];
+    fiveYearInterestRates: number[];
     fourYearInterestRates: number[];
     threeYearInterestRates: number[];
     twoYearInterestRates: number[];
@@ -202,7 +202,7 @@ export default function simulateRentVsBuy(parameters: {
   const annualMortgagePayments = precomputeMortgagePayments(
     parameters.numberOfYears,
     parameters.buyer.purchasePrice - parameters.buyer.downPayment,
-    parameters.buyer.interestRates,
+    parameters.buyer.fiveYearInterestRates,
   );
 
   for (

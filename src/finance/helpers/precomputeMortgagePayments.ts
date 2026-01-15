@@ -19,7 +19,7 @@ export default function precomputeMortgagePayments(
   }[] = [];
   const term = 5;
   for (let year = 0; year < numberOfYears; year += term) {
-    const originalInterestRate = interestRates[year / term] * 100;
+    const originalInterestRate = interestRates[year] * 100;
     const mortgageAmount = allMortgagePayments[allMortgagePayments.length - 1]
       ? allMortgagePayments[allMortgagePayments.length - 1].balance
       : startingMortgageAmount;

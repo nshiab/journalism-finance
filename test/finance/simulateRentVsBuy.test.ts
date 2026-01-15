@@ -2,84 +2,61 @@ import { assertEquals } from "jsr:@std/assert";
 import simulateRentVsBuy from "../../src/finance/simulateRentVsBuy.ts";
 import { saveChart } from "@nshiab/journalism-dataviz";
 import { barY, plot } from "@observablehq/plot";
-import getRandomValues from "../../src/finance/getRandomValues.ts";
 
 Deno.test("should compute the total expenses and savings of a renter and buyer", async (t) => {
   const numberOfYears = 25;
-  const annualMarketReturnRate = getRandomValues(
-    numberOfYears,
-    0.05,
-    0,
-    { decimals: 4 },
+  const annualMarketReturnRate = Array.from(
+    { length: numberOfYears },
+    () => 0.05,
   );
-  const annualRentIncrease = getRandomValues(numberOfYears, 0.03, 0, {
-    decimals: 4,
-  });
-  const renterAnnualInsuranceIncrease = getRandomValues(
-    numberOfYears,
-    0.03,
-    0,
-    { decimals: 4 },
+  const annualRentIncrease = Array.from({ length: numberOfYears }, () => 0.03);
+  const renterAnnualInsuranceIncrease = Array.from(
+    { length: numberOfYears },
+    () => 0.03,
   );
-  const annualMaintenanceIncrease = getRandomValues(
-    numberOfYears,
-    0.03,
-    0,
-    { decimals: 4 },
+  const annualMaintenanceIncrease = Array.from(
+    { length: numberOfYears },
+    () => 0.03,
   );
-  const annualPropertyTaxIncrease = getRandomValues(
-    numberOfYears,
-    0.03,
-    0,
-    { decimals: 4 },
+  const annualPropertyTaxIncrease = Array.from(
+    { length: numberOfYears },
+    () => 0.03,
   );
-  const annualCondoFeeIncrease = getRandomValues(
-    numberOfYears,
-    0.03,
-    0,
-    { decimals: 4 },
+  const annualCondoFeeIncrease = Array.from(
+    { length: numberOfYears },
+    () => 0.03,
   );
-  const buyerAnnualInsuranceIncrease = getRandomValues(
-    numberOfYears,
-    0.03,
-    0,
-    { decimals: 4 },
+  const buyerAnnualInsuranceIncrease = Array.from(
+    { length: numberOfYears },
+    () => 0.03,
   );
-  const appreciationIncrease = getRandomValues(
-    numberOfYears,
-    0.05,
-    0,
-    { decimals: 4 },
+  const appreciationIncrease = Array.from(
+    { length: numberOfYears },
+    () => 0.05,
   );
-  const sellingFixedFeesIncrease = getRandomValues(
-    numberOfYears,
-    0.03,
-    0,
-    { decimals: 4 },
+  const sellingFixedFeesIncrease = Array.from(
+    { length: numberOfYears },
+    () => 0.03,
   );
-  const fourYearInterestRates = getRandomValues(
-    numberOfYears,
-    0.045,
-    0,
-    { decimals: 4 },
+  const fiveYearInterestRates = Array.from(
+    { length: numberOfYears },
+    () => 0.05,
   );
-  const threeYearInterestRates = getRandomValues(
-    numberOfYears,
-    0.04,
-    0,
-    { decimals: 4 },
+  const fourYearInterestRates = Array.from(
+    { length: numberOfYears },
+    () => 0.045,
   );
-  const twoYearInterestRates = getRandomValues(
-    numberOfYears,
-    0.035,
-    0,
-    { decimals: 4 },
+  const threeYearInterestRates = Array.from(
+    { length: numberOfYears },
+    () => 0.04,
   );
-  const oneYearInterestRates = getRandomValues(
-    numberOfYears,
-    0.03,
-    0,
-    { decimals: 4 },
+  const twoYearInterestRates = Array.from(
+    { length: numberOfYears },
+    () => 0.035,
+  );
+  const oneYearInterestRates = Array.from(
+    { length: numberOfYears },
+    () => 0.03,
   );
 
   const results = simulateRentVsBuy({
@@ -98,7 +75,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
     buyer: {
       downPayment: 50_000,
       purchasePrice: 500_000,
-      interestRates: [0.05, 0.05, 0.05, 0.05, 0.05],
+      fiveYearInterestRates,
       fourYearInterestRates,
       threeYearInterestRates,
       twoYearInterestRates,
