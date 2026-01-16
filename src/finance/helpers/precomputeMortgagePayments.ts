@@ -3,6 +3,7 @@ import mortgagePayments from "../mortgagePayments.ts";
 export default function precomputeMortgagePayments(
   numberOfYears: number,
   startingMortgageAmount: number,
+  originalRateDiscount: number,
   interestRates: number[],
 ) {
   // We precompute all mortgage payments for the entire period
@@ -15,23 +16,31 @@ export default function precomputeMortgagePayments(
     amountPaid: number;
     interestPaid: number;
     capitalPaid: number;
-    originalInterestRate: number;
+    effectiveInterestRate: number;
+    postedInterestRate: number;
+    rateDiscount: number;
   }[] = [];
   const term = 5;
   for (let year = 0; year < numberOfYears; year += term) {
-    const originalInterestRate = interestRates[year] * 100;
+    const effectiveInterestRate = (interestRates[year] - originalRateDiscount) *
+      100;
     const mortgageAmount = allMortgagePayments[allMortgagePayments.length - 1]
       ? allMortgagePayments[allMortgagePayments.length - 1].balance
       : startingMortgageAmount;
     const payments = mortgagePayments(
       mortgageAmount,
-      originalInterestRate,
+      effectiveInterestRate,
       "monthly",
       term,
       25 - year,
     );
     allMortgagePayments.push(
-      ...payments.map((payment) => ({ ...payment, originalInterestRate })),
+      ...payments.map((payment) => ({
+        ...payment,
+        effectiveInterestRate: effectiveInterestRate / 100,
+        postedInterestRate: interestRates[year],
+        rateDiscount: originalRateDiscount,
+      })),
     );
   }
 
@@ -41,7 +50,9 @@ export default function precomputeMortgagePayments(
     capital: number;
     mortgage: number;
     balance: number;
-    originalInterestRate: number;
+    effectiveInterestRate: number;
+    postedInterestRate: number;
+    rateDiscount: number;
   }[] = [];
   for (let i = 0; i < allMortgagePayments.length; i += 12) {
     annualMortgagePayments.push({
@@ -65,7 +76,9 @@ export default function precomputeMortgagePayments(
           0,
         ),
       ),
-      originalInterestRate: allMortgagePayments[i].originalInterestRate,
+      effectiveInterestRate: allMortgagePayments[i].effectiveInterestRate,
+      postedInterestRate: allMortgagePayments[i].postedInterestRate,
+      rateDiscount: allMortgagePayments[i].rateDiscount,
     });
   }
 

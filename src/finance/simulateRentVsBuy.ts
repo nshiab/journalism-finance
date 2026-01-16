@@ -19,6 +19,7 @@ export default function simulateRentVsBuy(parameters: {
   buyer: {
     downPayment: number;
     purchasePrice: number;
+    rateDiscount: number;
     fiveYearInterestRates: number[];
     fourYearInterestRates: number[];
     threeYearInterestRates: number[];
@@ -202,6 +203,7 @@ export default function simulateRentVsBuy(parameters: {
   const annualMortgagePayments = precomputeMortgagePayments(
     parameters.numberOfYears,
     parameters.buyer.purchasePrice - parameters.buyer.downPayment,
+    parameters.buyer.rateDiscount,
     parameters.buyer.fiveYearInterestRates,
   );
 
@@ -849,13 +851,19 @@ export default function simulateRentVsBuy(parameters: {
 
     const remainingYearsToTerm = 5 - ((yearIndex % 5) + 1);
     const mortgagePenalty = getMortgagePenalty(
-      remainingYearsToTerm,
-      mortgagePaymentsForThisYear.balance,
-      mortgagePaymentsForThisYear.originalInterestRate / 100,
-      parameters.buyer.fourYearInterestRates[yearIndex],
-      parameters.buyer.threeYearInterestRates[yearIndex],
-      parameters.buyer.twoYearInterestRates[yearIndex],
-      parameters.buyer.oneYearInterestRates[yearIndex],
+      {
+        remainingYearsToTerm,
+        mortgageBalance: mortgagePaymentsForThisYear.balance,
+        postedInterestRate: mortgagePaymentsForThisYear.postedInterestRate,
+        rateDiscount: mortgagePaymentsForThisYear.rateDiscount,
+        currentPostedRates: {
+          5: parameters.buyer.fiveYearInterestRates[yearIndex],
+          4: parameters.buyer.fourYearInterestRates[yearIndex],
+          3: parameters.buyer.threeYearInterestRates[yearIndex],
+          2: parameters.buyer.twoYearInterestRates[yearIndex],
+          1: parameters.buyer.oneYearInterestRates[yearIndex],
+        },
+      },
     );
     results.push({
       year,

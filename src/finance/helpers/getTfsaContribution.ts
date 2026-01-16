@@ -3,7 +3,7 @@ export default function getTfsaContribution(
   contributionsSoFar: number,
 ): number {
   // Reference: https://www.canada.ca/en/revenue-agency/services/tax/individuals/topics/tax-free-savings-account/contributing/before.html
-  const tsfaContributions = [{
+  const tfsaContributions = [{
     year: 2009,
     amount: 5000,
   }, {
@@ -59,7 +59,11 @@ export default function getTfsaContribution(
     amount: 7000,
   }];
 
-  const previousContributionsYear = tsfaContributions.filter((c) =>
+  if (year > Math.max(...tfsaContributions.map((c) => c.year))) {
+    throw new Error("Year exceeds the latest TFSA contribution limit data.");
+  }
+
+  const previousContributionsYear = tfsaContributions.filter((c) =>
     c.year <= year
   ).reduce((sum, c) => sum + c.amount, 0);
 

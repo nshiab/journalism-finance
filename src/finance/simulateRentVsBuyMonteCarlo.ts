@@ -22,6 +22,7 @@ export default function simulateRentVsBuyMonteCarlo(parameters: {
   buyer: {
     downPayment: number;
     purchasePrice: number;
+    rateDiscount: number;
     fiveYearInterestRateAvg: number;
     fiveYearInterestRateStdDev: number;
     fourYearInterestRateAvg: number;
@@ -218,6 +219,7 @@ export default function simulateRentVsBuyMonteCarlo(parameters: {
       buyer: {
         downPayment: parameters.buyer.downPayment,
         purchasePrice: parameters.buyer.purchasePrice,
+        rateDiscount: parameters.buyer.rateDiscount,
         fiveYearInterestRates,
         fourYearInterestRates,
         threeYearInterestRates,
