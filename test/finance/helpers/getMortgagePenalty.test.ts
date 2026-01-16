@@ -9,8 +9,8 @@ Deno.test("should return 0 penalty when term is complete (remainingYearsToTerm =
   const penalty = getMortgagePenalty({
     remainingYearsToTerm: 0,
     mortgageBalance: 300_000,
-    originalPostedInterestRate: 0.055,
-    originalRateDiscount: 0.005,
+    postedInterestRate: 0.055,
+    rateDiscount: 0.005,
     currentPostedRates: { 1: 0.045, 2: 0.0475, 3: 0.05, 5: 0.0525 },
   });
   assertEquals(penalty, 0);
@@ -22,8 +22,8 @@ Deno.test("should throw an error when no current posted rate is provided for the
       getMortgagePenalty({
         remainingYearsToTerm: 3,
         mortgageBalance: 300_000,
-        originalPostedInterestRate: 0.055,
-        originalRateDiscount: 0.005,
+        postedInterestRate: 0.055,
+        rateDiscount: 0.005,
         currentPostedRates: { 1: 0.045, 2: 0.0475, 5: 0.0525 },
       }),
     Error,
@@ -36,8 +36,8 @@ Deno.test("should calculate three months interest penalty when it's greater than
   const penalty = getMortgagePenalty({
     remainingYearsToTerm: 2,
     mortgageBalance: 300_000,
-    originalPostedInterestRate: 0.04,
-    originalRateDiscount: 0.005,
+    postedInterestRate: 0.04,
+    rateDiscount: 0.005,
     currentPostedRates: { 1: 0.05, 2: 0.055, 3: 0.0575, 5: 0.06 },
   });
   // Three months penalty: (300000 * 0.035 * 3) / 12 = 2625
@@ -54,8 +54,8 @@ Deno.test("should calculate IRD penalty when it's greater than three months inte
   const penalty = getMortgagePenalty({
     remainingYearsToTerm: 3,
     mortgageBalance: 400_000,
-    originalPostedInterestRate: 0.06,
-    originalRateDiscount: 0.01,
+    postedInterestRate: 0.06,
+    rateDiscount: 0.01,
     currentPostedRates: { 1: 0.04, 2: 0.0425, 3: 0.045, 5: 0.0475 },
   });
   // Three months penalty: (400000 * 0.05 * 3) / 12 = 5000
@@ -72,8 +72,8 @@ Deno.test("should round remaining years to nearest term for rate lookup", () => 
   const penalty = getMortgagePenalty({
     remainingYearsToTerm: 2.4,
     mortgageBalance: 250_000,
-    originalPostedInterestRate: 0.055,
-    originalRateDiscount: 0.0075,
+    postedInterestRate: 0.055,
+    rateDiscount: 0.0075,
     currentPostedRates: { 1: 0.045, 2: 0.0475, 3: 0.05, 5: 0.0525 },
   });
   // Three months penalty: (250000 * 0.0475 * 3) / 12 = 2969
@@ -89,8 +89,8 @@ Deno.test("should use 1 year rate when remaining years rounds to 0", () => {
   const penalty = getMortgagePenalty({
     remainingYearsToTerm: 0.4,
     mortgageBalance: 200_000,
-    originalPostedInterestRate: 0.05,
-    originalRateDiscount: 0.005,
+    postedInterestRate: 0.05,
+    rateDiscount: 0.005,
     currentPostedRates: { 1: 0.04, 2: 0.045, 3: 0.0475, 5: 0.05 },
   });
   // Three months penalty: (200000 * 0.045 * 3) / 12 = 2250
@@ -106,8 +106,8 @@ Deno.test("should handle case where IRD is negative (rates increased)", () => {
   const penalty = getMortgagePenalty({
     remainingYearsToTerm: 4,
     mortgageBalance: 350_000,
-    originalPostedInterestRate: 0.035,
-    originalRateDiscount: 0.0025,
+    postedInterestRate: 0.035,
+    rateDiscount: 0.0025,
     currentPostedRates: { 1: 0.055, 2: 0.0575, 3: 0.06, 4: 0.0625, 5: 0.065 },
   });
   // Three months penalty: (350000 * 0.0325 * 3) / 12 = 2844
@@ -123,8 +123,8 @@ Deno.test("should calculate penalty with no rate discount (equal penalties)", ()
   const penalty = getMortgagePenalty({
     remainingYearsToTerm: 5,
     mortgageBalance: 500_000,
-    originalPostedInterestRate: 0.05,
-    originalRateDiscount: 0,
+    postedInterestRate: 0.05,
+    rateDiscount: 0,
     currentPostedRates: { 1: 0.04, 2: 0.0425, 3: 0.045, 5: 0.0475 },
   });
   // Three months penalty: (500000 * 0.05 * 3) / 12 = 6250
@@ -140,8 +140,8 @@ Deno.test("should calculate penalty with no rate discount (IRD higher)", () => {
   const penalty = getMortgagePenalty({
     remainingYearsToTerm: 4,
     mortgageBalance: 600_000,
-    originalPostedInterestRate: 0.06,
-    originalRateDiscount: 0,
+    postedInterestRate: 0.06,
+    rateDiscount: 0,
     currentPostedRates: { 1: 0.035, 2: 0.0375, 3: 0.04, 4: 0.0425, 5: 0.045 },
   });
   // Three months penalty: (600000 * 0.06 * 3) / 12 = 9000
@@ -157,8 +157,8 @@ Deno.test("should calculate penalty for small mortgage balance", () => {
   const penalty = getMortgagePenalty({
     remainingYearsToTerm: 1,
     mortgageBalance: 50_000,
-    originalPostedInterestRate: 0.06,
-    originalRateDiscount: 0.01,
+    postedInterestRate: 0.06,
+    rateDiscount: 0.01,
     currentPostedRates: { 1: 0.05, 2: 0.0525, 3: 0.055, 5: 0.0575 },
   });
   // Three months penalty: (50000 * 0.05 * 3) / 12 = 625
@@ -174,8 +174,8 @@ Deno.test("should calculate penalty for large mortgage balance", () => {
   const penalty = getMortgagePenalty({
     remainingYearsToTerm: 3,
     mortgageBalance: 1_000_000,
-    originalPostedInterestRate: 0.055,
-    originalRateDiscount: 0.008,
+    postedInterestRate: 0.055,
+    rateDiscount: 0.008,
     currentPostedRates: { 1: 0.04, 2: 0.0425, 3: 0.045, 5: 0.0475 },
   });
   // Three months penalty: (1000000 * 0.047 * 3) / 12 = 11750
