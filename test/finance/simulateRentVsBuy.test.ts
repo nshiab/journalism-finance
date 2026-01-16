@@ -40,23 +40,23 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
   );
   const fiveYearInterestRates = Array.from(
     { length: numberOfYears },
-    () => 0.05,
+    () => 0.055,
   );
   const fourYearInterestRates = Array.from(
     { length: numberOfYears },
-    () => 0.045,
+    () => 0.05,
   );
   const threeYearInterestRates = Array.from(
     { length: numberOfYears },
-    () => 0.04,
+    () => 0.045,
   );
   const twoYearInterestRates = Array.from(
     { length: numberOfYears },
-    () => 0.035,
+    () => 0.04,
   );
   const oneYearInterestRates = Array.from(
     { length: numberOfYears },
-    () => 0.03,
+    () => 0.035,
   );
 
   const results = simulateRentVsBuy({
@@ -75,6 +75,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
     buyer: {
       purchasePrice: 500_000,
       downPayment: 50_000,
+      rateDiscount: 0.005,
       fiveYearInterestRates,
       fourYearInterestRates,
       threeYearInterestRates,
