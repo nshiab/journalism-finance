@@ -128,63 +128,63 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       },
       {
         year: 2000,
-        category: "buyer",
+        category: "buyerFixed",
         group: "annualExpenses",
         variable: "mortgageCapital",
         amount: 9348,
       },
       {
         year: 2000,
-        category: "buyer",
+        category: "buyerFixed",
         group: "annualExpenses",
         variable: "mortgageInterests",
         amount: 22059,
       },
       {
         year: 2000,
-        category: "buyer",
+        category: "buyerFixed",
         group: "annualExpenses",
         variable: "maintenance",
         amount: 2500,
       },
       {
         year: 2000,
-        category: "buyer",
+        category: "buyerFixed",
         group: "annualExpenses",
         variable: "propertyTax",
         amount: 3500,
       },
       {
         year: 2000,
-        category: "buyer",
+        category: "buyerFixed",
         group: "annualExpenses",
         variable: "condoFees",
         amount: 1200,
       },
       {
         year: 2000,
-        category: "buyer",
+        category: "buyerFixed",
         group: "annualExpenses",
         variable: "insurance",
         amount: 3000,
       },
       {
         year: 2000,
-        category: "buyer",
+        category: "buyerFixed",
         group: "annualExpenses",
         variable: "downPayment",
         amount: 50000,
       },
       {
         year: 2000,
-        category: "buyer",
+        category: "buyerFixed",
         group: "annualExpenses",
         variable: "purchaseFixedFees",
         amount: 25000,
       },
       {
         year: 2000,
-        category: "buyer",
+        category: "buyerFixed",
         group: "annualExpenses",
         variable: "insurancePremium",
         amount: 13950,
@@ -201,7 +201,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
   });
 
   const buyerFirstYearTotalExpenses = firstYearExpenses.filter((d) =>
-    d.category === "buyer"
+    d.category === "buyerFixed"
   ).reduce((acc, curr) => acc + curr.amount, 0);
 
   await t.step("buyer first year total expenses", async () => {
@@ -274,42 +274,42 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       },
       {
         year: 2001,
-        category: "buyer",
+        category: "buyerFixed",
         group: "annualExpenses",
         variable: "mortgageCapital",
         amount: 9821,
       },
       {
         year: 2001,
-        category: "buyer",
+        category: "buyerFixed",
         group: "annualExpenses",
         variable: "mortgageInterests",
         amount: 21586,
       },
       {
         year: 2001,
-        category: "buyer",
+        category: "buyerFixed",
         group: "annualExpenses",
         variable: "maintenance",
         amount: 2575,
       },
       {
         year: 2001,
-        category: "buyer",
+        category: "buyerFixed",
         group: "annualExpenses",
         variable: "propertyTax",
         amount: 3605,
       },
       {
         year: 2001,
-        category: "buyer",
+        category: "buyerFixed",
         group: "annualExpenses",
         variable: "condoFees",
         amount: 1236,
       },
       {
         year: 2001,
-        category: "buyer",
+        category: "buyerFixed",
         group: "annualExpenses",
         variable: "insurance",
         amount: 3096,
@@ -326,7 +326,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
   });
 
   const buyerTotalExpensesSecondYear = annualExpensesSecondYear.filter((d) =>
-    d.category === "buyer"
+    d.category === "buyerFixed"
   ).reduce((acc, curr) => acc + curr.amount, 0);
 
   await t.step("buyer second year total expenses", async () => {
@@ -342,7 +342,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
   });
 
   const buyerTotalExpensesLastYear = annualExpenses.filter((d) =>
-    d.category === "buyer" && d.year === 2024
+    d.category === "buyerFixed" && d.year === 2024
   ).reduce((acc, curr) => acc + curr.amount, 0);
 
   await t.step("buyer last year total expenses", async () => {
@@ -410,7 +410,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
 
   const cumulativeBuyerFirstYearExpenses = cumulativeAnnualExpenses.filter((
     d,
-  ) => d.year === 2000 && d.category === "buyer").reduce(
+  ) => d.year === 2000 && d.category === "buyerFixed").reduce(
     (acc, curr) => acc + curr.amount,
     0,
   );
@@ -436,7 +436,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
 
   const cumulativeBuyerSecondYearExpenses = cumulativeAnnualExpenses.filter((
     d,
-  ) => d.year === 2001 && d.category === "buyer").reduce(
+  ) => d.year === 2001 && d.category === "buyerFixed").reduce(
     (acc, curr) => acc + curr.amount,
     0,
   );
@@ -474,12 +474,12 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
 
   const cumulativeBuyerLastYearExpenses = cumulativeAnnualExpenses.filter((
     d,
-  ) => d.year === 2024 && d.category === "buyer").reduce(
+  ) => d.year === 2024 && d.category === "buyerFixed").reduce(
     (acc, curr) => acc + curr.amount,
     0,
   );
   const buyerExpectedCumulativeExpenses = annualExpenses.filter((d) =>
-    d.category === "buyer"
+    d.category === "buyerFixed"
   ).reduce((acc, curr) => acc + curr.amount, 0);
   await t.step("cumulative expenses on last year for buyer", async () => {
     assertEquals(
@@ -562,21 +562,21 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       },
       {
         year: 2000,
-        category: "buyer",
+        category: "buyerFixed",
         group: "annualGains",
         variable: "tfsaGains",
         amount: 0,
       },
       {
         year: 2000,
-        category: "buyer",
+        category: "buyerFixed",
         group: "annualGains",
         variable: "marketGains",
         amount: 0,
       },
       {
         year: 2000,
-        category: "buyer",
+        category: "buyerFixed",
         group: "annualGains",
         variable: "homeEquityGains",
         amount: 84348,
@@ -590,7 +590,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       },
       {
         year: 2000,
-        category: "buyer",
+        category: "buyerFixed",
         group: "annualGains",
         variable: "tfsaContribution",
         amount: 0,
@@ -604,7 +604,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       },
       {
         year: 2000,
-        category: "buyer",
+        category: "buyerFixed",
         group: "annualGains",
         variable: "newStocks",
         amount: 0,
@@ -625,21 +625,21 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       },
       {
         year: 2001,
-        category: "buyer",
+        category: "buyerFixed",
         group: "annualGains",
         variable: "tfsaGains",
         amount: 0,
       },
       {
         year: 2001,
-        category: "buyer",
+        category: "buyerFixed",
         group: "annualGains",
         variable: "marketGains",
         amount: 0,
       },
       {
         year: 2001,
-        category: "buyer",
+        category: "buyerFixed",
         group: "annualGains",
         variable: "homeEquityGains",
         amount: 36071,
@@ -653,7 +653,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       },
       {
         year: 2001,
-        category: "buyer",
+        category: "buyerFixed",
         group: "annualGains",
         variable: "tfsaContribution",
         amount: 0,
@@ -667,7 +667,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       },
       {
         year: 2001,
-        category: "buyer",
+        category: "buyerFixed",
         group: "annualGains",
         variable: "newStocks",
         amount: 0,
@@ -696,21 +696,21 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       },
       {
         year: 2009,
-        category: "buyer",
+        category: "buyerFixed",
         group: "annualGains",
         variable: "tfsaGains",
         amount: 0,
       },
       {
         year: 2009,
-        category: "buyer",
+        category: "buyerFixed",
         group: "annualGains",
         variable: "marketGains",
         amount: 0,
       },
       {
         year: 2009,
-        category: "buyer",
+        category: "buyerFixed",
         group: "annualGains",
         variable: "homeEquityGains",
         amount: 53362,
@@ -724,7 +724,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       },
       {
         year: 2009,
-        category: "buyer",
+        category: "buyerFixed",
         group: "annualGains",
         variable: "tfsaContribution",
         amount: 0,
@@ -738,7 +738,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       },
       {
         year: 2009,
-        category: "buyer",
+        category: "buyerFixed",
         group: "annualGains",
         variable: "newStocks",
         amount: 0,
@@ -759,21 +759,21 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       },
       {
         year: 2010,
-        category: "buyer",
+        category: "buyerFixed",
         group: "annualGains",
         variable: "tfsaGains",
         amount: 0,
       },
       {
         year: 2010,
-        category: "buyer",
+        category: "buyerFixed",
         group: "annualGains",
         variable: "marketGains",
         amount: 0,
       },
       {
         year: 2010,
-        category: "buyer",
+        category: "buyerFixed",
         group: "annualGains",
         variable: "homeEquityGains",
         amount: 56039,
@@ -787,7 +787,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       },
       {
         year: 2010,
-        category: "buyer",
+        category: "buyerFixed",
         group: "annualGains",
         variable: "tfsaContribution",
         amount: 0,
@@ -801,7 +801,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       },
       {
         year: 2010,
-        category: "buyer",
+        category: "buyerFixed",
         group: "annualGains",
         variable: "newStocks",
         amount: 0,
@@ -874,21 +874,21 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       },
       {
         year: 2000,
-        category: "buyer",
+        category: "buyerFixed",
         group: "cumulativeGains",
         variable: "tfsaGains",
         amount: 0,
       },
       {
         year: 2000,
-        category: "buyer",
+        category: "buyerFixed",
         group: "cumulativeGains",
         variable: "marketGains",
         amount: 0,
       },
       {
         year: 2000,
-        category: "buyer",
+        category: "buyerFixed",
         group: "cumulativeGains",
         variable: "homeEquityGains",
         amount: 84348,
@@ -902,7 +902,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       },
       {
         year: 2000,
-        category: "buyer",
+        category: "buyerFixed",
         group: "cumulativeGains",
         variable: "tfsaContribution",
         amount: 0,
@@ -916,7 +916,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       },
       {
         year: 2000,
-        category: "buyer",
+        category: "buyerFixed",
         group: "cumulativeGains",
         variable: "newStocks",
         amount: 0,
@@ -937,21 +937,21 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       },
       {
         year: 2001,
-        category: "buyer",
+        category: "buyerFixed",
         group: "cumulativeGains",
         variable: "tfsaGains",
         amount: 0,
       },
       {
         year: 2001,
-        category: "buyer",
+        category: "buyerFixed",
         group: "cumulativeGains",
         variable: "marketGains",
         amount: 0,
       },
       {
         year: 2001,
-        category: "buyer",
+        category: "buyerFixed",
         group: "cumulativeGains",
         variable: "homeEquityGains",
         amount: 120419,
@@ -965,7 +965,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       },
       {
         year: 2001,
-        category: "buyer",
+        category: "buyerFixed",
         group: "cumulativeGains",
         variable: "tfsaContribution",
         amount: 0,
@@ -979,7 +979,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       },
       {
         year: 2001,
-        category: "buyer",
+        category: "buyerFixed",
         group: "cumulativeGains",
         variable: "newStocks",
         amount: 0,
@@ -991,7 +991,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
     d.year === 2024 && d.category === "renter"
   ).reduce((acc, curr) => acc + curr.amount, 0);
   const buyerLastYearCumulativeGains = cumulativeGains.filter((d) =>
-    d.year === 2024 && d.category === "buyer"
+    d.year === 2024 && d.category === "buyerFixed"
   ).reduce((acc, curr) => acc + curr.amount, 0);
 
   await t.step("last year cumulative gains for renter", async () => {
@@ -1005,11 +1005,11 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
   // Assets and cumulative gain totals should be the same
   const cumulativeGains2024Buyer = results.filter((d) =>
     d.group === "cumulativeGains" &&
-    d.category === "buyer" && d.year === 2024
+    d.category === "buyerFixed" && d.year === 2024
   ).reduce((acc, curr) => acc += curr.amount, 0);
   const buyerAssets2024 = results.filter((d) =>
     d.group === "assets" &&
-    d.category === "buyer" && d.year === 2024
+    d.category === "buyerFixed" && d.year === 2024
   ).reduce((acc, curr) => acc += curr.amount, 0);
 
   await t.step(
@@ -1038,27 +1038,27 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
   const assets = results.filter((d) => d.group === "assets");
 
   const buyerLastYearAssets = assets.filter((d) =>
-    d.year === 2024 && d.category === "buyer"
+    d.year === 2024 && d.category === "buyerFixed"
   );
   await t.step("last year assets for buyer", async () => {
     assertEquals(buyerLastYearAssets, [
       {
         year: 2024,
-        category: "buyer",
+        category: "buyerFixed",
         group: "assets",
         variable: "homeEquity",
         amount: 1693175,
       },
       {
         year: 2024,
-        category: "buyer",
+        category: "buyerFixed",
         group: "assets",
         variable: "tfsa",
         amount: 0,
       },
       {
         year: 2024,
-        category: "buyer",
+        category: "buyerFixed",
         group: "assets",
         variable: "stocks",
         amount: 0,
@@ -1150,7 +1150,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       },
       {
         year: 2000,
-        category: "buyer",
+        category: "buyerFixed",
         group: "summary",
         variable: "balance",
         amount: -46209,
@@ -1164,7 +1164,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       },
       {
         year: 2001,
-        category: "buyer",
+        category: "buyerFixed",
         group: "summary",
         variable: "balance",
         amount: -5848,
@@ -1230,28 +1230,28 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       },
       {
         year: 2000,
-        category: "buyer",
-        group: "saleCosts",
-        variable: "stockTaxes",
-        amount: 0,
-      },
-      {
-        year: 2000,
-        category: "buyer",
+        category: "buyerFixed",
         group: "saleCosts",
         variable: "homeSellingCommission",
         amount: 21000,
       },
       {
         year: 2000,
-        category: "buyer",
+        category: "buyerFixed",
+        group: "saleCosts",
+        variable: "stockTaxes",
+        amount: 0,
+      },
+      {
+        year: 2000,
+        category: "buyerFixed",
         group: "saleCosts",
         variable: "homeSellingFixedFees",
         amount: 2060,
       },
       {
         year: 2000,
-        category: "buyer",
+        category: "buyerFixed",
         group: "saleCosts",
         variable: "mortgagePenalty",
         amount: 8813,
@@ -1265,28 +1265,28 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       },
       {
         year: 2001,
-        category: "buyer",
-        group: "saleCosts",
-        variable: "stockTaxes",
-        amount: 0,
-      },
-      {
-        year: 2001,
-        category: "buyer",
+        category: "buyerFixed",
         group: "saleCosts",
         variable: "homeSellingCommission",
         amount: 22050,
       },
       {
         year: 2001,
-        category: "buyer",
+        category: "buyerFixed",
+        group: "saleCosts",
+        variable: "stockTaxes",
+        amount: 0,
+      },
+      {
+        year: 2001,
+        category: "buyerFixed",
         group: "saleCosts",
         variable: "homeSellingFixedFees",
         amount: 2122,
       },
       {
         year: 2001,
-        category: "buyer",
+        category: "buyerFixed",
         group: "saleCosts",
         variable: "mortgagePenalty",
         amount: 12925,
@@ -1360,21 +1360,21 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       },
       {
         year: 2000,
-        category: "buyer",
+        category: "buyerFixed",
         group: "saleGains",
         variable: "stockSellingGains",
         amount: 0,
       },
       {
         year: 2000,
-        category: "buyer",
+        category: "buyerFixed",
         group: "saleGains",
         variable: "tsfaSellingGains",
         amount: 0,
       },
       {
         year: 2000,
-        category: "buyer",
+        category: "buyerFixed",
         group: "saleGains",
         variable: "homeSellingGains",
         amount: 52475,
@@ -1395,21 +1395,21 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       },
       {
         year: 2001,
-        category: "buyer",
+        category: "buyerFixed",
         group: "saleGains",
         variable: "stockSellingGains",
         amount: 0,
       },
       {
         year: 2001,
-        category: "buyer",
+        category: "buyerFixed",
         group: "saleGains",
         variable: "tsfaSellingGains",
         amount: 0,
       },
       {
         year: 2001,
-        category: "buyer",
+        category: "buyerFixed",
         group: "saleGains",
         variable: "homeSellingGains",
         amount: 83322,
@@ -1478,7 +1478,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       },
       {
         year: 2000,
-        category: "buyer",
+        category: "buyerFixed",
         group: "summaryCumulative",
         variable: "balanceAfterSelling",
         amount: -78082,
@@ -1492,7 +1492,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       },
       {
         year: 2001,
-        category: "buyer",
+        category: "buyerFixed",
         group: "summaryCumulative",
         variable: "balanceAfterSelling",
         amount: -89154,
@@ -1562,7 +1562,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       },
       {
         year: 2000,
-        category: "buyer",
+        category: "buyerFixed",
         group: "summaryCumulative",
         variable: "differenceAfterSelling",
         amount: -161339,
@@ -1576,7 +1576,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       },
       {
         year: 2001,
-        category: "buyer",
+        category: "buyerFixed",
         group: "summaryCumulative",
         variable: "differenceAfterSelling",
         amount: -173887,
