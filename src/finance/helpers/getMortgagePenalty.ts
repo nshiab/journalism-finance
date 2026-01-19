@@ -5,6 +5,7 @@ export default function getMortgagePenalty(
     postedInterestRate: number;
     rateDiscount: number;
     currentPostedRates: Record<number, number>;
+    mortgageType: "fixed" | "variable";
   },
 ) {
   const {
@@ -13,6 +14,7 @@ export default function getMortgagePenalty(
     postedInterestRate,
     rateDiscount,
     currentPostedRates,
+    mortgageType,
   } = parameters;
 
   // If term is done, no penalty
@@ -20,32 +22,41 @@ export default function getMortgagePenalty(
     return 0;
   }
 
-  // Looking for current rate
-  const termForRate = Math.round(remainingYearsToTerm);
-  const comparisonRate =
-    currentPostedRates[termForRate === 0 ? 1 : termForRate];
-  if (comparisonRate === undefined) {
-    throw new Error(
-      `No current posted rate provided for a ${termForRate} year term.`,
+  if (mortgageType === "variable") {
+    // Three months interest penalty
+    const threeMonthsPenalty = Math.round(
+      (mortgageBalance * postedInterestRate * 3) / 12,
     );
+
+    return threeMonthsPenalty;
+  } else {
+    // Looking for current rate
+    const termForRate = Math.round(remainingYearsToTerm);
+    const comparisonRate =
+      currentPostedRates[termForRate === 0 ? 1 : termForRate];
+    if (comparisonRate === undefined) {
+      throw new Error(
+        `No current posted rate provided for a ${termForRate} year term.`,
+      );
+    }
+
+    const effectiveRate = postedInterestRate - rateDiscount;
+
+    // Three months interest penalty
+    const threeMonthsPenalty = Math.round(
+      (mortgageBalance * effectiveRate * 3) / 12,
+    );
+
+    // IRD (Interest Rate Differential) penalty
+    const irdRate = Math.max(
+      0,
+      effectiveRate - (comparisonRate - rateDiscount),
+    );
+    const fixedMortgagePenalty = Math.round(
+      mortgageBalance * irdRate * remainingYearsToTerm,
+    );
+
+    // Return the greater of three months interest or IRD penalty
+    return Math.max(threeMonthsPenalty, fixedMortgagePenalty);
   }
-
-  const effectiveRate = postedInterestRate - rateDiscount;
-
-  // Three months interest penalty
-  const threeMonthsPenalty = Math.round(
-    (mortgageBalance * effectiveRate * 3) / 12,
-  );
-
-  // IRD (Interest Rate Differential) penalty
-  const irdRate = Math.max(
-    0,
-    effectiveRate - (comparisonRate - rateDiscount),
-  );
-  const fixedMortgagePenalty = Math.round(
-    mortgageBalance * irdRate * remainingYearsToTerm,
-  );
-
-  // Return the greater of three months interest or IRD penalty
-  return Math.max(threeMonthsPenalty, fixedMortgagePenalty);
 }
