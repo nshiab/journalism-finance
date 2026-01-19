@@ -13,10 +13,12 @@ import adjustToInflation from "./finance/adjustToInflation.ts";
 import mortgagePayments from "./finance/mortgagePayments.ts";
 import mortgageInsurancePremium from "./finance/mortgageInsurancePremium.ts";
 import mortgageMaxAmount from "./finance/mortgageMaxAmount.ts";
+import variableMortgagePayments from "./finance/variableMortgagePayments.ts";
 
 export {
   adjustToInflation,
   mortgageInsurancePremium,
   mortgageMaxAmount,
   mortgagePayments,
+  variableMortgagePayments,
 };
