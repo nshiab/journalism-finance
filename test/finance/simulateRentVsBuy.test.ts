@@ -1,400 +1,199 @@
 import { assertEquals } from "jsr:@std/assert";
 import simulateRentVsBuy from "../../src/finance/simulateRentVsBuy.ts";
 import { saveChart } from "@nshiab/journalism-dataviz";
-import { barY, plot } from "@observablehq/plot";
+import { areaY, barY, plot } from "@observablehq/plot";
 
 Deno.test("should compute the total expenses and savings of a renter and buyer", async (t) => {
   const numberOfYears = 25;
+  const numberOfMonths = numberOfYears * 12;
   const annualMarketReturnRate = Array.from(
-    { length: numberOfYears },
+    { length: numberOfMonths },
     () => 0.05,
   );
-  const annualRentIncrease = Array.from({ length: numberOfYears }, () => 0.03);
-  const renterAnnualInsuranceIncrease = Array.from(
-    { length: numberOfYears },
+  const annualRentIncrease = Array.from({ length: numberOfMonths }, () => 0.03);
+  const annualInsuranceIncrease = Array.from(
+    { length: numberOfMonths },
     () => 0.03,
   );
   const annualMaintenanceIncrease = Array.from(
-    { length: numberOfYears },
+    { length: numberOfMonths },
     () => 0.03,
   );
   const annualPropertyTaxIncrease = Array.from(
-    { length: numberOfYears },
+    { length: numberOfMonths },
     () => 0.03,
   );
   const annualCondoFeeIncrease = Array.from(
-    { length: numberOfYears },
-    () => 0.03,
-  );
-  const buyerAnnualInsuranceIncrease = Array.from(
-    { length: numberOfYears },
+    { length: numberOfMonths },
     () => 0.03,
   );
   const appreciationIncrease = Array.from(
-    { length: numberOfYears },
+    { length: numberOfMonths },
     () => 0.05,
   );
   const sellingFixedFeesIncrease = Array.from(
-    { length: numberOfYears },
+    { length: numberOfMonths },
     () => 0.03,
   );
   const fiveYearInterestRates = Array.from(
-    { length: numberOfYears },
+    { length: numberOfMonths },
     () => 0.055,
   );
   const fourYearInterestRates = Array.from(
-    { length: numberOfYears },
+    { length: numberOfMonths },
     () => 0.05,
   );
   const threeYearInterestRates = Array.from(
-    { length: numberOfYears },
+    { length: numberOfMonths },
     () => 0.045,
   );
   const twoYearInterestRates = Array.from(
-    { length: numberOfYears },
+    { length: numberOfMonths },
     () => 0.04,
   );
   const oneYearInterestRates = Array.from(
-    { length: numberOfYears },
+    { length: numberOfMonths },
     () => 0.035,
   );
   const variableInterestRates = Array.from(
-    { length: numberOfYears },
-    () => 0.05,
+    { length: numberOfMonths },
+    () => 0.04,
   );
 
   const results = simulateRentVsBuy({
     startingYear: 2000,
     numberOfYears,
-    annualMarketReturnRate,
     tfsaContributions: true,
     combinedTaxRate: 0.25,
     renter: {
       startingMonthlyRent: 1750,
-      annualRentIncrease,
       securityDeposit: 1750,
       startingMonthlyInsurance: 75,
-      annualInsuranceIncrease: renterAnnualInsuranceIncrease,
     },
     buyer: {
       purchasePrice: 500_000,
       downPayment: 50_000,
       rateDiscount: 0.005,
+      purchaseFixedFees: 25_000,
+      startingAnnualMaintenanceCost: 2500,
+      startingAnnualPropertyTax: 3500,
+      startingMonthlyCondoFees: 100,
+      startingMonthlyInsurance: 250,
+      sellingFixedFees: 2000,
+      sellingCommissionRate: 0.04,
+    },
+    monthlyRates: {
+      annualMarketReturnRate,
+      annualRentIncrease,
+      annualInsuranceIncrease,
       fiveYearInterestRates,
       fourYearInterestRates,
       threeYearInterestRates,
       twoYearInterestRates,
       oneYearInterestRates,
       variableInterestRates,
-      purchaseFixedFees: 25_000,
-      startingAnnualMaintenanceCost: 2500,
       annualMaintenanceIncrease,
-      startingAnnualPropertyTax: 3500,
       annualPropertyTaxIncrease,
-      startingMonthlyCondoFees: 100,
       annualCondoFeeIncrease,
-      startingMonthlyInsurance: 250,
-      annualInsuranceIncrease: buyerAnnualInsuranceIncrease,
       appreciationIncrease,
-      sellingFixedFees: 2000,
       sellingFixedFeesIncrease,
-      sellingCommissionRate: 0.04,
     },
   });
 
-  // // Expenses on the first year
-  // const firstYearExpenses = results.filter((d) =>
-  //   d.year === 2000 &&
-  //   d.group === "annualExpenses"
-  // );
+  // Expenses on the first month
+  const firstMonthExpenses = results.filter((d) =>
+    d.monthIndex === 0 &&
+    d.group === "monthlyExpenses"
+  );
 
-  // await t.step("first year expenses", async () => {
-  //   assertEquals(firstYearExpenses, [
-  //     {
-  //       year: 2000,
-  //       category: "renter",
-  //       group: "annualExpenses",
-  //       variable: "rent",
-  //       amount: 21000,
-  //     },
-  //     {
-  //       year: 2000,
-  //       category: "renter",
-  //       group: "annualExpenses",
-  //       variable: "insurance",
-  //       amount: 900,
-  //     },
-  //     {
-  //       year: 2000,
-  //       category: "renter",
-  //       group: "annualExpenses",
-  //       variable: "securityDeposit",
-  //       amount: 1750,
-  //     },
-  //     {
-  //       year: 2000,
-  //       category: "buyerFixed",
-  //       group: "annualExpenses",
-  //       variable: "mortgageCapital",
-  //       amount: 9348,
-  //     },
-  //     {
-  //       year: 2000,
-  //       category: "buyerFixed",
-  //       group: "annualExpenses",
-  //       variable: "mortgageInterests",
-  //       amount: 22059,
-  //     },
-  //     {
-  //       year: 2000,
-  //       category: "buyerFixed",
-  //       group: "annualExpenses",
-  //       variable: "maintenance",
-  //       amount: 2500,
-  //     },
-  //     {
-  //       year: 2000,
-  //       category: "buyerFixed",
-  //       group: "annualExpenses",
-  //       variable: "propertyTax",
-  //       amount: 3500,
-  //     },
-  //     {
-  //       year: 2000,
-  //       category: "buyerFixed",
-  //       group: "annualExpenses",
-  //       variable: "condoFees",
-  //       amount: 1200,
-  //     },
-  //     {
-  //       year: 2000,
-  //       category: "buyerFixed",
-  //       group: "annualExpenses",
-  //       variable: "insurance",
-  //       amount: 3000,
-  //     },
-  //     {
-  //       year: 2000,
-  //       category: "buyerFixed",
-  //       group: "annualExpenses",
-  //       variable: "downPayment",
-  //       amount: 50000,
-  //     },
-  //     {
-  //       year: 2000,
-  //       category: "buyerFixed",
-  //       group: "annualExpenses",
-  //       variable: "purchaseFixedFees",
-  //       amount: 25000,
-  //     },
-  //     {
-  //       year: 2000,
-  //       category: "buyerFixed",
-  //       group: "annualExpenses",
-  //       variable: "insurancePremium",
-  //       amount: 13950,
-  //     },
-  //   ]);
-  // });
+  await saveChart(
+    firstMonthExpenses,
+    (data) =>
+      plot({
+        title: "First month expenses (Jan. 2000)",
+        y: {
+          nice: true,
+          label: null,
+          tickFormat: (d) =>
+            Math.abs(d) < 1000
+              ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
+              : Math.abs(d) < 1_000_000
+              ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
+              : d < 0
+              ? `-$${Math.abs(d) / 1_000_000}M`
+              : `$${d / 1_000_000}M`,
+        },
+        marginLeft: 60,
+        color: {
+          legend: true,
+        },
+        fx: {
+          label: null,
+        },
+        x: {
+          label: null,
+          tickFormat: (d) => d.toString(),
+        },
+        grid: true,
+        marks: [
+          barY(data, {
+            x: "year",
+            y: "amount",
+            fill: "variable",
+            order: "amount",
+            fx: "category",
+          }),
+        ],
+      }),
+    "test/output/first-month-expenses.png",
+    { style: "body { width: 700px; }" },
+  );
 
-  // const renterFirstYearTotalExpenses = firstYearExpenses.filter((d) =>
-  //   d.category === "renter"
-  // ).reduce((acc, curr) => acc + curr.amount, 0);
+  // Monthly expenses
+  const monthlyExpenses = results.filter((d) =>
+    d.group === "monthlyExpenses" && d.month !== 0
+  );
 
-  // await t.step("renter first year total expenses", async () => {
-  //   assertEquals(renterFirstYearTotalExpenses, 23650);
-  // });
-
-  // const buyerFirstYearTotalExpenses = firstYearExpenses.filter((d) =>
-  //   d.category === "buyerFixed"
-  // ).reduce((acc, curr) => acc + curr.amount, 0);
-
-  // await t.step("buyer first year total expenses", async () => {
-  //   assertEquals(buyerFirstYearTotalExpenses, 130557);
-  // });
-
-  // await saveChart(
-  //   firstYearExpenses,
-  //   (data) =>
-  //     plot({
-  //       title: "First year expenses (2000)",
-  //       y: {
-  //         nice: true,
-  //         label: null,
-  //         tickFormat: (d) =>
-  //           Math.abs(d) < 1000
-  //             ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
-  //             : Math.abs(d) < 1_000_000
-  //             ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
-  //             : d < 0
-  //             ? `-$${Math.abs(d) / 1_000_000}M`
-  //             : `$${d / 1_000_000}M`,
-  //       },
-  //       x: {
-  //         ticks: [2000, 2004, 2009, 2014, 2019, 2024],
-  //         tickFormat: (d) => d.toString(),
-  //       },
-  //       fx: {
-  //         label: null,
-  //       },
-  //       marginLeft: 60,
-  //       color: {
-  //         legend: true,
-  //       },
-  //       grid: true,
-  //       marks: [
-  //         barY(data, {
-  //           x: "year",
-  //           y: "amount",
-  //           fill: "variable",
-  //           fx: "category",
-  //           order: "amount",
-  //         }),
-  //       ],
-  //     }),
-  //   "test/output/first-year-expenses.png",
-  //   { style: "body { width: 700px; }" },
-  // );
-
-  // // Annual expenses
-  // const annualExpenses = results.filter((d) => d.group === "annualExpenses");
-  // const annualExpensesSecondYear = annualExpenses.filter((d) =>
-  //   d.year === 2001
-  // );
-  // await t.step("second year expenses", async () => {
-  //   assertEquals(annualExpensesSecondYear, [
-  //     {
-  //       year: 2001,
-  //       category: "renter",
-  //       group: "annualExpenses",
-  //       variable: "rent",
-  //       amount: 21636,
-  //     },
-  //     {
-  //       year: 2001,
-  //       category: "renter",
-  //       group: "annualExpenses",
-  //       variable: "insurance",
-  //       amount: 924,
-  //     },
-  //     {
-  //       year: 2001,
-  //       category: "buyerFixed",
-  //       group: "annualExpenses",
-  //       variable: "mortgageCapital",
-  //       amount: 9821,
-  //     },
-  //     {
-  //       year: 2001,
-  //       category: "buyerFixed",
-  //       group: "annualExpenses",
-  //       variable: "mortgageInterests",
-  //       amount: 21586,
-  //     },
-  //     {
-  //       year: 2001,
-  //       category: "buyerFixed",
-  //       group: "annualExpenses",
-  //       variable: "maintenance",
-  //       amount: 2575,
-  //     },
-  //     {
-  //       year: 2001,
-  //       category: "buyerFixed",
-  //       group: "annualExpenses",
-  //       variable: "propertyTax",
-  //       amount: 3605,
-  //     },
-  //     {
-  //       year: 2001,
-  //       category: "buyerFixed",
-  //       group: "annualExpenses",
-  //       variable: "condoFees",
-  //       amount: 1236,
-  //     },
-  //     {
-  //       year: 2001,
-  //       category: "buyerFixed",
-  //       group: "annualExpenses",
-  //       variable: "insurance",
-  //       amount: 3096,
-  //     },
-  //   ]);
-  // });
-
-  // const renterTotalExpensesSecondYear = annualExpensesSecondYear.filter((d) =>
-  //   d.category === "renter"
-  // ).reduce((acc, curr) => acc + curr.amount, 0);
-
-  // await t.step("renter second year total expenses", async () => {
-  //   assertEquals(renterTotalExpensesSecondYear, 22560);
-  // });
-
-  // const buyerTotalExpensesSecondYear = annualExpensesSecondYear.filter((d) =>
-  //   d.category === "buyerFixed"
-  // ).reduce((acc, curr) => acc + curr.amount, 0);
-
-  // await t.step("buyer second year total expenses", async () => {
-  //   assertEquals(buyerTotalExpensesSecondYear, 41919);
-  // });
-
-  // const renterTotalExpensesLastYear = annualExpenses.filter((d) =>
-  //   d.category === "renter" && d.year === 2024
-  // ).reduce((acc, curr) => acc + curr.amount, 0);
-
-  // await t.step("renter last year total expenses", async () => {
-  //   assertEquals(renterTotalExpensesLastYear, 44544);
-  // });
-
-  // const buyerTotalExpensesLastYear = annualExpenses.filter((d) =>
-  //   d.category === "buyerFixed" && d.year === 2024
-  // ).reduce((acc, curr) => acc + curr.amount, 0);
-
-  // await t.step("buyer last year total expenses", async () => {
-  //   assertEquals(buyerTotalExpensesLastYear, 52148);
-  // });
-
-  // await saveChart(
-  //   annualExpenses,
-  //   (data) =>
-  //     plot({
-  //       title: "Annual expenses over time",
-  //       y: {
-  //         nice: true,
-  //         label: null,
-  //         tickFormat: (d) =>
-  //           Math.abs(d) < 1000
-  //             ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
-  //             : Math.abs(d) < 1_000_000
-  //             ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
-  //             : d < 0
-  //             ? `-$${Math.abs(d) / 1_000_000}M`
-  //             : `$${d / 1_000_000}M`,
-  //       },
-  //       x: {
-  //         ticks: [2000, 2005, 2010, 2015, 2020, 2025],
-  //         tickFormat: (d) => d.toString(),
-  //       },
-  //       fx: {
-  //         label: null,
-  //       },
-  //       marginLeft: 60,
-  //       color: {
-  //         legend: true,
-  //       },
-  //       grid: true,
-  //       marks: [
-  //         barY(data, {
-  //           x: "year",
-  //           y: "amount",
-  //           fill: "variable",
-  //           fx: "category",
-  //         }),
-  //       ],
-  //     }),
-  //   "test/output/annual-expenses.png",
-  //   { style: "body { width: 700px; }" },
-  // );
+  await saveChart(
+    monthlyExpenses,
+    (data) =>
+      plot({
+        title: "Monthly expenses over time (first month excluded)",
+        y: {
+          nice: true,
+          label: null,
+          tickFormat: (d) =>
+            Math.abs(d) < 1000
+              ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
+              : Math.abs(d) < 1_000_000
+              ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
+              : d < 0
+              ? `-$${Math.abs(d) / 1_000_000}M`
+              : `$${d / 1_000_000}M`,
+        },
+        x: {
+          nice: true,
+        },
+        fx: {
+          label: null,
+        },
+        marginLeft: 60,
+        color: {
+          legend: true,
+        },
+        grid: true,
+        marks: [
+          areaY(data, {
+            x: "date",
+            y: "amount",
+            fill: "variable",
+            fx: "category",
+          }),
+        ],
+      }),
+    "test/output/monthly-expenses.png",
+    { style: "body { width: 700px; }" },
+  );
 
   // const cumulativeAnnualExpenses = results.filter((d) =>
   //   d.group === "cumulativeExpenses"

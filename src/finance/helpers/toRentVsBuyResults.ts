@@ -1,0 +1,315 @@
+export default function toRentVsBuyResults(
+  year: number,
+  month: number,
+  category: "renter" | "buyerFixed" | "buyerVariable",
+  persona: {
+    monthlyExpenses: {
+      rent: number;
+      insurance: number;
+      securityDeposit: number;
+      mortgageCapital: number;
+      mortgageInterests: number;
+      maintenance: number;
+      propertyTax: number;
+      condoFees: number;
+      downPayment: number;
+      purchaseFixedFees: number;
+      insurancePremium: number;
+    };
+    cumulativeExpenses: {
+      rent: number;
+      insurance: number;
+      securityDeposit: number;
+      mortgageCapital: number;
+      mortgageInterests: number;
+      maintenance: number;
+      propertyTax: number;
+      condoFees: number;
+      downPayment: number;
+      purchaseFixedFees: number;
+      insurancePremium: number;
+    };
+    monthlyGains: {
+      tfsaGains: number;
+      tfsaContribution: number;
+      marketGains: number;
+      newStocks: number;
+      homeSellingGains: number;
+      homeEquityGains: number;
+    };
+    cumulativeGains: {
+      tfsaGains: number;
+      tfsaContribution: number;
+      marketGains: number;
+      newStocks: number;
+      homeSellingGains: number;
+      homeEquityGains: number;
+    };
+    assets: {
+      tfsa: number;
+      stocks: number;
+      securityDeposit: number;
+      homeEquity: number;
+    };
+    summary: { balance: number };
+    summaryCumulative: {
+      differenceWithBuyerFixed: number;
+      differenceWithBuyerVariable: number;
+      differenceAfterSellingWithBuyerFixed: number;
+      differenceAfterSellingWithBuyerVariable: number;
+      balance: number;
+      balanceAfterSelling: number;
+      differenceWithRenter: number;
+      differenceAfterSellingWithRenter: number;
+    };
+    saleCosts: {
+      stockTaxes: number;
+      homeSellingCommission: number;
+      homeSellingFixedFees: number;
+      mortgagePenalty: number;
+    };
+    saleGains: {
+      stockSellingGains: number;
+      tfsaSellingGains: number;
+      homeSellingGains: number;
+    };
+  },
+  results: (
+    & {
+      year: number;
+      month: number;
+      monthIndex: number;
+      date: Date;
+      amount: number;
+      category: "renter" | "buyerFixed" | "buyerVariable";
+    }
+    & (
+      | {
+        group: "monthlyExpenses" | "cumulativeExpenses";
+        variable:
+          | "rent"
+          | "insurance"
+          | "securityDeposit"
+          | "mortgageCapital"
+          | "mortgageInterests"
+          | "maintenance"
+          | "propertyTax"
+          | "condoFees"
+          | "downPayment"
+          | "purchaseFixedFees"
+          | "insurancePremium";
+      }
+      | {
+        group: "monthlyGains" | "cumulativeGains";
+        variable:
+          | "tfsaGains"
+          | "tfsaContribution"
+          | "marketGains"
+          | "newStocks"
+          | "homeSellingGains"
+          | "homeEquityGains";
+      }
+      | {
+        group: "assets";
+        variable:
+          | "tfsa"
+          | "stocks"
+          | "securityDeposit"
+          | "homeEquity";
+      }
+      | {
+        group: "summary";
+        variable: "balance";
+      }
+      | {
+        group: "summaryCumulative";
+        variable:
+          | "differenceWithBuyerFixed"
+          | "differenceWithBuyerVariable"
+          | "differenceAfterSellingWithBuyerFixed"
+          | "differenceAfterSellingWithBuyerVariable"
+          | "balance"
+          | "balanceAfterSelling"
+          | "differenceWithRenter"
+          | "differenceAfterSellingWithRenter";
+      }
+      | {
+        group: "saleCosts";
+        variable:
+          | "stockTaxes"
+          | "homeSellingCommission"
+          | "homeSellingFixedFees"
+          | "mortgagePenalty";
+      }
+      | {
+        group: "saleGains";
+        variable: "stockSellingGains" | "tfsaSellingGains" | "homeSellingGains";
+      }
+    )
+  )[],
+  monthIndex: number,
+) {
+  const date = new Date(Date.UTC(year, month, 1));
+
+  // Process monthlyExpenses
+  for (
+    const variable of Object.keys(persona.monthlyExpenses) as Array<
+      keyof typeof persona.monthlyExpenses
+    >
+  ) {
+    results.push({
+      year,
+      month,
+      monthIndex,
+      date,
+      amount: persona.monthlyExpenses[variable],
+      category,
+      group: "monthlyExpenses",
+      variable,
+    });
+  }
+
+  // Process cumulativeExpenses
+  for (
+    const variable of Object.keys(persona.cumulativeExpenses) as Array<
+      keyof typeof persona.cumulativeExpenses
+    >
+  ) {
+    results.push({
+      year,
+      month,
+      monthIndex,
+      date,
+      amount: persona.cumulativeExpenses[variable],
+      category,
+      group: "cumulativeExpenses",
+      variable,
+    });
+  }
+
+  // Process monthlyGains
+  for (
+    const variable of Object.keys(persona.monthlyGains) as Array<
+      keyof typeof persona.monthlyGains
+    >
+  ) {
+    results.push({
+      year,
+      month,
+      monthIndex,
+      date,
+      amount: persona.monthlyGains[variable],
+      category,
+      group: "monthlyGains",
+      variable,
+    });
+  }
+
+  // Process cumulativeGains
+  for (
+    const variable of Object.keys(persona.cumulativeGains) as Array<
+      keyof typeof persona.cumulativeGains
+    >
+  ) {
+    results.push({
+      year,
+      month,
+      monthIndex,
+      date,
+      amount: persona.cumulativeGains[variable],
+      category,
+      group: "cumulativeGains",
+      variable,
+    });
+  }
+
+  // Process assets
+  for (
+    const variable of Object.keys(persona.assets) as Array<
+      keyof typeof persona.assets
+    >
+  ) {
+    results.push({
+      year,
+      month,
+      monthIndex,
+      date,
+      amount: persona.assets[variable],
+      category,
+      group: "assets",
+      variable,
+    });
+  }
+
+  // Process summary
+  for (
+    const variable of Object.keys(persona.summary) as Array<
+      keyof typeof persona.summary
+    >
+  ) {
+    results.push({
+      year,
+      month,
+      monthIndex,
+      date,
+      amount: persona.summary[variable],
+      category,
+      group: "summary",
+      variable,
+    });
+  }
+
+  // Process summaryCumulative
+  for (
+    const variable of Object.keys(persona.summaryCumulative) as Array<
+      keyof typeof persona.summaryCumulative
+    >
+  ) {
+    results.push({
+      year,
+      month,
+      monthIndex,
+      date,
+      amount: persona.summaryCumulative[variable],
+      category,
+      group: "summaryCumulative",
+      variable,
+    });
+  }
+
+  // Process saleCosts
+  for (
+    const variable of Object.keys(persona.saleCosts) as Array<
+      keyof typeof persona.saleCosts
+    >
+  ) {
+    results.push({
+      year,
+      month,
+      monthIndex,
+      date,
+      amount: persona.saleCosts[variable],
+      category,
+      group: "saleCosts",
+      variable,
+    });
+  }
+
+  // Process saleGains
+  for (
+    const variable of Object.keys(persona.saleGains) as Array<
+      keyof typeof persona.saleGains
+    >
+  ) {
+    results.push({
+      year,
+      month,
+      monthIndex,
+      date,
+      amount: persona.saleGains[variable],
+      category,
+      group: "saleGains",
+      variable,
+    });
+  }
+}

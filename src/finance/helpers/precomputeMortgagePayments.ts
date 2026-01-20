@@ -9,6 +9,7 @@ export default function precomputeMortgagePayments(
   variableInterestRates: number[],
 ) {
   const term = 5;
+  const termInMonths = term * 12;
 
   // We precompute all mortgage payments for the entire period for fixed-rate mortgages
   const allFixedMortgagePayments: {
@@ -25,9 +26,9 @@ export default function precomputeMortgagePayments(
     rateDiscount: number;
   }[] = [];
 
-  for (let year = 0; year < numberOfYears; year += term) {
+  for (let month = 0; month < numberOfYears * 12; month += termInMonths) {
     const effectiveInterestRate =
-      (fixedInterestRates[year] - originalRateDiscount) *
+      (fixedInterestRates[month] - originalRateDiscount) *
       100;
     const mortgageAmount =
       allFixedMortgagePayments[allFixedMortgagePayments.length - 1]
@@ -38,54 +39,16 @@ export default function precomputeMortgagePayments(
       effectiveInterestRate,
       "monthly",
       term,
-      25 - year,
+      25 - (month / 12),
     );
     allFixedMortgagePayments.push(
       ...payments.map((payment) => ({
         ...payment,
         effectiveInterestRate: effectiveInterestRate / 100,
-        postedInterestRate: fixedInterestRates[year],
+        postedInterestRate: fixedInterestRates[month],
         rateDiscount: originalRateDiscount,
       })),
     );
-  }
-
-  const annualFixedMortgagePayments: {
-    year: number;
-    interests: number;
-    capital: number;
-    mortgage: number;
-    balance: number;
-    effectiveInterestRate: number;
-    postedInterestRate: number;
-    rateDiscount: number;
-  }[] = [];
-  for (let i = 0; i < allFixedMortgagePayments.length; i += 12) {
-    annualFixedMortgagePayments.push({
-      year: (i / 12) + 1, // 1-indexed years
-      balance: Math.round(allFixedMortgagePayments[i + 11].balance),
-      interests: Math.round(
-        allFixedMortgagePayments.slice(i, i + 12).reduce(
-          (sum, mortgagePayment) => sum + mortgagePayment.interest,
-          0,
-        ),
-      ),
-      capital: Math.round(
-        allFixedMortgagePayments.slice(i, i + 12).reduce(
-          (sum, mortgagePayment) => sum + mortgagePayment.capital,
-          0,
-        ),
-      ),
-      mortgage: Math.round(
-        allFixedMortgagePayments.slice(i, i + 12).reduce(
-          (sum, mortgagePayment) => sum + mortgagePayment.payment,
-          0,
-        ),
-      ),
-      effectiveInterestRate: allFixedMortgagePayments[i].effectiveInterestRate,
-      postedInterestRate: allFixedMortgagePayments[i].postedInterestRate,
-      rateDiscount: allFixedMortgagePayments[i].rateDiscount,
-    });
   }
 
   const allVariableMortgagePayments: {
@@ -102,71 +65,31 @@ export default function precomputeMortgagePayments(
     rateDiscount: number;
   }[] = [];
 
-  for (let year = 0; year < numberOfYears; year += term) {
+  for (let month = 0; month < numberOfYears * 12; month += termInMonths) {
     const mortgageAmount =
       allVariableMortgagePayments[allVariableMortgagePayments.length - 1]
         ? allVariableMortgagePayments[allVariableMortgagePayments.length - 1]
           .balance
         : startingMortgageAmount;
     const monthlyEffectiveRates = variableInterestRates.slice(
-      year,
-      year + term,
-    ).map((d) => Array.from({ length: 12 }, () => d * 100)).flat();
+      month,
+      month + termInMonths,
+    ).map((d) => d * 100);
     const payments = variableMortgagePayments(
       mortgageAmount,
       monthlyEffectiveRates,
       term,
-      25 - year,
+      25 - (month / 12),
     );
     allVariableMortgagePayments.push(
       ...payments.map((payment) => ({
         ...payment,
         effectiveInterestRate: payment.rate,
-        postedInterestRate: variableInterestRates[year],
+        postedInterestRate: variableInterestRates[month],
         rateDiscount: 0, // No rate discount for variable-rate mortgages
       })),
     );
   }
 
-  const annualVariableMortgagePayments: {
-    year: number;
-    interests: number;
-    capital: number;
-    mortgage: number;
-    balance: number;
-    effectiveInterestRate: number;
-    postedInterestRate: number;
-    rateDiscount: number;
-  }[] = [];
-
-  for (let i = 0; i < allVariableMortgagePayments.length; i += 12) {
-    annualVariableMortgagePayments.push({
-      year: (i / 12) + 1, // 1-indexed years
-      balance: Math.round(allVariableMortgagePayments[i + 11].balance),
-      interests: Math.round(
-        allVariableMortgagePayments.slice(i, i + 12).reduce(
-          (sum, mortgagePayment) => sum + mortgagePayment.interest,
-          0,
-        ),
-      ),
-      capital: Math.round(
-        allVariableMortgagePayments.slice(i, i + 12).reduce(
-          (sum, mortgagePayment) => sum + mortgagePayment.capital,
-          0,
-        ),
-      ),
-      mortgage: Math.round(
-        allVariableMortgagePayments.slice(i, i + 12).reduce(
-          (sum, mortgagePayment) => sum + mortgagePayment.payment,
-          0,
-        ),
-      ),
-      effectiveInterestRate:
-        allVariableMortgagePayments[i].effectiveInterestRate,
-      postedInterestRate: allVariableMortgagePayments[i].postedInterestRate,
-      rateDiscount: allVariableMortgagePayments[i].rateDiscount,
-    });
-  }
-
-  return { annualFixedMortgagePayments, annualVariableMortgagePayments };
+  return { allFixedMortgagePayments, allVariableMortgagePayments };
 }
