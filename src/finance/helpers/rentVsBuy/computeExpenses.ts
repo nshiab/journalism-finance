@@ -1,5 +1,5 @@
-export default function computeRentVsBuyExpenses(
-  month: number,
+export default function computeExpenses(
+  monthIndex: number,
   persona: {
     params: {
       monthlyRent: number;
@@ -80,7 +80,7 @@ export default function computeRentVsBuyExpenses(
     persona.cumulativeExpenses.condoFees += persona.monthlyExpenses.condoFees;
 
     // Non recurring expenses
-    if (month === 0) {
+    if (monthIndex === 0) {
       persona.monthlyExpenses.downPayment = persona.params.downPayment;
       persona.monthlyExpenses.purchaseFixedFees =
         persona.params.purchaseFixedFees;
@@ -102,8 +102,10 @@ export default function computeRentVsBuyExpenses(
     // Renter expenses
     persona.monthlyExpenses.rent = persona.params.monthlyRent;
 
+    persona.cumulativeExpenses.rent += persona.monthlyExpenses.rent;
+
     // Non recurring expenses
-    if (month === 0) {
+    if (monthIndex === 0) {
       persona.monthlyExpenses.securityDeposit = persona.params.securityDeposit;
 
       persona.cumulativeExpenses.securityDeposit +=
@@ -112,4 +114,33 @@ export default function computeRentVsBuyExpenses(
       persona.monthlyExpenses.securityDeposit = 0;
     }
   }
+
+  const totalMonthlyExpenses = persona.monthlyExpenses.rent +
+    persona.monthlyExpenses.insurance +
+    persona.monthlyExpenses.securityDeposit +
+    persona.monthlyExpenses.mortgageCapital +
+    persona.monthlyExpenses.mortgageInterests +
+    persona.monthlyExpenses.maintenance +
+    persona.monthlyExpenses.propertyTax +
+    persona.monthlyExpenses.condoFees +
+    persona.monthlyExpenses.downPayment +
+    persona.monthlyExpenses.purchaseFixedFees +
+    persona.monthlyExpenses.insurancePremium;
+
+  const totalCumulativeExpenses = persona.cumulativeExpenses.rent +
+    persona.cumulativeExpenses.insurance +
+    persona.cumulativeExpenses.securityDeposit +
+    persona.cumulativeExpenses.mortgageCapital +
+    persona.cumulativeExpenses.mortgageInterests +
+    persona.cumulativeExpenses.maintenance +
+    persona.cumulativeExpenses.propertyTax +
+    persona.cumulativeExpenses.condoFees +
+    persona.cumulativeExpenses.downPayment +
+    persona.cumulativeExpenses.purchaseFixedFees +
+    persona.cumulativeExpenses.insurancePremium;
+
+  return {
+    totalMonthlyExpenses,
+    totalCumulativeExpenses,
+  };
 }

@@ -1,9 +1,10 @@
-export default function getRentVsBuyPersona(parameters: {
+export default function getPersona(parameters: {
   startingMonthlyRent: number;
   securityDeposit: number;
   startingMonthlyInsurance: number;
   downPayment: number;
   purchasePrice: number;
+  homeValue: number;
   insurancePremium: number;
   rateDiscount: number;
   purchaseFixedFees: number;
@@ -19,6 +20,7 @@ export default function getRentVsBuyPersona(parameters: {
     securityDeposit: number;
     downPayment: number;
     purchasePrice: number;
+    homeValue: number;
     rateDiscount: number;
     purchaseFixedFees: number;
     monthlyMaintenanceCost: number;
@@ -57,7 +59,7 @@ export default function getRentVsBuyPersona(parameters: {
   monthlyGains: {
     tfsaGains: number;
     tfsaContribution: number;
-    marketGains: number;
+    stocksGains: number;
     newStocks: number;
     homeSellingGains: number;
     homeEquityGains: number;
@@ -65,7 +67,7 @@ export default function getRentVsBuyPersona(parameters: {
   cumulativeGains: {
     tfsaGains: number;
     tfsaContribution: number;
-    marketGains: number;
+    stocksGains: number;
     newStocks: number;
     homeSellingGains: number;
     homeEquityGains: number;
@@ -106,6 +108,7 @@ export default function getRentVsBuyPersona(parameters: {
       securityDeposit: parameters.securityDeposit,
       downPayment: parameters.downPayment,
       purchasePrice: parameters.purchasePrice,
+      homeValue: parameters.homeValue,
       rateDiscount: parameters.rateDiscount,
       purchaseFixedFees: parameters.purchaseFixedFees,
       monthlyMaintenanceCost: Math.round(
@@ -146,7 +149,7 @@ export default function getRentVsBuyPersona(parameters: {
     monthlyGains: {
       tfsaGains: 0,
       tfsaContribution: 0,
-      marketGains: 0,
+      stocksGains: 0,
       newStocks: 0,
       homeSellingGains: 0,
       homeEquityGains: 0,
@@ -154,7 +157,7 @@ export default function getRentVsBuyPersona(parameters: {
     cumulativeGains: {
       tfsaGains: 0,
       tfsaContribution: 0,
-      marketGains: 0,
+      stocksGains: 0,
       newStocks: 0,
       homeSellingGains: 0,
       homeEquityGains: 0,

@@ -6,9 +6,9 @@ import { areaY, barY, plot } from "@observablehq/plot";
 Deno.test("should compute the total expenses and savings of a renter and buyer", async (t) => {
   const numberOfYears = 25;
   const numberOfMonths = numberOfYears * 12;
-  const annualMarketReturnRate = Array.from(
+  const marketReturnRate = Array.from(
     { length: numberOfMonths },
-    () => 0.05,
+    () => 0.005,
   );
   const annualRentIncrease = Array.from({ length: numberOfMonths }, () => 0.03);
   const annualInsuranceIncrease = Array.from(
@@ -27,11 +27,11 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
     { length: numberOfMonths },
     () => 0.03,
   );
-  const appreciationIncrease = Array.from(
+  const annualAppreciationIncrease = Array.from(
     { length: numberOfMonths },
     () => 0.05,
   );
-  const sellingFixedFeesIncrease = Array.from(
+  const annualSellingFixedFeesIncrease = Array.from(
     { length: numberOfMonths },
     () => 0.03,
   );
@@ -82,8 +82,8 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       sellingFixedFees: 2000,
       sellingCommissionRate: 0.04,
     },
-    monthlyRates: {
-      annualMarketReturnRate,
+    rates: {
+      marketReturnRate,
       annualRentIncrease,
       annualInsuranceIncrease,
       fiveYearInterestRates,
@@ -95,8 +95,8 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       annualMaintenanceIncrease,
       annualPropertyTaxIncrease,
       annualCondoFeeIncrease,
-      appreciationIncrease,
-      sellingFixedFeesIncrease,
+      annualAppreciationIncrease,
+      annualSellingFixedFeesIncrease,
     },
   });
 
@@ -195,465 +195,187 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
     { style: "body { width: 700px; }" },
   );
 
-  // const cumulativeAnnualExpenses = results.filter((d) =>
-  //   d.group === "cumulativeExpenses"
-  // );
+  const cumulativeExpenses = results.filter((d) =>
+    d.group === "cumulativeExpenses"
+  );
 
-  // const cumulativeRenterFirstYearExpenses = cumulativeAnnualExpenses.filter((
-  //   d,
-  // ) => d.year === 2000 && d.category === "renter").reduce(
-  //   (acc, curr) => acc + curr.amount,
-  //   0,
-  // );
-  // await t.step("cumulative expenses on first year for renter", async () => {
-  //   assertEquals(
-  //     cumulativeRenterFirstYearExpenses,
-  //     renterFirstYearTotalExpenses,
-  //   );
-  // });
+  await saveChart(
+    cumulativeExpenses,
+    (data) =>
+      plot({
+        title: "Cumulative expenses over time",
+        y: {
+          nice: true,
+          label: null,
+          tickFormat: (d) =>
+            Math.abs(d) < 1000
+              ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
+              : Math.abs(d) < 1_000_000
+              ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
+              : d < 0
+              ? `-$${Math.abs(d) / 1_000_000}M`
+              : `$${d / 1_000_000}M`,
+        },
+        x: {
+          nice: true,
+        },
+        fx: {
+          label: null,
+        },
+        marginLeft: 60,
+        color: {
+          legend: true,
+        },
+        grid: true,
+        marks: [
+          areaY(data, {
+            x: "date",
+            y: "amount",
+            fill: "variable",
+            fx: "category",
+          }),
+        ],
+      }),
+    "test/output/cumulative-expenses.png",
+    { style: "body { width: 700px; }" },
+  );
 
-  // const cumulativeBuyerFirstYearExpenses = cumulativeAnnualExpenses.filter((
-  //   d,
-  // ) => d.year === 2000 && d.category === "buyerFixed").reduce(
-  //   (acc, curr) => acc + curr.amount,
-  //   0,
-  // );
-  // await t.step("cumulative expenses on first year for buyer", async () => {
-  //   assertEquals(
-  //     cumulativeBuyerFirstYearExpenses,
-  //     buyerFirstYearTotalExpenses,
-  //   );
-  // });
+  // Expenses on the first month
+  const firstMonthGains = results.filter((d) =>
+    d.monthIndex === 0 &&
+    d.group === "monthlyGains"
+  );
 
-  // const cumulativeRenterSecondYearExpenses = cumulativeAnnualExpenses.filter((
-  //   d,
-  // ) => d.year === 2001 && d.category === "renter").reduce(
-  //   (acc, curr) => acc + curr.amount,
-  //   0,
-  // );
-  // await t.step("cumulative expenses on second year for renter", async () => {
-  //   assertEquals(
-  //     cumulativeRenterSecondYearExpenses,
-  //     renterFirstYearTotalExpenses + renterTotalExpensesSecondYear,
-  //   );
-  // });
+  await saveChart(
+    firstMonthGains,
+    (data) =>
+      plot({
+        title: "First month gains (Jan. 2000)",
+        y: {
+          nice: true,
+          label: null,
+          tickFormat: (d) =>
+            Math.abs(d) < 1000
+              ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
+              : Math.abs(d) < 1_000_000
+              ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
+              : d < 0
+              ? `-$${Math.abs(d) / 1_000_000}M`
+              : `$${d / 1_000_000}M`,
+        },
+        marginLeft: 60,
+        color: {
+          legend: true,
+        },
+        fx: {
+          label: null,
+        },
+        x: {
+          label: null,
+          tickFormat: (d) => d.toString(),
+        },
+        grid: true,
+        marks: [
+          barY(data, {
+            x: "year",
+            y: "amount",
+            fill: "variable",
+            order: "amount",
+            fx: "category",
+          }),
+        ],
+      }),
+    "test/output/first-month-gains.png",
+    { style: "body { width: 700px; }" },
+  );
 
-  // const cumulativeBuyerSecondYearExpenses = cumulativeAnnualExpenses.filter((
-  //   d,
-  // ) => d.year === 2001 && d.category === "buyerFixed").reduce(
-  //   (acc, curr) => acc + curr.amount,
-  //   0,
-  // );
-  // await t.step("cumulative expenses on second year for buyer", async () => {
-  //   assertEquals(
-  //     cumulativeBuyerSecondYearExpenses,
-  //     buyerFirstYearTotalExpenses + buyerTotalExpensesSecondYear,
-  //   );
-  // });
+  const monthlyGains = results.filter((d) =>
+    d.group === "monthlyGains" && d.month !== 0
+  );
 
-  // const cumulativeRenterLastYearExpenses = cumulativeAnnualExpenses.filter((
-  //   d,
-  // ) => d.year === 2024 && d.category === "renter").reduce(
-  //   (acc, curr) => acc + curr.amount,
-  //   0,
-  // );
-  // const renterExpectedCumulativeExpenses = annualExpenses.filter((d) =>
-  //   d.category === "renter"
-  // ).reduce((acc, curr) => acc + curr.amount, 0);
-  // await t.step("cumulative expenses on last year for renter", async () => {
-  //   assertEquals(
-  //     cumulativeRenterLastYearExpenses,
-  //     renterExpectedCumulativeExpenses,
-  //   );
-  // });
-  // await t.step(
-  //   "cumulative expenses on last year for renter (actual number)",
-  //   async () => {
-  //     assertEquals(
-  //       cumulativeRenterLastYearExpenses,
-  //       800494,
-  //     );
-  //   },
-  // );
+  await saveChart(
+    monthlyGains,
+    (data) =>
+      plot({
+        title: "Monthly gains over time (excluding first month)",
+        y: {
+          nice: true,
+          label: null,
+          tickFormat: (d) =>
+            Math.abs(d) < 1000
+              ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
+              : Math.abs(d) < 1_000_000
+              ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
+              : d < 0
+              ? `-$${Math.abs(d) / 1_000_000}M`
+              : `$${d / 1_000_000}M`,
+        },
+        x: {
+          nice: true,
+        },
+        fx: {
+          label: null,
+        },
+        marginLeft: 60,
+        color: {
+          legend: true,
+        },
+        grid: true,
+        marks: [
+          areaY(data, {
+            x: "date",
+            y: "amount",
+            fill: "variable",
+            fx: "category",
+          }),
+        ],
+      }),
+    "test/output/monthly-gains.png",
+    { style: "body { width: 700px; }" },
+  );
 
-  // const cumulativeBuyerLastYearExpenses = cumulativeAnnualExpenses.filter((
-  //   d,
-  // ) => d.year === 2024 && d.category === "buyerFixed").reduce(
-  //   (acc, curr) => acc + curr.amount,
-  //   0,
-  // );
-  // const buyerExpectedCumulativeExpenses = annualExpenses.filter((d) =>
-  //   d.category === "buyerFixed"
-  // ).reduce((acc, curr) => acc + curr.amount, 0);
-  // await t.step("cumulative expenses on last year for buyer", async () => {
-  //   assertEquals(
-  //     cumulativeBuyerLastYearExpenses,
-  //     buyerExpectedCumulativeExpenses,
-  //   );
-  // });
-  // await t.step(
-  //   "cumulative expenses on last year for buyer (actual number)",
-  //   async () => {
-  //     assertEquals(
-  //       cumulativeBuyerLastYearExpenses,
-  //       1246023,
-  //     );
-  //   },
-  // );
+  const cumulativeGains = results.filter((d) => d.group === "cumulativeGains");
 
-  // await saveChart(
-  //   cumulativeAnnualExpenses,
-  //   (data) =>
-  //     plot({
-  //       title: "Cumulative expenses over time",
-  //       y: {
-  //         nice: true,
-  //         label: null,
-  //         tickFormat: (d) =>
-  //           Math.abs(d) < 1000
-  //             ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
-  //             : Math.abs(d) < 1_000_000
-  //             ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
-  //             : d < 0
-  //             ? `-$${Math.abs(d) / 1_000_000}M`
-  //             : `$${d / 1_000_000}M`,
-  //       },
-  //       x: {
-  //         ticks: [2000, 2005, 2010, 2015, 2020, 2025],
-  //         tickFormat: (d) => d.toString(),
-  //       },
-  //       fx: {
-  //         label: null,
-  //       },
-  //       marginLeft: 60,
-  //       color: {
-  //         legend: true,
-  //       },
-  //       grid: true,
-  //       marks: [
-  //         barY(data, {
-  //           x: "year",
-  //           y: "amount",
-  //           fill: "variable",
-  //           fx: "category",
-  //         }),
-  //       ],
-  //     }),
-  //   "test/output/cumulative-expenses.png",
-  //   { style: "body { width: 700px; }" },
-  // );
-
-  // const annualGains = results.filter((d) => d.group === "annualGains");
-
-  // const firstAndSecondYearGains = annualGains.filter((d) =>
-  //   d.year === 2000 || d.year === 2001
-  // );
-  // await t.step("first and second year gains", async () => {
-  //   assertEquals(firstAndSecondYearGains, [
-  //     {
-  //       year: 2000,
-  //       category: "renter",
-  //       group: "annualGains",
-  //       variable: "tfsaGains",
-  //       amount: 0,
-  //     },
-  //     {
-  //       year: 2000,
-  //       category: "renter",
-  //       group: "annualGains",
-  //       variable: "marketGains",
-  //       amount: 0,
-  //     },
-  //     {
-  //       year: 2000,
-  //       category: "buyerFixed",
-  //       group: "annualGains",
-  //       variable: "tfsaGains",
-  //       amount: 0,
-  //     },
-  //     {
-  //       year: 2000,
-  //       category: "buyerFixed",
-  //       group: "annualGains",
-  //       variable: "marketGains",
-  //       amount: 0,
-  //     },
-  //     {
-  //       year: 2000,
-  //       category: "buyerFixed",
-  //       group: "annualGains",
-  //       variable: "homeEquityGains",
-  //       amount: 84348,
-  //     },
-  //     {
-  //       year: 2000,
-  //       category: "renter",
-  //       group: "annualGains",
-  //       variable: "tfsaContribution",
-  //       amount: 0,
-  //     },
-  //     {
-  //       year: 2000,
-  //       category: "buyerFixed",
-  //       group: "annualGains",
-  //       variable: "tfsaContribution",
-  //       amount: 0,
-  //     },
-  //     {
-  //       year: 2000,
-  //       category: "renter",
-  //       group: "annualGains",
-  //       variable: "newStocks",
-  //       amount: 106907,
-  //     },
-  //     {
-  //       year: 2000,
-  //       category: "buyerFixed",
-  //       group: "annualGains",
-  //       variable: "newStocks",
-  //       amount: 0,
-  //     },
-  //     {
-  //       year: 2001,
-  //       category: "renter",
-  //       group: "annualGains",
-  //       variable: "tfsaGains",
-  //       amount: 0,
-  //     },
-  //     {
-  //       year: 2001,
-  //       category: "renter",
-  //       group: "annualGains",
-  //       variable: "marketGains",
-  //       amount: 5345,
-  //     },
-  //     {
-  //       year: 2001,
-  //       category: "buyerFixed",
-  //       group: "annualGains",
-  //       variable: "tfsaGains",
-  //       amount: 0,
-  //     },
-  //     {
-  //       year: 2001,
-  //       category: "buyerFixed",
-  //       group: "annualGains",
-  //       variable: "marketGains",
-  //       amount: 0,
-  //     },
-  //     {
-  //       year: 2001,
-  //       category: "buyerFixed",
-  //       group: "annualGains",
-  //       variable: "homeEquityGains",
-  //       amount: 36071,
-  //     },
-  //     {
-  //       year: 2001,
-  //       category: "renter",
-  //       group: "annualGains",
-  //       variable: "tfsaContribution",
-  //       amount: 0,
-  //     },
-  //     {
-  //       year: 2001,
-  //       category: "buyerFixed",
-  //       group: "annualGains",
-  //       variable: "tfsaContribution",
-  //       amount: 0,
-  //     },
-  //     {
-  //       year: 2001,
-  //       category: "renter",
-  //       group: "annualGains",
-  //       variable: "newStocks",
-  //       amount: 19359,
-  //     },
-  //     {
-  //       year: 2001,
-  //       category: "buyerFixed",
-  //       group: "annualGains",
-  //       variable: "newStocks",
-  //       amount: 0,
-  //     },
-  //   ]);
-  // });
-
-  // const year2009And2010Gains = annualGains.filter((d) =>
-  //   d.year === 2009 || d.year === 2010
-  // );
-  // await t.step("2009 and 2010 gains to check TFSA", async () => {
-  //   assertEquals(year2009And2010Gains, [
-  //     {
-  //       year: 2009,
-  //       category: "renter",
-  //       group: "annualGains",
-  //       variable: "tfsaGains",
-  //       amount: 0,
-  //     },
-  //     {
-  //       year: 2009,
-  //       category: "renter",
-  //       group: "annualGains",
-  //       variable: "marketGains",
-  //       amount: 16548,
-  //     },
-  //     {
-  //       year: 2009,
-  //       category: "buyerFixed",
-  //       group: "annualGains",
-  //       variable: "tfsaGains",
-  //       amount: 0,
-  //     },
-  //     {
-  //       year: 2009,
-  //       category: "buyerFixed",
-  //       group: "annualGains",
-  //       variable: "marketGains",
-  //       amount: 0,
-  //     },
-  //     {
-  //       year: 2009,
-  //       category: "buyerFixed",
-  //       group: "annualGains",
-  //       variable: "homeEquityGains",
-  //       amount: 53362,
-  //     },
-  //     {
-  //       year: 2009,
-  //       category: "renter",
-  //       group: "annualGains",
-  //       variable: "tfsaContribution",
-  //       amount: 5000,
-  //     },
-  //     {
-  //       year: 2009,
-  //       category: "buyerFixed",
-  //       group: "annualGains",
-  //       variable: "tfsaContribution",
-  //       amount: 0,
-  //     },
-  //     {
-  //       year: 2009,
-  //       category: "renter",
-  //       group: "annualGains",
-  //       variable: "newStocks",
-  //       amount: 11135,
-  //     },
-  //     {
-  //       year: 2009,
-  //       category: "buyerFixed",
-  //       group: "annualGains",
-  //       variable: "newStocks",
-  //       amount: 0,
-  //     },
-  //     {
-  //       year: 2010,
-  //       category: "renter",
-  //       group: "annualGains",
-  //       variable: "tfsaGains",
-  //       amount: 250,
-  //     },
-  //     {
-  //       year: 2010,
-  //       category: "renter",
-  //       group: "annualGains",
-  //       variable: "marketGains",
-  //       amount: 17932,
-  //     },
-  //     {
-  //       year: 2010,
-  //       category: "buyerFixed",
-  //       group: "annualGains",
-  //       variable: "tfsaGains",
-  //       amount: 0,
-  //     },
-  //     {
-  //       year: 2010,
-  //       category: "buyerFixed",
-  //       group: "annualGains",
-  //       variable: "marketGains",
-  //       amount: 0,
-  //     },
-  //     {
-  //       year: 2010,
-  //       category: "buyerFixed",
-  //       group: "annualGains",
-  //       variable: "homeEquityGains",
-  //       amount: 56039,
-  //     },
-  //     {
-  //       year: 2010,
-  //       category: "renter",
-  //       group: "annualGains",
-  //       variable: "tfsaContribution",
-  //       amount: 5000,
-  //     },
-  //     {
-  //       year: 2010,
-  //       category: "buyerFixed",
-  //       group: "annualGains",
-  //       variable: "tfsaContribution",
-  //       amount: 0,
-  //     },
-  //     {
-  //       year: 2010,
-  //       category: "renter",
-  //       group: "annualGains",
-  //       variable: "newStocks",
-  //       amount: 10673,
-  //     },
-  //     {
-  //       year: 2010,
-  //       category: "buyerFixed",
-  //       group: "annualGains",
-  //       variable: "newStocks",
-  //       amount: 0,
-  //     },
-  //   ]);
-  // });
-
-  // await saveChart(
-  //   annualGains,
-  //   (data) =>
-  //     plot({
-  //       title: "Annual gains over time",
-  //       y: {
-  //         nice: true,
-  //         label: null,
-  //         tickFormat: (d) =>
-  //           Math.abs(d) < 1000
-  //             ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
-  //             : Math.abs(d) < 1_000_000
-  //             ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
-  //             : d < 0
-  //             ? `-$${Math.abs(d) / 1_000_000}M`
-  //             : `$${d / 1_000_000}M`,
-  //       },
-  //       x: {
-  //         ticks: [2000, 2005, 2010, 2015, 2020, 2025],
-  //         tickFormat: (d) => d.toString(),
-  //       },
-  //       fx: {
-  //         label: null,
-  //       },
-  //       marginLeft: 60,
-  //       color: {
-  //         legend: true,
-  //       },
-  //       grid: true,
-  //       marks: [
-  //         barY(data, {
-  //           x: "year",
-  //           y: "amount",
-  //           fill: "variable",
-  //           fx: "category",
-  //         }),
-  //       ],
-  //     }),
-  //   "test/output/annual-gains.png",
-  //   { style: "body { width: 700px; }" },
-  // );
+  await saveChart(
+    cumulativeGains,
+    (data) =>
+      plot({
+        title: "Cumulative gains over time",
+        y: {
+          nice: true,
+          label: null,
+          tickFormat: (d) =>
+            Math.abs(d) < 1000
+              ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
+              : Math.abs(d) < 1_000_000
+              ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
+              : d < 0
+              ? `-$${Math.abs(d) / 1_000_000}M`
+              : `$${d / 1_000_000}M`,
+        },
+        x: {
+          nice: true,
+        },
+        fx: {
+          label: null,
+        },
+        marginLeft: 60,
+        color: {
+          legend: true,
+        },
+        grid: true,
+        marks: [
+          areaY(data, {
+            x: "date",
+            y: "amount",
+            fill: "variable",
+            fx: "category",
+          }),
+        ],
+      }),
+    "test/output/cumulative-gains.png",
+    { style: "body { width: 700px; }" },
+  );
 
   // const cumulativeGains = results.filter((d) => d.group === "cumulativeGains");
 
@@ -673,7 +395,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
   //       year: 2000,
   //       category: "renter",
   //       group: "cumulativeGains",
-  //       variable: "marketGains",
+  //       variable: "stocksGains",
   //       amount: 0,
   //     },
   //     {
@@ -687,7 +409,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
   //       year: 2000,
   //       category: "buyerFixed",
   //       group: "cumulativeGains",
-  //       variable: "marketGains",
+  //       variable: "stocksGains",
   //       amount: 0,
   //     },
   //     {
@@ -736,7 +458,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
   //       year: 2001,
   //       category: "renter",
   //       group: "cumulativeGains",
-  //       variable: "marketGains",
+  //       variable: "stocksGains",
   //       amount: 5345,
   //     },
   //     {
@@ -750,7 +472,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
   //       year: 2001,
   //       category: "buyerFixed",
   //       group: "cumulativeGains",
-  //       variable: "marketGains",
+  //       variable: "stocksGains",
   //       amount: 0,
   //     },
   //     {

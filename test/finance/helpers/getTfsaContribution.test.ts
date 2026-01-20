@@ -1,5 +1,5 @@
 import { assertEquals, assertThrows } from "jsr:@std/assert";
-import getTfsaContribution from "../../../src/finance/helpers/getTfsaContribution.ts";
+import getTfsaContribution from "../../../src/finance/helpers/rentVsBuy/getTfsaContribution.ts";
 
 // Reference: https://www.canada.ca/en/revenue-agency/services/tax/individuals/topics/tax-free-savings-account/contributing/before.html
 

@@ -1,5 +1,5 @@
 import { assertEquals, assertThrows } from "jsr:@std/assert";
-import getMortgagePenalty from "../../../src/finance/helpers/getMortgagePenalty.ts";
+import getMortgagePenalty from "../../../src/finance/helpers/rentVsBuy/getMortgagePenalty.ts";
 
 // Double checked with:
 // https://wowa.ca/calculators/mortgage-penalty-calculator
@@ -12,6 +12,7 @@ Deno.test("should return 0 penalty when term is complete (remainingYearsToTerm =
     postedInterestRate: 0.055,
     rateDiscount: 0.005,
     currentPostedRates: { 1: 0.045, 2: 0.0475, 3: 0.05, 5: 0.0525 },
+    mortgageType: "fixed",
   });
   assertEquals(penalty, 0);
 });
@@ -25,6 +26,7 @@ Deno.test("should throw an error when no current posted rate is provided for the
         postedInterestRate: 0.055,
         rateDiscount: 0.005,
         currentPostedRates: { 1: 0.045, 2: 0.0475, 5: 0.0525 },
+        mortgageType: "fixed",
       }),
     Error,
     "No current posted rate provided for a 3 year term.",
@@ -39,6 +41,7 @@ Deno.test("should calculate three months interest penalty when it's greater than
     postedInterestRate: 0.04,
     rateDiscount: 0.005,
     currentPostedRates: { 1: 0.05, 2: 0.055, 3: 0.0575, 5: 0.06 },
+    mortgageType: "fixed",
   });
   // Three months penalty: (300000 * 0.035 * 3) / 12 = 2625
   // Effective rate: 0.04 - 0.005 = 0.035
@@ -57,6 +60,7 @@ Deno.test("should calculate IRD penalty when it's greater than three months inte
     postedInterestRate: 0.06,
     rateDiscount: 0.01,
     currentPostedRates: { 1: 0.04, 2: 0.0425, 3: 0.045, 5: 0.0475 },
+    mortgageType: "fixed",
   });
   // Three months penalty: (400000 * 0.05 * 3) / 12 = 5000
   // Effective rate: 0.06 - 0.01 = 0.05
@@ -75,6 +79,7 @@ Deno.test("should round remaining years to nearest term for rate lookup", () => 
     postedInterestRate: 0.055,
     rateDiscount: 0.0075,
     currentPostedRates: { 1: 0.045, 2: 0.0475, 3: 0.05, 5: 0.0525 },
+    mortgageType: "fixed",
   });
   // Three months penalty: (250000 * 0.0475 * 3) / 12 = 2969
   // Effective rate: 0.055 - 0.0075 = 0.0475
@@ -92,6 +97,7 @@ Deno.test("should use 1 year rate when remaining years rounds to 0", () => {
     postedInterestRate: 0.05,
     rateDiscount: 0.005,
     currentPostedRates: { 1: 0.04, 2: 0.045, 3: 0.0475, 5: 0.05 },
+    mortgageType: "fixed",
   });
   // Three months penalty: (200000 * 0.045 * 3) / 12 = 2250
   // Effective rate: 0.05 - 0.005 = 0.045
@@ -109,6 +115,7 @@ Deno.test("should handle case where IRD is negative (rates increased)", () => {
     postedInterestRate: 0.035,
     rateDiscount: 0.0025,
     currentPostedRates: { 1: 0.055, 2: 0.0575, 3: 0.06, 4: 0.0625, 5: 0.065 },
+    mortgageType: "fixed",
   });
   // Three months penalty: (350000 * 0.0325 * 3) / 12 = 2844
   // Effective rate: 0.035 - 0.0025 = 0.0325
@@ -126,6 +133,7 @@ Deno.test("should calculate penalty with no rate discount (equal penalties)", ()
     postedInterestRate: 0.05,
     rateDiscount: 0,
     currentPostedRates: { 1: 0.04, 2: 0.0425, 3: 0.045, 5: 0.0475 },
+    mortgageType: "fixed",
   });
   // Three months penalty: (500000 * 0.05 * 3) / 12 = 6250
   // Effective rate: 0.05 - 0 = 0.05
@@ -143,6 +151,7 @@ Deno.test("should calculate penalty with no rate discount (IRD higher)", () => {
     postedInterestRate: 0.06,
     rateDiscount: 0,
     currentPostedRates: { 1: 0.035, 2: 0.0375, 3: 0.04, 4: 0.0425, 5: 0.045 },
+    mortgageType: "fixed",
   });
   // Three months penalty: (600000 * 0.06 * 3) / 12 = 9000
   // Effective rate: 0.06 - 0 = 0.06
@@ -160,6 +169,7 @@ Deno.test("should calculate penalty for small mortgage balance", () => {
     postedInterestRate: 0.06,
     rateDiscount: 0.01,
     currentPostedRates: { 1: 0.05, 2: 0.0525, 3: 0.055, 5: 0.0575 },
+    mortgageType: "fixed",
   });
   // Three months penalty: (50000 * 0.05 * 3) / 12 = 625
   // Effective rate: 0.06 - 0.01 = 0.05
@@ -177,6 +187,7 @@ Deno.test("should calculate penalty for large mortgage balance", () => {
     postedInterestRate: 0.055,
     rateDiscount: 0.008,
     currentPostedRates: { 1: 0.04, 2: 0.0425, 3: 0.045, 5: 0.0475 },
+    mortgageType: "fixed",
   });
   // Three months penalty: (1000000 * 0.047 * 3) / 12 = 11750
   // Effective rate: 0.055 - 0.008 = 0.047

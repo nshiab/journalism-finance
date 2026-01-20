@@ -1,5 +1,5 @@
-import mortgagePayments from "../mortgagePayments.ts";
-import variableMortgagePayments from "../variableMortgagePayments.ts";
+import mortgagePayments from "../../mortgagePayments.ts";
+import variableMortgagePayments from "../../variableMortgagePayments.ts";
 
 export default function precomputeMortgagePayments(
   numberOfYears: number,
@@ -40,6 +40,7 @@ export default function precomputeMortgagePayments(
       "monthly",
       term,
       25 - (month / 12),
+      { decimals: 0 },
     );
     allFixedMortgagePayments.push(
       ...payments.map((payment) => ({
@@ -80,6 +81,9 @@ export default function precomputeMortgagePayments(
       monthlyEffectiveRates,
       term,
       25 - (month / 12),
+      {
+        decimals: 0,
+      },
     );
     allVariableMortgagePayments.push(
       ...payments.map((payment) => ({

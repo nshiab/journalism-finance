@@ -1,4 +1,4 @@
-export default function toRentVsBuyResults(
+export default function toResults(
   year: number,
   month: number,
   category: "renter" | "buyerFixed" | "buyerVariable",
@@ -32,7 +32,7 @@ export default function toRentVsBuyResults(
     monthlyGains: {
       tfsaGains: number;
       tfsaContribution: number;
-      marketGains: number;
+      stocksGains: number;
       newStocks: number;
       homeSellingGains: number;
       homeEquityGains: number;
@@ -40,7 +40,7 @@ export default function toRentVsBuyResults(
     cumulativeGains: {
       tfsaGains: number;
       tfsaContribution: number;
-      marketGains: number;
+      stocksGains: number;
       newStocks: number;
       homeSellingGains: number;
       homeEquityGains: number;
@@ -104,7 +104,7 @@ export default function toRentVsBuyResults(
         variable:
           | "tfsaGains"
           | "tfsaContribution"
-          | "marketGains"
+          | "stocksGains"
           | "newStocks"
           | "homeSellingGains"
           | "homeEquityGains";
