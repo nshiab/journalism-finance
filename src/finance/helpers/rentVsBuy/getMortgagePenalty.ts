@@ -1,6 +1,6 @@
 export default function getMortgagePenalty(
   parameters: {
-    remainingYearsToTerm: number;
+    remainingMonthsToTerm: number;
     mortgageBalance: number;
     postedInterestRate: number;
     rateDiscount: number;
@@ -9,7 +9,7 @@ export default function getMortgagePenalty(
   },
 ) {
   const {
-    remainingYearsToTerm,
+    remainingMonthsToTerm,
     mortgageBalance,
     postedInterestRate,
     rateDiscount,
@@ -18,7 +18,7 @@ export default function getMortgagePenalty(
   } = parameters;
 
   // If term is done, no penalty
-  if (remainingYearsToTerm === 0) {
+  if (remainingMonthsToTerm === 0) {
     return 0;
   }
 
@@ -31,6 +31,7 @@ export default function getMortgagePenalty(
     return threeMonthsPenalty;
   } else {
     // Looking for current rate
+    const remainingYearsToTerm = remainingMonthsToTerm / 12;
     const termForRate = Math.round(remainingYearsToTerm);
     const comparisonRate =
       currentPostedRates[termForRate === 0 ? 1 : termForRate];

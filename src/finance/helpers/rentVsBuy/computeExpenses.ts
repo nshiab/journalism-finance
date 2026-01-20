@@ -127,20 +127,7 @@ export default function computeExpenses(
     persona.monthlyExpenses.purchaseFixedFees +
     persona.monthlyExpenses.insurancePremium;
 
-  const totalCumulativeExpenses = persona.cumulativeExpenses.rent +
-    persona.cumulativeExpenses.insurance +
-    persona.cumulativeExpenses.securityDeposit +
-    persona.cumulativeExpenses.mortgageCapital +
-    persona.cumulativeExpenses.mortgageInterests +
-    persona.cumulativeExpenses.maintenance +
-    persona.cumulativeExpenses.propertyTax +
-    persona.cumulativeExpenses.condoFees +
-    persona.cumulativeExpenses.downPayment +
-    persona.cumulativeExpenses.purchaseFixedFees +
-    persona.cumulativeExpenses.insurancePremium;
-
   return {
     totalMonthlyExpenses,
-    totalCumulativeExpenses,
   };
 }

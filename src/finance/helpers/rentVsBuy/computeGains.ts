@@ -49,8 +49,12 @@ export default function computeGains(
   tfsaContributions: boolean,
 ) {
   // We start by calculating the current month TFSA and stock gains
-  persona.monthlyGains.tfsaGains = persona.assets.tfsa * marketReturnRate;
-  persona.monthlyGains.stocksGains = persona.assets.stocks * marketReturnRate;
+  persona.monthlyGains.tfsaGains = Math.round(
+    persona.assets.tfsa * marketReturnRate,
+  );
+  persona.monthlyGains.stocksGains = Math.round(
+    persona.assets.stocks * marketReturnRate,
+  );
 
   persona.cumulativeGains.tfsaGains += persona.monthlyGains.tfsaGains;
   persona.cumulativeGains.stocksGains += persona.monthlyGains.stocksGains;

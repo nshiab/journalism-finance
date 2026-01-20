@@ -80,14 +80,9 @@ export default function getPersona(parameters: {
   };
   summary: { balance: number };
   summaryCumulative: {
-    differenceWithBuyerFixed: number;
-    differenceWithBuyerVariable: number;
-    differenceAfterSellingWithBuyerFixed: number;
-    differenceAfterSellingWithBuyerVariable: number;
     balance: number;
     balanceAfterSelling: number;
-    differenceWithRenter: number;
-    differenceAfterSellingWithRenter: number;
+    differenceAfterSelling: number;
   };
   saleCosts: {
     stockTaxes: number;
@@ -95,10 +90,11 @@ export default function getPersona(parameters: {
     homeSellingFixedFees: number;
     mortgagePenalty: number;
   };
-  saleGains: {
+  saleNetGains: {
     stockSellingGains: number;
     tfsaSellingGains: number;
     homeSellingGains: number;
+    securityDeposit: number;
   };
 } {
   return {
@@ -172,14 +168,9 @@ export default function getPersona(parameters: {
       balance: 0,
     },
     summaryCumulative: {
-      differenceWithBuyerFixed: 0,
-      differenceWithBuyerVariable: 0,
-      differenceAfterSellingWithBuyerFixed: 0,
-      differenceAfterSellingWithBuyerVariable: 0,
       balance: 0,
       balanceAfterSelling: 0,
-      differenceWithRenter: 0,
-      differenceAfterSellingWithRenter: 0,
+      differenceAfterSelling: 0,
     },
     saleCosts: {
       stockTaxes: 0,
@@ -187,10 +178,11 @@ export default function getPersona(parameters: {
       homeSellingFixedFees: 0,
       mortgagePenalty: 0,
     },
-    saleGains: {
+    saleNetGains: {
       stockSellingGains: 0,
       tfsaSellingGains: 0,
       homeSellingGains: 0,
+      securityDeposit: 0,
     },
   };
 }

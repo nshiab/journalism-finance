@@ -53,14 +53,9 @@ export default function toResults(
     };
     summary: { balance: number };
     summaryCumulative: {
-      differenceWithBuyerFixed: number;
-      differenceWithBuyerVariable: number;
-      differenceAfterSellingWithBuyerFixed: number;
-      differenceAfterSellingWithBuyerVariable: number;
       balance: number;
       balanceAfterSelling: number;
-      differenceWithRenter: number;
-      differenceAfterSellingWithRenter: number;
+      differenceAfterSelling: number;
     };
     saleCosts: {
       stockTaxes: number;
@@ -68,10 +63,11 @@ export default function toResults(
       homeSellingFixedFees: number;
       mortgagePenalty: number;
     };
-    saleGains: {
+    saleNetGains: {
       stockSellingGains: number;
       tfsaSellingGains: number;
       homeSellingGains: number;
+      securityDeposit: number;
     };
   },
   results: (
@@ -124,14 +120,9 @@ export default function toResults(
       | {
         group: "summaryCumulative";
         variable:
-          | "differenceWithBuyerFixed"
-          | "differenceWithBuyerVariable"
-          | "differenceAfterSellingWithBuyerFixed"
-          | "differenceAfterSellingWithBuyerVariable"
           | "balance"
           | "balanceAfterSelling"
-          | "differenceWithRenter"
-          | "differenceAfterSellingWithRenter";
+          | "differenceAfterSelling";
       }
       | {
         group: "saleCosts";
@@ -142,8 +133,12 @@ export default function toResults(
           | "mortgagePenalty";
       }
       | {
-        group: "saleGains";
-        variable: "stockSellingGains" | "tfsaSellingGains" | "homeSellingGains";
+        group: "saleNetGains";
+        variable:
+          | "stockSellingGains"
+          | "tfsaSellingGains"
+          | "homeSellingGains"
+          | "securityDeposit";
       }
     )
   )[],
@@ -295,10 +290,10 @@ export default function toResults(
     });
   }
 
-  // Process saleGains
+  // Process saleNetGains
   for (
-    const variable of Object.keys(persona.saleGains) as Array<
-      keyof typeof persona.saleGains
+    const variable of Object.keys(persona.saleNetGains) as Array<
+      keyof typeof persona.saleNetGains
     >
   ) {
     results.push({
@@ -306,9 +301,9 @@ export default function toResults(
       month,
       monthIndex,
       date,
-      amount: persona.saleGains[variable],
+      amount: persona.saleNetGains[variable],
       category,
-      group: "saleGains",
+      group: "saleNetGains",
       variable,
     });
   }
