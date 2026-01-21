@@ -1,28 +1,45 @@
+import { prettyDuration } from "@nshiab/journalism-format";
 import getRandomValues from "./getRandomValues.ts";
 import simulateRentVsBuy from "./simulateRentVsBuy.ts";
-import { quantile } from "d3-array";
+import { maxIndex } from "d3-array";
+//import { quantile } from "d3-array";
 
 export default function simulateRentVsBuyMonteCarlo(parameters: {
   iterations: number;
   startingYear: number;
   numberOfYears: number;
-  annualAvgMarketReturnRate: number;
-  annualMarketReturnStdDev: number;
   tfsaContributions: boolean;
   combinedTaxRate: number;
   renter: {
     startingMonthlyRent: number;
-    annualRentIncreaseAvg: number;
-    annualRentIncreaseStdDev: number;
     securityDeposit: number;
     startingMonthlyInsurance: number;
-    annualInsuranceIncreaseAvg: number;
-    annualInsuranceIncreaseStdDev: number;
   };
   buyer: {
     downPayment: number;
     purchasePrice: number;
     rateDiscount: number;
+    purchaseFixedFees: number;
+    startingAnnualMaintenanceCost: number;
+    startingAnnualPropertyTax: number;
+    startingMonthlyCondoFee: number;
+    startingMonthlyInsurance: number;
+    sellingFixedFees: number;
+    sellingCommissionRate: number;
+  };
+  rates: {
+    monthlyAvgMarketReturnRate: number;
+    monthlyMarketReturnStdDev: number;
+    annualRentIncreaseAvg: number;
+    annualRentIncreaseStdDev: number;
+    annualInsuranceIncreaseAvg: number;
+    annualInsuranceIncreaseStdDev: number;
+    annualMaintenanceIncreaseAvg: number;
+    annualMaintenanceIncreaseStdDev: number;
+    annualPropertyTaxIncreaseAvg: number;
+    annualPropertyTaxIncreaseStdDev: number;
+    annualCondoFeeIncreaseAvg: number;
+    annualCondoFeeIncreaseStdDev: number;
     fiveYearInterestRateAvg: number;
     fiveYearInterestRateStdDev: number;
     fourYearInterestRateAvg: number;
@@ -33,171 +50,148 @@ export default function simulateRentVsBuyMonteCarlo(parameters: {
     twoYearInterestRateStdDev: number;
     oneYearInterestRateAvg: number;
     oneYearInterestRateStdDev: number;
-    purchaseFixedFees: number;
-    startingAnnualMaintenanceCost: number;
-    annualMaintenanceIncreaseAvg: number;
-    annualMaintenanceIncreaseStdDev: number;
-    startingAnnualPropertyTax: number;
-    annualPropertyTaxIncreaseAvg: number;
-    annualPropertyTaxIncreaseStdDev: number;
-    startingMonthlyCondoFee: number;
-    annualCondoFeeIncreaseAvg: number;
-    annualCondoFeeIncreaseStdDev: number;
-    startingMonthlyInsurance: number;
-    annualInsuranceIncreaseAvg: number;
-    annualInsuranceIncreaseStdDev: number;
+    variableInterestRateAvg: number;
+    variableInterestRateStdDev: number;
     appreciationRateAvg: number;
     appreciationRateStdDev: number;
-    sellingFixedFees: number;
     sellingFixedIncreaseAvg: number;
     sellingFixedIncreaseStdDev: number;
-    sellingCommissionRate: number;
   };
-}) {
-  const allIterationsResults = [];
-  const lastYearDifferenceResults = [];
+}, options: { verbose?: boolean; verboseStep?: number } = {}) {
+  // const allIterationsResults = [];
+  // const lastMonthBalanceResults = [];
+  const winners = [];
   const rates = [];
 
+  const numberOfMonths = parameters.numberOfYears * 12;
+  const start = options.verbose ? Date.now() : null;
   for (let i = 0; i < parameters.iterations; i++) {
+    if (options.verbose && i % (options.verboseStep || 1000) === 0) {
+      console.log(`Simulation ${i} / ${parameters.iterations}`);
+    }
     // We create the arrays for the rates for each year
     // We know the rates are the same throughout the iteration, so we can store them once
-    const annualMarketReturnRate = getRandomValues(
-      parameters.numberOfYears,
-      parameters.annualAvgMarketReturnRate,
-      parameters.annualMarketReturnStdDev,
-      { decimals: 4 },
+    const monthlyMarketReturnRate = getRandomValues(
+      numberOfMonths,
+      parameters.rates.monthlyAvgMarketReturnRate,
+      parameters.rates.monthlyMarketReturnStdDev,
     );
     rates.push({
-      variable: "annualMarketReturnRate",
-      value: annualMarketReturnRate[0],
+      variable: "monthlyMarketReturnRate",
+      value: monthlyMarketReturnRate[0],
     });
     const annualRentIncrease = getRandomValues(
-      parameters.numberOfYears,
-      parameters.renter.annualRentIncreaseAvg,
-      parameters.renter.annualRentIncreaseStdDev,
-      {
-        decimals: 4,
-      },
+      numberOfMonths,
+      parameters.rates.annualRentIncreaseAvg,
+      parameters.rates.annualRentIncreaseStdDev,
     );
     rates.push({
       variable: "annualRentIncrease",
       value: annualRentIncrease[0],
     });
-    const renterAnnualInsuranceIncrease = getRandomValues(
-      parameters.numberOfYears,
-      parameters.renter.annualInsuranceIncreaseAvg,
-      parameters.renter.annualInsuranceIncreaseStdDev,
-      { decimals: 4 },
+    const annualInsuranceIncrease = getRandomValues(
+      numberOfMonths,
+      parameters.rates.annualInsuranceIncreaseAvg,
+      parameters.rates.annualInsuranceIncreaseStdDev,
     );
     rates.push({
-      variable: "renterAnnualInsuranceIncrease",
-      value: renterAnnualInsuranceIncrease[0],
+      variable: "annualInsuranceIncrease",
+      value: annualInsuranceIncrease[0],
     });
     const fiveYearInterestRates = getRandomValues(
-      parameters.numberOfYears,
-      parameters.buyer.fiveYearInterestRateAvg,
-      parameters.buyer.fiveYearInterestRateStdDev,
-      { decimals: 4 },
+      numberOfMonths,
+      parameters.rates.fiveYearInterestRateAvg,
+      parameters.rates.fiveYearInterestRateStdDev,
     );
     rates.push({
       variable: "fiveYearInterestRates",
       value: fiveYearInterestRates[0],
     });
     const fourYearInterestRates = getRandomValues(
-      parameters.numberOfYears,
-      parameters.buyer.fourYearInterestRateAvg,
-      parameters.buyer.fourYearInterestRateStdDev,
-      { decimals: 4 },
+      numberOfMonths,
+      parameters.rates.fourYearInterestRateAvg,
+      parameters.rates.fourYearInterestRateStdDev,
     );
     rates.push({
       variable: "fourYearInterestRates",
       value: fourYearInterestRates[0],
     });
     const threeYearInterestRates = getRandomValues(
-      parameters.numberOfYears,
-      parameters.buyer.threeYearInterestRateAvg,
-      parameters.buyer.threeYearInterestRateStdDev,
-      { decimals: 4 },
+      numberOfMonths,
+      parameters.rates.threeYearInterestRateAvg,
+      parameters.rates.threeYearInterestRateStdDev,
     );
     rates.push({
       variable: "threeYearInterestRates",
       value: threeYearInterestRates[0],
     });
     const twoYearInterestRates = getRandomValues(
-      parameters.numberOfYears,
-      parameters.buyer.twoYearInterestRateAvg,
-      parameters.buyer.twoYearInterestRateStdDev,
-      { decimals: 4 },
+      numberOfMonths,
+      parameters.rates.twoYearInterestRateAvg,
+      parameters.rates.twoYearInterestRateStdDev,
     );
     rates.push({
       variable: "twoYearInterestRates",
       value: twoYearInterestRates[0],
     });
     const oneYearInterestRates = getRandomValues(
-      parameters.numberOfYears,
-      parameters.buyer.oneYearInterestRateAvg,
-      parameters.buyer.oneYearInterestRateStdDev,
-      { decimals: 4 },
+      numberOfMonths,
+      parameters.rates.oneYearInterestRateAvg,
+      parameters.rates.oneYearInterestRateStdDev,
     );
     rates.push({
       variable: "oneYearInterestRates",
       value: oneYearInterestRates[0],
     });
+    const variableInterestRates = getRandomValues(
+      numberOfMonths,
+      parameters.rates.variableInterestRateAvg,
+      parameters.rates.variableInterestRateStdDev,
+    );
+    rates.push({
+      variable: "variableInterestRates",
+      value: variableInterestRates[0],
+    });
     const annualMaintenanceIncrease = getRandomValues(
-      parameters.numberOfYears,
-      parameters.buyer.annualMaintenanceIncreaseAvg,
-      parameters.buyer.annualMaintenanceIncreaseStdDev,
-      { decimals: 4 },
+      numberOfMonths,
+      parameters.rates.annualMaintenanceIncreaseAvg,
+      parameters.rates.annualMaintenanceIncreaseStdDev,
     );
     rates.push({
       variable: "annualMaintenanceIncrease",
       value: annualMaintenanceIncrease[0],
     });
     const annualPropertyTaxIncrease = getRandomValues(
-      parameters.numberOfYears,
-      parameters.buyer.annualPropertyTaxIncreaseAvg,
-      parameters.buyer.annualPropertyTaxIncreaseStdDev,
-      { decimals: 4 },
+      numberOfMonths,
+      parameters.rates.annualPropertyTaxIncreaseAvg,
+      parameters.rates.annualPropertyTaxIncreaseStdDev,
     );
     rates.push({
       variable: "annualPropertyTaxIncrease",
       value: annualPropertyTaxIncrease[0],
     });
     const annualCondoFeeIncrease = getRandomValues(
-      parameters.numberOfYears,
-      parameters.buyer.annualCondoFeeIncreaseAvg,
-      parameters.buyer.annualCondoFeeIncreaseStdDev,
-      { decimals: 4 },
+      numberOfMonths,
+      parameters.rates.annualCondoFeeIncreaseAvg,
+      parameters.rates.annualCondoFeeIncreaseStdDev,
     );
     rates.push({
       variable: "annualCondoFeeIncrease",
       value: annualCondoFeeIncrease[0],
     });
-    const buyerAnnualInsuranceIncrease = getRandomValues(
-      parameters.numberOfYears,
-      parameters.buyer.annualInsuranceIncreaseAvg,
-      parameters.buyer.annualInsuranceIncreaseStdDev,
-      { decimals: 4 },
-    );
-    rates.push({
-      variable: "buyerAnnualInsuranceIncrease",
-      value: buyerAnnualInsuranceIncrease[0],
-    });
     const appreciationIncrease = getRandomValues(
-      parameters.numberOfYears,
-      parameters.buyer.appreciationRateAvg,
-      parameters.buyer.appreciationRateStdDev,
-      { decimals: 4 },
+      numberOfMonths,
+      parameters.rates.appreciationRateAvg,
+      parameters.rates.appreciationRateStdDev,
     );
     rates.push({
       variable: "appreciationIncrease",
       value: appreciationIncrease[0],
     });
     const sellingFixedFeesIncrease = getRandomValues(
-      parameters.numberOfYears,
-      parameters.buyer.sellingFixedIncreaseAvg,
-      parameters.buyer.sellingFixedIncreaseStdDev,
-      { decimals: 4 },
+      numberOfMonths,
+      parameters.rates.sellingFixedIncreaseAvg,
+      parameters.rates.sellingFixedIncreaseStdDev,
     );
     rates.push({
       variable: "sellingFixedFeesIncrease",
@@ -206,91 +200,72 @@ export default function simulateRentVsBuyMonteCarlo(parameters: {
     const iterationResults = simulateRentVsBuy({
       startingYear: parameters.startingYear,
       numberOfYears: parameters.numberOfYears,
-      annualMarketReturnRate,
       tfsaContributions: parameters.tfsaContributions,
       combinedTaxRate: parameters.combinedTaxRate,
       renter: {
         startingMonthlyRent: parameters.renter.startingMonthlyRent,
-        annualRentIncrease,
         securityDeposit: parameters.renter.securityDeposit,
         startingMonthlyInsurance: parameters.renter.startingMonthlyInsurance,
-        annualInsuranceIncrease: renterAnnualInsuranceIncrease,
       },
       buyer: {
         downPayment: parameters.buyer.downPayment,
         purchasePrice: parameters.buyer.purchasePrice,
         rateDiscount: parameters.buyer.rateDiscount,
+        purchaseFixedFees: parameters.buyer.purchaseFixedFees,
+        startingAnnualMaintenanceCost:
+          parameters.buyer.startingAnnualMaintenanceCost,
+        startingAnnualPropertyTax: parameters.buyer.startingAnnualPropertyTax,
+        startingMonthlyCondoFees: parameters.buyer.startingMonthlyCondoFee,
+        startingMonthlyInsurance: parameters.buyer.startingMonthlyInsurance,
+        sellingFixedFees: parameters.buyer.sellingFixedFees,
+        sellingCommissionRate: parameters.buyer.sellingCommissionRate,
+      },
+      rates: {
+        marketReturnRate: monthlyMarketReturnRate,
+        annualRentIncrease,
+        annualInsuranceIncrease,
+        annualMaintenanceIncrease,
+        annualPropertyTaxIncrease,
+        annualCondoFeeIncrease,
         fiveYearInterestRates,
         fourYearInterestRates,
         threeYearInterestRates,
         twoYearInterestRates,
         oneYearInterestRates,
-        purchaseFixedFees: parameters.buyer.purchaseFixedFees,
-        startingAnnualMaintenanceCost:
-          parameters.buyer.startingAnnualMaintenanceCost,
-        annualMaintenanceIncrease,
-        startingAnnualPropertyTax: parameters.buyer.startingAnnualPropertyTax,
-        annualPropertyTaxIncrease,
-        startingMonthlyCondoFees: parameters.buyer.startingMonthlyCondoFee,
-        annualCondoFeeIncrease,
-        startingMonthlyInsurance: parameters.buyer.startingMonthlyInsurance,
-        annualInsuranceIncrease: buyerAnnualInsuranceIncrease,
-        appreciationIncrease,
-        sellingFixedFees: parameters.buyer.sellingFixedFees,
-        sellingFixedFeesIncrease,
-        sellingCommissionRate: parameters.buyer.sellingCommissionRate,
+        variableInterestRates,
+        annualAppreciationIncrease: appreciationIncrease,
+        annualSellingFixedFeesIncrease: sellingFixedFeesIncrease,
       },
-    });
+    }, { finalBalanceOnly: true });
 
-    const iterationResultsFiltered = iterationResults.filter((d) =>
-      d.variable === "balanceAfterSelling" ||
-      d.variable === "differenceAfterSelling"
-    );
+    // const iterationResultsFiltered = iterationResults.filter((d) =>
+    //  d.variable === "balanceAfterSelling"
+    //);
 
-    for (
-      let year = parameters.startingYear;
-      year < parameters.startingYear + parameters.numberOfYears;
-      year++
-    ) {
-      for (const category of ["renter", "buyer"] as const) {
-        for (
-          const variable of [
-            "balanceAfterSelling",
-            "differenceAfterSelling",
-          ] as const
-        ) {
-          const data = iterationResultsFiltered.filter(
-            (d) =>
-              d.year === year && d.category === category &&
-              d.variable === variable,
-          )[0].amount;
-          allIterationsResults.push({
-            year,
-            category,
-            group: variable,
-            amount: data,
-          });
-        }
-      }
-    }
+    //allIterationsResults.push(...iterationResultsFiltered);
 
-    const lastYearDifference = iterationResultsFiltered.filter(
-      (d) =>
-        d.year === parameters.startingYear + parameters.numberOfYears - 1 &&
-        d.variable === "differenceAfterSelling" && d.category === "buyer",
-    );
-    lastYearDifferenceResults.push(
-      ...lastYearDifference.map((d) => ({
-        hasMore: d.amount > 0 ? "buyer" : "renter",
-        amount: d.amount,
-      })),
+    //const lastMonthBalance = iterationResultsFiltered.filter(
+    //  (d) => d.monthIndex === numberOfMonths - 1,
+    //);
+    // lastMonthBalanceResults.push(
+    //   ...lastMonthBalance,
+    // );
+
+    winners.push(
+      iterationResults[
+        maxIndex(
+          iterationResults,
+          (d: { amount: number }) => d.amount,
+        )
+      ],
     );
   }
 
+  /**
   const results: {
-    year: number;
-    category: "renter" | "buyer";
-    variable: "balanceAfterSelling" | "differenceAfterSelling";
+    date: Date;
+    category: "renter" | "buyerFixed" | "buyerVariable";
+    variable: "balanceAfterSelling";
     items: number;
     q10: number;
     q25: number;
@@ -300,60 +275,61 @@ export default function simulateRentVsBuyMonteCarlo(parameters: {
   }[] = [];
 
   for (
-    let year = parameters.startingYear;
-    year < parameters.startingYear + parameters.numberOfYears + 1;
-    year++
+    let monthIndex = 0;
+    monthIndex < numberOfMonths;
+    monthIndex++
   ) {
-    for (const category of ["renter", "buyer"] as const) {
-      for (
-        const variable of [
-          "balanceAfterSelling",
-          "differenceAfterSelling",
-        ] as const
-      ) {
-        const data = allIterationsResults.filter(
-          (d) =>
-            d.year === year && d.category === category &&
-            d.group === variable,
-        );
-        results.push({
-          year,
-          category,
-          variable,
-          items: data.length,
-          q10: quantile(
-            data,
-            0.1,
-            (d: { amount: number }) => d.amount,
-          ),
-          q25: quantile(
-            data,
-            0.25,
-            (d: { amount: number }) => d.amount,
-          ),
-          q50: quantile(
-            data,
-            0.5,
-            (d: { amount: number }) => d.amount,
-          ),
-          q75: quantile(
-            data,
-            0.75,
-            (d: { amount: number }) => d.amount,
-          ),
-          q90: quantile(
-            data,
-            0.9,
-            (d: { amount: number }) => d.amount,
-          ),
-        });
-      }
+    if (options.verbose && monthIndex % (options.verboseStep || 100) === 0) {
+      console.log(
+        `Restructuring results for month ${monthIndex} / ${numberOfMonths}`,
+      );
     }
+    for (const category of ["renter", "buyerFixed", "buyerVariable"] as const) {
+      const data = allIterationsResults.filter(
+        (d) => d.monthIndex === monthIndex && d.category === category,
+      );
+      results.push({
+        date: data[0].date,
+        category,
+        variable: "balanceAfterSelling",
+        items: data.length,
+        q10: quantile(
+          data,
+          0.1,
+          (d: { amount: number }) => d.amount,
+        ),
+        q25: quantile(
+          data,
+          0.25,
+          (d: { amount: number }) => d.amount,
+        ),
+        q50: quantile(
+          data,
+          0.5,
+          (d: { amount: number }) => d.amount,
+        ),
+        q75: quantile(
+          data,
+          0.75,
+          (d: { amount: number }) => d.amount,
+        ),
+        q90: quantile(
+          data,
+          0.9,
+          (d: { amount: number }) => d.amount,
+        ),
+      });
+    }
+  }
+  */
+  if (start) {
+    prettyDuration(start, { log: true, prefix: "Completed in " });
   }
 
   return {
-    results,
-    lastYearDifferenceResults,
+    //results,
+    //lastMonthBalanceResults,
     rates,
+    winners: winners.sort((a, b) => b.category.localeCompare(a.category)),
   };
 }

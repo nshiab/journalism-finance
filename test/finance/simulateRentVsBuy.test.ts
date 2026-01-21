@@ -8,7 +8,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
   const numberOfMonths = numberOfYears * 12;
   const marketReturnRate = Array.from(
     { length: numberOfMonths },
-    () => 0.05 / 12,
+    () => 0.005,
   );
   const annualRentIncrease = Array.from({ length: numberOfMonths }, () => 0.03);
   const annualInsuranceIncrease = Array.from(
@@ -687,51 +687,6 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
         ],
       }),
     "test/output/overall-balance-after-selling.png",
-    { style: "body { width: 700px; }" },
-  );
-
-  const differenceAfterSelling = results.filter((d) =>
-    d.group === "summaryCumulative" && d.variable === "differenceAfterSelling"
-  );
-
-  await saveChart(
-    differenceAfterSelling,
-    (data) =>
-      plot({
-        title: "Difference after selling over time",
-        y: {
-          nice: true,
-          label: null,
-          tickFormat: (d) =>
-            Math.abs(d) < 1000
-              ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
-              : Math.abs(d) < 1_000_000
-              ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
-              : d < 0
-              ? `-$${Math.abs(d) / 1_000_000}M`
-              : `$${d / 1_000_000}M`,
-        },
-        x: {
-          nice: true,
-        },
-        fx: {
-          label: null,
-        },
-        marginLeft: 60,
-        color: {
-          legend: true,
-        },
-        grid: true,
-        marks: [
-          areaY(data, {
-            x: "date",
-            y: "amount",
-            fill: "variable",
-            fx: "category",
-          }),
-        ],
-      }),
-    "test/output/difference-after-selling.png",
     { style: "body { width: 700px; }" },
   );
 

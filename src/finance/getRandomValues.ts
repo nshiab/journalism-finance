@@ -5,7 +5,7 @@ export default function getRandomValues(
   numberOfValues: number,
   avg: number,
   stdDev: number,
-  options: { decimals: number },
+  options: { decimals?: number } = {},
 ): number[] {
   const random = randomNormal(avg, stdDev)();
 

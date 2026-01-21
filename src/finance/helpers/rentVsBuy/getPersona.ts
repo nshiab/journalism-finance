@@ -31,11 +31,11 @@ export default function getPersona(parameters: {
     insurancePremium: number;
   };
   monthlyExpenses: {
+    mortgageCapital: number;
+    mortgageInterests: number;
     rent: number;
     insurance: number;
     securityDeposit: number;
-    mortgageCapital: number;
-    mortgageInterests: number;
     maintenance: number;
     propertyTax: number;
     condoFees: number;
@@ -117,11 +117,11 @@ export default function getPersona(parameters: {
       insurancePremium: parameters.insurancePremium,
     },
     monthlyExpenses: {
+      mortgageCapital: 0,
+      mortgageInterests: 0,
       rent: 0,
       insurance: 0,
       securityDeposit: 0,
-      mortgageCapital: 0,
-      mortgageInterests: 0,
       maintenance: 0,
       propertyTax: 0,
       condoFees: 0,

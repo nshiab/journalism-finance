@@ -4,11 +4,11 @@ export default function toResults(
   category: "renter" | "buyerFixed" | "buyerVariable",
   persona: {
     monthlyExpenses: {
+      mortgageCapital: number;
+      mortgageInterests: number;
       rent: number;
       insurance: number;
       securityDeposit: number;
-      mortgageCapital: number;
-      mortgageInterests: number;
       maintenance: number;
       propertyTax: number;
       condoFees: number;
@@ -143,168 +143,185 @@ export default function toResults(
     )
   )[],
   monthIndex: number,
+  numberOfMonths: number,
+  finalBalanceOnly = false,
 ) {
   const date = new Date(Date.UTC(year, month, 1));
 
-  // Process monthlyExpenses
-  for (
-    const variable of Object.keys(persona.monthlyExpenses) as Array<
-      keyof typeof persona.monthlyExpenses
-    >
-  ) {
-    results.push({
-      year,
-      month,
-      monthIndex,
-      date,
-      amount: persona.monthlyExpenses[variable],
-      category,
-      group: "monthlyExpenses",
-      variable,
-    });
-  }
+  if (finalBalanceOnly) {
+    if (monthIndex === numberOfMonths - 1) {
+      results.push({
+        year,
+        month,
+        monthIndex,
+        date,
+        amount: persona.summaryCumulative.balanceAfterSelling,
+        category,
+        group: "summaryCumulative",
+        variable: "balanceAfterSelling",
+      });
+    }
+  } else {
+    // Process monthlyExpenses
+    for (
+      const variable of Object.keys(persona.monthlyExpenses) as Array<
+        keyof typeof persona.monthlyExpenses
+      >
+    ) {
+      results.push({
+        year,
+        month,
+        monthIndex,
+        date,
+        amount: persona.monthlyExpenses[variable],
+        category,
+        group: "monthlyExpenses",
+        variable,
+      });
+    }
 
-  // Process cumulativeExpenses
-  for (
-    const variable of Object.keys(persona.cumulativeExpenses) as Array<
-      keyof typeof persona.cumulativeExpenses
-    >
-  ) {
-    results.push({
-      year,
-      month,
-      monthIndex,
-      date,
-      amount: persona.cumulativeExpenses[variable],
-      category,
-      group: "cumulativeExpenses",
-      variable,
-    });
-  }
+    // Process cumulativeExpenses
+    for (
+      const variable of Object.keys(persona.cumulativeExpenses) as Array<
+        keyof typeof persona.cumulativeExpenses
+      >
+    ) {
+      results.push({
+        year,
+        month,
+        monthIndex,
+        date,
+        amount: persona.cumulativeExpenses[variable],
+        category,
+        group: "cumulativeExpenses",
+        variable,
+      });
+    }
 
-  // Process monthlyGains
-  for (
-    const variable of Object.keys(persona.monthlyGains) as Array<
-      keyof typeof persona.monthlyGains
-    >
-  ) {
-    results.push({
-      year,
-      month,
-      monthIndex,
-      date,
-      amount: persona.monthlyGains[variable],
-      category,
-      group: "monthlyGains",
-      variable,
-    });
-  }
+    // Process monthlyGains
+    for (
+      const variable of Object.keys(persona.monthlyGains) as Array<
+        keyof typeof persona.monthlyGains
+      >
+    ) {
+      results.push({
+        year,
+        month,
+        monthIndex,
+        date,
+        amount: persona.monthlyGains[variable],
+        category,
+        group: "monthlyGains",
+        variable,
+      });
+    }
 
-  // Process cumulativeGains
-  for (
-    const variable of Object.keys(persona.cumulativeGains) as Array<
-      keyof typeof persona.cumulativeGains
-    >
-  ) {
-    results.push({
-      year,
-      month,
-      monthIndex,
-      date,
-      amount: persona.cumulativeGains[variable],
-      category,
-      group: "cumulativeGains",
-      variable,
-    });
-  }
+    // Process cumulativeGains
+    for (
+      const variable of Object.keys(persona.cumulativeGains) as Array<
+        keyof typeof persona.cumulativeGains
+      >
+    ) {
+      results.push({
+        year,
+        month,
+        monthIndex,
+        date,
+        amount: persona.cumulativeGains[variable],
+        category,
+        group: "cumulativeGains",
+        variable,
+      });
+    }
 
-  // Process assets
-  for (
-    const variable of Object.keys(persona.assets) as Array<
-      keyof typeof persona.assets
-    >
-  ) {
-    results.push({
-      year,
-      month,
-      monthIndex,
-      date,
-      amount: persona.assets[variable],
-      category,
-      group: "assets",
-      variable,
-    });
-  }
+    // Process assets
+    for (
+      const variable of Object.keys(persona.assets) as Array<
+        keyof typeof persona.assets
+      >
+    ) {
+      results.push({
+        year,
+        month,
+        monthIndex,
+        date,
+        amount: persona.assets[variable],
+        category,
+        group: "assets",
+        variable,
+      });
+    }
 
-  // Process summary
-  for (
-    const variable of Object.keys(persona.summary) as Array<
-      keyof typeof persona.summary
-    >
-  ) {
-    results.push({
-      year,
-      month,
-      monthIndex,
-      date,
-      amount: persona.summary[variable],
-      category,
-      group: "summary",
-      variable,
-    });
-  }
+    // Process summary
+    for (
+      const variable of Object.keys(persona.summary) as Array<
+        keyof typeof persona.summary
+      >
+    ) {
+      results.push({
+        year,
+        month,
+        monthIndex,
+        date,
+        amount: persona.summary[variable],
+        category,
+        group: "summary",
+        variable,
+      });
+    }
 
-  // Process summaryCumulative
-  for (
-    const variable of Object.keys(persona.summaryCumulative) as Array<
-      keyof typeof persona.summaryCumulative
-    >
-  ) {
-    results.push({
-      year,
-      month,
-      monthIndex,
-      date,
-      amount: persona.summaryCumulative[variable],
-      category,
-      group: "summaryCumulative",
-      variable,
-    });
-  }
+    // Process summaryCumulative
+    for (
+      const variable of Object.keys(persona.summaryCumulative) as Array<
+        keyof typeof persona.summaryCumulative
+      >
+    ) {
+      results.push({
+        year,
+        month,
+        monthIndex,
+        date,
+        amount: persona.summaryCumulative[variable],
+        category,
+        group: "summaryCumulative",
+        variable,
+      });
+    }
 
-  // Process saleCosts
-  for (
-    const variable of Object.keys(persona.saleCosts) as Array<
-      keyof typeof persona.saleCosts
-    >
-  ) {
-    results.push({
-      year,
-      month,
-      monthIndex,
-      date,
-      amount: persona.saleCosts[variable],
-      category,
-      group: "saleCosts",
-      variable,
-    });
-  }
+    // Process saleCosts
+    for (
+      const variable of Object.keys(persona.saleCosts) as Array<
+        keyof typeof persona.saleCosts
+      >
+    ) {
+      results.push({
+        year,
+        month,
+        monthIndex,
+        date,
+        amount: persona.saleCosts[variable],
+        category,
+        group: "saleCosts",
+        variable,
+      });
+    }
 
-  // Process saleNetGains
-  for (
-    const variable of Object.keys(persona.saleNetGains) as Array<
-      keyof typeof persona.saleNetGains
-    >
-  ) {
-    results.push({
-      year,
-      month,
-      monthIndex,
-      date,
-      amount: persona.saleNetGains[variable],
-      category,
-      group: "saleNetGains",
-      variable,
-    });
+    // Process saleNetGains
+    for (
+      const variable of Object.keys(persona.saleNetGains) as Array<
+        keyof typeof persona.saleNetGains
+      >
+    ) {
+      results.push({
+        year,
+        month,
+        monthIndex,
+        date,
+        amount: persona.saleNetGains[variable],
+        category,
+        group: "saleNetGains",
+        variable,
+      });
+    }
   }
 }

@@ -3,6 +3,7 @@ import computeExpenses from "./helpers/rentVsBuy/computeExpenses.ts";
 import computeGains from "./helpers/rentVsBuy/computeGains.ts";
 import computeSale from "./helpers/rentVsBuy/computeSale.ts";
 import getPersona from "./helpers/rentVsBuy/getPersona.ts";
+import incrementParameters from "./helpers/rentVsBuy/incrementParameters.ts";
 import precomputeMortgagePayments from "./helpers/rentVsBuy/precomputeMortgagePayments.ts";
 import toResults from "./helpers/rentVsBuy/toResults.ts";
 import mortgageInsurancePremium from "./mortgageInsurancePremium.ts";
@@ -45,7 +46,7 @@ export default function simulateRentVsBuy(parameters: {
     annualAppreciationIncrease: number[];
     annualSellingFixedFeesIncrease: number[];
   };
-}) {
+}, options: { finalBalanceOnly?: boolean } = {}) {
   const results: (
     & {
       year: number;
@@ -143,7 +144,7 @@ export default function simulateRentVsBuy(parameters: {
   const buyerFixed = getPersona({
     startingMonthlyRent: 0,
     securityDeposit: 0,
-    startingMonthlyInsurance: 0,
+    startingMonthlyInsurance: parameters.buyer.startingMonthlyInsurance,
     downPayment: parameters.buyer.downPayment,
     purchasePrice: parameters.buyer.purchasePrice,
     insurancePremium,
@@ -160,7 +161,7 @@ export default function simulateRentVsBuy(parameters: {
   const buyerVariable = getPersona({
     startingMonthlyRent: 0,
     securityDeposit: 0,
-    startingMonthlyInsurance: 0,
+    startingMonthlyInsurance: parameters.buyer.startingMonthlyInsurance,
     downPayment: parameters.buyer.downPayment,
     purchasePrice: parameters.buyer.purchasePrice,
     homeValue: parameters.buyer.purchasePrice,
@@ -185,9 +186,11 @@ export default function simulateRentVsBuy(parameters: {
       parameters.rates.variableInterestRates,
     );
 
+  const numberOfMonths = parameters.numberOfYears * 12;
+
   for (
     let monthIndex = 0;
-    monthIndex < parameters.numberOfYears * 12;
+    monthIndex < numberOfMonths;
     monthIndex++
   ) {
     const year = parameters.startingYear + Math.floor(monthIndex / 12);
@@ -285,43 +288,21 @@ export default function simulateRentVsBuy(parameters: {
     );
 
     // We compute the balances
-    const renterBalanceAfterSelling = computeBalances(renter);
-    const buyerFixedBalanceAfterSelling = computeBalances(buyerFixed);
-    const buyerVariableBalanceAfterSelling = computeBalances(buyerVariable);
-
-    // We compute the difference
-    const maxBalanceAfterSelling = Math.max(
-      renterBalanceAfterSelling,
-      buyerFixedBalanceAfterSelling,
-      buyerVariableBalanceAfterSelling,
-    );
-    const minBalanceAfterSelling = Math.min(
-      renterBalanceAfterSelling,
-      buyerFixedBalanceAfterSelling,
-      buyerVariableBalanceAfterSelling,
-    );
-
-    renter.summaryCumulative.differenceAfterSelling =
-      renter.summaryCumulative.balanceAfterSelling === maxBalanceAfterSelling
-        ? renter.summaryCumulative.balanceAfterSelling - minBalanceAfterSelling
-        : renter.summaryCumulative.balanceAfterSelling - maxBalanceAfterSelling;
-    buyerFixed.summaryCumulative.differenceAfterSelling =
-      buyerFixed.summaryCumulative.balanceAfterSelling ===
-          maxBalanceAfterSelling
-        ? buyerFixed.summaryCumulative.balanceAfterSelling -
-          minBalanceAfterSelling
-        : buyerFixed.summaryCumulative.balanceAfterSelling -
-          maxBalanceAfterSelling;
-    buyerVariable.summaryCumulative.differenceAfterSelling =
-      buyerVariable.summaryCumulative.balanceAfterSelling ===
-          maxBalanceAfterSelling
-        ? buyerVariable.summaryCumulative.balanceAfterSelling -
-          minBalanceAfterSelling
-        : buyerVariable.summaryCumulative.balanceAfterSelling -
-          maxBalanceAfterSelling;
+    computeBalances(renter);
+    computeBalances(buyerFixed);
+    computeBalances(buyerVariable);
 
     // We push all results for this month
-    toResults(year, month, "renter", renter, results, monthIndex);
+    toResults(
+      year,
+      month,
+      "renter",
+      renter,
+      results,
+      monthIndex,
+      numberOfMonths,
+      options.finalBalanceOnly,
+    );
     toResults(
       year,
       month,
@@ -329,6 +310,8 @@ export default function simulateRentVsBuy(parameters: {
       buyerFixed,
       results,
       monthIndex,
+      numberOfMonths,
+      options.finalBalanceOnly,
     );
     toResults(
       year,
@@ -337,55 +320,14 @@ export default function simulateRentVsBuy(parameters: {
       buyerVariable,
       results,
       monthIndex,
+      numberOfMonths,
+      options.finalBalanceOnly,
     );
 
-    // We increment the variables for following month, except home value, since it's done in computeRentVsBuyGains.
-    // Some expenses are incremented annually only
-    if (month % 12 === 0) {
-      // Renter
-      renter.params.monthlyRent += Math.round(
-        renter.params.monthlyRent *
-          parameters.rates.annualRentIncrease[monthIndex],
-      );
-      renter.params.monthlyInsurance += Math.round(
-        renter.params.monthlyInsurance *
-          parameters.rates.annualInsuranceIncrease[monthIndex],
-      );
-      // Buyer fixed
-      buyerFixed.params.monthlyMaintenanceCost += Math.round(
-        buyerFixed.params.monthlyMaintenanceCost *
-          parameters.rates.annualMaintenanceIncrease[monthIndex],
-      );
-      buyerFixed.params.monthlyPropertyTax += Math.round(
-        buyerFixed.params.monthlyPropertyTax *
-          parameters.rates.annualPropertyTaxIncrease[monthIndex],
-      );
-      buyerFixed.params.monthlyCondoFees += Math.round(
-        buyerFixed.params.monthlyCondoFees *
-          parameters.rates.annualCondoFeeIncrease[monthIndex],
-      );
-      buyerFixed.params.sellingFixedFees += Math.round(
-        buyerFixed.params.sellingFixedFees *
-          parameters.rates.annualSellingFixedFeesIncrease[monthIndex],
-      );
-      // Buyer variable
-      buyerVariable.params.monthlyMaintenanceCost += Math.round(
-        buyerVariable.params.monthlyMaintenanceCost *
-          parameters.rates.annualMaintenanceIncrease[monthIndex],
-      );
-      buyerVariable.params.monthlyPropertyTax += Math.round(
-        buyerVariable.params.monthlyPropertyTax *
-          parameters.rates.annualPropertyTaxIncrease[monthIndex],
-      );
-      buyerVariable.params.monthlyCondoFees += Math.round(
-        buyerVariable.params.monthlyCondoFees *
-          parameters.rates.annualCondoFeeIncrease[monthIndex],
-      );
-      buyerVariable.params.sellingFixedFees += Math.round(
-        buyerVariable.params.sellingFixedFees *
-          parameters.rates.annualSellingFixedFeesIncrease[monthIndex],
-      );
-    }
+    // We increment the parameters for next month
+    incrementParameters(monthIndex, month, renter, parameters.rates);
+    incrementParameters(monthIndex, month, buyerFixed, parameters.rates);
+    incrementParameters(monthIndex, month, buyerVariable, parameters.rates);
   }
 
   return results;

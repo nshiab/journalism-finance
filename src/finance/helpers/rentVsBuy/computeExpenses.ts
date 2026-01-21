@@ -42,6 +42,12 @@ export default function computeExpenses(
       purchaseFixedFees: number;
       insurancePremium: number;
     };
+    assets: {
+      tfsa: number;
+      stocks: number;
+      securityDeposit: number;
+      homeEquity: number;
+    };
   },
   mortgagePayment: {
     paymentId: number;
@@ -110,6 +116,9 @@ export default function computeExpenses(
 
       persona.cumulativeExpenses.securityDeposit +=
         persona.monthlyExpenses.securityDeposit;
+
+      // Security deposit is also an asset for the renter
+      persona.assets.securityDeposit = persona.params.securityDeposit;
     } else {
       persona.monthlyExpenses.securityDeposit = 0;
     }

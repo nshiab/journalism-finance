@@ -111,6 +111,4 @@ export default function computeBalances(persona: {
   );
   persona.summaryCumulative.balanceAfterSelling = totalSaleNetGains -
     totalCumulativeExpenses;
-
-  return persona.summaryCumulative.balanceAfterSelling;
 }
