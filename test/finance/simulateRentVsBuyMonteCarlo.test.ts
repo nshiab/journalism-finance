@@ -36,7 +36,7 @@ Deno.test("should run a monte carlor simulation of rent vs buy", async () => {
       purchaseFixedFees: 25_000,
       startingAnnualMaintenanceCost: 2500,
       startingAnnualPropertyTax: 3500,
-      startingMonthlyCondoFee: 100,
+      startingMonthlyCondoFees: 100,
       startingMonthlyInsurance: 250,
       sellingFixedFees: 2000,
       sellingCommissionRate: 0.04,

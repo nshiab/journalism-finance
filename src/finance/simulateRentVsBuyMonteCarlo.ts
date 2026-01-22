@@ -2,7 +2,6 @@ import { prettyDuration } from "@nshiab/journalism-format";
 import getRandomValues from "./getRandomValues.ts";
 import simulateRentVsBuy from "./simulateRentVsBuy.ts";
 import { maxIndex } from "d3-array";
-//import { quantile } from "d3-array";
 
 export default function simulateRentVsBuyMonteCarlo(parameters: {
   iterations: number;
@@ -22,7 +21,7 @@ export default function simulateRentVsBuyMonteCarlo(parameters: {
     purchaseFixedFees: number;
     startingAnnualMaintenanceCost: number;
     startingAnnualPropertyTax: number;
-    startingMonthlyCondoFee: number;
+    startingMonthlyCondoFees: number;
     startingMonthlyInsurance: number;
     sellingFixedFees: number;
     sellingCommissionRate: number;
@@ -215,7 +214,7 @@ export default function simulateRentVsBuyMonteCarlo(parameters: {
         startingAnnualMaintenanceCost:
           parameters.buyer.startingAnnualMaintenanceCost,
         startingAnnualPropertyTax: parameters.buyer.startingAnnualPropertyTax,
-        startingMonthlyCondoFees: parameters.buyer.startingMonthlyCondoFee,
+        startingMonthlyCondoFees: parameters.buyer.startingMonthlyCondoFees,
         startingMonthlyInsurance: parameters.buyer.startingMonthlyInsurance,
         sellingFixedFees: parameters.buyer.sellingFixedFees,
         sellingCommissionRate: parameters.buyer.sellingCommissionRate,
@@ -238,19 +237,6 @@ export default function simulateRentVsBuyMonteCarlo(parameters: {
       },
     }, { finalBalanceOnly: true });
 
-    // const iterationResultsFiltered = iterationResults.filter((d) =>
-    //  d.variable === "balanceAfterSelling"
-    //);
-
-    //allIterationsResults.push(...iterationResultsFiltered);
-
-    //const lastMonthBalance = iterationResultsFiltered.filter(
-    //  (d) => d.monthIndex === numberOfMonths - 1,
-    //);
-    // lastMonthBalanceResults.push(
-    //   ...lastMonthBalance,
-    // );
-
     winners.push(
       iterationResults[
         maxIndex(
@@ -261,74 +247,11 @@ export default function simulateRentVsBuyMonteCarlo(parameters: {
     );
   }
 
-  /**
-  const results: {
-    date: Date;
-    category: "renter" | "buyerFixed" | "buyerVariable";
-    variable: "balanceAfterSelling";
-    items: number;
-    q10: number;
-    q25: number;
-    q50: number;
-    q75: number;
-    q90: number;
-  }[] = [];
-
-  for (
-    let monthIndex = 0;
-    monthIndex < numberOfMonths;
-    monthIndex++
-  ) {
-    if (options.verbose && monthIndex % (options.verboseStep || 100) === 0) {
-      console.log(
-        `Restructuring results for month ${monthIndex} / ${numberOfMonths}`,
-      );
-    }
-    for (const category of ["renter", "buyerFixed", "buyerVariable"] as const) {
-      const data = allIterationsResults.filter(
-        (d) => d.monthIndex === monthIndex && d.category === category,
-      );
-      results.push({
-        date: data[0].date,
-        category,
-        variable: "balanceAfterSelling",
-        items: data.length,
-        q10: quantile(
-          data,
-          0.1,
-          (d: { amount: number }) => d.amount,
-        ),
-        q25: quantile(
-          data,
-          0.25,
-          (d: { amount: number }) => d.amount,
-        ),
-        q50: quantile(
-          data,
-          0.5,
-          (d: { amount: number }) => d.amount,
-        ),
-        q75: quantile(
-          data,
-          0.75,
-          (d: { amount: number }) => d.amount,
-        ),
-        q90: quantile(
-          data,
-          0.9,
-          (d: { amount: number }) => d.amount,
-        ),
-      });
-    }
-  }
-  */
   if (start) {
     prettyDuration(start, { log: true, prefix: "Completed in " });
   }
 
   return {
-    //results,
-    //lastMonthBalanceResults,
     rates,
     winners: winners.sort((a, b) => b.category.localeCompare(a.category)),
   };
