@@ -32,19 +32,20 @@ export default function simulateRentVsBuy(parameters: {
   };
   rates: {
     marketReturnRate: number[];
-    annualRentIncrease: number[];
-    annualInsuranceIncrease: number[];
-    annualMaintenanceIncrease: number[];
-    annualPropertyTaxIncrease: number[];
-    annualCondoFeeIncrease: number[];
+    rentIncrease: number[];
+    ownerInsuranceIncrease: number[];
+    renterInsuranceIncrease: number[];
+    maintenanceIncrease: number[];
+    propertyTaxIncrease: number[];
+    condoFeeIncrease: number[];
     fiveYearInterestRates: number[];
     fourYearInterestRates: number[];
     threeYearInterestRates: number[];
     twoYearInterestRates: number[];
     oneYearInterestRates: number[];
     variableInterestRates: number[];
-    annualAppreciationIncrease: number[];
-    annualSellingFixedFeesIncrease: number[];
+    appreciationIncrease: number[];
+    sellingFixedFeesIncrease: number[];
   };
 }, options: { finalBalanceOnly?: boolean } = {}) {
   const results: (
@@ -228,7 +229,7 @@ export default function simulateRentVsBuy(parameters: {
       renter,
       null,
       parameters.rates.marketReturnRate[monthIndex],
-      parameters.rates.annualAppreciationIncrease[monthIndex],
+      parameters.rates.appreciationIncrease[monthIndex],
       renterTotalMonthlyExpenses,
       maxMonthlyExpenses,
       parameters.tfsaContributions,
@@ -238,7 +239,7 @@ export default function simulateRentVsBuy(parameters: {
       buyerFixed,
       allFixedMortgagePayments[monthIndex],
       parameters.rates.marketReturnRate[monthIndex],
-      parameters.rates.annualAppreciationIncrease[monthIndex],
+      parameters.rates.appreciationIncrease[monthIndex],
       buyerFixedTotalMonthlyExpenses,
       maxMonthlyExpenses,
       parameters.tfsaContributions,
@@ -248,7 +249,7 @@ export default function simulateRentVsBuy(parameters: {
       buyerVariable,
       allVariableMortgagePayments[monthIndex],
       parameters.rates.marketReturnRate[monthIndex],
-      parameters.rates.annualAppreciationIncrease[monthIndex],
+      parameters.rates.appreciationIncrease[monthIndex],
       buyerVariableTotalMonthlyExpenses,
       maxMonthlyExpenses,
       parameters.tfsaContributions,
@@ -325,9 +326,9 @@ export default function simulateRentVsBuy(parameters: {
     );
 
     // We increment the parameters for next month
-    incrementParameters(monthIndex, month, renter, parameters.rates);
-    incrementParameters(monthIndex, month, buyerFixed, parameters.rates);
-    incrementParameters(monthIndex, month, buyerVariable, parameters.rates);
+    incrementParameters(monthIndex, renter, parameters.rates);
+    incrementParameters(monthIndex, buyerFixed, parameters.rates);
+    incrementParameters(monthIndex, buyerVariable, parameters.rates);
   }
 
   return results;

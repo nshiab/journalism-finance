@@ -43,7 +43,7 @@ export default function computeGains(
     rateDiscount: number;
   } | null,
   marketReturnRate: number,
-  annualAppreciationIncrease: number,
+  appreciationIncrease: number,
   totalMonthlyExpenses: number,
   maxMonthlyExpenses: number,
   tfsaContributions: boolean,
@@ -64,9 +64,8 @@ export default function computeGains(
 
   // We appreciate the home value with a monthly appreciation rate and calculate home equity gains
   if (mortgagePayment) {
-    const monthlyRate = Math.pow(1 + annualAppreciationIncrease, 1 / 12) - 1;
     persona.params.homeValue = Math.round(
-      (1 + monthlyRate) * persona.params.homeValue,
+      (1 + appreciationIncrease) * persona.params.homeValue,
     );
 
     const previousHomeEquity = persona.assets.homeEquity;
