@@ -19,6 +19,12 @@ import propertyTaxes from "../data/property_taxes.json" with { type: "json" };
 import renterInsurance from "../data/renter_insurance.json" with {
   type: "json",
 };
+import fiveYearFixed from "../data/fiveYearFixed.json" with { type: "json" };
+import fourYearFixed from "../data/fourYearFixed.json" with { type: "json" };
+import threeYearFixed from "../data/threeYearFixed.json" with { type: "json" };
+import twoYearFixed from "../data/twoYearFixed.json" with { type: "json" };
+import oneYearFixed from "../data/oneYearFixed.json" with { type: "json" };
+import primeRate from "../data/primeRate.json" with { type: "json" };
 
 Deno.test("should compute the total expenses and savings of a renter and buyer", async (t) => {
   // MONTREAL EXAMPLE
@@ -43,30 +49,17 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
   const appreciationIncrease = homePriceMontreal;
   // All-items CPI Quebec
   const sellingFixedFeesIncrease = sellingFixedFees;
-  const fiveYearInterestRates = Array.from(
-    { length: numberOfMonths },
-    () => 0.055,
-  );
-  const fourYearInterestRates = Array.from(
-    { length: numberOfMonths },
-    () => 0.05,
-  );
-  const threeYearInterestRates = Array.from(
-    { length: numberOfMonths },
-    () => 0.045,
-  );
-  const twoYearInterestRates = Array.from(
-    { length: numberOfMonths },
-    () => 0.04,
-  );
-  const oneYearInterestRates = Array.from(
-    { length: numberOfMonths },
-    () => 0.035,
-  );
-  const variableInterestRates = Array.from(
-    { length: numberOfMonths },
-    () => 0.04,
-  );
+  // Bank of Canada
+  const fiveYearInterestRates = fiveYearFixed;
+  // Bank of Canada interpolated
+  const fourYearInterestRates = fourYearFixed;
+  // Bank of Canada
+  const threeYearInterestRates = threeYearFixed;
+  // Bank of Canada interpolated
+  const twoYearInterestRates = twoYearFixed;
+  // Bank of Canada
+  const oneYearInterestRates = oneYearFixed;
+  const variableInterestRates = primeRate;
 
   const results = simulateRentVsBuy({
     startingYear: 2000,
