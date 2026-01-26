@@ -1,86 +1,122 @@
 import { assertEquals } from "jsr:@std/assert";
 import simulateRentVsBuy from "../../src/finance/simulateRentVsBuy.ts";
 import { saveChart } from "@nshiab/journalism-dataviz";
-import { areaY, barY, line, plot } from "@observablehq/plot";
-import spTsx from "../data/sp_tsx.json" with { type: "json" };
-import rentMontreal from "../data/rent_montreal.json" with { type: "json" };
-import homePriceMontreal from "../data/homePrice_montreal.json" with {
-  type: "json",
-};
-import sellingFixedFees from "../data/sellingFixedFees.json" with {
-  type: "json",
-};
-import condoFees from "../data/condo_fees.json" with {
-  type: "json",
-};
-import ownerInsurance from "../data/owner_Insurance.json" with { type: "json" };
-import maintenance from "../data/owner_maintenance.json" with { type: "json" };
-import propertyTaxes from "../data/property_taxes.json" with { type: "json" };
-import renterInsurance from "../data/renter_insurance.json" with {
-  type: "json",
-};
-import fiveYearFixed from "../data/fiveYearFixed.json" with { type: "json" };
-import fourYearFixed from "../data/fourYearFixed.json" with { type: "json" };
-import threeYearFixed from "../data/threeYearFixed.json" with { type: "json" };
-import twoYearFixed from "../data/twoYearFixed.json" with { type: "json" };
-import oneYearFixed from "../data/oneYearFixed.json" with { type: "json" };
-import primeRate from "../data/primeRate.json" with { type: "json" };
+import { area, areaY, barY, frame, line, plot, text } from "@observablehq/plot";
+import allRates from "../data/allRates.json" with { type: "json" };
 
 Deno.test("should compute the total expenses and savings of a renter and buyer", async (t) => {
   // MONTREAL EXAMPLE
 
   const numberOfYears = 25;
-  const numberOfMonths = numberOfYears * 12;
   // Yahoo Finance S&P/TSX
-  const marketReturnRate = spTsx;
-  // CMHC 3+ bedroom apartment Montreal
-  const rentIncrease = rentMontreal;
+  const marketReturnRate = allRates.filter((d) => d.variable === "S&P/TSX").map(
+    (
+      d: { monthlyPercentChange: number },
+    ) => d.monthlyPercentChange,
+  );
+  // CMHC two-bedroom apartment Montreal
+  const rentIncrease = allRates.filter((d) => d.variable === "Two-bedroom rent")
+    .map((
+      d: { monthlyPercentChange: number },
+    ) => d.monthlyPercentChange);
   // CPI Quebec
-  const ownerInsuranceIncrease = ownerInsurance;
+  const ownerInsuranceIncrease = allRates.filter((d) =>
+    d.variable === "CPI Homeowners insurance"
+  ).map((
+    d: { monthlyPercentChange: number },
+  ) => d.monthlyPercentChange);
   // CPI Canada
-  const renterInsuranceIncrease = renterInsurance;
+  const renterInsuranceIncrease = allRates.filter((d) =>
+    d.variable === "CPI Tenants insurance"
+  ).map((
+    d: { monthlyPercentChange: number },
+  ) => d.monthlyPercentChange);
   // CPI Quebec
-  const maintenanceIncrease = maintenance;
+  const maintenanceIncrease = allRates.filter((d) =>
+    d.variable === "CPI Homeowners maintenance"
+  ).map((
+    d: { monthlyPercentChange: number },
+  ) => d.monthlyPercentChange);
   // CPI Quebec
-  const propertyTaxIncrease = propertyTaxes;
+  const propertyTaxIncrease = allRates.filter((d) =>
+    d.variable === "CPI Property taxes & others"
+  ).map((
+    d: { monthlyPercentChange: number },
+  ) => d.monthlyPercentChange);
   // CPI Quebec Owned accommodation
-  const condoFeeIncrease = condoFees;
-  // CREA Town house Montreal
-  const appreciationIncrease = homePriceMontreal;
+  const condoFeeIncrease = allRates.filter((d) =>
+    d.variable === "CPI Owned accommodation"
+  ).map((
+    d: { monthlyPercentChange: number },
+  ) => d.monthlyPercentChange);
+  // CREA Apartment Montreal
+  const appreciationIncrease = allRates.filter((d) =>
+    d.variable === "Apartment purchase price"
+  ).map((
+    d: { monthlyPercentChange: number },
+  ) => d.monthlyPercentChange);
   // All-items CPI Quebec
-  const sellingFixedFeesIncrease = sellingFixedFees;
+  const sellingFixedFeesIncrease = allRates.filter((d) =>
+    d.variable === "CPI All-items"
+  ).map((
+    d: { monthlyPercentChange: number },
+  ) => d.monthlyPercentChange);
   // Bank of Canada
-  const fiveYearInterestRates = fiveYearFixed;
+  const fiveYearInterestRates = allRates.filter((d) =>
+    d.variable === "Five-year fixed mortgage rate"
+  ).map((
+    d: { value: number },
+  ) => d.value);
   // Bank of Canada interpolated
-  const fourYearInterestRates = fourYearFixed;
+  const fourYearInterestRates = allRates.filter((d) =>
+    d.variable === "Four-year fixed mortgage rate"
+  ).map((
+    d: { value: number },
+  ) => d.value);
   // Bank of Canada
-  const threeYearInterestRates = threeYearFixed;
+  const threeYearInterestRates = allRates.filter((d) =>
+    d.variable === "Three-year fixed mortgage rate"
+  ).map((
+    d: { value: number },
+  ) => d.value);
   // Bank of Canada interpolated
-  const twoYearInterestRates = twoYearFixed;
+  const twoYearInterestRates = allRates.filter((d) =>
+    d.variable === "Two-year fixed mortgage rate"
+  ).map((
+    d: { value: number },
+  ) => d.value);
   // Bank of Canada
-  const oneYearInterestRates = oneYearFixed;
-  const variableInterestRates = primeRate;
+  const oneYearInterestRates = allRates.filter((d) =>
+    d.variable === "One-year fixed mortgage rate"
+  ).map((
+    d: { value: number },
+  ) => d.value);
+  const variableInterestRates = allRates.filter((d) =>
+    d.variable === "Bank prime rate"
+  ).map((
+    d: { value: number },
+  ) => d.value);
 
   const results = simulateRentVsBuy({
     startingYear: 2000,
     numberOfYears,
     tfsaContributions: true,
-    combinedTaxRate: 0.25,
+    combinedTaxRate: 0.23, // Combined federal + provincial tax rate for Quebec for a $75,000 annual income
     renter: {
-      startingMonthlyRent: 1750,
-      securityDeposit: 1750,
-      startingMonthlyInsurance: 75,
+      startingMonthlyRent: 509, // Avg two-bedroom apartment rent in Montreal was 509 and 1176 in 2000 and 2024 respectively
+      securityDeposit: 509, // One month of rent
+      startingMonthlyInsurance: 45, // CPI was 93.7 in 2000 and 123.2 in 2024
     },
     buyer: {
-      purchasePrice: 500_000,
-      downPayment: 50_000,
-      rateDiscount: 0.005,
-      purchaseFixedFees: 25_000,
-      startingAnnualMaintenanceCost: 2500,
-      startingAnnualPropertyTax: 3500,
-      startingMonthlyCondoFees: 100,
-      startingMonthlyInsurance: 250,
-      sellingFixedFees: 2000,
+      purchasePrice: 105_135, // Avg home price in Montreal was 105,135 and 412,400 in 2000 and 2024 respectively
+      downPayment: 10_514, // 10% down payment
+      rateDiscount: 0.001,
+      purchaseFixedFees: 1_500, // 1% of purchase price
+      startingAnnualMaintenanceCost: 125, // Not much, since it's a condo. This is 250$ in 2024. CPI 'mantenance and repairs' was 88.2 in 2000 and 178 in 2024
+      startingMonthlyCondoFees: 150, // 300$ adjusted to inflation 'Owned accommodation' CPI was 93.1 in 2000 and 189.8 in 2024
+      startingAnnualPropertyTax: 1300, // 1700$ property taxe + 300$ school tax adjusted to inflation. CPI 'property taxes' was 88.5 in 2000 and 178.2 in 2024
+      startingMonthlyInsurance: 80, // Condo, so just partial insurance. Just a bit more than renter.
+      sellingFixedFees: 900, // $1500 in 2000 adjusted to 2000 inflation. All-items CPI Quebec was 94.1 in 2000 and 157.5 in 2024
       sellingCommissionRate: 0.04,
     },
     rates: {
@@ -101,6 +137,110 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       sellingFixedFeesIncrease,
     },
   });
+
+  // Chart of all values used (indexed)
+  await saveChart(
+    allRates.map((d) => ({
+      date: new Date(d.date),
+      variable: d.variable,
+      value: d.indexedValue,
+    })),
+    (data) => {
+      if (!Array.isArray(data)) {
+        throw new Error("Data should be an array");
+      }
+
+      const n = 3; // number of facet columns
+      const keys = Array.from(new Set(data.map((d) => d.variable)));
+      const index = new Map(keys.map((key, i) => [key, i]));
+      //@ts-expect-error It's okay
+      const fx = (key) => index.get(key) % n;
+      //@ts-expect-error It's okay
+      const fy = (key) => Math.floor(index.get(key) / n);
+
+      return plot({
+        title: "Historical indicators (Montreal)",
+        subtitle: "Values indexed to 100 at the start date.",
+        y: { insetTop: 20, grid: true, ticks: 5, nice: true },
+        x: { ticks: 5, grid: true },
+        height: 600,
+        width: 800,
+        fx: { tickFormat: (d) => "" },
+        fy: { tickFormat: (d) => "" },
+        marks: [
+          areaY(
+            data,
+            {
+              x: "date",
+              y: "value",
+              stroke: "black",
+              fill: "lightgray",
+              // curve: "step",
+              strokeWidth: 1,
+              fx: (d) => fx(d.variable),
+              fy: (d) => fy(d.variable),
+            },
+          ),
+          text(keys, { fx, fy, frameAnchor: "top-left", dx: 6, dy: 6 }),
+          frame(),
+        ],
+      });
+    },
+    "test/output/montreal-all-indexed-values.png",
+    { style: "body { width: 700px; }" },
+  );
+
+  // Chart of all rates used
+  await saveChart(
+    allRates.map((d) => ({
+      date: new Date(d.date),
+      variable: d.variable,
+      value: !d.variable.toLowerCase().includes("rate")
+        ? d.monthlyPercentChange
+        : d.value,
+    })),
+    (data) => {
+      if (!Array.isArray(data)) {
+        throw new Error("Data should be an array");
+      }
+
+      const n = 3; // number of facet columns
+      const keys = Array.from(new Set(data.map((d) => d.variable)));
+      const index = new Map(keys.map((key, i) => [key, i]));
+      //@ts-expect-error It's okay
+      const fx = (key) => index.get(key) % n;
+      //@ts-expect-error It's okay
+      const fy = (key) => Math.floor(index.get(key) / n);
+
+      return plot({
+        title: "Monthly rates used in simulation (Montreal)",
+        y: { insetTop: 20, tickFormat: "%", grid: true, ticks: 5, nice: true },
+        x: { ticks: 5, grid: true },
+        height: 600,
+        width: 800,
+        fx: { tickFormat: (d) => "" },
+        fy: { tickFormat: (d) => "" },
+        marks: [
+          line(
+            data,
+            {
+              x: "date",
+              y: "value",
+              stroke: "black",
+              // curve: "step",
+              strokeWidth: 1,
+              fx: (d) => fx(d.variable),
+              fy: (d) => fy(d.variable),
+            },
+          ),
+          text(keys, { fx, fy, frameAnchor: "top-left", dx: 6, dy: 6 }),
+          frame(),
+        ],
+      });
+    },
+    "test/output/montreal-all-rates.png",
+    { style: "body { width: 700px; }" },
+  );
 
   // Expenses on the first month
   const firstMonthExpenses = results.filter((d) =>
