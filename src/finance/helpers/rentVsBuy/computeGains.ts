@@ -1,3 +1,4 @@
+import { round } from "@nshiab/journalism-format";
 import getTfsaContribution from "./getTfsaContribution.ts";
 
 export default function computeGains(
@@ -50,34 +51,66 @@ export default function computeGains(
   tfsaContributions: boolean,
 ) {
   // We start by calculating the current month TFSA and stock gains
-  persona.monthlyGains.tfsaGains = Math.round(
+  persona.monthlyGains.tfsaGains = round(
     persona.assets.tfsa * marketReturnRate,
+    {
+      decimals: 2,
+    },
   );
-  persona.monthlyGains.stocksGains = Math.round(
+  persona.monthlyGains.stocksGains = round(
     persona.assets.stocks * marketReturnRate,
+    {
+      decimals: 2,
+    },
   );
 
-  persona.cumulativeGains.tfsaGains += persona.monthlyGains.tfsaGains;
-  persona.cumulativeGains.stocksGains += persona.monthlyGains.stocksGains;
+  persona.cumulativeGains.tfsaGains = round(
+    persona.cumulativeGains.tfsaGains +
+      persona.monthlyGains.tfsaGains,
+    { decimals: 2 },
+  );
+  persona.cumulativeGains.stocksGains = round(
+    persona.cumulativeGains.stocksGains +
+      persona.monthlyGains.stocksGains,
+    { decimals: 2 },
+  );
 
-  persona.assets.tfsa += persona.monthlyGains.tfsaGains;
-  persona.assets.stocks += persona.monthlyGains.stocksGains;
+  persona.assets.tfsa = round(
+    persona.assets.tfsa + persona.monthlyGains.tfsaGains,
+    { decimals: 2 },
+  );
+  persona.assets.stocks = round(
+    persona.assets.stocks + persona.monthlyGains.stocksGains,
+    { decimals: 2 },
+  );
 
   // We appreciate the home value with a monthly appreciation rate and calculate home equity gains
   if (mortgagePayment) {
-    persona.params.homeValue = Math.round(
+    persona.params.homeValue = round(
       (1 + appreciationIncrease) * persona.params.homeValue,
+      {
+        decimals: 2,
+      },
     );
 
     const previousHomeEquity = persona.assets.homeEquity;
-    persona.assets.homeEquity = Math.round(
+    persona.assets.homeEquity = round(
       persona.params.homeValue -
         mortgagePayment.balance,
+      {
+        decimals: 2,
+      },
     );
-    persona.monthlyGains.homeEquityGains = persona.assets.homeEquity -
-      previousHomeEquity;
-    persona.cumulativeGains.homeEquityGains +=
-      persona.monthlyGains.homeEquityGains;
+    persona.monthlyGains.homeEquityGains = round(
+      persona.assets.homeEquity -
+        previousHomeEquity,
+      { decimals: 2 },
+    );
+    persona.cumulativeGains.homeEquityGains = round(
+      persona.cumulativeGains.homeEquityGains +
+        persona.monthlyGains.homeEquityGains,
+      { decimals: 2 },
+    );
   }
 
   // Now we deal with any savings from reduced expenses
@@ -92,18 +125,33 @@ export default function computeGains(
     const tfsaContribution = Math.min(tfsaRoom, monthlySavings);
 
     persona.monthlyGains.tfsaContribution = tfsaContribution;
-    persona.cumulativeGains.tfsaContribution += tfsaContribution;
-    persona.assets.tfsa += tfsaContribution;
+    persona.cumulativeGains.tfsaContribution = round(
+      persona.cumulativeGains.tfsaContribution + tfsaContribution,
+      { decimals: 2 },
+    );
+    persona.assets.tfsa = round(
+      persona.assets.tfsa + tfsaContribution,
+      { decimals: 2 },
+    );
   } else {
     persona.monthlyGains.tfsaContribution = 0;
   }
 
   // Any remaining savings go into stocks
-  monthlySavings -= persona.monthlyGains.tfsaContribution;
+  monthlySavings = round(
+    monthlySavings - persona.monthlyGains.tfsaContribution,
+    { decimals: 2 },
+  );
   if (monthlySavings > 0) {
     persona.monthlyGains.newStocks = monthlySavings;
-    persona.cumulativeGains.newStocks += monthlySavings;
-    persona.assets.stocks += monthlySavings;
+    persona.cumulativeGains.newStocks = round(
+      persona.cumulativeGains.newStocks + monthlySavings,
+      { decimals: 2 },
+    );
+    persona.assets.stocks = round(
+      persona.assets.stocks + monthlySavings,
+      { decimals: 2 },
+    );
   } else {
     persona.monthlyGains.newStocks = 0;
   }

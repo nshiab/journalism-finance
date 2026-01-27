@@ -1,3 +1,5 @@
+import { round } from "@nshiab/journalism-format";
+
 export default function getMortgagePenalty(
   parameters: {
     remainingMonthsToTerm: number;
@@ -24,8 +26,9 @@ export default function getMortgagePenalty(
 
   if (mortgageType === "variable") {
     // Three months interest penalty
-    const threeMonthsPenalty = Math.round(
+    const threeMonthsPenalty = round(
       (mortgageBalance * postedInterestRate * 3) / 12,
+      { decimals: 2 },
     );
 
     return threeMonthsPenalty;
@@ -44,8 +47,9 @@ export default function getMortgagePenalty(
     const effectiveRate = postedInterestRate - rateDiscount;
 
     // Three months interest penalty
-    const threeMonthsPenalty = Math.round(
+    const threeMonthsPenalty = round(
       (mortgageBalance * effectiveRate * 3) / 12,
+      { decimals: 2 },
     );
 
     // IRD (Interest Rate Differential) penalty
@@ -53,8 +57,9 @@ export default function getMortgagePenalty(
       0,
       effectiveRate - (comparisonRate - rateDiscount),
     );
-    const fixedMortgagePenalty = Math.round(
+    const fixedMortgagePenalty = round(
       mortgageBalance * irdRate * remainingYearsToTerm,
+      { decimals: 2 },
     );
 
     // Return the greater of three months interest or IRD penalty

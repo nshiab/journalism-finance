@@ -3,6 +3,23 @@ export default function toResults(
   month: number,
   category: "renter" | "buyerFixed" | "buyerVariable",
   persona: {
+    params: {
+      monthlyRent: number;
+      monthlyInsurance: number;
+      securityDeposit: number;
+      downPayment: number;
+      purchasePrice: number;
+      homeValue: number;
+      fixedRateDiscount: number;
+      variableRateMargin: number;
+      purchaseFixedFees: number;
+      monthlyMaintenanceCost: number;
+      monthlyPropertyTax: number;
+      monthlyCondoFees: number;
+      sellingFixedFees: number;
+      sellingCommissionRate: number;
+      insurancePremium: number;
+    };
     monthlyExpenses: {
       mortgageCapital: number;
       mortgageInterests: number;
@@ -108,6 +125,7 @@ export default function toResults(
           | "newStocks"
           | "homeSellingGains"
           | "homeEquityGains";
+        homeValue?: number;
       }
       | {
         group: "assets";
@@ -247,16 +265,34 @@ export default function toResults(
       >
     ) {
       if (persona.monthlyGains[variable] !== 0) {
-        results.push({
-          year,
-          month,
-          monthIndex,
-          date,
-          amount: persona.monthlyGains[variable],
-          category,
-          group: "monthlyGains",
-          variable,
-        });
+        if (
+          (variable === "homeSellingGains" ||
+            variable === "homeEquityGains") &&
+          persona.assets.homeEquity !== undefined
+        ) {
+          results.push({
+            year,
+            month,
+            monthIndex,
+            date,
+            amount: persona.monthlyGains[variable],
+            category,
+            group: "monthlyGains",
+            variable,
+            homeValue: persona.params.homeValue,
+          });
+        } else {
+          results.push({
+            year,
+            month,
+            monthIndex,
+            date,
+            amount: persona.monthlyGains[variable],
+            category,
+            group: "monthlyGains",
+            variable,
+          });
+        }
       }
     }
 

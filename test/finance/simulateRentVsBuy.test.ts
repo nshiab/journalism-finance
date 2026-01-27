@@ -296,7 +296,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 0,
           monthIndex: 0,
           date: "2000-01-01T00:00:00.000Z",
-          amount: 114,
+          amount: 114.19,
           category: "buyerFixed",
           group: "monthlyExpenses",
           variable: "mortgageCapital",
@@ -310,7 +310,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 0,
           monthIndex: 0,
           date: "2000-01-01T00:00:00.000Z",
-          amount: 563,
+          amount: 563.22,
           category: "buyerFixed",
           group: "monthlyExpenses",
           variable: "mortgageInterests",
@@ -394,7 +394,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 0,
           monthIndex: 0,
           date: "2000-01-01T00:00:00.000Z",
-          amount: 123,
+          amount: 123.43,
           category: "buyerVariable",
           group: "monthlyExpenses",
           variable: "mortgageCapital",
@@ -408,7 +408,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 0,
           monthIndex: 0,
           date: "2000-01-01T00:00:00.000Z",
-          amount: 524,
+          amount: 524.36,
           category: "buyerVariable",
           group: "monthlyExpenses",
           variable: "mortgageInterests",
@@ -534,16 +534,189 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
     { style: "body { width: 700px; }" },
   );
 
-  // Monthly expenses
-  const monthlyExpenses = results.filter((d) =>
-    d.group === "monthlyExpenses" && d.month !== 0
+  // Expenses on the second month
+  const secondMonthExpenses = results.filter((d) =>
+    d.monthIndex === 1 &&
+    d.group === "monthlyExpenses"
   );
 
+  // console.log(secondMonthExpenses.map((d) => ({
+  //   ...d,
+  //   date: d.date.toISOString(),
+  // })));
+
+  t.step("second month expenses", async () => {
+    assertEquals(
+      secondMonthExpenses.map((d) => ({
+        ...d,
+        date: d.date.toISOString(),
+      })),
+      [
+        {
+          year: 2000,
+          month: 1,
+          monthIndex: 1,
+          date: "2000-02-01T00:00:00.000Z",
+          amount: 509,
+          category: "renter",
+          group: "monthlyExpenses",
+          variable: "rent",
+        },
+        {
+          year: 2000,
+          month: 1,
+          monthIndex: 1,
+          date: "2000-02-01T00:00:00.000Z",
+          amount: 44.52,
+          category: "renter",
+          group: "monthlyExpenses",
+          variable: "insurance",
+        },
+        {
+          year: 2000,
+          month: 1,
+          monthIndex: 1,
+          date: "2000-02-01T00:00:00.000Z",
+          amount: 114.87,
+          category: "buyerFixed",
+          group: "monthlyExpenses",
+          variable: "mortgageCapital",
+          effectiveInterestRate: 0.0725,
+          postedInterestRate: 0.0825,
+          fixedRateDiscount: 0.01,
+          variableRateMargin: 0,
+        },
+        {
+          year: 2000,
+          month: 1,
+          monthIndex: 1,
+          date: "2000-02-01T00:00:00.000Z",
+          amount: 562.54,
+          category: "buyerFixed",
+          group: "monthlyExpenses",
+          variable: "mortgageInterests",
+          effectiveInterestRate: 0.0725,
+          postedInterestRate: 0.0825,
+          fixedRateDiscount: 0.01,
+          variableRateMargin: 0,
+        },
+        {
+          year: 2000,
+          month: 1,
+          monthIndex: 1,
+          date: "2000-02-01T00:00:00.000Z",
+          amount: 50,
+          category: "buyerFixed",
+          group: "monthlyExpenses",
+          variable: "insurance",
+        },
+        {
+          year: 2000,
+          month: 1,
+          monthIndex: 1,
+          date: "2000-02-01T00:00:00.000Z",
+          amount: 20.93,
+          category: "buyerFixed",
+          group: "monthlyExpenses",
+          variable: "maintenance",
+        },
+        {
+          year: 2000,
+          month: 1,
+          monthIndex: 1,
+          date: "2000-02-01T00:00:00.000Z",
+          amount: 108,
+          category: "buyerFixed",
+          group: "monthlyExpenses",
+          variable: "propertyTax",
+        },
+        {
+          year: 2000,
+          month: 1,
+          monthIndex: 1,
+          date: "2000-02-01T00:00:00.000Z",
+          amount: 150.16,
+          category: "buyerFixed",
+          group: "monthlyExpenses",
+          variable: "condoFees",
+        },
+        {
+          year: 2000,
+          month: 1,
+          monthIndex: 1,
+          date: "2000-02-01T00:00:00.000Z",
+          amount: 124.11,
+          category: "buyerVariable",
+          group: "monthlyExpenses",
+          variable: "mortgageCapital",
+          effectiveInterestRate: 0.0665,
+          postedInterestRate: 0.065,
+          fixedRateDiscount: 0,
+          variableRateMargin: 0.0015,
+        },
+        {
+          year: 2000,
+          month: 1,
+          monthIndex: 1,
+          date: "2000-02-01T00:00:00.000Z",
+          amount: 523.67,
+          category: "buyerVariable",
+          group: "monthlyExpenses",
+          variable: "mortgageInterests",
+          effectiveInterestRate: 0.0665,
+          postedInterestRate: 0.065,
+          fixedRateDiscount: 0,
+          variableRateMargin: 0.0015,
+        },
+        {
+          year: 2000,
+          month: 1,
+          monthIndex: 1,
+          date: "2000-02-01T00:00:00.000Z",
+          amount: 50,
+          category: "buyerVariable",
+          group: "monthlyExpenses",
+          variable: "insurance",
+        },
+        {
+          year: 2000,
+          month: 1,
+          monthIndex: 1,
+          date: "2000-02-01T00:00:00.000Z",
+          amount: 20.93,
+          category: "buyerVariable",
+          group: "monthlyExpenses",
+          variable: "maintenance",
+        },
+        {
+          year: 2000,
+          month: 1,
+          monthIndex: 1,
+          date: "2000-02-01T00:00:00.000Z",
+          amount: 108,
+          category: "buyerVariable",
+          group: "monthlyExpenses",
+          variable: "propertyTax",
+        },
+        {
+          year: 2000,
+          month: 1,
+          monthIndex: 1,
+          date: "2000-02-01T00:00:00.000Z",
+          amount: 150.16,
+          category: "buyerVariable",
+          group: "monthlyExpenses",
+          variable: "condoFees",
+        },
+      ],
+    );
+  });
+
   await saveChart(
-    monthlyExpenses,
+    secondMonthExpenses,
     (data) =>
       plot({
-        title: "Monthly expenses over time (first month excluded)",
+        title: "Second month expenses (Feb. 2000)",
         y: {
           nice: true,
           label: null,
@@ -556,29 +729,77 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
               ? `-$${Math.abs(d) / 1_000_000}M`
               : `$${d / 1_000_000}M`,
         },
-        x: {
-          nice: true,
-        },
-        fx: {
-          label: null,
-        },
         marginLeft: 60,
         color: {
           legend: true,
         },
+        fx: {
+          label: null,
+        },
+        x: {
+          label: null,
+          tickFormat: (d) => d.toString(),
+        },
         grid: true,
         marks: [
-          areaY(data, {
-            x: "date",
+          barY(data, {
+            x: "year",
             y: "amount",
             fill: "variable",
+            order: "amount",
             fx: "category",
           }),
         ],
       }),
-    "test/output/montreal-monthly-expenses.png",
+    "test/output/montreal-second-month-expenses.png",
     { style: "body { width: 700px; }" },
   );
+
+  // // Monthly expenses
+  // const monthlyExpenses = results.filter((d) =>
+  //   d.group === "monthlyExpenses" && d.month !== 0
+  // );
+
+  // await saveChart(
+  //   monthlyExpenses,
+  //   (data) =>
+  //     plot({
+  //       title: "Monthly expenses over time (first month excluded)",
+  //       y: {
+  //         nice: true,
+  //         label: null,
+  //         tickFormat: (d) =>
+  //           Math.abs(d) < 1000
+  //             ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
+  //             : Math.abs(d) < 1_000_000
+  //             ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
+  //             : d < 0
+  //             ? `-$${Math.abs(d) / 1_000_000}M`
+  //             : `$${d / 1_000_000}M`,
+  //       },
+  //       x: {
+  //         nice: true,
+  //       },
+  //       fx: {
+  //         label: null,
+  //       },
+  //       marginLeft: 60,
+  //       color: {
+  //         legend: true,
+  //       },
+  //       grid: true,
+  //       marks: [
+  //         areaY(data, {
+  //           x: "date",
+  //           y: "amount",
+  //           fill: "variable",
+  //           fx: "category",
+  //         }),
+  //       ],
+  //     }),
+  //   "test/output/montreal-monthly-expenses.png",
+  //   { style: "body { width: 700px; }" },
+  // );
 
   const cumulativeExpenses = results.filter((d) =>
     d.group === "cumulativeExpenses"
@@ -625,11 +846,69 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
     { style: "body { width: 700px; }" },
   );
 
-  // Expenses on the first month
+  // Gains on the first month
   const firstMonthGains = results.filter((d) =>
     d.monthIndex === 0 &&
     d.group === "monthlyGains"
   );
+
+  // console.log(firstMonthGains.map((d) => ({
+  //   ...d,
+  //   date: d.date.toISOString(),
+  // })));
+
+  await t.step("first month gains", async () => {
+    assertEquals(
+      firstMonthGains.map((d) => ({
+        ...d,
+        date: d.date.toISOString(),
+      })),
+      [
+        {
+          year: 2000,
+          month: 0,
+          monthIndex: 0,
+          date: "2000-01-01T00:00:00.000Z",
+          amount: 15490.41,
+          category: "renter",
+          group: "monthlyGains",
+          variable: "newStocks",
+        },
+        {
+          year: 2000,
+          month: 0,
+          monthIndex: 0,
+          date: "2000-01-01T00:00:00.000Z",
+          amount: 10945.17,
+          category: "buyerFixed",
+          group: "monthlyGains",
+          variable: "homeEquityGains",
+          homeValue: 105451.98,
+        },
+        {
+          year: 2000,
+          month: 0,
+          monthIndex: 0,
+          date: "2000-01-01T00:00:00.000Z",
+          amount: 29.62,
+          category: "buyerVariable",
+          group: "monthlyGains",
+          variable: "newStocks",
+        },
+        {
+          year: 2000,
+          month: 0,
+          monthIndex: 0,
+          date: "2000-01-01T00:00:00.000Z",
+          amount: 10954.41,
+          category: "buyerVariable",
+          group: "monthlyGains",
+          variable: "homeEquityGains",
+          homeValue: 105451.98,
+        },
+      ],
+    );
+  });
 
   await saveChart(
     firstMonthGains,
@@ -671,6 +950,133 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
         ],
       }),
     "test/output/montreal-first-month-gains.png",
+    { style: "body { width: 700px; }" },
+  );
+
+  // Gains on the second month
+  const secondMonthGains = results.filter((d) =>
+    d.monthIndex === 1 &&
+    d.group === "monthlyGains"
+  );
+
+  // console.log(secondMonthGains.map((d) => ({
+  //   ...d,
+  //   date: d.date.toISOString(),
+  // })));
+
+  await t.step("second month gains", async () => {
+    assertEquals(
+      secondMonthGains.map((d) => ({
+        ...d,
+        date: d.date.toISOString(),
+      })),
+      [
+        {
+          year: 2000,
+          month: 1,
+          monthIndex: 1,
+          date: "2000-02-01T00:00:00.000Z",
+          amount: 1183.36,
+          category: "renter",
+          group: "monthlyGains",
+          variable: "stocksGains",
+        },
+        {
+          year: 2000,
+          month: 1,
+          monthIndex: 1,
+          date: "2000-02-01T00:00:00.000Z",
+          amount: 452.98,
+          category: "renter",
+          group: "monthlyGains",
+          variable: "newStocks",
+        },
+        {
+          year: 2000,
+          month: 1,
+          monthIndex: 1,
+          date: "2000-02-01T00:00:00.000Z",
+          amount: 533.09,
+          category: "buyerFixed",
+          group: "monthlyGains",
+          variable: "homeEquityGains",
+          homeValue: 105870.2,
+        },
+        {
+          year: 2000,
+          month: 1,
+          monthIndex: 1,
+          date: "2000-02-01T00:00:00.000Z",
+          amount: 2.26,
+          category: "buyerVariable",
+          group: "monthlyGains",
+          variable: "stocksGains",
+        },
+        {
+          year: 2000,
+          month: 1,
+          monthIndex: 1,
+          date: "2000-02-01T00:00:00.000Z",
+          amount: 29.63,
+          category: "buyerVariable",
+          group: "monthlyGains",
+          variable: "newStocks",
+        },
+        {
+          year: 2000,
+          month: 1,
+          monthIndex: 1,
+          date: "2000-02-01T00:00:00.000Z",
+          amount: 542.33,
+          category: "buyerVariable",
+          group: "monthlyGains",
+          variable: "homeEquityGains",
+          homeValue: 105870.2,
+        },
+      ],
+    );
+  });
+
+  await saveChart(
+    secondMonthGains,
+    (data) =>
+      plot({
+        title: "Second month gains (Feb. 2000)",
+        y: {
+          nice: true,
+          label: null,
+          tickFormat: (d) =>
+            Math.abs(d) < 1000
+              ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
+              : Math.abs(d) < 1_000_000
+              ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
+              : d < 0
+              ? `-$${Math.abs(d) / 1_000_000}M`
+              : `$${d / 1_000_000}M`,
+        },
+        marginLeft: 60,
+        color: {
+          legend: true,
+        },
+        fx: {
+          label: null,
+        },
+        x: {
+          label: null,
+          tickFormat: (d) => d.toString(),
+        },
+        grid: true,
+        marks: [
+          barY(data, {
+            x: "year",
+            y: "amount",
+            fill: "variable",
+            order: "amount",
+            fx: "category",
+          }),
+        ],
+      }),
+    "test/output/montreal-second-month-gains.png",
     { style: "body { width: 700px; }" },
   );
 

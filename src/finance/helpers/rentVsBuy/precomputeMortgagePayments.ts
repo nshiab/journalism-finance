@@ -45,7 +45,7 @@ export default function precomputeMortgagePayments(
       "monthly",
       term,
       25 - (month / 12),
-      { decimals: 0 },
+      { decimals: 2 },
     );
     allFixedMortgagePayments.push(
       ...payments.map((payment) => ({
@@ -89,7 +89,7 @@ export default function precomputeMortgagePayments(
       term,
       25 - (month / 12),
       {
-        decimals: 0,
+        decimals: 2,
       },
     );
     allVariableMortgagePayments.push(

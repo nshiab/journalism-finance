@@ -87,6 +87,7 @@ export default function simulateRentVsBuy(parameters: {
           | "newStocks"
           | "homeSellingGains"
           | "homeEquityGains";
+        homeValue?: number;
       }
       | {
         group: "assets";
