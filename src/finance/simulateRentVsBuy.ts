@@ -21,7 +21,8 @@ export default function simulateRentVsBuy(parameters: {
   buyer: {
     downPayment: number;
     purchasePrice: number;
-    rateDiscount: number;
+    fixedRateDiscount: number;
+    variableRateMargin: number;
     purchaseFixedFees: number;
     startingAnnualMaintenanceCost: number;
     startingAnnualPropertyTax: number;
@@ -72,6 +73,10 @@ export default function simulateRentVsBuy(parameters: {
           | "downPayment"
           | "purchaseFixedFees"
           | "insurancePremium";
+        effectiveInterestRate?: number;
+        postedInterestRate?: number;
+        fixedRateDiscount?: number;
+        variableRateMargin?: number;
       }
       | {
         group: "monthlyGains" | "cumulativeGains";
@@ -130,7 +135,8 @@ export default function simulateRentVsBuy(parameters: {
     purchasePrice: 0,
     homeValue: 0,
     insurancePremium: 0,
-    rateDiscount: 0,
+    fixedRateDiscount: 0,
+    variableRateMargin: 0,
     purchaseFixedFees: 0,
     startingAnnualMaintenanceCost: 0,
     startingAnnualPropertyTax: 0,
@@ -150,7 +156,8 @@ export default function simulateRentVsBuy(parameters: {
     purchasePrice: parameters.buyer.purchasePrice,
     insurancePremium,
     homeValue: parameters.buyer.purchasePrice,
-    rateDiscount: parameters.buyer.rateDiscount,
+    fixedRateDiscount: parameters.buyer.fixedRateDiscount,
+    variableRateMargin: parameters.buyer.variableRateMargin,
     purchaseFixedFees: parameters.buyer.purchaseFixedFees,
     startingAnnualMaintenanceCost:
       parameters.buyer.startingAnnualMaintenanceCost,
@@ -167,7 +174,8 @@ export default function simulateRentVsBuy(parameters: {
     purchasePrice: parameters.buyer.purchasePrice,
     homeValue: parameters.buyer.purchasePrice,
     insurancePremium,
-    rateDiscount: parameters.buyer.rateDiscount,
+    fixedRateDiscount: parameters.buyer.fixedRateDiscount,
+    variableRateMargin: parameters.buyer.variableRateMargin,
     purchaseFixedFees: parameters.buyer.purchaseFixedFees,
     startingAnnualMaintenanceCost:
       parameters.buyer.startingAnnualMaintenanceCost,
@@ -182,7 +190,8 @@ export default function simulateRentVsBuy(parameters: {
     precomputeMortgagePayments(
       parameters.numberOfYears,
       parameters.buyer.purchasePrice - parameters.buyer.downPayment,
-      parameters.buyer.rateDiscount,
+      parameters.buyer.fixedRateDiscount,
+      parameters.buyer.variableRateMargin,
       parameters.rates.fiveYearInterestRates,
       parameters.rates.variableInterestRates,
     );
@@ -302,7 +311,8 @@ export default function simulateRentVsBuy(parameters: {
       results,
       monthIndex,
       numberOfMonths,
-      options.finalBalanceOnly,
+      options.finalBalanceOnly ?? false,
+      null,
     );
     toResults(
       year,
@@ -312,7 +322,8 @@ export default function simulateRentVsBuy(parameters: {
       results,
       monthIndex,
       numberOfMonths,
-      options.finalBalanceOnly,
+      options.finalBalanceOnly ?? false,
+      allFixedMortgagePayments[monthIndex],
     );
     toResults(
       year,
@@ -322,7 +333,8 @@ export default function simulateRentVsBuy(parameters: {
       results,
       monthIndex,
       numberOfMonths,
-      options.finalBalanceOnly,
+      options.finalBalanceOnly ?? false,
+      allVariableMortgagePayments[monthIndex],
     );
 
     // We increment the parameters for next month

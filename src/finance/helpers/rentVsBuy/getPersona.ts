@@ -6,7 +6,8 @@ export default function getPersona(parameters: {
   purchasePrice: number;
   homeValue: number;
   insurancePremium: number;
-  rateDiscount: number;
+  fixedRateDiscount: number;
+  variableRateMargin: number;
   purchaseFixedFees: number;
   startingAnnualMaintenanceCost: number;
   startingAnnualPropertyTax: number;
@@ -21,7 +22,8 @@ export default function getPersona(parameters: {
     downPayment: number;
     purchasePrice: number;
     homeValue: number;
-    rateDiscount: number;
+    fixedRateDiscount: number;
+    variableRateMargin: number;
     purchaseFixedFees: number;
     monthlyMaintenanceCost: number;
     monthlyPropertyTax: number;
@@ -105,7 +107,8 @@ export default function getPersona(parameters: {
       downPayment: parameters.downPayment,
       purchasePrice: parameters.purchasePrice,
       homeValue: parameters.homeValue,
-      rateDiscount: parameters.rateDiscount,
+      fixedRateDiscount: parameters.fixedRateDiscount,
+      variableRateMargin: parameters.variableRateMargin,
       purchaseFixedFees: parameters.purchaseFixedFees,
       monthlyMaintenanceCost: Math.round(
         parameters.startingAnnualMaintenanceCost / 12,

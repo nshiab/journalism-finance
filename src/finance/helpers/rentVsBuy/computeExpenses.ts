@@ -7,7 +7,8 @@ export default function computeExpenses(
       securityDeposit: number;
       downPayment: number;
       purchasePrice: number;
-      rateDiscount: number;
+      fixedRateDiscount: number;
+      variableRateMargin: number;
       purchaseFixedFees: number;
       monthlyMaintenanceCost: number;
       monthlyPropertyTax: number;
@@ -60,7 +61,8 @@ export default function computeExpenses(
     capitalPaid: number;
     effectiveInterestRate: number;
     postedInterestRate: number;
-    rateDiscount: number;
+    fixedRateDiscount: number;
+    variableRateMargin: number;
   } | null,
 ) {
   // Common expenses

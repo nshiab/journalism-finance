@@ -43,7 +43,8 @@ export default function computeSale(
     capitalPaid: number;
     effectiveInterestRate: number;
     postedInterestRate: number;
-    rateDiscount: number;
+    fixedRateDiscount: number;
+    variableRateMargin: number;
   } | null,
   currentPostedRates: Record<number, number> | null,
   mortgageType: "fixed" | "variable" | null,
@@ -65,7 +66,7 @@ export default function computeSale(
       remainingMonthsToTerm,
       mortgageBalance: mortgagePayment.balance,
       postedInterestRate: mortgagePayment.postedInterestRate,
-      rateDiscount: mortgagePayment.rateDiscount,
+      rateDiscount: mortgagePayment.fixedRateDiscount,
       currentPostedRates,
       mortgageType,
     });

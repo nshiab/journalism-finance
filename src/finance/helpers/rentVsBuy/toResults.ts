@@ -94,6 +94,10 @@ export default function toResults(
           | "downPayment"
           | "purchaseFixedFees"
           | "insurancePremium";
+        effectiveInterestRate?: number;
+        postedInterestRate?: number;
+        fixedRateDiscount?: number;
+        variableRateMargin?: number;
       }
       | {
         group: "monthlyGains" | "cumulativeGains";
@@ -144,7 +148,21 @@ export default function toResults(
   )[],
   monthIndex: number,
   numberOfMonths: number,
-  finalBalanceOnly = false,
+  finalBalanceOnly: boolean,
+  mortgagePayment: {
+    paymentId: number;
+    payment: number;
+    interest: number;
+    capital: number;
+    balance: number;
+    amountPaid: number;
+    interestPaid: number;
+    capitalPaid: number;
+    effectiveInterestRate: number;
+    postedInterestRate: number;
+    fixedRateDiscount: number;
+    variableRateMargin: number;
+  } | null,
 ) {
   const date = new Date(Date.UTC(year, month, 1));
 
@@ -168,16 +186,38 @@ export default function toResults(
         keyof typeof persona.monthlyExpenses
       >
     ) {
-      results.push({
-        year,
-        month,
-        monthIndex,
-        date,
-        amount: persona.monthlyExpenses[variable],
-        category,
-        group: "monthlyExpenses",
-        variable,
-      });
+      if (persona.monthlyExpenses[variable] !== 0) {
+        if (
+          (variable === "mortgageCapital" ||
+            variable === "mortgageInterests") && mortgagePayment
+        ) {
+          results.push({
+            year,
+            month,
+            monthIndex,
+            date,
+            amount: persona.monthlyExpenses[variable],
+            category,
+            group: "monthlyExpenses",
+            variable,
+            effectiveInterestRate: mortgagePayment.effectiveInterestRate,
+            postedInterestRate: mortgagePayment.postedInterestRate,
+            fixedRateDiscount: mortgagePayment.fixedRateDiscount,
+            variableRateMargin: mortgagePayment.variableRateMargin,
+          });
+        } else {
+          results.push({
+            year,
+            month,
+            monthIndex,
+            date,
+            amount: persona.monthlyExpenses[variable],
+            category,
+            group: "monthlyExpenses",
+            variable,
+          });
+        }
+      }
     }
 
     // Process cumulativeExpenses
@@ -186,16 +226,18 @@ export default function toResults(
         keyof typeof persona.cumulativeExpenses
       >
     ) {
-      results.push({
-        year,
-        month,
-        monthIndex,
-        date,
-        amount: persona.cumulativeExpenses[variable],
-        category,
-        group: "cumulativeExpenses",
-        variable,
-      });
+      if (persona.cumulativeExpenses[variable] !== 0) {
+        results.push({
+          year,
+          month,
+          monthIndex,
+          date,
+          amount: persona.cumulativeExpenses[variable],
+          category,
+          group: "cumulativeExpenses",
+          variable,
+        });
+      }
     }
 
     // Process monthlyGains
@@ -204,16 +246,18 @@ export default function toResults(
         keyof typeof persona.monthlyGains
       >
     ) {
-      results.push({
-        year,
-        month,
-        monthIndex,
-        date,
-        amount: persona.monthlyGains[variable],
-        category,
-        group: "monthlyGains",
-        variable,
-      });
+      if (persona.monthlyGains[variable] !== 0) {
+        results.push({
+          year,
+          month,
+          monthIndex,
+          date,
+          amount: persona.monthlyGains[variable],
+          category,
+          group: "monthlyGains",
+          variable,
+        });
+      }
     }
 
     // Process cumulativeGains
@@ -222,16 +266,18 @@ export default function toResults(
         keyof typeof persona.cumulativeGains
       >
     ) {
-      results.push({
-        year,
-        month,
-        monthIndex,
-        date,
-        amount: persona.cumulativeGains[variable],
-        category,
-        group: "cumulativeGains",
-        variable,
-      });
+      if (persona.cumulativeGains[variable] !== 0) {
+        results.push({
+          year,
+          month,
+          monthIndex,
+          date,
+          amount: persona.cumulativeGains[variable],
+          category,
+          group: "cumulativeGains",
+          variable,
+        });
+      }
     }
 
     // Process assets
@@ -240,16 +286,18 @@ export default function toResults(
         keyof typeof persona.assets
       >
     ) {
-      results.push({
-        year,
-        month,
-        monthIndex,
-        date,
-        amount: persona.assets[variable],
-        category,
-        group: "assets",
-        variable,
-      });
+      if (persona.assets[variable] !== 0) {
+        results.push({
+          year,
+          month,
+          monthIndex,
+          date,
+          amount: persona.assets[variable],
+          category,
+          group: "assets",
+          variable,
+        });
+      }
     }
 
     // Process summary
@@ -258,16 +306,18 @@ export default function toResults(
         keyof typeof persona.summary
       >
     ) {
-      results.push({
-        year,
-        month,
-        monthIndex,
-        date,
-        amount: persona.summary[variable],
-        category,
-        group: "summary",
-        variable,
-      });
+      if (persona.summary[variable] !== 0) {
+        results.push({
+          year,
+          month,
+          monthIndex,
+          date,
+          amount: persona.summary[variable],
+          category,
+          group: "summary",
+          variable,
+        });
+      }
     }
 
     // Process summaryCumulative
@@ -276,16 +326,18 @@ export default function toResults(
         keyof typeof persona.summaryCumulative
       >
     ) {
-      results.push({
-        year,
-        month,
-        monthIndex,
-        date,
-        amount: persona.summaryCumulative[variable],
-        category,
-        group: "summaryCumulative",
-        variable,
-      });
+      if (persona.summaryCumulative[variable] !== 0) {
+        results.push({
+          year,
+          month,
+          monthIndex,
+          date,
+          amount: persona.summaryCumulative[variable],
+          category,
+          group: "summaryCumulative",
+          variable,
+        });
+      }
     }
 
     // Process saleCosts
@@ -294,16 +346,18 @@ export default function toResults(
         keyof typeof persona.saleCosts
       >
     ) {
-      results.push({
-        year,
-        month,
-        monthIndex,
-        date,
-        amount: persona.saleCosts[variable],
-        category,
-        group: "saleCosts",
-        variable,
-      });
+      if (persona.saleCosts[variable] !== 0) {
+        results.push({
+          year,
+          month,
+          monthIndex,
+          date,
+          amount: persona.saleCosts[variable],
+          category,
+          group: "saleCosts",
+          variable,
+        });
+      }
     }
 
     // Process saleNetGains
@@ -312,16 +366,18 @@ export default function toResults(
         keyof typeof persona.saleNetGains
       >
     ) {
-      results.push({
-        year,
-        month,
-        monthIndex,
-        date,
-        amount: persona.saleNetGains[variable],
-        category,
-        group: "saleNetGains",
-        variable,
-      });
+      if (persona.saleNetGains[variable] !== 0) {
+        results.push({
+          year,
+          month,
+          monthIndex,
+          date,
+          amount: persona.saleNetGains[variable],
+          category,
+          group: "saleNetGains",
+          variable,
+        });
+      }
     }
   }
 }

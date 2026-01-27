@@ -1,10 +1,12 @@
+import { round } from "@nshiab/journalism-format";
 import mortgagePayments from "../../mortgagePayments.ts";
 import variableMortgagePayments from "../../variableMortgagePayments.ts";
 
 export default function precomputeMortgagePayments(
   numberOfYears: number,
   startingMortgageAmount: number,
-  originalRateDiscount: number,
+  fixedRateDiscount: number,
+  variableRateMargin: number,
   fixedInterestRates: number[],
   variableInterestRates: number[],
 ) {
@@ -23,13 +25,16 @@ export default function precomputeMortgagePayments(
     capitalPaid: number;
     effectiveInterestRate: number;
     postedInterestRate: number;
-    rateDiscount: number;
+    fixedRateDiscount: number;
+    variableRateMargin: number;
   }[] = [];
 
   for (let month = 0; month < numberOfYears * 12; month += termInMonths) {
-    const effectiveInterestRate =
-      (fixedInterestRates[month] - originalRateDiscount) *
-      100;
+    const effectiveInterestRate = round(
+      (fixedInterestRates[month] - fixedRateDiscount) *
+        100,
+      { decimals: 4 },
+    );
     const mortgageAmount =
       allFixedMortgagePayments[allFixedMortgagePayments.length - 1]
         ? allFixedMortgagePayments[allFixedMortgagePayments.length - 1].balance
@@ -47,7 +52,8 @@ export default function precomputeMortgagePayments(
         ...payment,
         effectiveInterestRate: effectiveInterestRate / 100,
         postedInterestRate: fixedInterestRates[month],
-        rateDiscount: originalRateDiscount,
+        fixedRateDiscount: fixedRateDiscount,
+        variableRateMargin: 0, // No rate margin for fixed-rate mortgages
       })),
     );
   }
@@ -63,7 +69,8 @@ export default function precomputeMortgagePayments(
     capitalPaid: number;
     effectiveInterestRate: number;
     postedInterestRate: number;
-    rateDiscount: number;
+    fixedRateDiscount: number;
+    variableRateMargin: number;
   }[] = [];
 
   for (let month = 0; month < numberOfYears * 12; month += termInMonths) {
@@ -75,7 +82,7 @@ export default function precomputeMortgagePayments(
     const monthlyEffectiveRates = variableInterestRates.slice(
       month,
       month + termInMonths,
-    ).map((d) => d * 100);
+    ).map((d) => (d + variableRateMargin) * 100);
     const payments = variableMortgagePayments(
       mortgageAmount,
       monthlyEffectiveRates,
@@ -88,9 +95,10 @@ export default function precomputeMortgagePayments(
     allVariableMortgagePayments.push(
       ...payments.map((payment) => ({
         ...payment,
-        effectiveInterestRate: payment.rate,
+        effectiveInterestRate: payment.rate / 100,
         postedInterestRate: variableInterestRates[month],
-        rateDiscount: 0, // No rate discount for variable-rate mortgages
+        fixedRateDiscount: 0, // No rate discount for variable-rate mortgages
+        variableRateMargin: variableRateMargin,
       })),
     );
   }

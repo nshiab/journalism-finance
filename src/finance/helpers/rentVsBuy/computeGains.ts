@@ -40,7 +40,8 @@ export default function computeGains(
     capitalPaid: number;
     effectiveInterestRate: number;
     postedInterestRate: number;
-    rateDiscount: number;
+    fixedRateDiscount: number;
+    variableRateMargin: number;
   } | null,
   marketReturnRate: number,
   appreciationIncrease: number,

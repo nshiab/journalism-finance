@@ -8,7 +8,8 @@ export default function incrementParameters(
       downPayment: number;
       purchasePrice: number;
       homeValue: number;
-      rateDiscount: number;
+      fixedRateDiscount: number;
+      variableRateMargin: number;
       purchaseFixedFees: number;
       monthlyMaintenanceCost: number;
       monthlyPropertyTax: number;
