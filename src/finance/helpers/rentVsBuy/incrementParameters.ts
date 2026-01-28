@@ -39,7 +39,7 @@ export default function incrementParameters(
     sellingFixedFeesIncrease: number[];
   },
 ) {
-  // We increment the variables for following month, except home value, since it's done in computeGains.
+  // We increment the variables for following month
   // Renter
   if (persona.params.monthlyRent > 0) {
     persona.params.monthlyInsurance += round(
@@ -56,6 +56,13 @@ export default function incrementParameters(
 
   // Buyer
   if (persona.params.homeValue > 0) {
+    persona.params.homeValue = round(
+      (1 + rates.appreciationIncrease[monthIndex]) * persona.params.homeValue,
+      {
+        decimals: 2,
+      },
+    );
+
     persona.params.monthlyInsurance += round(
       persona.params.monthlyInsurance *
         rates.ownerInsuranceIncrease[monthIndex],

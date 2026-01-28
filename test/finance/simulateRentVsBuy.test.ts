@@ -1,7 +1,7 @@
 import { assertEquals } from "jsr:@std/assert";
 import simulateRentVsBuy from "../../src/finance/simulateRentVsBuy.ts";
 import { saveChart } from "@nshiab/journalism-dataviz";
-import { area, areaY, barY, frame, line, plot, text } from "@observablehq/plot";
+import { areaY, barY, frame, line, plot, text } from "@observablehq/plot";
 import allRates from "../data/allRates.json" with { type: "json" };
 
 Deno.test("should compute the total expenses and savings of a renter and buyer", async (t) => {
@@ -9,93 +9,82 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
 
   const numberOfYears = 25;
   // Yahoo Finance S&P/TSX
-  const marketReturnRate = allRates.filter((d) => d.variable === "S&P/TSX").map(
-    (
-      d: { monthlyPercentChange: number },
-    ) => d.monthlyPercentChange,
+  const marketReturnRate = allRates.filter((d) =>
+    d.geo === "Stock market" && d.variable === "S&P/TSX"
   );
   // CMHC two-bedroom apartment Montreal
-  const rentIncrease = allRates.filter((d) => d.variable === "Two-bedroom rent")
-    .map((
-      d: { monthlyPercentChange: number },
-    ) => d.monthlyPercentChange);
+  const montrealRentIncrease = allRates.filter((d) =>
+    d.geo === "Montreal" && d.variable === "Two-bedroom rent"
+  );
   // CPI Quebec
-  const ownerInsuranceIncrease = allRates.filter((d) =>
-    d.variable === "CPI Homeowners insurance"
-  ).map((
-    d: { monthlyPercentChange: number },
-  ) => d.monthlyPercentChange);
+  const quebecOwnerInsuranceIncrease = allRates.filter((d) =>
+    d.geo === "Quebec" && d.variable === "CPI Homeowners insurance"
+  );
   // CPI Canada
-  const renterInsuranceIncrease = allRates.filter((d) =>
-    d.variable === "CPI Tenants insurance"
-  ).map((
-    d: { monthlyPercentChange: number },
-  ) => d.monthlyPercentChange);
+  const canadaRenterInsuranceIncrease = allRates.filter((d) =>
+    d.geo === "Canada" && d.variable === "CPI Tenants insurance"
+  );
   // CPI Quebec
-  const maintenanceIncrease = allRates.filter((d) =>
-    d.variable === "CPI Homeowners maintenance"
-  ).map((
-    d: { monthlyPercentChange: number },
-  ) => d.monthlyPercentChange);
+  const quebecMaintenanceIncrease = allRates.filter((d) =>
+    d.geo === "Quebec" && d.variable === "CPI Homeowners maintenance"
+  );
   // CPI Quebec
-  const propertyTaxIncrease = allRates.filter((d) =>
-    d.variable === "CPI Property taxes & others"
-  ).map((
-    d: { monthlyPercentChange: number },
-  ) => d.monthlyPercentChange);
+  const quebecPropertyTaxIncrease = allRates.filter((d) =>
+    d.geo === "Quebec" && d.variable === "CPI Property taxes & others"
+  );
   // CPI Quebec Owned accommodation
-  const condoFeeIncrease = allRates.filter((d) =>
-    d.variable === "CPI Owned accommodation"
-  ).map((
-    d: { monthlyPercentChange: number },
-  ) => d.monthlyPercentChange);
+  const quebecCondoFeeIncrease = allRates.filter((d) =>
+    d.geo === "Quebec" && d.variable === "CPI Owned accommodation"
+  );
   // CREA Apartment Montreal
-  const appreciationIncrease = allRates.filter((d) =>
-    d.variable === "Apartment purchase price"
-  ).map((
-    d: { monthlyPercentChange: number },
-  ) => d.monthlyPercentChange);
+  const montrealAppreciationIncrease = allRates.filter((d) =>
+    d.geo === "Montreal" && d.variable === "Apartment price"
+  );
   // All-items CPI Quebec
-  const sellingFixedFeesIncrease = allRates.filter((d) =>
-    d.variable === "CPI All-items"
-  ).map((
-    d: { monthlyPercentChange: number },
-  ) => d.monthlyPercentChange);
+  const quebecSellingFixedFeesIncrease = allRates.filter((d) =>
+    d.geo === "Quebec" && d.variable === "CPI All-items"
+  );
   // Bank of Canada
   const fiveYearInterestRates = allRates.filter((d) =>
-    d.variable === "Five-year fixed mortgage rate"
-  ).map((
-    d: { value: number },
-  ) => d.value);
+    d.geo === "Canada" && d.variable === "Five-year fixed mortgage rate"
+  );
   // Bank of Canada interpolated
   const fourYearInterestRates = allRates.filter((d) =>
-    d.variable === "Four-year fixed mortgage rate"
-  ).map((
-    d: { value: number },
-  ) => d.value);
+    d.geo === "Canada" && d.variable === "Four-year fixed mortgage rate"
+  );
   // Bank of Canada
   const threeYearInterestRates = allRates.filter((d) =>
-    d.variable === "Three-year fixed mortgage rate"
-  ).map((
-    d: { value: number },
-  ) => d.value);
+    d.geo === "Canada" && d.variable === "Three-year fixed mortgage rate"
+  );
   // Bank of Canada interpolated
   const twoYearInterestRates = allRates.filter((d) =>
-    d.variable === "Two-year fixed mortgage rate"
-  ).map((
-    d: { value: number },
-  ) => d.value);
+    d.geo === "Canada" && d.variable === "Two-year fixed mortgage rate"
+  );
   // Bank of Canada
   const oneYearInterestRates = allRates.filter((d) =>
-    d.variable === "One-year fixed mortgage rate"
-  ).map((
-    d: { value: number },
-  ) => d.value);
+    d.geo === "Canada" && d.variable === "One-year fixed mortgage rate"
+  );
   const variableInterestRates = allRates.filter((d) =>
-    d.variable === "Bank prime rate"
-  ).map((
-    d: { value: number },
-  ) => d.value);
+    d.geo === "Canada" && d.variable === "Bank of Canada prime rate"
+  );
+
+  const allRatesFiltered = [
+    ...montrealAppreciationIncrease,
+    ...marketReturnRate,
+    ...montrealRentIncrease,
+    ...quebecOwnerInsuranceIncrease,
+    ...canadaRenterInsuranceIncrease,
+    ...quebecMaintenanceIncrease,
+    ...quebecPropertyTaxIncrease,
+    ...quebecCondoFeeIncrease,
+    ...quebecSellingFixedFeesIncrease,
+    ...fiveYearInterestRates,
+    ...fourYearInterestRates,
+    ...threeYearInterestRates,
+    ...twoYearInterestRates,
+    ...oneYearInterestRates,
+    ...variableInterestRates,
+  ];
 
   const results = simulateRentVsBuy({
     startingYear: 2000,
@@ -121,28 +110,36 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       sellingCommissionRate: 0.04,
     },
     rates: {
-      marketReturnRate,
-      rentIncrease,
-      ownerInsuranceIncrease,
-      renterInsuranceIncrease,
-      fiveYearInterestRates,
-      fourYearInterestRates,
-      threeYearInterestRates,
-      twoYearInterestRates,
-      oneYearInterestRates,
-      variableInterestRates,
-      maintenanceIncrease,
-      propertyTaxIncrease,
-      condoFeeIncrease,
-      appreciationIncrease,
-      sellingFixedFeesIncrease,
+      marketReturnRate: marketReturnRate.map((d) => d.pctChange),
+      rentIncrease: montrealRentIncrease.map((d) => d.pctChange),
+      ownerInsuranceIncrease: quebecOwnerInsuranceIncrease.map((d) =>
+        d.pctChange
+      ),
+      renterInsuranceIncrease: canadaRenterInsuranceIncrease.map((d) =>
+        d.pctChange
+      ),
+      fiveYearInterestRates: fiveYearInterestRates.map((d) => d.value),
+      fourYearInterestRates: fourYearInterestRates.map((d) => d.value),
+      threeYearInterestRates: threeYearInterestRates.map((d) => d.value),
+      twoYearInterestRates: twoYearInterestRates.map((d) => d.value),
+      oneYearInterestRates: oneYearInterestRates.map((d) => d.value),
+      variableInterestRates: variableInterestRates.map((d) => d.value),
+      maintenanceIncrease: quebecMaintenanceIncrease.map((d) => d.pctChange),
+      propertyTaxIncrease: quebecPropertyTaxIncrease.map((d) => d.pctChange),
+      condoFeeIncrease: quebecCondoFeeIncrease.map((d) => d.pctChange),
+      appreciationIncrease: montrealAppreciationIncrease.map((d) =>
+        d.pctChange
+      ),
+      sellingFixedFeesIncrease: quebecSellingFixedFeesIncrease.map((d) =>
+        d.pctChange
+      ),
     },
   });
 
   // Chart of all values used (indexed)
   await saveChart(
-    allRates.map((d) => ({
-      date: new Date(d.date),
+    allRatesFiltered.filter((d) => ![""].includes(d.variable)).map((d) => ({
+      date: new Date(Date.UTC(d.year, d.month - 1, 1)),
       variable: d.variable,
       value: d.indexedValue,
     })),
@@ -182,7 +179,15 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
               fy: (d) => fy(d.variable),
             },
           ),
-          text(keys, { fx, fy, frameAnchor: "top-left", dx: 6, dy: 6 }),
+          text(keys, {
+            fx,
+            fy,
+            frameAnchor: "top-left",
+            dx: 6,
+            dy: 6,
+            fill: "black",
+            stroke: "white",
+          }),
           frame(),
         ],
       });
@@ -193,12 +198,12 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
 
   // Chart of all rates used
   await saveChart(
-    allRates.map((d) => ({
-      date: new Date(d.date),
+    allRatesFiltered.filter((d) =>
+      !["Nasdaq", "S&P 500", "Dow Jones"].includes(d.variable)
+    ).map((d) => ({
+      date: new Date(Date.UTC(d.year, d.month - 1, 1)),
       variable: d.variable,
-      value: !d.variable.toLowerCase().includes("rate")
-        ? d.monthlyPercentChange
-        : d.value,
+      value: !d.variable.toLowerCase().includes("rate") ? d.pctChange : d.value,
     })),
     (data) => {
       if (!Array.isArray(data)) {
@@ -567,7 +572,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 44.52,
+          amount: 44.81,
           category: "renter",
           group: "monthlyExpenses",
           variable: "insurance",
@@ -605,7 +610,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 50,
+          amount: 50.24,
           category: "buyerFixed",
           group: "monthlyExpenses",
           variable: "insurance",
@@ -615,7 +620,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 20.93,
+          amount: 21.19,
           category: "buyerFixed",
           group: "monthlyExpenses",
           variable: "maintenance",
@@ -635,7 +640,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 150.16,
+          amount: 150.65,
           category: "buyerFixed",
           group: "monthlyExpenses",
           variable: "condoFees",
@@ -673,7 +678,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 50,
+          amount: 50.24,
           category: "buyerVariable",
           group: "monthlyExpenses",
           variable: "insurance",
@@ -683,7 +688,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 20.93,
+          amount: 21.19,
           category: "buyerVariable",
           group: "monthlyExpenses",
           variable: "maintenance",
@@ -703,7 +708,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 150.16,
+          amount: 150.65,
           category: "buyerVariable",
           group: "monthlyExpenses",
           variable: "condoFees",
@@ -879,11 +884,11 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 0,
           monthIndex: 0,
           date: "2000-01-01T00:00:00.000Z",
-          amount: 10945.17,
+          amount: 10628.19,
           category: "buyerFixed",
           group: "monthlyGains",
           variable: "homeEquityGains",
-          homeValue: 105451.98,
+          homeValue: 105135,
         },
         {
           year: 2000,
@@ -900,11 +905,11 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 0,
           monthIndex: 0,
           date: "2000-01-01T00:00:00.000Z",
-          amount: 10954.41,
+          amount: 10637.43,
           category: "buyerVariable",
           group: "monthlyGains",
           variable: "homeEquityGains",
-          homeValue: 105451.98,
+          homeValue: 105135,
         },
       ],
     );
@@ -976,7 +981,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 1183.36,
+          amount: 1590.87,
           category: "renter",
           group: "monthlyGains",
           variable: "stocksGains",
@@ -986,7 +991,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 452.98,
+          amount: 453.68,
           category: "renter",
           group: "monthlyGains",
           variable: "newStocks",
@@ -996,18 +1001,18 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 533.09,
+          amount: 535.41,
           category: "buyerFixed",
           group: "monthlyGains",
           variable: "homeEquityGains",
-          homeValue: 105870.2,
+          homeValue: 105555.54,
         },
         {
           year: 2000,
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 2.26,
+          amount: 3.04,
           category: "buyerVariable",
           group: "monthlyGains",
           variable: "stocksGains",
@@ -1027,11 +1032,11 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 542.33,
+          amount: 544.65,
           category: "buyerVariable",
           group: "monthlyGains",
           variable: "homeEquityGains",
-          homeValue: 105870.2,
+          homeValue: 105555.54,
         },
       ],
     );
