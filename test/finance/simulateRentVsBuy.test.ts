@@ -32,10 +32,6 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
   const quebecPropertyTaxIncrease = allRates.filter((d) =>
     d.geo === "Quebec" && d.variable === "CPI Property taxes & others"
   );
-  // CPI Quebec Owned accommodation
-  const quebecCondoFeeIncrease = allRates.filter((d) =>
-    d.geo === "Quebec" && d.variable === "CPI Owned accommodation"
-  );
   // CREA Apartment Montreal
   const montrealAppreciationIncrease = allRates.filter((d) =>
     d.geo === "Montreal" && d.variable === "Apartment price"
@@ -76,7 +72,6 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
     ...canadaRenterInsuranceIncrease,
     ...quebecMaintenanceIncrease,
     ...quebecPropertyTaxIncrease,
-    ...quebecCondoFeeIncrease,
     ...quebecSellingFixedFeesIncrease,
     ...fiveYearInterestRates,
     ...fourYearInterestRates,
@@ -102,8 +97,8 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       purchaseFixedFees: 2_100, // 2% of purchase price
       fixedRateDiscount: 0.01, // Just for fixed mortgage
       variableRateMargin: 0.0015, // Just for variable mortgage
-      startingAnnualMaintenanceCost: 250, // Not much, since it's a condo. This is 500$ in 2024. CPI 'mantenance and repairs' was 88.2 in 2000 and 178 in 2024
-      startingMonthlyCondoFees: 150, // 300$ adjusted to inflation 'Owned accommodation' CPI was 93.1 in 2000 and 189.8 in 2024
+      startingAnnualMaintenanceCost: 500, // Not much, since it's a condo. This is 1000$ in 2024. CPI 'mantenance and repairs' was 88.2 in 2000 and 178 in 2024
+      startingMonthlyCondoFees: 150, // 300$ adjusted to inflation CPI 'mantenance and repairs' was 88.2 in 2000 and 178 in 2024
       startingAnnualPropertyTax: 1300, // 1700$ property taxe + 300$ school tax adjusted to inflation. CPI 'property taxes' was 88.5 in 2000 and 178.2 in 2024
       startingMonthlyInsurance: 50, // Condo, so just partial insurance. Just a bit more than renter. 83.2 in 2000 and 233.3 in 2024
       sellingFixedFees: 900, // $1500 in 2000 adjusted to 2000 inflation. All-items CPI Quebec was 94.1 in 2000 and 157.5 in 2024
@@ -126,7 +121,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       variableInterestRates: variableInterestRates.map((d) => d.value),
       maintenanceIncrease: quebecMaintenanceIncrease.map((d) => d.pctChange),
       propertyTaxIncrease: quebecPropertyTaxIncrease.map((d) => d.pctChange),
-      condoFeeIncrease: quebecCondoFeeIncrease.map((d) => d.pctChange),
+      condoFeeIncrease: quebecMaintenanceIncrease.map((d) => d.pctChange),
       appreciationIncrease: montrealAppreciationIncrease.map((d) =>
         d.pctChange
       ),
@@ -136,9 +131,9 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
     },
   });
 
-  // Chart of all values used (indexed)
+  // Chart of all values used (indexed), except mortgage rates
   await saveChart(
-    allRatesFiltered.filter((d) => ![""].includes(d.variable)).map((d) => ({
+    allRatesFiltered.filter((d) => !d.variable.includes("rate")).map((d) => ({
       date: new Date(Date.UTC(d.year, d.month - 1, 1)),
       variable: d.variable,
       value: d.indexedValue,
@@ -157,12 +152,10 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       const fy = (key) => Math.floor(index.get(key) / n);
 
       return plot({
-        title: "Historical indicators (Montreal)",
+        title: "Historical indicators",
         subtitle: "Values indexed to 100 at the start date.",
         y: { insetTop: 20, grid: true, ticks: 5, nice: true },
         x: { ticks: 5, grid: true },
-        height: 600,
-        width: 800,
         fx: { tickFormat: (d) => "" },
         fy: { tickFormat: (d) => "" },
         marks: [
@@ -196,14 +189,12 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
     { style: "body { width: 700px; }" },
   );
 
-  // Chart of all rates used
+  // Chart of all rates used, except mortgage rates
   await saveChart(
-    allRatesFiltered.filter((d) =>
-      !["Nasdaq", "S&P 500", "Dow Jones"].includes(d.variable)
-    ).map((d) => ({
+    allRatesFiltered.filter((d) => !d.variable.includes("rate")).map((d) => ({
       date: new Date(Date.UTC(d.year, d.month - 1, 1)),
       variable: d.variable,
-      value: !d.variable.toLowerCase().includes("rate") ? d.pctChange : d.value,
+      value: d.pctChange,
     })),
     (data) => {
       if (!Array.isArray(data)) {
@@ -219,11 +210,9 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       const fy = (key) => Math.floor(index.get(key) / n);
 
       return plot({
-        title: "Monthly rates used in simulation (Montreal)",
+        title: "Monthly rates used in simulation",
         y: { insetTop: 20, tickFormat: "%", grid: true, ticks: 5, nice: true },
         x: { ticks: 5, grid: true },
-        height: 600,
-        width: 800,
         fx: { tickFormat: (d) => "" },
         fy: { tickFormat: (d) => "" },
         marks: [
@@ -245,6 +234,54 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       });
     },
     "test/output/montreal-all-rates.png",
+    { style: "body { width: 700px; }" },
+  );
+
+  // Chart of mortgage rates
+  await saveChart(
+    allRatesFiltered.filter((d) => d.variable.includes("rate")).map((d) => ({
+      date: new Date(Date.UTC(d.year, d.month - 1, 1)),
+      variable: d.variable,
+      value: d.value,
+    })),
+    (data) => {
+      if (!Array.isArray(data)) {
+        throw new Error("Data should be an array");
+      }
+
+      const n = 3; // number of facet columns
+      const keys = Array.from(new Set(data.map((d) => d.variable)));
+      const index = new Map(keys.map((key, i) => [key, i]));
+      //@ts-expect-error It's okay
+      const fx = (key) => index.get(key) % n;
+      //@ts-expect-error It's okay
+      const fy = (key) => Math.floor(index.get(key) / n);
+
+      return plot({
+        title: "Mortgage rates used in simulation",
+        y: { insetTop: 20, tickFormat: "%", grid: true, ticks: 5, nice: true },
+        x: { ticks: 5, grid: true },
+        fx: { tickFormat: (d) => "" },
+        fy: { tickFormat: (d) => "" },
+        marks: [
+          line(
+            data,
+            {
+              x: "date",
+              y: "value",
+              stroke: "black",
+              // curve: "step",
+              strokeWidth: 1,
+              fx: (d) => fx(d.variable),
+              fy: (d) => fy(d.variable),
+            },
+          ),
+          text(keys, { fx, fy, frameAnchor: "top-left", dx: 6, dy: 6 }),
+          frame(),
+        ],
+      });
+    },
+    "test/output/montreal-all-mortgage-rates.png",
     { style: "body { width: 700px; }" },
   );
 
@@ -339,7 +376,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 0,
           monthIndex: 0,
           date: "2000-01-01T00:00:00.000Z",
-          amount: 21,
+          amount: 42,
           category: "buyerFixed",
           group: "monthlyExpenses",
           variable: "maintenance",
@@ -437,7 +474,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 0,
           monthIndex: 0,
           date: "2000-01-01T00:00:00.000Z",
-          amount: 21,
+          amount: 42,
           category: "buyerVariable",
           group: "monthlyExpenses",
           variable: "maintenance",
@@ -620,7 +657,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 21.19,
+          amount: 42.38,
           category: "buyerFixed",
           group: "monthlyExpenses",
           variable: "maintenance",
@@ -640,7 +677,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 150.65,
+          amount: 151.36,
           category: "buyerFixed",
           group: "monthlyExpenses",
           variable: "condoFees",
@@ -688,7 +725,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 21.19,
+          amount: 42.38,
           category: "buyerVariable",
           group: "monthlyExpenses",
           variable: "maintenance",
@@ -708,7 +745,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 150.65,
+          amount: 151.36,
           category: "buyerVariable",
           group: "monthlyExpenses",
           variable: "condoFees",
@@ -874,7 +911,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 0,
           monthIndex: 0,
           date: "2000-01-01T00:00:00.000Z",
-          amount: 15490.41,
+          amount: 15511.41,
           category: "renter",
           group: "monthlyGains",
           variable: "newStocks",
@@ -981,7 +1018,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 1590.87,
+          amount: 1593.02,
           category: "renter",
           group: "monthlyGains",
           variable: "stocksGains",
@@ -991,7 +1028,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 453.68,
+          amount: 475.58,
           category: "renter",
           group: "monthlyGains",
           variable: "newStocks",
