@@ -167,7 +167,7 @@ export default function variableMortgagePayments(
       amountPaid: round(amountPaid, options),
       interestPaid: round(interestPaid, options),
       capitalPaid: round(capitalPaid, options),
-      rate: round(currentRate, { decimals: 2 }),
+      rate: currentRate,
     });
 
     if (options.debug) {

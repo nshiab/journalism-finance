@@ -67,9 +67,6 @@ export default function computeExpenses(
     variableRateMargin: number;
   } | null,
 ) {
-  // Common expenses
-  persona.monthlyExpenses.insurance = persona.params.monthlyInsurance;
-
   if (mortgagePayment) {
     // Buyer expenses
     persona.monthlyExpenses.mortgageCapital = mortgagePayment.capital;
@@ -77,6 +74,7 @@ export default function computeExpenses(
     persona.monthlyExpenses.maintenance = persona.params.monthlyMaintenanceCost;
     persona.monthlyExpenses.propertyTax = persona.params.monthlyPropertyTax;
     persona.monthlyExpenses.condoFees = persona.params.monthlyCondoFees;
+    persona.monthlyExpenses.insurance = persona.params.monthlyInsurance;
 
     persona.cumulativeExpenses.mortgageCapital = round(
       persona.cumulativeExpenses.mortgageCapital +
@@ -138,9 +136,14 @@ export default function computeExpenses(
   } else {
     // Renter expenses
     persona.monthlyExpenses.rent = persona.params.monthlyRent;
+    persona.monthlyExpenses.insurance = persona.params.monthlyInsurance;
 
     persona.cumulativeExpenses.rent = round(
       persona.cumulativeExpenses.rent + persona.monthlyExpenses.rent,
+      { decimals: 2 },
+    );
+    persona.cumulativeExpenses.insurance = round(
+      persona.cumulativeExpenses.insurance + persona.monthlyExpenses.insurance,
       { decimals: 2 },
     );
 
