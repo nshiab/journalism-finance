@@ -76,8 +76,11 @@ export default function computeSale(
   }
 
   // Now we calculate the sale gains
-  persona.saleNetGains.stockSellingGains = persona.assets.stocks -
-    persona.saleCosts.stockTaxes;
+  persona.saleNetGains.stockSellingGains = round(
+    persona.assets.stocks -
+      persona.saleCosts.stockTaxes,
+    { decimals: 2 },
+  );
   persona.saleNetGains.tfsaSellingGains = persona.assets.tfsa;
   persona.saleNetGains.homeSellingGains = round(
     persona.params.homeValue -

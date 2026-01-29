@@ -1939,6 +1939,192 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
 
   const cumulativeGains = results.filter((d) => d.group === "cumulativeGains");
 
+  const cumulativeGainsLastMonth = cumulativeGains.filter((d) =>
+    d.monthIndex === (numberOfYears * 12) - 1 && d.group === "cumulativeGains"
+  );
+
+  // console.log(cumulativeGainsLastMonth.map((d) => ({
+  //   ...d,
+  //   date: d.date.toISOString(),
+  // })));
+
+  await t.step("cumulative gains last month", async () => {
+    assertEquals(
+      cumulativeGainsLastMonth.map((d) => ({
+        ...d,
+        date: d.date.toISOString(),
+      })),
+      [
+        {
+          year: 2024,
+          month: 11,
+          monthIndex: 299,
+          date: "2024-12-01T00:00:00.000Z",
+          amount: 34245.44,
+          category: "renter",
+          group: "cumulativeGains",
+          variable: "tfsaGains",
+        },
+        {
+          year: 2024,
+          month: 11,
+          monthIndex: 299,
+          date: "2024-12-01T00:00:00.000Z",
+          amount: 43880.71,
+          category: "renter",
+          group: "cumulativeGains",
+          variable: "tfsaContribution",
+        },
+        {
+          year: 2024,
+          month: 11,
+          monthIndex: 299,
+          date: "2024-12-01T00:00:00.000Z",
+          amount: 107104.43,
+          category: "renter",
+          group: "cumulativeGains",
+          variable: "stocksGains",
+        },
+        {
+          year: 2024,
+          month: 11,
+          monthIndex: 299,
+          date: "2024-12-01T00:00:00.000Z",
+          amount: 59230.78,
+          category: "renter",
+          group: "cumulativeGains",
+          variable: "newStocks",
+        },
+        {
+          year: 2024,
+          month: 11,
+          monthIndex: 299,
+          date: "2024-12-01T00:00:00.000Z",
+          amount: 0.09,
+          category: "buyerFixed",
+          group: "cumulativeGains",
+          variable: "tfsaGains",
+        },
+        {
+          year: 2024,
+          month: 11,
+          monthIndex: 299,
+          date: "2024-12-01T00:00:00.000Z",
+          amount: 51.3,
+          category: "buyerFixed",
+          group: "cumulativeGains",
+          variable: "tfsaContribution",
+        },
+        {
+          year: 2024,
+          month: 11,
+          monthIndex: 299,
+          date: "2024-12-01T00:00:00.000Z",
+          amount: 412185.37,
+          category: "buyerFixed",
+          group: "cumulativeGains",
+          variable: "homeEquityGains",
+        },
+        {
+          year: 2024,
+          month: 11,
+          monthIndex: 299,
+          date: "2024-12-01T00:00:00.000Z",
+          amount: 8990.58,
+          category: "buyerVariable",
+          group: "cumulativeGains",
+          variable: "tfsaGains",
+        },
+        {
+          year: 2024,
+          month: 11,
+          monthIndex: 299,
+          date: "2024-12-01T00:00:00.000Z",
+          amount: 11846.84,
+          category: "buyerVariable",
+          group: "cumulativeGains",
+          variable: "tfsaContribution",
+        },
+        {
+          year: 2024,
+          month: 11,
+          monthIndex: 299,
+          date: "2024-12-01T00:00:00.000Z",
+          amount: 7425.3,
+          category: "buyerVariable",
+          group: "cumulativeGains",
+          variable: "stocksGains",
+        },
+        {
+          year: 2024,
+          month: 11,
+          monthIndex: 299,
+          date: "2024-12-01T00:00:00.000Z",
+          amount: 5072.52,
+          category: "buyerVariable",
+          group: "cumulativeGains",
+          variable: "newStocks",
+        },
+        {
+          year: 2024,
+          month: 11,
+          monthIndex: 299,
+          date: "2024-12-01T00:00:00.000Z",
+          amount: 412185.37,
+          category: "buyerVariable",
+          group: "cumulativeGains",
+          variable: "homeEquityGains",
+        },
+      ],
+    );
+  });
+
+  // We want to ensure that starting on 2009, the buyer's TFSA gains start accumulating
+  const cumulativeGainsBeforeTFSA = cumulativeGains.filter((d) =>
+    d.year === 2008 && d.month === 11 && d.group === "cumulativeGains"
+  );
+  const buyerFixedNewStocksBeforeTFSA =
+    cumulativeGainsBeforeTFSA.find((d) =>
+      d.category === "buyerFixed" && d.variable === "newStocks"
+    )?.amount ?? 0;
+  const buyerFixedNewStocksAfterTFSA =
+    cumulativeGainsLastMonth.find((d) =>
+      d.category === "buyerFixed" && d.variable === "newStocks"
+    )?.amount ?? 0;
+
+  await t.step("No new stocks after 2009 (buyerFixed)", async () => {
+    assertEquals(buyerFixedNewStocksBeforeTFSA, buyerFixedNewStocksAfterTFSA);
+  });
+
+  const buyerVariableNewStocksBeforeTFSA =
+    cumulativeGainsBeforeTFSA.find((d) =>
+      d.category === "buyerVariable" && d.variable === "newStocks"
+    )?.amount ?? 0;
+  const buyerVariableNewStocksAfterTFSA =
+    cumulativeGainsLastMonth.find((d) =>
+      d.category === "buyerVariable" && d.variable === "newStocks"
+    )?.amount ?? 0;
+
+  await t.step("No new stocks after 2009 (buyerVariable)", async () => {
+    assertEquals(
+      buyerVariableNewStocksBeforeTFSA,
+      buyerVariableNewStocksAfterTFSA,
+    );
+  });
+
+  const renterNewStocksBeforeTFSA =
+    cumulativeGainsBeforeTFSA.find((d) =>
+      d.category === "renter" && d.variable === "newStocks"
+    )?.amount ?? 0;
+  const renterNewStocksAfterTFSA =
+    cumulativeGainsLastMonth.find((d) =>
+      d.category === "renter" && d.variable === "newStocks"
+    )?.amount ?? 0;
+
+  await t.step("No new stocks after 2009 (renter)", async () => {
+    assertEquals(renterNewStocksBeforeTFSA, renterNewStocksAfterTFSA);
+  });
+
   await saveChart(
     cumulativeGains,
     (data) =>
@@ -1981,6 +2167,106 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
   );
 
   const assets = results.filter((d) => d.group === "assets");
+
+  const assetsLastMonth = assets.filter((d) =>
+    d.monthIndex === (numberOfYears * 12) - 1 && d.group === "assets"
+  );
+
+  // console.log(assetsLastMonth.map((d) => ({
+  //   ...d,
+  //   date: d.date.toISOString(),
+  // })));
+
+  await t.step("assets last month", async () => {
+    assertEquals(
+      assetsLastMonth.map((d) => ({
+        ...d,
+        date: d.date.toISOString(),
+      })),
+      [
+        {
+          year: 2024,
+          month: 11,
+          monthIndex: 299,
+          date: "2024-12-01T00:00:00.000Z",
+          amount: 78126.15,
+          category: "renter",
+          group: "assets",
+          variable: "tfsa",
+        },
+        {
+          year: 2024,
+          month: 11,
+          monthIndex: 299,
+          date: "2024-12-01T00:00:00.000Z",
+          amount: 166335.21,
+          category: "renter",
+          group: "assets",
+          variable: "stocks",
+        },
+        {
+          year: 2024,
+          month: 11,
+          monthIndex: 299,
+          date: "2024-12-01T00:00:00.000Z",
+          amount: 509,
+          category: "renter",
+          group: "assets",
+          variable: "securityDeposit",
+        },
+        {
+          year: 2024,
+          month: 11,
+          monthIndex: 299,
+          date: "2024-12-01T00:00:00.000Z",
+          amount: 51.39,
+          category: "buyerFixed",
+          group: "assets",
+          variable: "tfsa",
+        },
+        {
+          year: 2024,
+          month: 11,
+          monthIndex: 299,
+          date: "2024-12-01T00:00:00.000Z",
+          amount: 412185.37,
+          category: "buyerFixed",
+          group: "assets",
+          variable: "homeEquity",
+        },
+        {
+          year: 2024,
+          month: 11,
+          monthIndex: 299,
+          date: "2024-12-01T00:00:00.000Z",
+          amount: 20837.42,
+          category: "buyerVariable",
+          group: "assets",
+          variable: "tfsa",
+        },
+        {
+          year: 2024,
+          month: 11,
+          monthIndex: 299,
+          date: "2024-12-01T00:00:00.000Z",
+          amount: 12497.82,
+          category: "buyerVariable",
+          group: "assets",
+          variable: "stocks",
+        },
+        {
+          year: 2024,
+          month: 11,
+          monthIndex: 299,
+          date: "2024-12-01T00:00:00.000Z",
+          amount: 412185.37,
+          category: "buyerVariable",
+          group: "assets",
+          variable: "homeEquity",
+        },
+      ],
+    );
+  });
 
   await saveChart(
     assets,
@@ -2025,6 +2311,86 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
 
   const saleCosts = results.filter((d) => d.group === "saleCosts");
 
+  const saleCostsLastMonth = saleCosts.filter((d) =>
+    d.monthIndex === (numberOfYears * 12) - 1 && d.group === "saleCosts"
+  );
+
+  // console.log(saleCostsLastMonth.map((d) => ({
+  //   ...d,
+  //   date: d.date.toISOString(),
+  // })));
+
+  await t.step("sale costs last month", async () => {
+    assertEquals(
+      saleCostsLastMonth.map((d) => ({
+        ...d,
+        date: d.date.toISOString(),
+      })),
+      [
+        {
+          year: 2024,
+          month: 11,
+          monthIndex: 299,
+          date: "2024-12-01T00:00:00.000Z",
+          amount: 12317.01,
+          category: "renter",
+          group: "saleCosts",
+          variable: "stockTaxes",
+        },
+        {
+          year: 2024,
+          month: 11,
+          monthIndex: 299,
+          date: "2024-12-01T00:00:00.000Z",
+          amount: 16487.41,
+          category: "buyerFixed",
+          group: "saleCosts",
+          variable: "homeSellingCommission",
+        },
+        {
+          year: 2024,
+          month: 11,
+          monthIndex: 299,
+          date: "2024-12-01T00:00:00.000Z",
+          amount: 1504.73,
+          category: "buyerFixed",
+          group: "saleCosts",
+          variable: "homeSellingFixedFees",
+        },
+        {
+          year: 2024,
+          month: 11,
+          monthIndex: 299,
+          date: "2024-12-01T00:00:00.000Z",
+          amount: 853.91,
+          category: "buyerVariable",
+          group: "saleCosts",
+          variable: "stockTaxes",
+        },
+        {
+          year: 2024,
+          month: 11,
+          monthIndex: 299,
+          date: "2024-12-01T00:00:00.000Z",
+          amount: 16487.41,
+          category: "buyerVariable",
+          group: "saleCosts",
+          variable: "homeSellingCommission",
+        },
+        {
+          year: 2024,
+          month: 11,
+          monthIndex: 299,
+          date: "2024-12-01T00:00:00.000Z",
+          amount: 1504.73,
+          category: "buyerVariable",
+          group: "saleCosts",
+          variable: "homeSellingFixedFees",
+        },
+      ],
+    );
+  });
+
   await saveChart(
     saleCosts,
     (data) =>
@@ -2067,6 +2433,106 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
   );
 
   const saleNetGains = results.filter((d) => d.group === "saleNetGains");
+
+  const saleNetGainsLastMonth = saleNetGains.filter((d) =>
+    d.monthIndex === (numberOfYears * 12) - 1 && d.group === "saleNetGains"
+  );
+
+  // console.log(saleNetGainsLastMonth.map((d) => ({
+  //   ...d,
+  //   date: d.date.toISOString(),
+  // })));
+
+  await t.step("sale net gains last month", async () => {
+    assertEquals(
+      saleNetGainsLastMonth.map((d) => ({
+        ...d,
+        date: d.date.toISOString(),
+      })),
+      [
+        {
+          year: 2024,
+          month: 11,
+          monthIndex: 299,
+          date: "2024-12-01T00:00:00.000Z",
+          amount: 154018.2,
+          category: "renter",
+          group: "saleNetGains",
+          variable: "stockSellingGains",
+        },
+        {
+          year: 2024,
+          month: 11,
+          monthIndex: 299,
+          date: "2024-12-01T00:00:00.000Z",
+          amount: 78126.15,
+          category: "renter",
+          group: "saleNetGains",
+          variable: "tfsaSellingGains",
+        },
+        {
+          year: 2024,
+          month: 11,
+          monthIndex: 299,
+          date: "2024-12-01T00:00:00.000Z",
+          amount: 509,
+          category: "renter",
+          group: "saleNetGains",
+          variable: "securityDeposit",
+        },
+        {
+          year: 2024,
+          month: 11,
+          monthIndex: 299,
+          date: "2024-12-01T00:00:00.000Z",
+          amount: 51.39,
+          category: "buyerFixed",
+          group: "saleNetGains",
+          variable: "tfsaSellingGains",
+        },
+        {
+          year: 2024,
+          month: 11,
+          monthIndex: 299,
+          date: "2024-12-01T00:00:00.000Z",
+          amount: 394193.23,
+          category: "buyerFixed",
+          group: "saleNetGains",
+          variable: "homeSellingGains",
+        },
+        {
+          year: 2024,
+          month: 11,
+          monthIndex: 299,
+          date: "2024-12-01T00:00:00.000Z",
+          amount: 11643.91,
+          category: "buyerVariable",
+          group: "saleNetGains",
+          variable: "stockSellingGains",
+        },
+        {
+          year: 2024,
+          month: 11,
+          monthIndex: 299,
+          date: "2024-12-01T00:00:00.000Z",
+          amount: 20837.42,
+          category: "buyerVariable",
+          group: "saleNetGains",
+          variable: "tfsaSellingGains",
+        },
+        {
+          year: 2024,
+          month: 11,
+          monthIndex: 299,
+          date: "2024-12-01T00:00:00.000Z",
+          amount: 394193.23,
+          category: "buyerVariable",
+          group: "saleNetGains",
+          variable: "homeSellingGains",
+        },
+      ],
+    );
+  });
 
   await saveChart(
     saleNetGains,
@@ -2252,6 +2718,59 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
     d.group === "summaryCumulative" && d.variable === "balanceAfterSelling"
   );
 
+  const overallBalanceAfterSellingLastMonth = overallBalanceAfterSelling.filter(
+    (d) =>
+      d.monthIndex === (numberOfYears * 12) - 1 &&
+      d.group === "summaryCumulative" &&
+      d.variable === "balanceAfterSelling",
+  );
+
+  // console.log(overallBalanceAfterSellingLastMonth.map((d) => ({
+  //   ...d,
+  //   date: d.date.toISOString(),
+  // })));
+
+  await t.step("overall balance after selling last month", async () => {
+    assertEquals(
+      overallBalanceAfterSellingLastMonth.map((d) => ({
+        ...d,
+        date: d.date.toISOString(),
+      })),
+      [
+        {
+          year: 2024,
+          month: 11,
+          monthIndex: 299,
+          date: "2024-12-01T00:00:00.000Z",
+          amount: -3339.66,
+          category: "renter",
+          group: "summaryCumulative",
+          variable: "balanceAfterSelling",
+        },
+        {
+          year: 2024,
+          month: 11,
+          monthIndex: 299,
+          date: "2024-12-01T00:00:00.000Z",
+          amount: 55191.42,
+          category: "buyerFixed",
+          group: "summaryCumulative",
+          variable: "balanceAfterSelling",
+        },
+        {
+          year: 2024,
+          month: 11,
+          monthIndex: 299,
+          date: "2024-12-01T00:00:00.000Z",
+          amount: 104489.42,
+          category: "buyerVariable",
+          group: "summaryCumulative",
+          variable: "balanceAfterSelling",
+        },
+      ],
+    );
+  });
+
   await saveChart(
     overallBalanceAfterSelling,
     (data) =>
@@ -2270,6 +2789,8 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
               : `$${d / 1_000_000}M`,
         },
         x: {
+          ticks: 4,
+          tickFormat: (d) => d.toISOString().slice(0, 4).replace("20", "'"),
           nice: true,
         },
         fx: {

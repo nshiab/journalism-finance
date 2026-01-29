@@ -1,3 +1,5 @@
+import { round } from "@nshiab/journalism-format";
+
 export default function computeBalances(persona: {
   params: {
     monthlyRent: number;
@@ -92,7 +94,9 @@ export default function computeBalances(persona: {
     (sum, value) => sum + value,
     0,
   );
-  persona.summary.balance = totalMonthlyGains - totalMonthlyExpenses;
+  persona.summary.balance = round(totalMonthlyGains - totalMonthlyExpenses, {
+    decimals: 2,
+  });
 
   // Cumulative balance
   const totalCumulativeExpenses = Object.values(
@@ -102,14 +106,23 @@ export default function computeBalances(persona: {
     (sum, value) => sum + value,
     0,
   );
-  persona.summaryCumulative.balance = totalCumulativeGains -
-    totalCumulativeExpenses;
-
+  persona.summaryCumulative.balance = round(
+    totalCumulativeGains -
+      totalCumulativeExpenses,
+    {
+      decimals: 2,
+    },
+  );
   // Balance after selling
   const totalSaleNetGains = Object.values(persona.saleNetGains).reduce(
     (sum, value) => sum + value,
     0,
   );
-  persona.summaryCumulative.balanceAfterSelling = totalSaleNetGains -
-    totalCumulativeExpenses;
+  persona.summaryCumulative.balanceAfterSelling = round(
+    totalSaleNetGains -
+      totalCumulativeExpenses,
+    {
+      decimals: 2,
+    },
+  );
 }
