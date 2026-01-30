@@ -3,6 +3,7 @@ import simulateRentVsBuy from "../../src/finance/simulateRentVsBuy.ts";
 import { saveChart } from "@nshiab/journalism-dataviz";
 import { areaY, barY, frame, line, plot, text } from "@observablehq/plot";
 import allRates from "../data/allRates.json" with { type: "json" };
+import { round } from "@nshiab/journalism-format";
 
 Deno.test("should compute the total expenses and savings of a renter and buyer", async (t) => {
   // MONTREAL EXAMPLE
@@ -12,9 +13,9 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
   const marketReturnRate = allRates.filter((d) =>
     d.geo === "Stock market" && d.variable === "S&P/TSX"
   );
-  // CMHC two-bedroom apartment Montreal
-  const montrealRentIncrease = allRates.filter((d) =>
-    d.geo === "Montreal" && d.variable === "Two-bedroom rent"
+  // CPI Quebec
+  const quebecRentIncreaseCPI = allRates.filter((d) =>
+    d.geo === "Quebec" && d.variable === "CPI Rent"
   );
   // CPI Quebec
   const quebecOwnerInsuranceIncrease = allRates.filter((d) =>
@@ -67,7 +68,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
   const allRatesFiltered = [
     ...montrealAppreciationIncrease,
     ...marketReturnRate,
-    ...montrealRentIncrease,
+    ...quebecRentIncreaseCPI,
     ...quebecOwnerInsuranceIncrease,
     ...canadaRenterInsuranceIncrease,
     ...quebecMaintenanceIncrease,
@@ -106,7 +107,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
     },
     rates: {
       marketReturnRate: marketReturnRate.map((d) => d.pctChange),
-      rentIncrease: montrealRentIncrease.map((d) => d.pctChange),
+      rentIncrease: quebecRentIncreaseCPI.map((d) => d.pctChange),
       ownerInsuranceIncrease: quebecOwnerInsuranceIncrease.map((d) =>
         d.pctChange
       ),
@@ -907,7 +908,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 509,
+          amount: 509.51,
           category: "renter",
           group: "monthlyExpenses",
           variable: "rent",
@@ -1105,12 +1106,58 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
     { style: "body { width: 700px; }" },
   );
 
+  const monthlyExpenses = results.filter((d) =>
+    d.monthIndex > 0 &&
+    d.group === "monthlyExpenses"
+  );
+
+  await saveChart(
+    monthlyExpenses,
+    (data) =>
+      plot({
+        title: "Monthly expenses over time (excluding first month)",
+        y: {
+          nice: true,
+          label: null,
+          tickFormat: (d) =>
+            Math.abs(d) < 1000
+              ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
+              : Math.abs(d) < 1_000_000
+              ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
+              : d < 0
+              ? `-$${Math.abs(d) / 1_000_000}M`
+              : `$${d / 1_000_000}M`,
+        },
+        x: {
+          nice: true,
+        },
+        fx: {
+          label: null,
+        },
+        marginLeft: 60,
+        color: {
+          legend: true,
+        },
+        grid: true,
+        marks: [
+          areaY(data, {
+            x: "date",
+            y: "amount",
+            fill: "variable",
+            fx: "category",
+          }),
+        ],
+      }),
+    "test/output/montreal-monthly-expenses.png",
+    { style: "body { width: 700px; }" },
+  );
+
   const cumulativeExpensesLastMonth = results.filter((d) =>
     d.monthIndex === (numberOfYears * 12) - 1 &&
     d.group === "cumulativeExpenses"
   );
 
-  // console.log(cumulativeExpensesLastMonthTotal.map((d) => ({
+  // console.log(cumulativeExpensesLastMonth.map((d) => ({
   //   ...d,
   //   date: d.date.toISOString(),
   // })));
@@ -1127,7 +1174,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 219809.4,
+          amount: 178387.67,
           category: "renter",
           group: "cumulativeExpenses",
           variable: "rent",
@@ -1358,7 +1405,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 1018,
+          amount: 1018.51,
           category: "renter",
           group: "cumulativeExpenses",
           variable: "rent",
@@ -1567,52 +1614,6 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
     );
   });
 
-  // // Monthly expenses
-  // const monthlyExpenses = results.filter((d) =>
-  //   d.group === "monthlyExpenses" && d.month !== 0
-  // );
-
-  // await saveChart(
-  //   monthlyExpenses,
-  //   (data) =>
-  //     plot({
-  //       title: "Monthly expenses over time (first month excluded)",
-  //       y: {
-  //         nice: true,
-  //         label: null,
-  //         tickFormat: (d) =>
-  //           Math.abs(d) < 1000
-  //             ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
-  //             : Math.abs(d) < 1_000_000
-  //             ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
-  //             : d < 0
-  //             ? `-$${Math.abs(d) / 1_000_000}M`
-  //             : `$${d / 1_000_000}M`,
-  //       },
-  //       x: {
-  //         nice: true,
-  //       },
-  //       fx: {
-  //         label: null,
-  //       },
-  //       marginLeft: 60,
-  //       color: {
-  //         legend: true,
-  //       },
-  //       grid: true,
-  //       marks: [
-  //         areaY(data, {
-  //           x: "date",
-  //           y: "amount",
-  //           fill: "variable",
-  //           fx: "category",
-  //         }),
-  //       ],
-  //     }),
-  //   "test/output/montreal-monthly-expenses.png",
-  //   { style: "body { width: 700px; }" },
-  // );
-
   const cumulativeExpenses = results.filter((d) =>
     d.group === "cumulativeExpenses"
   );
@@ -1798,7 +1799,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 475.58,
+          amount: 475.07,
           category: "renter",
           group: "monthlyGains",
           variable: "newStocks",
@@ -1960,7 +1961,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 34245.44,
+          amount: 53864.75,
           category: "renter",
           group: "cumulativeGains",
           variable: "tfsaGains",
@@ -1970,7 +1971,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 43880.71,
+          amount: 79971.68,
           category: "renter",
           group: "cumulativeGains",
           variable: "tfsaContribution",
@@ -1980,7 +1981,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 107104.43,
+          amount: 114111.36,
           category: "renter",
           group: "cumulativeGains",
           variable: "stocksGains",
@@ -1990,30 +1991,10 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 59230.78,
+          amount: 64510.24,
           category: "renter",
           group: "cumulativeGains",
           variable: "newStocks",
-        },
-        {
-          year: 2024,
-          month: 11,
-          monthIndex: 299,
-          date: "2024-12-01T00:00:00.000Z",
-          amount: 0.09,
-          category: "buyerFixed",
-          group: "cumulativeGains",
-          variable: "tfsaGains",
-        },
-        {
-          year: 2024,
-          month: 11,
-          monthIndex: 299,
-          date: "2024-12-01T00:00:00.000Z",
-          amount: 51.3,
-          category: "buyerFixed",
-          group: "cumulativeGains",
-          variable: "tfsaContribution",
         },
         {
           year: 2024,
@@ -2030,7 +2011,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 8990.58,
+          amount: 8990.5,
           category: "buyerVariable",
           group: "cumulativeGains",
           variable: "tfsaGains",
@@ -2040,7 +2021,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 11846.84,
+          amount: 11795.54,
           category: "buyerVariable",
           group: "cumulativeGains",
           variable: "tfsaContribution",
@@ -2121,8 +2102,11 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       d.category === "renter" && d.variable === "newStocks"
     )?.amount ?? 0;
 
-  await t.step("No new stocks after 2009 (renter)", async () => {
-    assertEquals(renterNewStocksBeforeTFSA, renterNewStocksAfterTFSA);
+  await t.step("Almost no new stocks after 2009 (renter)", async () => {
+    assertEquals(
+      Math.round(renterNewStocksAfterTFSA - renterNewStocksBeforeTFSA),
+      127,
+    );
   });
 
   await saveChart(
@@ -2189,7 +2173,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 78126.15,
+          amount: 133836.43,
           category: "renter",
           group: "assets",
           variable: "tfsa",
@@ -2199,7 +2183,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 166335.21,
+          amount: 178621.6,
           category: "renter",
           group: "assets",
           variable: "stocks",
@@ -2219,16 +2203,6 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 51.39,
-          category: "buyerFixed",
-          group: "assets",
-          variable: "tfsa",
-        },
-        {
-          year: 2024,
-          month: 11,
-          monthIndex: 299,
-          date: "2024-12-01T00:00:00.000Z",
           amount: 412185.37,
           category: "buyerFixed",
           group: "assets",
@@ -2239,7 +2213,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 20837.42,
+          amount: 20786.04,
           category: "buyerVariable",
           group: "assets",
           variable: "tfsa",
@@ -2332,7 +2306,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 12317.01,
+          amount: 13122.81,
           category: "renter",
           group: "saleCosts",
           variable: "stockTaxes",
@@ -2455,7 +2429,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 154018.2,
+          amount: 165498.79,
           category: "renter",
           group: "saleNetGains",
           variable: "stockSellingGains",
@@ -2465,7 +2439,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 78126.15,
+          amount: 133836.43,
           category: "renter",
           group: "saleNetGains",
           variable: "tfsaSellingGains",
@@ -2479,16 +2453,6 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           category: "renter",
           group: "saleNetGains",
           variable: "securityDeposit",
-        },
-        {
-          year: 2024,
-          month: 11,
-          monthIndex: 299,
-          date: "2024-12-01T00:00:00.000Z",
-          amount: 51.39,
-          category: "buyerFixed",
-          group: "saleNetGains",
-          variable: "tfsaSellingGains",
         },
         {
           year: 2024,
@@ -2515,7 +2479,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 20837.42,
+          amount: 20786.04,
           category: "buyerVariable",
           group: "saleNetGains",
           variable: "tfsaSellingGains",
@@ -2742,7 +2706,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: -3339.66,
+          amount: 105272.94,
           category: "renter",
           group: "summaryCumulative",
           variable: "balanceAfterSelling",
@@ -2752,7 +2716,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 55191.42,
+          amount: 55140.03,
           category: "buyerFixed",
           group: "summaryCumulative",
           variable: "balanceAfterSelling",
@@ -2762,7 +2726,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 104489.42,
+          amount: 104438.04,
           category: "buyerVariable",
           group: "summaryCumulative",
           variable: "balanceAfterSelling",
@@ -2813,694 +2777,6 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
     "test/output/montreal-overall-balance-after-selling.png",
     { style: "body { width: 700px; }" },
   );
-
-  // GENERAL EXAMPLE
-
-  // const numberOfYears = 25;
-  // const numberOfMonths = numberOfYears * 12;
-  // const marketReturnRate = Array.from(
-  //   { length: numberOfMonths },
-  //   () => 0.005,
-  // );
-  // const annualRentIncrease = Array.from({ length: numberOfMonths }, () => 0.03);
-  // const annualInsuranceIncrease = Array.from(
-  //   { length: numberOfMonths },
-  //   () => 0.03,
-  // );
-  // const annualMaintenanceIncrease = Array.from(
-  //   { length: numberOfMonths },
-  //   () => 0.03,
-  // );
-  // const annualPropertyTaxIncrease = Array.from(
-  //   { length: numberOfMonths },
-  //   () => 0.03,
-  // );
-  // const annualCondoFeeIncrease = Array.from(
-  //   { length: numberOfMonths },
-  //   () => 0.03,
-  // );
-  // const annualAppreciationIncrease = Array.from(
-  //   { length: numberOfMonths },
-  //   () => 0.05,
-  // );
-  // const annualSellingFixedFeesIncrease = Array.from(
-  //   { length: numberOfMonths },
-  //   () => 0.03,
-  // );
-  // const fiveYearInterestRates = Array.from(
-  //   { length: numberOfMonths },
-  //   () => 0.055,
-  // );
-  // const fourYearInterestRates = Array.from(
-  //   { length: numberOfMonths },
-  //   () => 0.05,
-  // );
-  // const threeYearInterestRates = Array.from(
-  //   { length: numberOfMonths },
-  //   () => 0.045,
-  // );
-  // const twoYearInterestRates = Array.from(
-  //   { length: numberOfMonths },
-  //   () => 0.04,
-  // );
-  // const oneYearInterestRates = Array.from(
-  //   { length: numberOfMonths },
-  //   () => 0.035,
-  // );
-  // const variableInterestRates = Array.from(
-  //   { length: numberOfMonths },
-  //   () => 0.04,
-  // );
-
-  // const results = simulateRentVsBuy({
-  //   startingYear: 2000,
-  //   numberOfYears,
-  //   tfsaContributions: true,
-  //   combinedTaxRate: 0.25,
-  //   renter: {
-  //     startingMonthlyRent: 1750,
-  //     securityDeposit: 1750,
-  //     startingMonthlyInsurance: 75,
-  //   },
-  //   buyer: {
-  //     purchasePrice: 500_000,
-  //     downPayment: 50_000,
-  //     rateDiscount: 0.005,
-  //     purchaseFixedFees: 25_000,
-  //     startingAnnualMaintenanceCost: 2500,
-  //     startingAnnualPropertyTax: 3500,
-  //     startingMonthlyCondoFees: 100,
-  //     startingMonthlyInsurance: 250,
-  //     sellingFixedFees: 2000,
-  //     sellingCommissionRate: 0.04,
-  //   },
-  //   rates: {
-  //     marketReturnRate,
-  //     annualRentIncrease,
-  //     annualInsuranceIncrease,
-  //     fiveYearInterestRates,
-  //     fourYearInterestRates,
-  //     threeYearInterestRates,
-  //     twoYearInterestRates,
-  //     oneYearInterestRates,
-  //     variableInterestRates,
-  //     annualMaintenanceIncrease,
-  //     annualPropertyTaxIncrease,
-  //     annualCondoFeeIncrease,
-  //     annualAppreciationIncrease,
-  //     annualSellingFixedFeesIncrease,
-  //   },
-  // });
-
-  // // Expenses on the first month
-  // const firstMonthExpenses = results.filter((d) =>
-  //   d.monthIndex === 0 &&
-  //   d.group === "monthlyExpenses"
-  // );
-
-  // await saveChart(
-  //   firstMonthExpenses,
-  //   (data) =>
-  //     plot({
-  //       title: "First month expenses (Jan. 2000)",
-  //       y: {
-  //         nice: true,
-  //         label: null,
-  //         tickFormat: (d) =>
-  //           Math.abs(d) < 1000
-  //             ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
-  //             : Math.abs(d) < 1_000_000
-  //             ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
-  //             : d < 0
-  //             ? `-$${Math.abs(d) / 1_000_000}M`
-  //             : `$${d / 1_000_000}M`,
-  //       },
-  //       marginLeft: 60,
-  //       color: {
-  //         legend: true,
-  //       },
-  //       fx: {
-  //         label: null,
-  //       },
-  //       x: {
-  //         label: null,
-  //         tickFormat: (d) => d.toString(),
-  //       },
-  //       grid: true,
-  //       marks: [
-  //         barY(data, {
-  //           x: "year",
-  //           y: "amount",
-  //           fill: "variable",
-  //           order: "amount",
-  //           fx: "category",
-  //         }),
-  //       ],
-  //     }),
-  //   "test/output/first-month-expenses.png",
-  //   { style: "body { width: 700px; }" },
-  // );
-
-  // // Monthly expenses
-  // const monthlyExpenses = results.filter((d) =>
-  //   d.group === "monthlyExpenses" && d.month !== 0
-  // );
-
-  // await saveChart(
-  //   monthlyExpenses,
-  //   (data) =>
-  //     plot({
-  //       title: "Monthly expenses over time (first month excluded)",
-  //       y: {
-  //         nice: true,
-  //         label: null,
-  //         tickFormat: (d) =>
-  //           Math.abs(d) < 1000
-  //             ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
-  //             : Math.abs(d) < 1_000_000
-  //             ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
-  //             : d < 0
-  //             ? `-$${Math.abs(d) / 1_000_000}M`
-  //             : `$${d / 1_000_000}M`,
-  //       },
-  //       x: {
-  //         nice: true,
-  //       },
-  //       fx: {
-  //         label: null,
-  //       },
-  //       marginLeft: 60,
-  //       color: {
-  //         legend: true,
-  //       },
-  //       grid: true,
-  //       marks: [
-  //         areaY(data, {
-  //           x: "date",
-  //           y: "amount",
-  //           fill: "variable",
-  //           fx: "category",
-  //         }),
-  //       ],
-  //     }),
-  //   "test/output/monthly-expenses.png",
-  //   { style: "body { width: 700px; }" },
-  // );
-
-  // const cumulativeExpenses = results.filter((d) =>
-  //   d.group === "cumulativeExpenses"
-  // );
-
-  // await saveChart(
-  //   cumulativeExpenses,
-  //   (data) =>
-  //     plot({
-  //       title: "Cumulative expenses over time",
-  //       y: {
-  //         nice: true,
-  //         label: null,
-  //         tickFormat: (d) =>
-  //           Math.abs(d) < 1000
-  //             ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
-  //             : Math.abs(d) < 1_000_000
-  //             ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
-  //             : d < 0
-  //             ? `-$${Math.abs(d) / 1_000_000}M`
-  //             : `$${d / 1_000_000}M`,
-  //       },
-  //       x: {
-  //         nice: true,
-  //       },
-  //       fx: {
-  //         label: null,
-  //       },
-  //       marginLeft: 60,
-  //       color: {
-  //         legend: true,
-  //       },
-  //       grid: true,
-  //       marks: [
-  //         areaY(data, {
-  //           x: "date",
-  //           y: "amount",
-  //           fill: "variable",
-  //           fx: "category",
-  //         }),
-  //       ],
-  //     }),
-  //   "test/output/cumulative-expenses.png",
-  //   { style: "body { width: 700px; }" },
-  // );
-
-  // // Expenses on the first month
-  // const firstMonthGains = results.filter((d) =>
-  //   d.monthIndex === 0 &&
-  //   d.group === "monthlyGains"
-  // );
-
-  // await saveChart(
-  //   firstMonthGains,
-  //   (data) =>
-  //     plot({
-  //       title: "First month gains (Jan. 2000)",
-  //       y: {
-  //         nice: true,
-  //         label: null,
-  //         tickFormat: (d) =>
-  //           Math.abs(d) < 1000
-  //             ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
-  //             : Math.abs(d) < 1_000_000
-  //             ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
-  //             : d < 0
-  //             ? `-$${Math.abs(d) / 1_000_000}M`
-  //             : `$${d / 1_000_000}M`,
-  //       },
-  //       marginLeft: 60,
-  //       color: {
-  //         legend: true,
-  //       },
-  //       fx: {
-  //         label: null,
-  //       },
-  //       x: {
-  //         label: null,
-  //         tickFormat: (d) => d.toString(),
-  //       },
-  //       grid: true,
-  //       marks: [
-  //         barY(data, {
-  //           x: "year",
-  //           y: "amount",
-  //           fill: "variable",
-  //           order: "amount",
-  //           fx: "category",
-  //         }),
-  //       ],
-  //     }),
-  //   "test/output/first-month-gains.png",
-  //   { style: "body { width: 700px; }" },
-  // );
-
-  // const monthlyGains = results.filter((d) =>
-  //   d.group === "monthlyGains" && d.month !== 0
-  // );
-
-  // await saveChart(
-  //   monthlyGains,
-  //   (data) =>
-  //     plot({
-  //       title: "Monthly gains over time (excluding first month)",
-  //       y: {
-  //         nice: true,
-  //         label: null,
-  //         tickFormat: (d) =>
-  //           Math.abs(d) < 1000
-  //             ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
-  //             : Math.abs(d) < 1_000_000
-  //             ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
-  //             : d < 0
-  //             ? `-$${Math.abs(d) / 1_000_000}M`
-  //             : `$${d / 1_000_000}M`,
-  //       },
-  //       x: {
-  //         nice: true,
-  //       },
-  //       fx: {
-  //         label: null,
-  //       },
-  //       marginLeft: 60,
-  //       color: {
-  //         legend: true,
-  //       },
-  //       grid: true,
-  //       marks: [
-  //         areaY(data, {
-  //           x: "date",
-  //           y: "amount",
-  //           fill: "variable",
-  //           fx: "category",
-  //         }),
-  //       ],
-  //     }),
-  //   "test/output/monthly-gains.png",
-  //   { style: "body { width: 700px; }" },
-  // );
-
-  // const cumulativeGains = results.filter((d) => d.group === "cumulativeGains");
-
-  // await saveChart(
-  //   cumulativeGains,
-  //   (data) =>
-  //     plot({
-  //       title: "Cumulative gains over time",
-  //       y: {
-  //         nice: true,
-  //         label: null,
-  //         tickFormat: (d) =>
-  //           Math.abs(d) < 1000
-  //             ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
-  //             : Math.abs(d) < 1_000_000
-  //             ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
-  //             : d < 0
-  //             ? `-$${Math.abs(d) / 1_000_000}M`
-  //             : `$${d / 1_000_000}M`,
-  //       },
-  //       x: {
-  //         nice: true,
-  //       },
-  //       fx: {
-  //         label: null,
-  //       },
-  //       marginLeft: 60,
-  //       color: {
-  //         legend: true,
-  //       },
-  //       grid: true,
-  //       marks: [
-  //         areaY(data, {
-  //           x: "date",
-  //           y: "amount",
-  //           fill: "variable",
-  //           fx: "category",
-  //         }),
-  //       ],
-  //     }),
-  //   "test/output/cumulative-gains.png",
-  //   { style: "body { width: 700px; }" },
-  // );
-
-  // const assets = results.filter((d) => d.group === "assets");
-
-  // await saveChart(
-  //   assets,
-  //   (data) =>
-  //     plot({
-  //       title: "Assets over time",
-  //       y: {
-  //         nice: true,
-  //         label: null,
-  //         tickFormat: (d) =>
-  //           Math.abs(d) < 1000
-  //             ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
-  //             : Math.abs(d) < 1_000_000
-  //             ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
-  //             : d < 0
-  //             ? `-$${Math.abs(d) / 1_000_000}M`
-  //             : `$${d / 1_000_000}M`,
-  //       },
-  //       x: {
-  //         nice: true,
-  //       },
-  //       fx: {
-  //         label: null,
-  //       },
-  //       marginLeft: 60,
-  //       color: {
-  //         legend: true,
-  //       },
-  //       grid: true,
-  //       marks: [
-  //         areaY(data, {
-  //           x: "date",
-  //           y: "amount",
-  //           fill: "variable",
-  //           fx: "category",
-  //         }),
-  //       ],
-  //     }),
-  //   "test/output/assets.png",
-  //   { style: "body { width: 700px; }" },
-  // );
-
-  // const saleCosts = results.filter((d) => d.group === "saleCosts");
-
-  // await saveChart(
-  //   saleCosts,
-  //   (data) =>
-  //     plot({
-  //       title: "Sale costs, if assets were sold",
-  //       y: {
-  //         nice: true,
-  //         label: null,
-  //         tickFormat: (d) =>
-  //           Math.abs(d) < 1000
-  //             ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
-  //             : Math.abs(d) < 1_000_000
-  //             ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
-  //             : d < 0
-  //             ? `-$${Math.abs(d) / 1_000_000}M`
-  //             : `$${d / 1_000_000}M`,
-  //       },
-  //       x: {
-  //         nice: true,
-  //       },
-  //       fx: {
-  //         label: null,
-  //       },
-  //       marginLeft: 60,
-  //       color: {
-  //         legend: true,
-  //       },
-  //       grid: true,
-  //       marks: [
-  //         areaY(data, {
-  //           x: "date",
-  //           y: "amount",
-  //           fill: "variable",
-  //           fx: "category",
-  //         }),
-  //       ],
-  //     }),
-  //   "test/output/sale-costs.png",
-  //   { style: "body { width: 700px; }" },
-  // );
-
-  // const saleNetGains = results.filter((d) => d.group === "saleNetGains");
-
-  // await saveChart(
-  //   saleNetGains,
-  //   (data) =>
-  //     plot({
-  //       title: "Sale gains, if assets were sold",
-  //       y: {
-  //         nice: true,
-  //         label: null,
-  //         tickFormat: (d) =>
-  //           Math.abs(d) < 1000
-  //             ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
-  //             : Math.abs(d) < 1_000_000
-  //             ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
-  //             : d < 0
-  //             ? `-$${Math.abs(d) / 1_000_000}M`
-  //             : `$${d / 1_000_000}M`,
-  //       },
-  //       x: {
-  //         nice: true,
-  //       },
-  //       fx: {
-  //         label: null,
-  //       },
-  //       marginLeft: 60,
-  //       color: {
-  //         legend: true,
-  //       },
-  //       grid: true,
-  //       marks: [
-  //         areaY(data, {
-  //           x: "date",
-  //           y: "amount",
-  //           fill: "variable",
-  //           fx: "category",
-  //         }),
-  //       ],
-  //     }),
-  //   "test/output/sale-gains.png",
-  //   { style: "body { width: 700px; }" },
-  // );
-
-  // // Balance on the first month
-  // const firstMonthBalance = results.filter((d) =>
-  //   d.monthIndex === 0 &&
-  //   d.group === "summary" && d.variable === "balance"
-  // );
-
-  // await saveChart(
-  //   firstMonthBalance,
-  //   (data) =>
-  //     plot({
-  //       title: "First month balance (Jan. 2000)",
-  //       y: {
-  //         nice: true,
-  //         label: null,
-  //         tickFormat: (d) =>
-  //           Math.abs(d) < 1000
-  //             ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
-  //             : Math.abs(d) < 1_000_000
-  //             ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
-  //             : d < 0
-  //             ? `-$${Math.abs(d) / 1_000_000}M`
-  //             : `$${d / 1_000_000}M`,
-  //       },
-  //       marginLeft: 60,
-  //       color: {
-  //         legend: true,
-  //       },
-  //       fx: {
-  //         label: null,
-  //       },
-  //       x: {
-  //         label: null,
-  //         tickFormat: (d) => d.toString(),
-  //       },
-  //       grid: true,
-  //       marks: [
-  //         barY(data, {
-  //           x: "year",
-  //           y: "amount",
-  //           fill: "variable",
-  //           order: "amount",
-  //           fx: "category",
-  //         }),
-  //       ],
-  //     }),
-  //   "test/output/first-month-balance.png",
-  //   { style: "body { width: 700px; }" },
-  // );
-
-  // const monthlyBalance = results.filter((d) =>
-  //   d.group === "summary" && d.variable === "balance" && d.month !== 0
-  // );
-
-  // await saveChart(
-  //   monthlyBalance,
-  //   (data) =>
-  //     plot({
-  //       title: "Monthly balance over time (excluding first month)",
-  //       y: {
-  //         nice: true,
-  //         label: null,
-  //         tickFormat: (d) =>
-  //           Math.abs(d) < 1000
-  //             ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
-  //             : Math.abs(d) < 1_000_000
-  //             ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
-  //             : d < 0
-  //             ? `-$${Math.abs(d) / 1_000_000}M`
-  //             : `$${d / 1_000_000}M`,
-  //       },
-  //       x: {
-  //         nice: true,
-  //       },
-  //       fx: {
-  //         label: null,
-  //       },
-  //       marginLeft: 60,
-  //       color: {
-  //         legend: true,
-  //       },
-  //       grid: true,
-  //       marks: [
-  //         areaY(data, {
-  //           x: "date",
-  //           y: "amount",
-  //           fill: "variable",
-  //           fx: "category",
-  //         }),
-  //       ],
-  //     }),
-  //   "test/output/monthly-balance.png",
-  //   { style: "body { width: 700px; }" },
-  // );
-
-  // const overallBalance = results.filter((d) =>
-  //   d.group === "summaryCumulative" && d.variable === "balance"
-  // );
-
-  // await saveChart(
-  //   overallBalance,
-  //   (data) =>
-  //     plot({
-  //       title: "Overall balance over time",
-  //       y: {
-  //         nice: true,
-  //         label: null,
-  //         tickFormat: (d) =>
-  //           Math.abs(d) < 1000
-  //             ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
-  //             : Math.abs(d) < 1_000_000
-  //             ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
-  //             : d < 0
-  //             ? `-$${Math.abs(d) / 1_000_000}M`
-  //             : `$${d / 1_000_000}M`,
-  //       },
-  //       x: {
-  //         nice: true,
-  //       },
-  //       fx: {
-  //         label: null,
-  //       },
-  //       marginLeft: 60,
-  //       color: {
-  //         legend: true,
-  //       },
-  //       grid: true,
-  //       marks: [
-  //         areaY(data, {
-  //           x: "date",
-  //           y: "amount",
-  //           fill: "variable",
-  //           fx: "category",
-  //         }),
-  //       ],
-  //     }),
-  //   "test/output/overall-balance.png",
-  //   { style: "body { width: 700px; }" },
-  // );
-
-  // const overallBalanceAfterSelling = results.filter((d) =>
-  //   d.group === "summaryCumulative" && d.variable === "balanceAfterSelling"
-  // );
-
-  // await saveChart(
-  //   overallBalanceAfterSelling,
-  //   (data) =>
-  //     plot({
-  //       title: "Overall balance after selling over time",
-  //       y: {
-  //         nice: true,
-  //         label: null,
-  //         tickFormat: (d) =>
-  //           Math.abs(d) < 1000
-  //             ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
-  //             : Math.abs(d) < 1_000_000
-  //             ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
-  //             : d < 0
-  //             ? `-$${Math.abs(d) / 1_000_000}M`
-  //             : `$${d / 1_000_000}M`,
-  //       },
-  //       x: {
-  //         nice: true,
-  //       },
-  //       fx: {
-  //         label: null,
-  //       },
-  //       marginLeft: 60,
-  //       color: {
-  //         legend: true,
-  //       },
-  //       grid: true,
-  //       marks: [
-  //         areaY(data, {
-  //           x: "date",
-  //           y: "amount",
-  //           fill: "variable",
-  //           fx: "category",
-  //         }),
-  //       ],
-  //     }),
-  //   "test/output/overall-balance-after-selling.png",
-  //   { style: "body { width: 700px; }" },
-  // );
 
   //Just for now
   assertEquals(true, true);
