@@ -1,55 +1,18 @@
 import { round } from "@nshiab/journalism-format";
 import getMortgagePenalty from "./getMortgagePenalty.ts";
+import type { Persona } from "./types/persona.ts";
+import type { MortgagePayment } from "./types/mortgagePayment.ts";
 
 export default function computeSale(
   monthIndex: number,
-  persona: {
-    params: {
-      homeValue: number;
-      purchaseFixedFees: number;
-      sellingFixedFees: number;
-      sellingCommissionRate: number;
-    };
-    cumulativeGains: {
-      newStocks: number;
-    };
-    assets: {
-      tfsa: number;
-      stocks: number;
-      securityDeposit: number;
-      homeEquity: number;
-    };
-    saleCosts: {
-      stockTaxes: number;
-      homeSellingCommission: number;
-      homeSellingFixedFees: number;
-      mortgagePenalty: number;
-    };
-    saleNetGains: {
-      stockSellingGains: number;
-      tfsaSellingGains: number;
-      homeSellingGains: number;
-      securityDeposit: number;
-    };
-  },
+  persona: Persona,
   combinedTaxRate: number,
-  mortgagePayment: {
-    paymentId: number;
-    payment: number;
-    interest: number;
-    capital: number;
-    balance: number;
-    amountPaid: number;
-    interestPaid: number;
-    capitalPaid: number;
-    effectiveInterestRate: number;
-    postedInterestRate: number;
-    fixedRateDiscount: number;
-    variableRateMargin: number;
-  } | null,
+  mortgagePayment: MortgagePayment | null,
   currentPostedRates: Record<number, number> | null,
   mortgageType: "fixed" | "variable" | null,
 ) {
+  const TERM_MONTHS = 60;
+
   // First we calculate the sale costs
   const stockGains = persona.assets.stocks - persona.cumulativeGains.newStocks;
   persona.saleCosts.stockTaxes = stockGains > 0
@@ -63,7 +26,7 @@ export default function computeSale(
       { decimals: 2 },
     );
     persona.saleCosts.homeSellingFixedFees = persona.params.sellingFixedFees;
-    const remainingMonthsToTerm = 60 - (monthIndex % 60) - 1;
+    const remainingMonthsToTerm = TERM_MONTHS - (monthIndex % TERM_MONTHS) - 1;
     const mortgagePenalty = getMortgagePenalty({
       remainingMonthsToTerm,
       mortgageBalance: mortgagePayment.balance,
@@ -73,6 +36,7 @@ export default function computeSale(
       mortgageType,
     });
     persona.saleCosts.mortgagePenalty = mortgagePenalty;
+    persona.saleCosts.mortgageBalance = mortgagePayment.balance;
   }
 
   // Now we calculate the sale gains
@@ -86,7 +50,7 @@ export default function computeSale(
     persona.params.homeValue -
       persona.saleCosts.homeSellingCommission -
       persona.saleCosts.homeSellingFixedFees -
-      persona.saleCosts.mortgagePenalty,
+      persona.saleCosts.mortgagePenalty - persona.saleCosts.mortgageBalance,
     { decimals: 2 },
   );
   persona.saleNetGains.securityDeposit = persona.assets.securityDeposit;

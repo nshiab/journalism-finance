@@ -1,26 +1,9 @@
 import { round } from "@nshiab/journalism-format";
+import type { Persona } from "./types/persona.ts";
 
 export default function incrementParameters(
   monthIndex: number,
-  persona: {
-    params: {
-      monthlyRent: number;
-      monthlyInsurance: number;
-      securityDeposit: number;
-      downPayment: number;
-      purchasePrice: number;
-      homeValue: number;
-      fixedRateDiscount: number;
-      variableRateMargin: number;
-      purchaseFixedFees: number;
-      monthlyMaintenanceCost: number;
-      monthlyPropertyTax: number;
-      monthlyCondoFees: number;
-      sellingFixedFees: number;
-      sellingCommissionRate: number;
-      insurancePremium: number;
-    };
-  },
+  persona: Persona,
   rates: {
     marketReturnRate: number[];
     rentIncrease: number[];

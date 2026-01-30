@@ -104,7 +104,6 @@ export default function simulateRentVsBuy(parameters: {
       | {
         group: "summaryCumulative";
         variable:
-          | "differenceAfterSelling"
           | "balance"
           | "balanceAfterSelling";
       }

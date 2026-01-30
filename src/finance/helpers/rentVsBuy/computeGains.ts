@@ -1,49 +1,12 @@
 import { round } from "@nshiab/journalism-format";
 import getTfsaContribution from "./getTfsaContribution.ts";
+import type { Persona } from "./types/persona.ts";
+import type { MortgagePayment } from "./types/mortgagePayment.ts";
 
 export default function computeGains(
   year: number,
-  persona: {
-    params: {
-      homeValue: number;
-    };
-    monthlyGains: {
-      tfsaGains: number;
-      tfsaContribution: number;
-      stocksGains: number;
-      newStocks: number;
-      homeSellingGains: number;
-      homeEquityGains: number;
-    };
-    cumulativeGains: {
-      tfsaGains: number;
-      tfsaContribution: number;
-      stocksGains: number;
-      newStocks: number;
-      homeSellingGains: number;
-      homeEquityGains: number;
-    };
-    assets: {
-      tfsa: number;
-      stocks: number;
-      securityDeposit: number;
-      homeEquity: number;
-    };
-  },
-  mortgagePayment: {
-    paymentId: number;
-    payment: number;
-    interest: number;
-    capital: number;
-    balance: number;
-    amountPaid: number;
-    interestPaid: number;
-    capitalPaid: number;
-    effectiveInterestRate: number;
-    postedInterestRate: number;
-    fixedRateDiscount: number;
-    variableRateMargin: number;
-  } | null,
+  persona: Persona,
+  mortgagePayment: MortgagePayment | null,
   marketReturnRate: number,
   totalMonthlyExpenses: number,
   maxMonthlyExpenses: number,

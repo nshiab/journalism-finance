@@ -1,71 +1,11 @@
 import { round } from "@nshiab/journalism-format";
+import type { Persona } from "./types/persona.ts";
+import type { MortgagePayment } from "./types/mortgagePayment.ts";
 
 export default function computeExpenses(
   monthIndex: number,
-  persona: {
-    params: {
-      monthlyRent: number;
-      monthlyInsurance: number;
-      securityDeposit: number;
-      downPayment: number;
-      purchasePrice: number;
-      fixedRateDiscount: number;
-      variableRateMargin: number;
-      purchaseFixedFees: number;
-      monthlyMaintenanceCost: number;
-      monthlyPropertyTax: number;
-      monthlyCondoFees: number;
-      sellingFixedFees: number;
-      sellingCommissionRate: number;
-      insurancePremium: number;
-    };
-    monthlyExpenses: {
-      rent: number;
-      insurance: number;
-      securityDeposit: number;
-      mortgageCapital: number;
-      mortgageInterests: number;
-      maintenance: number;
-      propertyTax: number;
-      condoFees: number;
-      downPayment: number;
-      purchaseFixedFees: number;
-      insurancePremium: number;
-    };
-    cumulativeExpenses: {
-      rent: number;
-      insurance: number;
-      securityDeposit: number;
-      mortgageCapital: number;
-      mortgageInterests: number;
-      maintenance: number;
-      propertyTax: number;
-      condoFees: number;
-      downPayment: number;
-      purchaseFixedFees: number;
-      insurancePremium: number;
-    };
-    assets: {
-      tfsa: number;
-      stocks: number;
-      securityDeposit: number;
-      homeEquity: number;
-    };
-  },
-  mortgagePayment: {
-    paymentId: number;
-    payment: number;
-    interest: number;
-    capital: number;
-    balance: number;
-    amountPaid: number;
-    interestPaid: number;
-    capitalPaid: number;
-    effectiveInterestRate: number;
-    postedInterestRate: number;
-    fixedRateDiscount: number;
-    variableRateMargin: number;
-  } | null,
+  persona: Persona,
+  mortgagePayment: MortgagePayment | null,
 ) {
   if (mortgagePayment) {
     // Buyer expenses

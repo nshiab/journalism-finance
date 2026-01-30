@@ -60,7 +60,9 @@ export default function getTfsaContribution(
   }];
 
   if (year > Math.max(...tfsaContributions.map((c) => c.year))) {
-    throw new Error("Year exceeds the latest TFSA contribution limit data.");
+    console.log(
+      "WARNING: Year exceeds the latest TFSA contribution limit data, which stops at 2026. TFSA contribution could be higher than calculated.",
+    );
   }
 
   const previousContributionsYear = tfsaContributions.filter((c) =>

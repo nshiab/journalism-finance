@@ -10,8 +10,9 @@ export default function precomputeMortgagePayments(
   fixedInterestRates: number[],
   variableInterestRates: number[],
 ) {
-  const term = 5;
-  const termInMonths = term * 12;
+  const TERM_YEARS = 5;
+  const TERM_MONTHS = TERM_YEARS * 12;
+  const AMORTIZATION_YEARS = 25;
 
   // We precompute all mortgage payments for the entire period for fixed-rate mortgages
   const allFixedMortgagePayments: {
@@ -29,7 +30,7 @@ export default function precomputeMortgagePayments(
     variableRateMargin: number;
   }[] = [];
 
-  for (let month = 0; month < numberOfYears * 12; month += termInMonths) {
+  for (let month = 0; month < numberOfYears * 12; month += TERM_MONTHS) {
     const effectiveInterestRate = round(
       (fixedInterestRates[month] - fixedRateDiscount) *
         100,
@@ -43,8 +44,8 @@ export default function precomputeMortgagePayments(
       mortgageAmount,
       effectiveInterestRate,
       "monthly",
-      term,
-      25 - (month / 12),
+      TERM_YEARS,
+      AMORTIZATION_YEARS - (month / 12),
       { decimals: 2 },
     );
     allFixedMortgagePayments.push(
@@ -75,7 +76,11 @@ export default function precomputeMortgagePayments(
     variableRateMargin: number;
   }[] = [];
 
-  for (let month = 0; month < numberOfYears * 12; month += termInMonths) {
+  if (variableInterestRates.length < numberOfYears * 12) {
+    throw new Error("Not enough variable interest rates provided");
+  }
+
+  for (let month = 0; month < numberOfYears * 12; month += TERM_MONTHS) {
     const mortgageAmount =
       allVariableMortgagePayments[allVariableMortgagePayments.length - 1]
         ? allVariableMortgagePayments[allVariableMortgagePayments.length - 1]
@@ -83,13 +88,13 @@ export default function precomputeMortgagePayments(
         : startingMortgageAmount;
     const monthlyEffectiveRates = variableInterestRates.slice(
       month,
-      month + termInMonths,
+      month + TERM_MONTHS,
     ).map((d) => round((d + variableRateMargin) * 100, { decimals: 2 }));
     const payments = variableMortgagePayments(
       mortgageAmount,
       monthlyEffectiveRates,
-      term,
-      25 - (month / 12),
+      TERM_YEARS,
+      AMORTIZATION_YEARS - (month / 12),
       {
         decimals: 2,
       },

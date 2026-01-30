@@ -25,6 +25,8 @@ import mortgageInsurancePremium from "./finance/mortgageInsurancePremium.ts";
 import mortgageMaxAmount from "./finance/mortgageMaxAmount.ts";
 import getYahooFinanceData from "./finance/getYahooFinanceData.ts";
 import variableMortgagePayments from "./finance/variableMortgagePayments.ts";
+import simulateRentVsBuy from "./finance/simulateRentVsBuy.ts";
+import simulateRentVsBuyMonteCarlo from "./finance/simulateRentVsBuyMonteCarlo.ts";
 
 export {
   adjustToInflation,
@@ -32,5 +34,7 @@ export {
   mortgageInsurancePremium,
   mortgageMaxAmount,
   mortgagePayments,
+  simulateRentVsBuy,
+  simulateRentVsBuyMonteCarlo,
   variableMortgagePayments,
 };
