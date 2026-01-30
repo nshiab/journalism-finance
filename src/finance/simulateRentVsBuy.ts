@@ -276,6 +276,8 @@ export default function simulateRentVsBuy(parameters: {
       null,
       null,
       null,
+      options.finalBalanceOnly ?? false,
+      numberOfMonths,
     );
     computeSale(
       monthIndex,
@@ -284,6 +286,8 @@ export default function simulateRentVsBuy(parameters: {
       allFixedMortgagePayments[monthIndex],
       currentPostedRates,
       "fixed",
+      options.finalBalanceOnly ?? false,
+      numberOfMonths,
     );
     computeSale(
       monthIndex,
@@ -292,12 +296,29 @@ export default function simulateRentVsBuy(parameters: {
       allVariableMortgagePayments[monthIndex],
       currentPostedRates,
       "variable",
+      options.finalBalanceOnly ?? false,
+      numberOfMonths,
     );
 
     // We compute the balances
-    computeBalances(renter);
-    computeBalances(buyerFixed);
-    computeBalances(buyerVariable);
+    computeBalances(
+      renter,
+      options.finalBalanceOnly ?? false,
+      monthIndex,
+      numberOfMonths,
+    );
+    computeBalances(
+      buyerFixed,
+      options.finalBalanceOnly ?? false,
+      monthIndex,
+      numberOfMonths,
+    );
+    computeBalances(
+      buyerVariable,
+      options.finalBalanceOnly ?? false,
+      monthIndex,
+      numberOfMonths,
+    );
 
     // We push all results for this month
     toResults(
