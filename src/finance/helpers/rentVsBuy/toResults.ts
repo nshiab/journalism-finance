@@ -42,7 +42,6 @@ export default function toResults(
           | "tfsaContribution"
           | "stocksGains"
           | "newStocks"
-          | "homeSellingGains"
           | "homeEquityGains";
         homeValue?: number;
       }
@@ -172,8 +171,9 @@ export default function toResults(
     ) {
       if (persona.monthlyGains[variable] !== 0) {
         if (
-          (variable === "homeSellingGains" ||
-            variable === "homeEquityGains") &&
+          (
+            variable === "homeEquityGains"
+          ) &&
           persona.assets.homeEquity !== undefined
         ) {
           results.push({

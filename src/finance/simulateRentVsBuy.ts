@@ -85,7 +85,6 @@ export default function simulateRentVsBuy(parameters: {
           | "tfsaContribution"
           | "stocksGains"
           | "newStocks"
-          | "homeSellingGains"
           | "homeEquityGains";
         homeValue?: number;
       }
@@ -113,7 +112,8 @@ export default function simulateRentVsBuy(parameters: {
           | "stockTaxes"
           | "homeSellingCommission"
           | "homeSellingFixedFees"
-          | "mortgagePenalty";
+          | "mortgagePenalty"
+          | "mortgageBalance";
       }
       | {
         group: "saleNetGains";

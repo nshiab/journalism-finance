@@ -68,7 +68,6 @@ export default function getPersona(parameters: {
       tfsaContribution: 0,
       stocksGains: 0,
       newStocks: 0,
-      homeSellingGains: 0,
       homeEquityGains: 0,
     },
     cumulativeGains: {
@@ -76,7 +75,6 @@ export default function getPersona(parameters: {
       tfsaContribution: 0,
       stocksGains: 0,
       newStocks: 0,
-      homeSellingGains: 0,
       homeEquityGains: 0,
     },
     assets: {

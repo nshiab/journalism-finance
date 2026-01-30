@@ -47,7 +47,6 @@ export type Persona = {
     tfsaContribution: number;
     stocksGains: number;
     newStocks: number;
-    homeSellingGains: number;
     homeEquityGains: number;
   };
   cumulativeGains: {
@@ -55,7 +54,6 @@ export type Persona = {
     tfsaContribution: number;
     stocksGains: number;
     newStocks: number;
-    homeSellingGains: number;
     homeEquityGains: number;
   };
   assets: {
