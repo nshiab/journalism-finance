@@ -37,7 +37,7 @@ export default async function makeCharts(
 
       return plot({
         title: "Historical indicators",
-        subtitle: "Values indexed to 100 at the start date.",
+        subtitle: "Values indexed to 1 at the start date.",
         y: { insetTop: 20, grid: true, ticks: 5, nice: true },
         x: { ticks: 5, grid: true },
         fx: { tickFormat: (d) => "" },

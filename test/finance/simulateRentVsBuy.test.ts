@@ -4,6 +4,7 @@ import allRates from "../data/allRates.json" with { type: "json" };
 import makeCharts from "./helpers/makeCharts.ts";
 import adjustToInflation from "../../src/finance/adjustToInflation.ts";
 import getParams from "./helpers/getParams.ts";
+import { round } from "@nshiab/journalism-format";
 
 function logFinalResults(
   results: ReturnType<typeof simulateRentVsBuy>,
@@ -27,140 +28,19 @@ function logFinalResults(
   console.table(tableData);
 }
 
-// Shared variables
 const numberOfYears = 25;
-// Yahoo Finance S&P/TSX
-const marketReturnRate = allRates.filter((d) =>
-  d.geo === "Stock market" && d.variable === "S&P/TSX"
-);
-// CPI Canada
-const canadaRenterInsuranceIncrease = allRates.filter((d) =>
-  d.geo === "Canada" && d.variable === "CPI Tenants insurance"
-);
-// Bank of Canada
-const fiveYearInterestRates = allRates.filter((d) =>
-  d.geo === "Canada" && d.variable === "Five-year fixed mortgage rate"
-);
-// Bank of Canada interpolated
-const fourYearInterestRates = allRates.filter((d) =>
-  d.geo === "Canada" && d.variable === "Four-year fixed mortgage rate"
-);
-// Bank of Canada
-const threeYearInterestRates = allRates.filter((d) =>
-  d.geo === "Canada" && d.variable === "Three-year fixed mortgage rate"
-);
-// Bank of Canada interpolated
-const twoYearInterestRates = allRates.filter((d) =>
-  d.geo === "Canada" && d.variable === "Two-year fixed mortgage rate"
-);
-// Bank of Canada
-const oneYearInterestRates = allRates.filter((d) =>
-  d.geo === "Canada" && d.variable === "One-year fixed mortgage rate"
-);
-const variableInterestRates = allRates.filter((d) =>
-  d.geo === "Canada" && d.variable === "Bank of Canada prime rate"
-);
 
-Deno.test("should compute the total expenses and savings of a renter and buyer", async (t) => {
-  // MONTREAL EXAMPLE
-
-  // CPI Quebec
-  const quebecRentIncreaseCPI = allRates.filter((d) =>
-    d.geo === "Quebec" && d.variable === "CPI Rent"
-  );
-  // CPI Quebec
-  const quebecOwnerInsuranceIncrease = allRates.filter((d) =>
-    d.geo === "Quebec" && d.variable === "CPI Homeowners insurance"
-  );
-  // CPI Quebec
-  const quebecMaintenanceIncrease = allRates.filter((d) =>
-    d.geo === "Quebec" && d.variable === "CPI Homeowners maintenance"
-  );
-  // CPI Quebec
-  const quebecPropertyTaxIncrease = allRates.filter((d) =>
-    d.geo === "Quebec" && d.variable === "CPI Property taxes & others"
-  );
-  // CREA Apartment Montreal
-  const montrealAppreciationIncrease = allRates.filter((d) =>
-    d.geo === "Montreal" && d.variable === "Apartment price"
-  );
-  // All-items CPI Quebec
-  const quebecSellingFixedFeesIncrease = allRates.filter((d) =>
-    d.geo === "Quebec" && d.variable === "CPI All-items"
-  );
-
-  console.log(getParams("Montreal", "Quebec", 0.21, 2740));
-
-  /*
-
-  const results = simulateRentVsBuy({
-    startingYear: 2000,
-    numberOfYears,
-    tfsaContributions: true,
-    combinedTaxRate: 0.21, // Combined federal + provincial tax rate for Quebec for a $75,000 annual income. From https://turbotax.intuit.ca/tax-resources/canada-income-tax-calculator
-    renter: {
-      startingMonthlyRent: 509, // Avg two-bedroom apartment rent in Montreal was 509 and 1176 in 2000 and 2024 respectively
-      securityDeposit: 509, // One month of rent
-      startingMonthlyInsurance: 45, // CPI was 93.7 in 2000 and 123.2 in 2024
-    },
-    buyer: {
-      purchasePrice: 105_135, // Avg home price in Montreal was 105,135 and 412,400 in 2000 and 2024 respectively
-      downPayment: 10_514, // 10% down payment
-      purchaseFixedFees: 2_100, // 2% of purchase price; welcome tax alone would have been around 757 accordong to WOWA.
-      fixedRateDiscount: 0.01, // Just for fixed mortgage
-      variableRateMargin: 0.0015, // Just for variable mortgage
-      startingAnnualMaintenanceCost: 500, // Not much, since it's a condo. This is 1000$ in 2024. CPI 'mantenance and repairs' was 88.2 in 2000 and 178 in 2024
-      startingMonthlyCondoFees: 150, // 300$ adjusted to inflation CPI 'mantenance and repairs' was 88.2 in 2000 and 178 in 2024
-      startingAnnualPropertyTax: 1400, // $2,740 in 2024 according to https://wowa.ca/taxes/montreal-property-tax. CPI 'property taxes' was 101 in 2000 and 157 in 2024
-      startingMonthlyInsurance: 50, // Condo, so just partial insurance. Just a bit more than renter. 83.2 in 2000 and 233.3 in 2024
-      sellingFixedFees: 1200, // $2000 in 2024 adjusted to 2000 inflation. All-items CPI Quebec was 94.1 in 2000 and 157.5 in 2024
-      sellingCommissionRate: 0.04,
-    },
-    rates: {
-      marketReturnRate: marketReturnRate.map((d) => d.pctChange),
-      rentIncrease: quebecRentIncreaseCPI.map((d) => d.pctChange),
-      ownerInsuranceIncrease: quebecOwnerInsuranceIncrease.map((d) =>
-        d.pctChange
-      ),
-      renterInsuranceIncrease: canadaRenterInsuranceIncrease.map((d) =>
-        d.pctChange
-      ),
-      fiveYearInterestRates: fiveYearInterestRates.map((d) => d.value),
-      fourYearInterestRates: fourYearInterestRates.map((d) => d.value),
-      threeYearInterestRates: threeYearInterestRates.map((d) => d.value),
-      twoYearInterestRates: twoYearInterestRates.map((d) => d.value),
-      oneYearInterestRates: oneYearInterestRates.map((d) => d.value),
-      variableInterestRates: variableInterestRates.map((d) => d.value),
-      maintenanceIncrease: quebecMaintenanceIncrease.map((d) => d.pctChange),
-      propertyTaxIncrease: quebecPropertyTaxIncrease.map((d) => d.pctChange),
-      condoFeeIncrease: quebecMaintenanceIncrease.map((d) => d.pctChange),
-      appreciationIncrease: montrealAppreciationIncrease.map((d) =>
-        d.pctChange
-      ),
-      sellingFixedFeesIncrease: quebecSellingFixedFeesIncrease.map((d) =>
-        d.pctChange
-      ),
-    },
+Deno.test("should compute the total expenses and savings of a renter and buyer in Montreal", async (t) => {
+  const params = getParams("Montreal", "Quebec", {
+    renterMonthlyInsurance: 70,
+    ownerMonthlyInsurance: 125,
+    sellingFixedFees: 2000,
+    condoFees: 250,
   });
 
-  const allRatesFiltered = [
-    ...montrealAppreciationIncrease,
-    ...marketReturnRate,
-    ...quebecRentIncreaseCPI,
-    ...quebecOwnerInsuranceIncrease,
-    ...canadaRenterInsuranceIncrease,
-    ...quebecMaintenanceIncrease,
-    ...quebecPropertyTaxIncrease,
-    ...quebecSellingFixedFeesIncrease,
-    ...fiveYearInterestRates,
-    ...fourYearInterestRates,
-    ...threeYearInterestRates,
-    ...twoYearInterestRates,
-    ...oneYearInterestRates,
-    ...variableInterestRates,
-  ];
+  console.log({ ...params, rates: "A lot", allRatesFiltered: "A lot" });
 
-  await makeCharts("montreal", results, allRatesFiltered);
+  const results = simulateRentVsBuy(params);
   logFinalResults(results, "Montreal");
 
   const mortgageRatesFixedBuyer = results.filter((d) =>
@@ -494,7 +374,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 0,
           monthIndex: 0,
           date: "2000-01-01T00:00:00.000Z",
-          amount: 509,
+          amount: 506,
           category: "renter",
           group: "monthlyExpenses",
           variable: "rent",
@@ -504,7 +384,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 0,
           monthIndex: 0,
           date: "2000-01-01T00:00:00.000Z",
-          amount: 45,
+          amount: 44,
           category: "renter",
           group: "monthlyExpenses",
           variable: "insurance",
@@ -514,7 +394,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 0,
           monthIndex: 0,
           date: "2000-01-01T00:00:00.000Z",
-          amount: 509,
+          amount: 506,
           category: "renter",
           group: "monthlyExpenses",
           variable: "securityDeposit",
@@ -552,7 +432,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 0,
           monthIndex: 0,
           date: "2000-01-01T00:00:00.000Z",
-          amount: 50,
+          amount: 45,
           category: "buyerFixed",
           group: "monthlyExpenses",
           variable: "insurance",
@@ -562,7 +442,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 0,
           monthIndex: 0,
           date: "2000-01-01T00:00:00.000Z",
-          amount: 42,
+          amount: 46,
           category: "buyerFixed",
           group: "monthlyExpenses",
           variable: "maintenance",
@@ -572,7 +452,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 0,
           monthIndex: 0,
           date: "2000-01-01T00:00:00.000Z",
-          amount: 108,
+          amount: 157,
           category: "buyerFixed",
           group: "monthlyExpenses",
           variable: "propertyTax",
@@ -582,7 +462,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 0,
           monthIndex: 0,
           date: "2000-01-01T00:00:00.000Z",
-          amount: 150,
+          amount: 124,
           category: "buyerFixed",
           group: "monthlyExpenses",
           variable: "condoFees",
@@ -602,7 +482,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 0,
           monthIndex: 0,
           date: "2000-01-01T00:00:00.000Z",
-          amount: 2100,
+          amount: 2103,
           category: "buyerFixed",
           group: "monthlyExpenses",
           variable: "purchaseFixedFees",
@@ -650,7 +530,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 0,
           monthIndex: 0,
           date: "2000-01-01T00:00:00.000Z",
-          amount: 50,
+          amount: 45,
           category: "buyerVariable",
           group: "monthlyExpenses",
           variable: "insurance",
@@ -660,7 +540,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 0,
           monthIndex: 0,
           date: "2000-01-01T00:00:00.000Z",
-          amount: 42,
+          amount: 46,
           category: "buyerVariable",
           group: "monthlyExpenses",
           variable: "maintenance",
@@ -670,7 +550,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 0,
           monthIndex: 0,
           date: "2000-01-01T00:00:00.000Z",
-          amount: 108,
+          amount: 157,
           category: "buyerVariable",
           group: "monthlyExpenses",
           variable: "propertyTax",
@@ -680,7 +560,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 0,
           monthIndex: 0,
           date: "2000-01-01T00:00:00.000Z",
-          amount: 150,
+          amount: 124,
           category: "buyerVariable",
           group: "monthlyExpenses",
           variable: "condoFees",
@@ -700,7 +580,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 0,
           monthIndex: 0,
           date: "2000-01-01T00:00:00.000Z",
-          amount: 2100,
+          amount: 2103,
           category: "buyerVariable",
           group: "monthlyExpenses",
           variable: "purchaseFixedFees",
@@ -717,6 +597,23 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
         },
       ],
     );
+  });
+
+  const firstMonthExpensesTotalPerCategory = firstMonthExpenses.reduce(
+    (acc, d) => {
+      const key = d.category;
+      acc[key] = (acc[key] || 0) + d.amount;
+      return acc;
+    },
+    {} as Record<string, number>,
+  );
+
+  await t.step("first month expenses total per category", async () => {
+    assertEquals(firstMonthExpensesTotalPerCategory, {
+      renter: 1056,
+      buyerFixed: 16599.41,
+      buyerVariable: 16569.79,
+    });
   });
 
   // Expenses on the second month
@@ -742,7 +639,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 509.51,
+          amount: 506.51,
           category: "renter",
           group: "monthlyExpenses",
           variable: "rent",
@@ -752,7 +649,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 44.81,
+          amount: 43.81,
           category: "renter",
           group: "monthlyExpenses",
           variable: "insurance",
@@ -790,7 +687,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 50.24,
+          amount: 45.22,
           category: "buyerFixed",
           group: "monthlyExpenses",
           variable: "insurance",
@@ -800,7 +697,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 42.38,
+          amount: 46.42,
           category: "buyerFixed",
           group: "monthlyExpenses",
           variable: "maintenance",
@@ -810,7 +707,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 108,
+          amount: 157,
           category: "buyerFixed",
           group: "monthlyExpenses",
           variable: "propertyTax",
@@ -820,7 +717,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 151.36,
+          amount: 125.13,
           category: "buyerFixed",
           group: "monthlyExpenses",
           variable: "condoFees",
@@ -858,7 +755,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 50.24,
+          amount: 45.22,
           category: "buyerVariable",
           group: "monthlyExpenses",
           variable: "insurance",
@@ -868,7 +765,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 42.38,
+          amount: 46.42,
           category: "buyerVariable",
           group: "monthlyExpenses",
           variable: "maintenance",
@@ -878,7 +775,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 108,
+          amount: 157,
           category: "buyerVariable",
           group: "monthlyExpenses",
           variable: "propertyTax",
@@ -888,13 +785,30 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 151.36,
+          amount: 125.13,
           category: "buyerVariable",
           group: "monthlyExpenses",
           variable: "condoFees",
         },
       ],
     );
+  });
+
+  const secondMonthExpensesTotalPerCategory = secondMonthExpenses.reduce(
+    (acc, d) => {
+      const key = d.category;
+      acc[key] = round((acc[key] || 0) + d.amount, { decimals: 2 });
+      return acc;
+    },
+    {} as Record<string, number>,
+  );
+
+  await t.step("second month expenses total per category", async () => {
+    assertEquals(secondMonthExpensesTotalPerCategory, {
+      renter: 550.32,
+      buyerFixed: 1051.18,
+      buyerVariable: 1021.55,
+    });
   });
 
   const cumulativeExpensesLastMonth = results.filter((d) =>
@@ -919,7 +833,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 178387.67,
+          amount: 177356.74,
           category: "renter",
           group: "cumulativeExpenses",
           variable: "rent",
@@ -929,7 +843,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 15674.61,
+          amount: 15317.42,
           category: "renter",
           group: "cumulativeExpenses",
           variable: "insurance",
@@ -939,7 +853,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 509,
+          amount: 506,
           category: "renter",
           group: "cumulativeExpenses",
           variable: "securityDeposit",
@@ -949,7 +863,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 27323.47,
+          amount: 24613.41,
           category: "buyerFixed",
           group: "cumulativeExpenses",
           variable: "insurance",
@@ -979,7 +893,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 18353.72,
+          amount: 20094.78,
           category: "buyerFixed",
           group: "cumulativeExpenses",
           variable: "maintenance",
@@ -989,7 +903,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 40284.87,
+          amount: 58554.99,
           category: "buyerFixed",
           group: "cumulativeExpenses",
           variable: "propertyTax",
@@ -999,7 +913,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 65510.85,
+          amount: 54140.67,
           category: "buyerFixed",
           group: "cumulativeExpenses",
           variable: "condoFees",
@@ -1019,7 +933,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 2100,
+          amount: 2103,
           category: "buyerFixed",
           group: "cumulativeExpenses",
           variable: "purchaseFixedFees",
@@ -1039,7 +953,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 27323.47,
+          amount: 24613.41,
           category: "buyerVariable",
           group: "cumulativeExpenses",
           variable: "insurance",
@@ -1069,7 +983,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 18353.72,
+          amount: 20094.78,
           category: "buyerVariable",
           group: "cumulativeExpenses",
           variable: "maintenance",
@@ -1079,7 +993,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 40284.87,
+          amount: 58554.99,
           category: "buyerVariable",
           group: "cumulativeExpenses",
           variable: "propertyTax",
@@ -1089,7 +1003,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 65510.85,
+          amount: 54140.67,
           category: "buyerVariable",
           group: "cumulativeExpenses",
           variable: "condoFees",
@@ -1109,7 +1023,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 2100,
+          amount: 2103,
           category: "buyerVariable",
           group: "cumulativeExpenses",
           variable: "purchaseFixedFees",
@@ -1127,6 +1041,27 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       ],
     );
   });
+
+  const cumulativeExpensesLastMonthTotalPerCategory =
+    cumulativeExpensesLastMonth.reduce(
+      (acc, d) => {
+        const key = d.category;
+        acc[key] = round((acc[key] || 0) + d.amount, { decimals: 2 });
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
+
+  await t.step(
+    "cumulative expenses last month total per category",
+    async () => {
+      assertEquals(cumulativeExpensesLastMonthTotalPerCategory, {
+        renter: 193180.16,
+        buyerFixed: 344987.14,
+        buyerVariable: 328119.08,
+      });
+    },
+  );
 
   const cumulativeExpensesSecondMonth = results.filter((d) =>
     d.monthIndex === 1 &&
@@ -1150,7 +1085,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 1018.51,
+          amount: 1012.51,
           category: "renter",
           group: "cumulativeExpenses",
           variable: "rent",
@@ -1160,7 +1095,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 89.81,
+          amount: 87.81,
           category: "renter",
           group: "cumulativeExpenses",
           variable: "insurance",
@@ -1170,7 +1105,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 509,
+          amount: 506,
           category: "renter",
           group: "cumulativeExpenses",
           variable: "securityDeposit",
@@ -1180,7 +1115,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 100.24,
+          amount: 90.22,
           category: "buyerFixed",
           group: "cumulativeExpenses",
           variable: "insurance",
@@ -1210,7 +1145,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 84.38,
+          amount: 92.42,
           category: "buyerFixed",
           group: "cumulativeExpenses",
           variable: "maintenance",
@@ -1220,7 +1155,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 216,
+          amount: 314,
           category: "buyerFixed",
           group: "cumulativeExpenses",
           variable: "propertyTax",
@@ -1230,7 +1165,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 301.36,
+          amount: 249.13,
           category: "buyerFixed",
           group: "cumulativeExpenses",
           variable: "condoFees",
@@ -1250,7 +1185,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 2100,
+          amount: 2103,
           category: "buyerFixed",
           group: "cumulativeExpenses",
           variable: "purchaseFixedFees",
@@ -1270,7 +1205,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 100.24,
+          amount: 90.22,
           category: "buyerVariable",
           group: "cumulativeExpenses",
           variable: "insurance",
@@ -1300,7 +1235,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 84.38,
+          amount: 92.42,
           category: "buyerVariable",
           group: "cumulativeExpenses",
           variable: "maintenance",
@@ -1310,7 +1245,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 216,
+          amount: 314,
           category: "buyerVariable",
           group: "cumulativeExpenses",
           variable: "propertyTax",
@@ -1320,7 +1255,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 301.36,
+          amount: 249.13,
           category: "buyerVariable",
           group: "cumulativeExpenses",
           variable: "condoFees",
@@ -1340,7 +1275,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 2100,
+          amount: 2103,
           category: "buyerVariable",
           group: "cumulativeExpenses",
           variable: "purchaseFixedFees",
@@ -1382,7 +1317,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 0,
           monthIndex: 0,
           date: "2000-01-01T00:00:00.000Z",
-          amount: 15511.41,
+          amount: 15543.41,
           category: "renter",
           group: "monthlyGains",
           variable: "newStocks",
@@ -1446,7 +1381,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 1593.02,
+          amount: 1596.31,
           category: "renter",
           group: "monthlyGains",
           variable: "stocksGains",
@@ -1456,7 +1391,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 475.07,
+          amount: 500.86,
           category: "renter",
           group: "monthlyGains",
           variable: "newStocks",
@@ -1530,7 +1465,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 53864.75,
+          amount: 56319.23,
           category: "renter",
           group: "cumulativeGains",
           variable: "tfsaGains",
@@ -1540,7 +1475,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 79971.68,
+          amount: 84013.33,
           category: "renter",
           group: "cumulativeGains",
           variable: "tfsaContribution",
@@ -1550,7 +1485,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 114111.36,
+          amount: 119003.94,
           category: "renter",
           group: "cumulativeGains",
           variable: "stocksGains",
@@ -1560,7 +1495,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 64510.24,
+          amount: 67793.65,
           category: "renter",
           group: "cumulativeGains",
           variable: "newStocks",
@@ -1629,6 +1564,27 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
     );
   });
 
+  const cumulativeGainsLastMonthTotalPerCategory = cumulativeGainsLastMonth
+    .reduce(
+      (acc, d) => {
+        const key = d.category;
+        acc[key] = round((acc[key] || 0) + d.amount, { decimals: 2 });
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
+
+  await t.step(
+    "cumulative gains last month total per category",
+    async () => {
+      assertEquals(cumulativeGainsLastMonthTotalPerCategory, {
+        renter: 327130.15,
+        buyerFixed: 412185.37,
+        buyerVariable: 445469.23,
+      });
+    },
+  );
+
   // We want to ensure that starting on 2009, the buyer's TFSA gains start accumulating
   const cumulativeGainsBeforeTFSA = cumulativeGains.filter((d) =>
     d.year === 2008 && d.month === 11 && d.group === "cumulativeGains"
@@ -1674,7 +1630,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
   await t.step("Almost no new stocks after 2009 (renter)", async () => {
     assertEquals(
       Math.round(renterNewStocksAfterTFSA - renterNewStocksBeforeTFSA),
-      127,
+      1030,
     );
   });
 
@@ -1701,7 +1657,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 133836.43,
+          amount: 140332.56,
           category: "renter",
           group: "assets",
           variable: "tfsa",
@@ -1711,7 +1667,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 178621.6,
+          amount: 186797.59,
           category: "renter",
           group: "assets",
           variable: "stocks",
@@ -1721,7 +1677,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 509,
+          amount: 506,
           category: "renter",
           group: "assets",
           variable: "securityDeposit",
@@ -1770,6 +1726,24 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
     );
   });
 
+  const assetsLastMonthTotalPerCategory = assetsLastMonth.reduce(
+    (acc, d) => {
+      const key = d.category;
+      acc[key] = round((acc[key] || 0) + d.amount, { decimals: 2 });
+      return acc;
+    },
+    {} as Record<string, number>,
+  );
+
+  await t.step("assets last month total per category", async () => {
+    assertEquals(assetsLastMonthTotalPerCategory, {
+      renter: 327636.15,
+      buyerFixed: 412185.37,
+      buyerVariable: 445469.23,
+    });
+  });
+
+  /*
   const saleCosts = results.filter((d) => d.group === "saleCosts");
 
   const saleCostsLastMonth = saleCosts.filter((d) =>
@@ -2000,105 +1974,8 @@ Deno.test("should compute the total expenses and savings of a renter and buyer",
       ],
     );
   });
-
-  // Toronto example
-
-  // CPI Ontario
-  const ontarioRentIncreaseCPI = allRates.filter((d) =>
-    d.geo === "Ontario" && d.variable === "CPI Rent"
-  );
-  // CPI Ontario
-  const ontarioOwnerInsuranceIncrease = allRates.filter((d) =>
-    d.geo === "Ontario" && d.variable === "CPI Homeowners insurance"
-  );
-  // CPI Ontario
-  const ontarioMaintenanceIncrease = allRates.filter((d) =>
-    d.geo === "Ontario" && d.variable === "CPI Homeowners maintenance"
-  );
-  // CPI Ontario
-  const ontarioPropertyTaxIncrease = allRates.filter((d) =>
-    d.geo === "Ontario" && d.variable === "CPI Property taxes & others"
-  );
-  // CREA Apartment Toronto
-  const torontoAppreciationIncrease = allRates.filter((d) =>
-    d.geo === "Toronto" && d.variable === "Apartment price"
-  );
-  // All-items CPI Ontario
-  const ontarioSellingFixedFeesIncrease = allRates.filter((d) =>
-    d.geo === "Ontario" && d.variable === "CPI All-items"
-  );
-
-  console.log(adjustToInflation(4312, 201.4, 95.3));
-
-  const resultsToronto = simulateRentVsBuy({
-    startingYear: 2000,
-    numberOfYears,
-    tfsaContributions: true,
-    combinedTaxRate: 0.17, // Combined federal + provincial tax rate for Ontario for a $75,000 annual income. From https://turbotax.intuit.ca/tax-resources/canada-income-tax-calculator
-    renter: {
-      startingMonthlyRent: 916, // Avg two-bedroom apartment rent in Toronto was 916 and 1972 in 2000 and 2024 respectively
-      securityDeposit: 916, // One month of rent
-      startingMonthlyInsurance: 45, // Same as Montreal
-    },
-    buyer: {
-      purchasePrice: 130_957, // Avg home price in Toronto was 130,957 and 602,800 in 2000 and 2024 respectively
-      downPayment: 13_096, // 10% down payment
-      purchaseFixedFees: 2_600, // 2% of purchase price; welcome tax alone would have been around.
-      fixedRateDiscount: 0.01, // Same as Montreal
-      variableRateMargin: 0.0015, // Same as Montreal
-      startingAnnualMaintenanceCost: 500, // Same as Montreal
-      startingMonthlyCondoFees: 150, // Same as Montreal
-      startingAnnualPropertyTax: 2040, // $4,312 in 2024 according to https://wowa.ca/taxes/. CPI 'property taxes' was 95.3 in 2000 and 201.4 in 2024
-      startingMonthlyInsurance: 50, // Condo, so just partial insurance. Just a bit more than renter. 83.2 in 2000 and 233.3 in 2024
-      sellingFixedFees: 1200, // $2000 in 2024 adjusted to 2000 inflation. All-items CPI Quebec was 94.1 in 2000 and 157.5 in 2024
-      sellingCommissionRate: 0.04,
-    },
-    rates: {
-      marketReturnRate: marketReturnRate.map((d) => d.pctChange),
-      rentIncrease: ontarioRentIncreaseCPI.map((d) => d.pctChange),
-      ownerInsuranceIncrease: ontarioOwnerInsuranceIncrease.map((d) =>
-        d.pctChange
-      ),
-      renterInsuranceIncrease: canadaRenterInsuranceIncrease.map((d) =>
-        d.pctChange
-      ),
-      fiveYearInterestRates: fiveYearInterestRates.map((d) => d.value),
-      fourYearInterestRates: fourYearInterestRates.map((d) => d.value),
-      threeYearInterestRates: threeYearInterestRates.map((d) => d.value),
-      twoYearInterestRates: twoYearInterestRates.map((d) => d.value),
-      oneYearInterestRates: oneYearInterestRates.map((d) => d.value),
-      variableInterestRates: variableInterestRates.map((d) => d.value),
-      maintenanceIncrease: ontarioMaintenanceIncrease.map((d) => d.pctChange),
-      propertyTaxIncrease: ontarioPropertyTaxIncrease.map((d) => d.pctChange),
-      condoFeeIncrease: ontarioMaintenanceIncrease.map((d) => d.pctChange),
-      appreciationIncrease: torontoAppreciationIncrease.map((d) => d.pctChange),
-      sellingFixedFeesIncrease: ontarioSellingFixedFeesIncrease.map((d) =>
-        d.pctChange
-      ),
-    },
-  });
-
-  const allRatesFilteredOntario = [
-    ...torontoAppreciationIncrease,
-    ...marketReturnRate,
-    ...ontarioRentIncreaseCPI,
-    ...ontarioOwnerInsuranceIncrease,
-    ...canadaRenterInsuranceIncrease,
-    ...ontarioMaintenanceIncrease,
-    ...ontarioPropertyTaxIncrease,
-    ...ontarioSellingFixedFeesIncrease,
-    ...fiveYearInterestRates,
-    ...fourYearInterestRates,
-    ...threeYearInterestRates,
-    ...twoYearInterestRates,
-    ...oneYearInterestRates,
-    ...variableInterestRates,
-  ];
-
-  await makeCharts("toronto", resultsToronto, allRatesFilteredOntario);
-  logFinalResults(resultsToronto, "Toronto");
-
-  //Just for now
-  assertEquals(true, true);
   **/
+
+  await makeCharts("montreal", results, params.allRatesFiltered);
+  assertEquals(true, true);
 });
