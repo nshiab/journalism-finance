@@ -1,9 +1,7 @@
 import { assertEquals } from "jsr:@std/assert";
 import simulateRentVsBuy from "../../src/finance/simulateRentVsBuy.ts";
-import allRates from "../data/allRates.json" with { type: "json" };
 import makeCharts from "./helpers/makeCharts.ts";
-import adjustToInflation from "../../src/finance/adjustToInflation.ts";
-import getParams from "./helpers/getParams.ts";
+import getParams from "./helpers/getParamsRentVsBuy.ts";
 import { round } from "@nshiab/journalism-format";
 
 function logFinalResults(
