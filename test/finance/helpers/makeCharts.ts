@@ -853,4 +853,68 @@ export default async function makeCharts(
     `test/output/${city}-overall-balance-after-selling.png`,
     { style: "body { width: 700px; }" },
   );
+
+  const allMonthIndexes = Array.from(new Set(results.map((d) => d.monthIndex)))
+    .sort(
+      (a, b) => a - b,
+    );
+  const maxOverallBalancePerMonthIndex = [];
+  for (const monthIndex of allMonthIndexes) {
+    const overallBalances = results.filter((d) =>
+      d.group === "summaryCumulative" &&
+      d.variable === "balance" &&
+      d.monthIndex === monthIndex
+    );
+    const maxOverallBalance = Math.max(...overallBalances.map((d) => d.amount));
+    maxOverallBalancePerMonthIndex.push(
+      overallBalances.find((d) => d.amount === maxOverallBalance),
+    );
+  }
+
+  await saveChart(
+    maxOverallBalancePerMonthIndex,
+    (data) =>
+      plot({
+        title: "Maximum overall balance after selling over time",
+        y: {
+          nice: true,
+          label: null,
+          tickFormat: (d) =>
+            Math.abs(d) < 1000
+              ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
+              : Math.abs(d) < 1_000_000
+              ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
+              : d < 0
+              ? `-$${Math.abs(d) / 1_000_000}M`
+              : `$${d / 1_000_000}M`,
+        },
+        x: {
+          type: "band",
+          ticks: [
+            new Date(Date.UTC(2000, 0, 1)),
+            new Date(Date.UTC(2005, 0, 1)),
+            new Date(Date.UTC(2010, 0, 1)),
+            new Date(Date.UTC(2015, 0, 1)),
+            new Date(Date.UTC(2020, 0, 1)),
+            new Date(Date.UTC(2025, 0, 1)),
+          ],
+          tickFormat: (d) => d.toISOString().slice(0, 4).replace("20", "'"),
+          nice: true,
+        },
+        marginLeft: 60,
+        color: {
+          legend: true,
+        },
+        grid: true,
+        marks: [
+          barY(data, {
+            x: "date",
+            y: "amount",
+            fill: "category",
+          }),
+        ],
+      }),
+    `test/output/${city}-overall-balance-after-selling-winner.png`,
+    { style: "body { width: 700px; }" },
+  );
 }

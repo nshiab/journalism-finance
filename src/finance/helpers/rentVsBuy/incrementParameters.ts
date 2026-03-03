@@ -61,9 +61,9 @@ export default function incrementParameters(
         rates.condoFeeIncrease[monthIndex],
       { decimals: 2 },
     );
-    persona.params.sellingFixedFees += round(
-      persona.params.sellingFixedFees *
-        rates.sellingFixedFeesIncrease[monthIndex],
+    persona.params.sellingFixedFees = round(
+      persona.params.sellingFixedFees + persona.params.sellingFixedFees *
+          rates.sellingFixedFeesIncrease[monthIndex],
       { decimals: 2 },
     );
     persona.params.monthlyMaintenanceCost += round(
