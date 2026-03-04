@@ -262,64 +262,6 @@ export default function getParamsRentVsBuy(
   console.log("startingAnnualMaintenanceCost:", startingAnnualMaintenanceCost);
 
   if (noRates) {
-    // RATES
-    // Yahoo Finance S&P/TSX
-    const marketReturnRate = allRates.filter((d) =>
-      d.geo === "Stock market" && d.variable === "S&P/TSX"
-    );
-    // CPI Canada
-    const canadaRenterInsuranceIncrease = allRates.filter((d) =>
-      d.geo === "Canada" && d.variable === "CPI Tenants insurance"
-    );
-    // Bank of Canada
-    const fiveYearInterestRates = allRates.filter((d) =>
-      d.geo === "Canada" && d.variable === "Five-year fixed mortgage rate"
-    );
-    // Bank of Canada interpolated
-    const fourYearInterestRates = allRates.filter((d) =>
-      d.geo === "Canada" && d.variable === "Four-year fixed mortgage rate"
-    );
-    // Bank of Canada
-    const threeYearInterestRates = allRates.filter((d) =>
-      d.geo === "Canada" && d.variable === "Three-year fixed mortgage rate"
-    );
-    // Bank of Canada interpolated
-    const twoYearInterestRates = allRates.filter((d) =>
-      d.geo === "Canada" && d.variable === "Two-year fixed mortgage rate"
-    );
-    // Bank of Canada
-    const oneYearInterestRates = allRates.filter((d) =>
-      d.geo === "Canada" && d.variable === "One-year fixed mortgage rate"
-    );
-    const variableInterestRates = allRates.filter((d) =>
-      d.geo === "Canada" && d.variable === "Bank of Canada prime rate"
-    );
-
-    // CPI province
-    const rentIncreaseCPI = allRates.filter((d) =>
-      d.geo === province && d.variable === "CPI Rent"
-    );
-    // CPI province
-    const ownerInsuranceIncrease = allRates.filter((d) =>
-      d.geo === province && d.variable === "CPI Homeowners insurance"
-    );
-    // CPI province
-    const maintenanceIncrease = allRates.filter((d) =>
-      d.geo === province && d.variable === "CPI Homeowners maintenance"
-    );
-    // CPI province
-    const propertyTaxIncrease = allRates.filter((d) =>
-      d.geo === province && d.variable === "CPI Property taxes & others"
-    );
-    // CREA Apartment city
-    const appreciationIncrease = allRates.filter((d) =>
-      d.geo === city && d.variable === "Apartment price"
-    );
-    // All-items CPI province
-    const sellingFixedFeesIncrease = allRates.filter((d) =>
-      d.geo === province && d.variable === "CPI All-items"
-    );
-
     return {
       startingYear: 2000,
       numberOfYears,
@@ -378,9 +320,9 @@ export default function getParamsRentVsBuy(
       d.geo === "Canada" && d.variable === "Bank of Canada prime rate"
     );
 
-    // CPI province
-    const rentIncreaseCPI = allRates.filter((d) =>
-      d.geo === province && d.variable === "CPI Rent"
+    // CMHC city
+    const rentIncreaseCMCH = allRates.filter((d) =>
+      d.geo === city && d.variable === "Two-bedroom rent"
     );
     // CPI province
     const ownerInsuranceIncrease = allRates.filter((d) =>
@@ -428,7 +370,7 @@ export default function getParamsRentVsBuy(
       },
       rates: {
         marketReturnRate: marketReturnRate.map((d) => d.pctChange),
-        rentIncrease: rentIncreaseCPI.map((d) => d.pctChange),
+        rentIncrease: rentIncreaseCMCH.map((d) => d.pctChange),
         ownerInsuranceIncrease: ownerInsuranceIncrease.map((d) => d.pctChange),
         renterInsuranceIncrease: canadaRenterInsuranceIncrease.map((d) =>
           d.pctChange
@@ -450,7 +392,7 @@ export default function getParamsRentVsBuy(
       allRatesFiltered: [
         ...appreciationIncrease,
         ...marketReturnRate,
-        ...rentIncreaseCPI,
+        ...rentIncreaseCMCH,
         ...ownerInsuranceIncrease,
         ...canadaRenterInsuranceIncrease,
         ...maintenanceIncrease,

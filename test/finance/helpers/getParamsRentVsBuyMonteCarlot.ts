@@ -52,9 +52,9 @@ export default function getParamsRentVsBuyMonteCarlo(
     d.geo === "Canada" && d.variable === "Bank of Canada prime rate"
   );
 
-  // CPI province
-  const rentIncreaseCPI = allRates.filter((d) =>
-    d.geo === province && d.variable === "CPI Rent"
+  // CMHC city
+  const rentIncreaseCMCH = allRates.filter((d) =>
+    d.geo === city && d.variable === "Two-bedroom rent"
   );
   // CPI province
   const ownerInsuranceIncrease = allRates.filter((d) =>
@@ -90,12 +90,10 @@ export default function getParamsRentVsBuyMonteCarlo(
         ),
       },
       rent: {
-        // Using CPI
+        // Using CMHC data
         startValue: params.renter.startingMonthlyRent,
         ...getGbmParameters(
-          rentIncreaseCPI.map((d) =>
-            d.indexedValue * params.renter.startingMonthlyRent
-          ),
+          rentIncreaseCMCH.map((d) => d.value),
           12,
         ),
       },
