@@ -81,35 +81,46 @@ export default function getParamsRentVsBuyMonteCarlo(
     iterations,
     ...params,
     gbmParameters: {
-      marketReturn: {
+      market: {
+        // Actual values
         startValue: marketReturnRate[0].value,
         ...getGbmParameters(
           marketReturnRate.map((d) => d.value),
           12,
         ),
       },
-      rentIncrease: {
-        startValue: rentIncreaseCPI[0].value,
+      rent: {
+        // Using CPI
+        startValue: params.renter.startingMonthlyRent,
         ...getGbmParameters(
-          rentIncreaseCPI.map((d) => d.value),
+          rentIncreaseCPI.map((d) =>
+            d.indexedValue * params.renter.startingMonthlyRent
+          ),
           12,
         ),
       },
-      ownerInsuranceIncrease: {
-        startValue: ownerInsuranceIncrease[0].value,
+      ownerInsurance: {
+        // CPI
+        startValue: params.buyer.startingMonthlyInsurance,
         ...getGbmParameters(
-          ownerInsuranceIncrease.map((d) => d.value),
+          ownerInsuranceIncrease.map((d) =>
+            d.indexedValue * params.buyer.startingMonthlyInsurance
+          ),
           12,
         ),
       },
-      renterInsuranceIncrease: {
-        startValue: canadaRenterInsuranceIncrease[0].value,
+      renterInsurance: {
+        // CPI
+        startValue: params.renter.startingMonthlyInsurance,
         ...getGbmParameters(
-          canadaRenterInsuranceIncrease.map((d) => d.value),
+          canadaRenterInsuranceIncrease.map((d) =>
+            d.indexedValue * params.renter.startingMonthlyInsurance
+          ),
           12,
         ),
       },
       fiveYearInterestRates: {
+        // Actual values
         startValue: fiveYearInterestRates[0].value,
         ...getGbmParameters(
           fiveYearInterestRates.map((d) => d.value),
@@ -117,6 +128,7 @@ export default function getParamsRentVsBuyMonteCarlo(
         ),
       },
       fourYearInterestRates: {
+        // Actual values
         startValue: fourYearInterestRates[0].value,
         ...getGbmParameters(
           fourYearInterestRates.map((d) => d.value),
@@ -124,6 +136,7 @@ export default function getParamsRentVsBuyMonteCarlo(
         ),
       },
       threeYearInterestRates: {
+        // Actual values
         startValue: threeYearInterestRates[0].value,
         ...getGbmParameters(
           threeYearInterestRates.map((d) => d.value),
@@ -131,6 +144,7 @@ export default function getParamsRentVsBuyMonteCarlo(
         ),
       },
       twoYearInterestRates: {
+        // Actual values
         startValue: twoYearInterestRates[0].value,
         ...getGbmParameters(
           twoYearInterestRates.map((d) => d.value),
@@ -138,6 +152,7 @@ export default function getParamsRentVsBuyMonteCarlo(
         ),
       },
       oneYearInterestRates: {
+        // Actual values
         startValue: oneYearInterestRates[0].value,
         ...getGbmParameters(
           oneYearInterestRates.map((d) => d.value),
@@ -145,45 +160,58 @@ export default function getParamsRentVsBuyMonteCarlo(
         ),
       },
       variableInterestRates: {
+        // Actual values
         startValue: variableInterestRates[0].value,
         ...getGbmParameters(
           variableInterestRates.map((d) => d.value),
           12,
         ),
       },
-      maintenanceIncrease: {
-        startValue: maintenanceIncrease[0].value,
+      maintenance: {
+        // CPI
+        startValue: params.buyer.startingAnnualMaintenanceCost,
         ...getGbmParameters(
-          maintenanceIncrease.map((d) => d.value),
+          maintenanceIncrease.map((d) =>
+            d.indexedValue * params.buyer.startingAnnualMaintenanceCost
+          ),
           12,
         ),
       },
-      propertyTaxIncrease: {
-        startValue: propertyTaxIncrease[0].value,
+      propertyTax: {
+        // CPI
+        startValue: params.buyer.startingAnnualPropertyTax,
         ...getGbmParameters(
-          propertyTaxIncrease.map((d) => d.value),
+          propertyTaxIncrease.map((d) =>
+            d.indexedValue * params.buyer.startingAnnualPropertyTax
+          ),
           12,
         ),
       },
       // We use the homeowners maintenance CPI as a proxy for condo fee increases
-      condoFeeIncrease: {
-        startValue: maintenanceIncrease[0].value,
+      condoFee: {
+        startValue: params.buyer.startingMonthlyCondoFees,
         ...getGbmParameters(
-          maintenanceIncrease.map((d) => d.value),
+          maintenanceIncrease.map((d) =>
+            d.indexedValue * params.buyer.startingMonthlyCondoFees
+          ),
           12,
         ),
       },
-      appreciationIncrease: {
+      appreciation: {
+        // Actual values
         startValue: appreciationIncrease[0].value,
         ...getGbmParameters(
           appreciationIncrease.map((d) => d.value),
           12,
         ),
       },
-      sellingFixedFeesIncrease: {
-        startValue: sellingFixedFeesIncrease[0].value,
+      sellingFixedFees: {
+        // CPI
+        startValue: params.buyer.sellingFixedFees,
         ...getGbmParameters(
-          sellingFixedFeesIncrease.map((d) => d.value),
+          sellingFixedFeesIncrease.map((d) =>
+            d.indexedValue * params.buyer.sellingFixedFees
+          ),
           12,
         ),
       },

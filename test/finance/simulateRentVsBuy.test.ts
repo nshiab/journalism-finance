@@ -1,6 +1,6 @@
 import { assertEquals } from "jsr:@std/assert";
 import simulateRentVsBuy from "../../src/finance/simulateRentVsBuy.ts";
-import makeCharts from "./helpers/makeCharts.ts";
+import makeCharts from "./helpers/makeChartsBuyVsRent.ts";
 import getParams from "./helpers/getParamsRentVsBuy.ts";
 import { round } from "@nshiab/journalism-format";
 

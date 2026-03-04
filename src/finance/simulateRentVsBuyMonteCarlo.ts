@@ -29,10 +29,10 @@ export default function simulateRentVsBuyMonteCarlo(
       sellingCommissionRate: number;
     };
     gbmParameters: {
-      marketReturn: { startValue: number; mu: number; sigma: number };
-      rentIncrease: { startValue: number; mu: number; sigma: number };
-      ownerInsuranceIncrease: { startValue: number; mu: number; sigma: number };
-      renterInsuranceIncrease: {
+      market: { startValue: number; mu: number; sigma: number };
+      rent: { startValue: number; mu: number; sigma: number };
+      ownerInsurance: { startValue: number; mu: number; sigma: number };
+      renterInsurance: {
         startValue: number;
         mu: number;
         sigma: number;
@@ -43,11 +43,11 @@ export default function simulateRentVsBuyMonteCarlo(
       twoYearInterestRates: { startValue: number; mu: number; sigma: number };
       oneYearInterestRates: { startValue: number; mu: number; sigma: number };
       variableInterestRates: { startValue: number; mu: number; sigma: number };
-      maintenanceIncrease: { startValue: number; mu: number; sigma: number };
-      propertyTaxIncrease: { startValue: number; mu: number; sigma: number };
-      condoFeeIncrease: { startValue: number; mu: number; sigma: number };
-      appreciationIncrease: { startValue: number; mu: number; sigma: number };
-      sellingFixedFeesIncrease: {
+      maintenance: { startValue: number; mu: number; sigma: number };
+      propertyTax: { startValue: number; mu: number; sigma: number };
+      condoFee: { startValue: number; mu: number; sigma: number };
+      appreciation: { startValue: number; mu: number; sigma: number };
+      sellingFixedFees: {
         startValue: number;
         mu: number;
         sigma: number;
@@ -136,78 +136,78 @@ export default function simulateRentVsBuyMonteCarlo(
       rates: {
         marketReturnRate: prepRates(
           i,
-          "stockMarket",
-          parameters.gbmParameters.marketReturn,
+          "S&P/TSX",
+          parameters.gbmParameters.market,
         ),
         rentIncrease: prepRates(
           i,
           "rent",
-          parameters.gbmParameters.rentIncrease,
+          parameters.gbmParameters.rent,
         ),
         renterInsuranceIncrease: prepRates(
           i,
-          "renterInsurance",
-          parameters.gbmParameters.renterInsuranceIncrease,
+          "renter insurance",
+          parameters.gbmParameters.renterInsurance,
         ),
         ownerInsuranceIncrease: prepRates(
           i,
-          "ownerInsurance",
-          parameters.gbmParameters.ownerInsuranceIncrease,
+          "owner insurance",
+          parameters.gbmParameters.ownerInsurance,
         ),
         maintenanceIncrease: prepRates(
           i,
-          "maintenance",
-          parameters.gbmParameters.maintenanceIncrease,
+          "maintenance costs",
+          parameters.gbmParameters.maintenance,
         ),
         propertyTaxIncrease: prepRates(
           i,
-          "propertyTax",
-          parameters.gbmParameters.propertyTaxIncrease,
+          "property taxes",
+          parameters.gbmParameters.propertyTax,
         ),
         condoFeeIncrease: prepRates(
           i,
-          "condoFee",
-          parameters.gbmParameters.condoFeeIncrease,
+          "condo fees",
+          parameters.gbmParameters.condoFee,
         ),
         fiveYearInterestRates: prepRates(
           i,
-          "fiveYearInterestRates",
+          "five year interest rates",
           parameters.gbmParameters.fiveYearInterestRates,
         ),
         fourYearInterestRates: prepRates(
           i,
-          "fourYearInterestRates",
+          "four year interest rates",
           parameters.gbmParameters.fourYearInterestRates,
         ),
         threeYearInterestRates: prepRates(
           i,
-          "threeYearInterestRates",
+          "three year interest rates",
           parameters.gbmParameters.threeYearInterestRates,
         ),
         twoYearInterestRates: prepRates(
           i,
-          "twoYearInterestRates",
+          "two year interest rates",
           parameters.gbmParameters.twoYearInterestRates,
         ),
         oneYearInterestRates: prepRates(
           i,
-          "oneYearInterestRates",
+          "one year interest rates",
           parameters.gbmParameters.oneYearInterestRates,
         ),
         variableInterestRates: prepRates(
           i,
-          "variableInterestRates",
+          "variable interest rates",
           parameters.gbmParameters.variableInterestRates,
         ),
         appreciationIncrease: prepRates(
           i,
-          "propertyAppreciation",
-          parameters.gbmParameters.appreciationIncrease,
+          "property appreciation",
+          parameters.gbmParameters.appreciation,
         ),
         sellingFixedFeesIncrease: prepRates(
           i,
-          "sellingFixedFees",
-          parameters.gbmParameters.sellingFixedFeesIncrease,
+          "selling fixed fees",
+          parameters.gbmParameters.sellingFixedFees,
         ),
       },
     }, { finalBalanceOnly: true });
