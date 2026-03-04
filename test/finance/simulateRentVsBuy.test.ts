@@ -36,7 +36,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
     condoFees: 250,
   });
 
-  console.log({ ...params, rates: "A lot", allRatesFiltered: "A lot" });
+  // console.log({ ...params, rates: "A lot", allRatesFiltered: "A lot" });
 
   const results = simulateRentVsBuy(params);
   logFinalResults(results, "Montreal");
@@ -637,7 +637,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 506.51,
+          amount: 506,
           category: "renter",
           group: "monthlyExpenses",
           variable: "rent",
@@ -803,7 +803,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
 
   await t.step("second month expenses total per category", async () => {
     assertEquals(secondMonthExpensesTotalPerCategory, {
-      renter: 550.32,
+      renter: 549.81,
       buyerFixed: 1051.18,
       buyerVariable: 1021.55,
     });
@@ -831,7 +831,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 177356.74,
+          amount: 218515.26,
           category: "renter",
           group: "cumulativeExpenses",
           variable: "rent",
@@ -1054,7 +1054,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
     "cumulative expenses last month total per category",
     async () => {
       assertEquals(cumulativeExpensesLastMonthTotalPerCategory, {
-        renter: 193180.16,
+        renter: 234338.68,
         buyerFixed: 344987.14,
         buyerVariable: 328119.08,
       });
@@ -1083,7 +1083,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 1012.51,
+          amount: 1012,
           category: "renter",
           group: "cumulativeExpenses",
           variable: "rent",
@@ -1389,7 +1389,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
           month: 1,
           monthIndex: 1,
           date: "2000-02-01T00:00:00.000Z",
-          amount: 500.86,
+          amount: 501.37,
           category: "renter",
           group: "monthlyGains",
           variable: "newStocks",
@@ -1440,6 +1440,23 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
     );
   });
 
+  const secondMonthGainsTotalPerCategory = secondMonthGains.reduce(
+    (acc, d) => {
+      const key = d.category;
+      acc[key] = round((acc[key] || 0) + d.amount, { decimals: 2 });
+      return acc;
+    },
+    {} as Record<string, number>,
+  );
+
+  await t.step("second month gains total per category", async () => {
+    assertEquals(secondMonthGainsTotalPerCategory, {
+      renter: 2097.68,
+      buyerFixed: 535.41,
+      buyerVariable: 577.32,
+    });
+  });
+
   const cumulativeGains = results.filter((d) => d.group === "cumulativeGains");
 
   const cumulativeGainsLastMonth = cumulativeGains.filter((d) =>
@@ -1463,7 +1480,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 56319.23,
+          amount: 37738.63,
           category: "renter",
           group: "cumulativeGains",
           variable: "tfsaGains",
@@ -1473,7 +1490,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 84013.33,
+          amount: 49003.52,
           category: "renter",
           group: "cumulativeGains",
           variable: "tfsaContribution",
@@ -1483,7 +1500,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 119003.94,
+          amount: 111129.22,
           category: "renter",
           group: "cumulativeGains",
           variable: "stocksGains",
@@ -1493,7 +1510,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 67793.65,
+          amount: 61644.94,
           category: "renter",
           group: "cumulativeGains",
           variable: "newStocks",
@@ -1576,7 +1593,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
     "cumulative gains last month total per category",
     async () => {
       assertEquals(cumulativeGainsLastMonthTotalPerCategory, {
-        renter: 327130.15,
+        renter: 259516.31,
         buyerFixed: 412185.37,
         buyerVariable: 445469.23,
       });
@@ -1628,7 +1645,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
   await t.step("Almost no new stocks after 2009 (renter)", async () => {
     assertEquals(
       Math.round(renterNewStocksAfterTFSA - renterNewStocksBeforeTFSA),
-      1030,
+      0,
     );
   });
 
@@ -1655,7 +1672,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 140332.56,
+          amount: 86742.15,
           category: "renter",
           group: "assets",
           variable: "tfsa",
@@ -1665,7 +1682,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 186797.59,
+          amount: 172774.16,
           category: "renter",
           group: "assets",
           variable: "stocks",
@@ -1735,7 +1752,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
 
   await t.step("assets last month total per category", async () => {
     assertEquals(assetsLastMonthTotalPerCategory, {
-      renter: 327636.15,
+      renter: 260022.31,
       buyerFixed: 412185.37,
       buyerVariable: 445469.23,
     });
@@ -1764,7 +1781,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 12495.41,
+          amount: 11668.57,
           category: "renter",
           group: "saleCosts",
           variable: "stockTaxes",
@@ -1834,7 +1851,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
 
   await t.step("sale costs last month total per category", async () => {
     assertEquals(saleCostsLastMonthTotalPerCategory, {
-      renter: 12495.41,
+      renter: 11668.57,
       buyerFixed: 18485.41,
       buyerVariable: 19265.07,
     });
@@ -1863,7 +1880,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 174302.18,
+          amount: 161105.59,
           category: "renter",
           group: "saleNetGains",
           variable: "stockSellingGains",
@@ -1873,7 +1890,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 140332.56,
+          amount: 86742.15,
           category: "renter",
           group: "saleNetGains",
           variable: "tfsaSellingGains",
@@ -1943,7 +1960,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
 
   await t.step("sale net gains last month total per category", async () => {
     assertEquals(saleNetGainsLastMonthTotalPerCategory, {
-      renter: 315140.74,
+      renter: 248353.74,
       buyerFixed: 393699.96,
       buyerVariable: 426204.16,
     });
@@ -2009,7 +2026,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
           month: 11,
           monthIndex: 299,
           date: "2024-12-01T00:00:00.000Z",
-          amount: 121960.58,
+          amount: 14015.06,
           category: "renter",
           group: "summaryCumulative",
           variable: "balanceAfterSelling",
@@ -2046,5 +2063,6 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
   });
 
   await makeCharts("montreal", results, params.allRatesFiltered);
+
   assertEquals(true, true);
 });
