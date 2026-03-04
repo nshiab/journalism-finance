@@ -19,7 +19,7 @@ import getParamsRentVsBuyMonteCarlo from "./helpers/getParamsRentVsBuyMonteCarlo
 import makeChartsMonteCarlo from "./helpers/makeChartsBuyVsRentMonteCarlo.ts";
 
 Deno.test("should run a monte carlor simulation of rent vs buy", async () => {
-  const params = getParamsRentVsBuyMonteCarlo(1000, "Montreal", "Quebec", {
+  const params = getParamsRentVsBuyMonteCarlo(100, "Montreal", "Quebec", {
     renterMonthlyInsurance: 70,
     ownerMonthlyInsurance: 125,
     sellingFixedFees: 2000,
@@ -31,6 +31,7 @@ Deno.test("should run a monte carlor simulation of rent vs buy", async () => {
   const simulationResults = simulateRentVsBuyMonteCarlo(params, {
     verbose: true,
     values: true,
+    rates: true,
   });
 
   await makeChartsMonteCarlo(simulationResults);

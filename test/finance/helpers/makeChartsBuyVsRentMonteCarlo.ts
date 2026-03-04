@@ -56,7 +56,7 @@ export default async function makeChartsMonteCarlo(
                 : `$${d / 1_000_000}M`,
           },
           x: {
-            ticks: [0, 60, 120, 180, 240, 300],
+            ticks: [0, 60, 120, 180, 240],
             tickFormat: (d) => `${2000 + Math.round(d / 12)}`,
             // nice: true,
             label: null,
@@ -75,7 +75,6 @@ export default async function makeChartsMonteCarlo(
       },
       `test/output/monte-carlo-values-${variable}.png`,
     );
-    console.log(`Chart for variable ${variable} written.`);
   }
 
   for (
@@ -116,7 +115,7 @@ export default async function makeChartsMonteCarlo(
             tickFormat: "%",
           },
           x: {
-            ticks: [0, 60, 120, 180, 240, 300],
+            ticks: [0, 60, 120, 180, 240],
             tickFormat: (d) => `${2000 + Math.round(d / 12)}`,
             // nice: true,
             label: null,
@@ -135,11 +134,10 @@ export default async function makeChartsMonteCarlo(
       },
       `test/output/monte-carlo-values-${variable}.png`,
     );
-    console.log(`Chart for variable ${variable} written.`);
   }
 
   for (
-    const variable of variables.filter((d) => d.toLowerCase().includes("stock"))
+    const variable of variables.filter((d) => d.toLowerCase().includes("s&p"))
   ) {
     console.log(`Writing chart for variable ${variable}...`);
     await saveChart(
@@ -183,7 +181,7 @@ export default async function makeChartsMonteCarlo(
                 : `${d / 1_000_000}M`,
           },
           x: {
-            ticks: [0, 60, 120, 180, 240, 300],
+            ticks: [0, 60, 120, 180, 240],
             tickFormat: (d) => `${2000 + Math.round(d / 12)}`,
             // nice: true,
             label: null,
@@ -200,8 +198,56 @@ export default async function makeChartsMonteCarlo(
           ],
         });
       },
-      `test/output/monte-carlo-values-${variable}.png`,
+      `test/output/monte-carlo-values-${variable.replace("/", "_")}.png`,
     );
-    console.log(`Chart for variable ${variable} written.`);
+  }
+
+  const rates = results.rates;
+
+  for (
+    const variable of variables
+  ) {
+    console.log(`Writing chart for variable ${variable} (rates)...`);
+    await saveChart(
+      rates.filter((d) => d.variable === variable),
+      (data) => {
+        if (!Array.isArray(data)) {
+          throw new Error("Data should be an array");
+        }
+
+        const variableName = data[0].variable;
+
+        return plot({
+          title: `Generated rates for ${variableName} variable`,
+          subtitle: `${
+            data.filter((d) => d.variable === variableName && d.month === 0)
+              .length
+              .toLocaleString()
+          } iterations with GBM generation.`,
+          y: {
+            nice: true,
+            label: null,
+            tickFormat: "%",
+          },
+          x: {
+            ticks: [0, 60, 120, 180, 240],
+            tickFormat: (d) => `${2000 + Math.round(d / 12)}`,
+            // nice: true,
+            label: null,
+          },
+          grid: true,
+          marks: [
+            line(data, {
+              x: "month",
+              y: "value",
+              z: "iteration",
+              stroke: "black",
+              strokeOpacity: 0.05,
+            }),
+          ],
+        });
+      },
+      `test/output/monte-carlo-values-${variable.replace("/", "_")}-rates.png`,
+    );
   }
 }

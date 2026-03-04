@@ -58,10 +58,17 @@ export default function simulateRentVsBuyMonteCarlo(
     verbose?: boolean;
     verboseStep?: number;
     values?: boolean;
+    rates?: boolean;
   } = {},
 ) {
   const winners = [];
   const values: {
+    iteration: string;
+    variable: string;
+    value: number;
+    month: number;
+  }[] = [];
+  const rates: {
     iteration: string;
     variable: string;
     value: number;
@@ -98,6 +105,16 @@ export default function simulateRentVsBuyMonteCarlo(
     const randomRates = [];
     for (let i = 0; i < nbMonths; i++) {
       randomRates.push((path[i + 1] - path[i]) / path[i]);
+    }
+    if (options.rates) {
+      rates.push(
+        ...randomRates.map((value, i) => ({
+          iteration: iteration.toString(),
+          variable,
+          value,
+          month: i,
+        })),
+      );
     }
 
     return randomRates;
@@ -228,6 +245,7 @@ export default function simulateRentVsBuyMonteCarlo(
 
   return {
     values,
+    rates,
     winners: winners.sort((a, b) => b.category.localeCompare(a.category)),
   };
 }
