@@ -4,24 +4,39 @@ import getParamsRentVsBuyMonteCarlo from "./helpers/getParamsRentVsBuyMonteCarlo
 import makeChartsMonteCarlo from "./helpers/makeChartsBuyVsRentMonteCarlo.ts";
 
 Deno.test("should run a monte carlo simulation of rent vs buy", async () => {
-  const params = getParamsRentVsBuyMonteCarlo(1000, "Montreal", "Quebec", {
+  // // Just 1,000
+  // const params = getParamsRentVsBuyMonteCarlo(1000, "Montreal", "Quebec", {
+  //   renterMonthlyInsurance: 70,
+  //   ownerMonthlyInsurance: 125,
+  //   sellingFixedFees: 2000,
+  //   condoFees: 250,
+  // });
+
+  // console.log(params);
+
+  // const simulationResults = simulateRentVsBuyMonteCarlo(params, {
+  //   verbose: true,
+  //   values: true,
+  //   rates: true,
+  // });
+
+  // await makeChartsMonteCarlo(simulationResults);
+
+  // And now 10,000
+  const paramsBig = getParamsRentVsBuyMonteCarlo(10_000, "Montreal", "Quebec", {
     renterMonthlyInsurance: 70,
     ownerMonthlyInsurance: 125,
     sellingFixedFees: 2000,
     condoFees: 250,
   });
 
-  // console.log(params);
+  console.log(paramsBig);
 
-  const simulationResults = simulateRentVsBuyMonteCarlo(params, {
+  const simulationResultsBig = simulateRentVsBuyMonteCarlo(paramsBig, {
     verbose: true,
-    values: true,
-    rates: true,
   });
 
-  await makeChartsMonteCarlo(simulationResults);
-
-  // console.log(simulationResults);
+  await makeChartsMonteCarlo(simulationResultsBig);
 
   assertEquals(true, true);
 });

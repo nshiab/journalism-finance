@@ -19,18 +19,22 @@ export default function getParamsRentVsBuy(
   combinedTaxRate: number;
   renter: {
     startingMonthlyRent: number;
+    endingMonthlyRent: number;
     securityDeposit: number;
     startingMonthlyInsurance: number;
   };
   buyer: {
     purchasePrice: number;
+    endingPurchasePrice: number;
     downPayment: number;
     purchaseFixedFees: number;
     fixedRateDiscount: number;
     variableRateMargin: number;
     startingAnnualMaintenanceCost: number;
+    endingAnnualMaintenanceCost: number;
     startingMonthlyCondoFees: number;
     startingAnnualPropertyTax: number;
+    endingAnnualPropertyTax: number;
     startingMonthlyInsurance: number;
     sellingFixedFees: number;
     sellingCommissionRate: number;
@@ -53,18 +57,22 @@ export default function getParamsRentVsBuy(
   combinedTaxRate: number;
   renter: {
     startingMonthlyRent: number;
+    endingMonthlyRent: number;
     securityDeposit: number;
     startingMonthlyInsurance: number;
   };
   buyer: {
     purchasePrice: number;
+    endingPurchasePrice: number;
     downPayment: number;
     purchaseFixedFees: number;
     fixedRateDiscount: number;
     variableRateMargin: number;
     startingAnnualMaintenanceCost: number;
+    endingAnnualMaintenanceCost: number;
     startingMonthlyCondoFees: number;
     startingAnnualPropertyTax: number;
+    endingAnnualPropertyTax: number;
     startingMonthlyInsurance: number;
     sellingFixedFees: number;
     sellingCommissionRate: number;
@@ -120,12 +128,13 @@ export default function getParamsRentVsBuy(
     d.month === 1
   )?.value;
 
+  const endingMonthlyRent = allRates.find((d) =>
+    d.geo === city && d.variable === "Two-bedroom rent" && d.year === 2024 &&
+    d.month === 12
+  )?.value!;
   console.log(
     "endingMonthlyRent:",
-    allRates.find((d) =>
-      d.geo === city && d.variable === "Two-bedroom rent" && d.year === 2024 &&
-      d.month === 12
-    )?.value,
+    endingMonthlyRent,
   );
 
   if (startingMonthlyRent === undefined) {
@@ -269,18 +278,22 @@ export default function getParamsRentVsBuy(
       combinedTaxRate,
       renter: {
         startingMonthlyRent,
+        endingMonthlyRent,
         securityDeposit: startingMonthlyRent,
         startingMonthlyInsurance: renterStartingMonthlyInsurance,
       },
       buyer: {
         purchasePrice,
+        endingPurchasePrice: endingHomeValue,
         downPayment: Math.round(purchasePrice * 0.10),
         purchaseFixedFees: Math.round(purchasePrice * 0.02),
         fixedRateDiscount: 0.01,
         variableRateMargin: 0.0015,
         startingAnnualMaintenanceCost,
+        endingAnnualMaintenanceCost,
         startingMonthlyCondoFees,
         startingAnnualPropertyTax,
+        endingAnnualPropertyTax,
         startingMonthlyInsurance: ownerStartingMonthlyInsurance,
         sellingFixedFees: startingSellingFixedFees,
         sellingCommissionRate: 0.04,
@@ -352,18 +365,22 @@ export default function getParamsRentVsBuy(
       combinedTaxRate,
       renter: {
         startingMonthlyRent,
+        endingMonthlyRent,
         securityDeposit: startingMonthlyRent,
         startingMonthlyInsurance: renterStartingMonthlyInsurance,
       },
       buyer: {
         purchasePrice,
+        endingPurchasePrice: endingHomeValue,
         downPayment: Math.round(purchasePrice * 0.10),
         purchaseFixedFees: Math.round(purchasePrice * 0.02),
         fixedRateDiscount: 0.01,
         variableRateMargin: 0.0015,
         startingAnnualMaintenanceCost,
+        endingAnnualMaintenanceCost,
         startingMonthlyCondoFees,
         startingAnnualPropertyTax,
+        endingAnnualPropertyTax,
         startingMonthlyInsurance: ownerStartingMonthlyInsurance,
         sellingFixedFees: startingSellingFixedFees,
         sellingCommissionRate: 0.04,

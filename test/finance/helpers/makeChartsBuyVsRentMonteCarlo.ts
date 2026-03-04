@@ -156,7 +156,9 @@ export default async function makeChartsMonteCarlo(
         ],
       });
     },
-    "test/output/monte-carlo-final-result.png",
+    winners.length < 10_000
+      ? "test/output/monte-carlo-final-result.png"
+      : "test/output/monte-carlo-final-result-big.png",
     { style: "body { width: 700px; }" },
   );
 
@@ -216,7 +218,7 @@ export default async function makeChartsMonteCarlo(
             },
             x: {
               ticks: [0, 60, 120, 180, 240],
-              tickFormat: (d) => `${2000 + Math.round(d / 12)}`,
+              tickFormat: (d) => `${2025 + Math.round(d / 12)}`,
               // nice: true,
               label: null,
             },
@@ -281,7 +283,7 @@ export default async function makeChartsMonteCarlo(
             },
             x: {
               ticks: [0, 60, 120, 180, 240],
-              tickFormat: (d) => `${2000 + Math.round(d / 12)}`,
+              tickFormat: (d) => `${2025 + Math.round(d / 12)}`,
               // nice: true,
               label: null,
             },
@@ -349,7 +351,7 @@ export default async function makeChartsMonteCarlo(
             },
             x: {
               ticks: [0, 60, 120, 180, 240],
-              tickFormat: (d) => `${2000 + Math.round(d / 12)}`,
+              tickFormat: (d) => `${2025 + Math.round(d / 12)}`,
               // nice: true,
               label: null,
             },
@@ -398,7 +400,7 @@ export default async function makeChartsMonteCarlo(
             },
             x: {
               ticks: [0, 60, 120, 180, 240],
-              tickFormat: (d) => `${2000 + Math.round(d / 12)}`,
+              tickFormat: (d) => `${2025 + Math.round(d / 12)}`,
               // nice: true,
               label: null,
             },
