@@ -2038,6 +2038,13 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
     );
   });
 
+  const resultsFinalBalanceOnly = simulateRentVsBuy(params, {
+    finalBalanceOnly: true,
+  });
+  await t.step("the final balance only option should work", async () => {
+    assertEquals(resultsFinalBalanceOnly, overallBalanceAfterSellingLastMonth);
+  });
+
   await makeCharts("montreal", results, params.allRatesFiltered);
   assertEquals(true, true);
 });
