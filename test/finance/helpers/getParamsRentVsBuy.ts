@@ -107,7 +107,7 @@ export default function getParamsRentVsBuy(
   },
   noRates?: boolean,
 ) {
-  console.log("\ncity:", city);
+  // console.log("\ncity:", city);
 
   // Shared variables
   const numberOfYears = 25;
@@ -116,6 +116,18 @@ export default function getParamsRentVsBuy(
   // https://turbotax.intuit.ca/tax-resources/canada-income-tax-calculator
   if (province === "Quebec") {
     combinedTaxRate = 0.21;
+  } else if (province === "Ontario") {
+    combinedTaxRate = 0.17;
+  } else if (province === "British Columbia") {
+    combinedTaxRate = 0.16;
+  } else if (province === "Alberta") {
+    combinedTaxRate = 0.17;
+  } else if (province === "Nova Scotia") {
+    combinedTaxRate = 0.22;
+  } else if (province === "Manitoba") {
+    combinedTaxRate = 0.20;
+  } else if (province === "Saskatchewan") {
+    combinedTaxRate = 0.19;
   }
 
   if (combinedTaxRate === undefined) {
@@ -127,15 +139,19 @@ export default function getParamsRentVsBuy(
     d.geo === city && d.variable === "Two-bedroom rent" && d.year === 2000 &&
     d.month === 1
   )?.value;
+  // console.log(
+  //   "startingMonthlyRent:",
+  //   startingMonthlyRent,
+  // );
 
   const endingMonthlyRent = allRates.find((d) =>
     d.geo === city && d.variable === "Two-bedroom rent" && d.year === 2024 &&
     d.month === 12
   )?.value!;
-  console.log(
-    "endingMonthlyRent:",
-    endingMonthlyRent,
-  );
+  // console.log(
+  //   "endingMonthlyRent:",
+  //   endingMonthlyRent,
+  // );
 
   if (startingMonthlyRent === undefined) {
     throw new Error(`No rent data for city: ${city}`);
@@ -144,11 +160,13 @@ export default function getParamsRentVsBuy(
   const renterStartingMonthlyInsurance = adjustToInflation(
     endingValues.renterMonthlyInsurance,
     allRates.find((d) =>
-      d.geo === province && d.variable === "CPI Rent" && d.year === 2024 &&
+      d.geo === "Canada" && d.variable === "CPI Tenants insurance" &&
+      d.year === 2024 &&
       d.month === 12
     )!.indexedValue,
     allRates.find((d) =>
-      d.geo === province && d.variable === "CPI Rent" && d.year === 2000 &&
+      d.geo === "Canada" && d.variable === "CPI Tenants insurance" &&
+      d.year === 2000 &&
       d.month === 1
     )!.indexedValue,
     { decimals: 0 },
@@ -167,41 +185,66 @@ export default function getParamsRentVsBuy(
     d.geo === city && d.variable === "Apartment price" && d.year === 2024 &&
     d.month === 12
   )?.value;
-  console.log("endingHomeValue:", endingHomeValue);
+  // console.log("endingHomeValue:", endingHomeValue);
 
   if (endingHomeValue === undefined) {
     throw new Error(`No purchase price data for city: ${city} in 2024`);
   }
 
-  let startingAnnualPropertyTax;
-  let endingAnnualPropertyTax;
+  let taxRate;
+
+  // https://wowa.ca/taxes/montreal-property-tax 2024
   if (city === "Montreal") {
-    // https://wowa.ca/taxes/montreal-property-tax
-    endingAnnualPropertyTax = round(0.00710320 * endingHomeValue, {
-      decimals: 0,
-    });
-    startingAnnualPropertyTax = adjustToInflation(
-      endingAnnualPropertyTax,
-      allRates.find((d) =>
-        d.geo === province && d.variable === "CPI Property taxes & others" &&
-        d.year === 2024 && d.month === 12
-      )!.indexedValue,
-      allRates.find((d) =>
-        d.geo === province && d.variable === "CPI Property taxes & others" &&
-        d.year === 2000 && d.month === 1
-      )!.indexedValue,
-      { decimals: 0 },
-    );
+    taxRate = 0.00710320;
+  } else if (city === "Toronto") {
+    taxRate = 0.00715289;
+  } else if (city === "Vancouver") {
+    taxRate = 0.00296650;
+  } else if (city === "Calgary") {
+    taxRate = 0.00648610;
+  } else if (city === "Halifax") {
+    taxRate = 0.01101000;
+  } else if (city === "Ottawa") {
+    taxRate = 0.01195643;
+  } else if (city === "Edmonton") {
+    taxRate = 0.01017380;
+  } else if (city === "Winnipeg") {
+    taxRate = 0.02728200;
+  } else if (city === "Hamilton") {
+    taxRate = 0.01424000;
+  } else if (city === "Quebec") {
+    taxRate = 0.00998720;
+  } else if (city === "London") {
+    taxRate = 0.01573126;
+  } else if (city === "Saskatoon") {
+    taxRate = 0.01339512;
+  } else if (city === "Kitchener_waterloo") {
+    taxRate = 0.01272828;
+  } else if (city === "Regina") {
+    taxRate = 0.01485783;
   }
 
-  console.log("endingAnnualPropertyTax:", endingAnnualPropertyTax);
-
-  if (
-    startingAnnualPropertyTax === undefined ||
-    endingAnnualPropertyTax === undefined
-  ) {
+  if (taxRate === undefined) {
     throw new Error(`No property tax data for city: ${city}`);
   }
+
+  const endingAnnualPropertyTax = round(taxRate * endingHomeValue, {
+    decimals: 0,
+  });
+  const startingAnnualPropertyTax = adjustToInflation(
+    endingAnnualPropertyTax,
+    allRates.find((d) =>
+      d.geo === province && d.variable === "CPI Property taxes & others" &&
+      d.year === 2024 && d.month === 12
+    )!.indexedValue,
+    allRates.find((d) =>
+      d.geo === province && d.variable === "CPI Property taxes & others" &&
+      d.year === 2000 && d.month === 1
+    )!.indexedValue,
+    { decimals: 0 },
+  );
+
+  // console.log("endingAnnualPropertyTax:", endingAnnualPropertyTax);
 
   const ownerStartingMonthlyInsurance = adjustToInflation(
     endingValues.ownerMonthlyInsurance,
@@ -228,7 +271,7 @@ export default function getParamsRentVsBuy(
     )!.indexedValue,
     { decimals: 0 },
   );
-  console.log("startingSellingFixedFees:", startingSellingFixedFees);
+  // console.log("startingSellingFixedFees:", startingSellingFixedFees);
 
   const startingMonthlyCondoFees = adjustToInflation(
     endingValues.condoFees,
@@ -244,7 +287,7 @@ export default function getParamsRentVsBuy(
     )!.indexedValue,
     { decimals: 0 },
   );
-  console.log("startingMonthlyCondoFees:", startingMonthlyCondoFees);
+  // console.log("startingMonthlyCondoFees:", startingMonthlyCondoFees);
 
   // We use 1% overall estimate
   const endingMonthlyMaintenanceCost = ((endingHomeValue * 0.01) / 12) -
@@ -252,7 +295,7 @@ export default function getParamsRentVsBuy(
   const endingAnnualMaintenanceCost = endingMonthlyMaintenanceCost > 0
     ? Math.round(endingMonthlyMaintenanceCost * 12)
     : 0;
-  console.log("endingAnnualMaintenanceCost:", endingAnnualMaintenanceCost);
+  // console.log("endingAnnualMaintenanceCost:", endingAnnualMaintenanceCost);
 
   const startingAnnualMaintenanceCost = adjustToInflation(
     endingAnnualMaintenanceCost,
@@ -268,37 +311,39 @@ export default function getParamsRentVsBuy(
     )!.indexedValue,
     { decimals: 0 },
   );
-  console.log("startingAnnualMaintenanceCost:", startingAnnualMaintenanceCost);
+  // console.log("startingAnnualMaintenanceCost:", startingAnnualMaintenanceCost);
+
+  const baseParams = {
+    startingYear: 2000,
+    numberOfYears,
+    tfsaContributions: true,
+    combinedTaxRate,
+    renter: {
+      startingMonthlyRent,
+      endingMonthlyRent,
+      securityDeposit: startingMonthlyRent,
+      startingMonthlyInsurance: renterStartingMonthlyInsurance,
+    },
+    buyer: {
+      purchasePrice,
+      endingPurchasePrice: endingHomeValue,
+      downPayment: Math.round(purchasePrice * 0.10),
+      purchaseFixedFees: Math.round(purchasePrice * 0.02),
+      fixedRateDiscount: 0.01,
+      variableRateMargin: 0.0015,
+      startingAnnualMaintenanceCost,
+      endingAnnualMaintenanceCost,
+      startingMonthlyCondoFees,
+      startingAnnualPropertyTax,
+      endingAnnualPropertyTax,
+      startingMonthlyInsurance: ownerStartingMonthlyInsurance,
+      sellingFixedFees: startingSellingFixedFees,
+      sellingCommissionRate: 0.04,
+    },
+  };
 
   if (noRates) {
-    return {
-      startingYear: 2000,
-      numberOfYears,
-      tfsaContributions: true,
-      combinedTaxRate,
-      renter: {
-        startingMonthlyRent,
-        endingMonthlyRent,
-        securityDeposit: startingMonthlyRent,
-        startingMonthlyInsurance: renterStartingMonthlyInsurance,
-      },
-      buyer: {
-        purchasePrice,
-        endingPurchasePrice: endingHomeValue,
-        downPayment: Math.round(purchasePrice * 0.10),
-        purchaseFixedFees: Math.round(purchasePrice * 0.02),
-        fixedRateDiscount: 0.01,
-        variableRateMargin: 0.0015,
-        startingAnnualMaintenanceCost,
-        endingAnnualMaintenanceCost,
-        startingMonthlyCondoFees,
-        startingAnnualPropertyTax,
-        endingAnnualPropertyTax,
-        startingMonthlyInsurance: ownerStartingMonthlyInsurance,
-        sellingFixedFees: startingSellingFixedFees,
-        sellingCommissionRate: 0.04,
-      },
-    };
+    return baseParams;
   } else {
     // RATES
     // Yahoo Finance S&P/TSX
@@ -333,9 +378,9 @@ export default function getParamsRentVsBuy(
       d.geo === "Canada" && d.variable === "Bank of Canada prime rate"
     );
 
-    // CMHC city
-    const rentIncreaseCMCH = allRates.filter((d) =>
-      d.geo === city && d.variable === "Two-bedroom rent"
+    // Rent CPI city
+    const rentIncreaseCPI = allRates.filter((d) =>
+      d.geo === province && d.variable === "CPI Rent"
     );
     // CPI province
     const ownerInsuranceIncrease = allRates.filter((d) =>
@@ -359,35 +404,10 @@ export default function getParamsRentVsBuy(
     );
 
     return {
-      startingYear: 2000,
-      numberOfYears,
-      tfsaContributions: true,
-      combinedTaxRate,
-      renter: {
-        startingMonthlyRent,
-        endingMonthlyRent,
-        securityDeposit: startingMonthlyRent,
-        startingMonthlyInsurance: renterStartingMonthlyInsurance,
-      },
-      buyer: {
-        purchasePrice,
-        endingPurchasePrice: endingHomeValue,
-        downPayment: Math.round(purchasePrice * 0.10),
-        purchaseFixedFees: Math.round(purchasePrice * 0.02),
-        fixedRateDiscount: 0.01,
-        variableRateMargin: 0.0015,
-        startingAnnualMaintenanceCost,
-        endingAnnualMaintenanceCost,
-        startingMonthlyCondoFees,
-        startingAnnualPropertyTax,
-        endingAnnualPropertyTax,
-        startingMonthlyInsurance: ownerStartingMonthlyInsurance,
-        sellingFixedFees: startingSellingFixedFees,
-        sellingCommissionRate: 0.04,
-      },
+      ...baseParams,
       rates: {
         marketReturnRate: marketReturnRate.map((d) => d.pctChange),
-        rentIncrease: rentIncreaseCMCH.map((d) => d.pctChange),
+        rentIncrease: rentIncreaseCPI.map((d) => d.pctChange),
         ownerInsuranceIncrease: ownerInsuranceIncrease.map((d) => d.pctChange),
         renterInsuranceIncrease: canadaRenterInsuranceIncrease.map((d) =>
           d.pctChange
@@ -409,7 +429,7 @@ export default function getParamsRentVsBuy(
       allRatesFiltered: [
         ...appreciationIncrease,
         ...marketReturnRate,
-        ...rentIncreaseCMCH,
+        ...rentIncreaseCPI,
         ...ownerInsuranceIncrease,
         ...canadaRenterInsuranceIncrease,
         ...maintenanceIncrease,

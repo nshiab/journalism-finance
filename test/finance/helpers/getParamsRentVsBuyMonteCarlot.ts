@@ -56,6 +56,10 @@ export default function getParamsRentVsBuyMonteCarlo(
   const rentIncreaseCMCH = allRates.filter((d) =>
     d.geo === city && d.variable === "Two-bedroom rent"
   );
+  // CPI rent
+  const rentIncreaseCPI = allRates.filter((d) =>
+    d.geo === province && d.variable === "CPI Rent"
+  );
   // CPI province
   const ownerInsuranceIncrease = allRates.filter((d) =>
     d.geo === province && d.variable === "CPI Homeowners insurance"
@@ -111,10 +115,12 @@ export default function getParamsRentVsBuyMonteCarlo(
         ),
       },
       rent: {
-        // Using CMHC data
+        // Using CMHC data for start value but CPI for growth rate
         startValue: rentIncreaseCMCH.at(-1)!.value,
         ...getGbmParameters(
-          rentIncreaseCMCH.map((d) => d.value),
+          rentIncreaseCPI.map((d) =>
+            d.indexedValue * rentIncreaseCMCH.at(-1)!.value
+          ),
           12,
         ),
       },

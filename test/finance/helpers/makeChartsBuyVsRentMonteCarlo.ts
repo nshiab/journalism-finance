@@ -4,6 +4,8 @@ import { dodgeY, dotX, line, plot, textX } from "@observablehq/plot";
 
 export default async function makeChartsMonteCarlo(
   results: ReturnType<typeof simulateRentVsBuyMonteCarlo>,
+  justWinners = false,
+  name: string | undefined = undefined,
 ) {
   const winners = results.winners.sort((a, b) => a.amount - b.amount);
 
@@ -69,7 +71,7 @@ export default async function makeChartsMonteCarlo(
       const textTopMargin = 20;
 
       return plot({
-        title: "Balance after selling assets on last year",
+        title: `Balance after selling assets on last year`,
         subtitle:
           `Each dot represents one of ${data.length.toLocaleString()} iterations of a Monte Carlo simulation.`,
         caption:
@@ -157,15 +159,15 @@ export default async function makeChartsMonteCarlo(
       });
     },
     winners.length < 10_000
-      ? "test/output/monte-carlo-final-result.png"
-      : "test/output/monte-carlo-final-result-big.png",
+      ? `test/output/monte-carlo-final-result${name ? `-${name}` : ""}.png`
+      : `test/output/monte-carlo-final-result-big${name ? `-${name}` : ""}.png`,
     { style: "body { width: 700px; }" },
   );
 
   const values = results.values;
   const nbIterations = new Set(values.map((d) => d.iteration)).size;
 
-  if (values.length > 0 && nbIterations < 10_000) {
+  if (values.length > 0 && nbIterations < 10_000 && justWinners === false) {
     const variables = Array.from(new Set(values.map((d) => d.variable)));
 
     for (
