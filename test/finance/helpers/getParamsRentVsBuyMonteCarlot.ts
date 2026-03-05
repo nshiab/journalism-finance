@@ -56,6 +56,7 @@ export default function getParamsRentVsBuyMonteCarlo(
   const rentIncreaseCMCH = allRates.filter((d) =>
     d.geo === city && d.variable === "Two-bedroom rent"
   );
+
   // CPI rent
   const rentIncreaseCPI = allRates.filter((d) =>
     d.geo === province && d.variable === "CPI Rent"

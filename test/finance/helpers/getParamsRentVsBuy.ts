@@ -309,12 +309,12 @@ export default function getParamsRentVsBuy(
   );
   // console.log("startingMonthlyCondoFees:", startingMonthlyCondoFees);
 
-  // We use 1% overall estimate
+  // We use 1% overall estimate, which a minimum of $1
   const endingMonthlyMaintenanceCost = ((endingHomeValue * 0.01) / 12) -
     endingValues.condoFees;
   const endingAnnualMaintenanceCost = endingMonthlyMaintenanceCost > 0
     ? Math.round(endingMonthlyMaintenanceCost * 12)
-    : 0;
+    : 1;
   // console.log("endingAnnualMaintenanceCost:", endingAnnualMaintenanceCost);
 
   const startingAnnualMaintenanceCost = adjustToInflation(
@@ -402,6 +402,7 @@ export default function getParamsRentVsBuy(
     const rentIncreaseCPI = allRates.filter((d) =>
       d.geo === province && d.variable === "CPI Rent"
     );
+
     // CPI province
     const ownerInsuranceIncrease = allRates.filter((d) =>
       d.geo === province && d.variable === "CPI Homeowners insurance"

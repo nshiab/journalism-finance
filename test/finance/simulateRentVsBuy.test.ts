@@ -2048,7 +2048,6 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
 });
 
 Deno.test("should compute final results for multiple cities", async () => {
-  // Biggest cities
   const locations = [
     { city: "Toronto", province: "Ontario" },
     { city: "Montreal", province: "Quebec" },
@@ -2073,12 +2072,6 @@ Deno.test("should compute final results for multiple cities", async () => {
     { city: "Saint_john_nb", province: "New Brunswick" },
     { city: "St_johns_nl", province: "Newfoundland and Labrador" },
   ];
-  // 'GUELPH_AND_DISTRICT',
-  // 'KINGSTON_AND_AREA',
-  // 'FREDERICTON',
-  // 'GREATER_MONCTON',
-  // 'SAINT_JOHN_NB',
-  // 'ST_JOHNS_NL',
 
   const finalResults = [];
   for (const location of locations) {
