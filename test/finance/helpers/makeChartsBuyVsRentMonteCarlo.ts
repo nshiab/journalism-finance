@@ -20,16 +20,16 @@ export default async function makeChartsMonteCarlo(
         throw new Error("Data should be an array");
       }
 
-      const p001 = Math.round(
-        data.length * 0.005,
+      const p1 = Math.round(
+        data.length * 0.01,
       );
-      const p999 = Math.round(
-        data.length * 0.995,
+      const p99 = Math.round(
+        data.length * 0.99,
       );
-      const p001Value = data[p001].amount;
-      const p999Value = data[p999].amount;
+      const p1Value = data[p1].amount;
+      const p99Value = data[p99].amount;
 
-      const middle = (p001Value + p999Value) / 2;
+      const middle = (p1Value + p99Value) / 2;
 
       const buyerFixedWins = data.filter((d) => d.category === "buyerFixed");
       const buyerFixedPerc = Math.round(
@@ -64,7 +64,7 @@ export default async function makeChartsMonteCarlo(
       );
 
       const dataFiltered = data
-        .filter((d) => d.amount >= p001Value && d.amount <= p999Value)
+        .filter((d) => d.amount >= p1Value && d.amount <= p99Value)
         .sort(() => Math.random() - 0.5);
 
       const height = data.length < 10_000 ? 300 : 500;
@@ -75,7 +75,7 @@ export default async function makeChartsMonteCarlo(
         subtitle:
           `Each dot represents one of ${data.length.toLocaleString()} iterations of a Monte Carlo simulation.`,
         caption:
-          `For better readability, only results between the 0.5th and 99.5th percentiles are shown on the chart.`,
+          `For better readability, only results between the 1st and 99th percentiles are shown on the chart.`,
         x: {
           nice: true,
           label: null,
@@ -185,6 +185,8 @@ export default async function makeChartsMonteCarlo(
 
           const variableName = data[0].variable;
 
+          const startValue = data.find((d) => d.month === 0)?.value;
+
           const lastMonthAvgValue = Math.round(
             data.filter((d) => d.month === 299).reduce(
               (sum, d) => sum + d.value,
@@ -201,11 +203,12 @@ export default async function makeChartsMonteCarlo(
 
           return plot({
             title: `Generated values for ${variableName} variable`,
-            subtitle: `${
-              data.filter((d) => d.variable === variableName && d.month === 0)
-                .length
-                .toLocaleString()
-            } iterations with GBM generation. Last month average $${lastMonthAvgValue.toLocaleString()} and median $${lastMonthMedianValue.toLocaleString()}.`,
+            subtitle:
+              `Start value $${startValue.toLocaleString()}. Last month average $${lastMonthAvgValue.toLocaleString()} and median $${lastMonthMedianValue.toLocaleString()} after ${
+                data.filter((d) => d.variable === variableName && d.month === 0)
+                  .length
+                  .toLocaleString()
+              } GBM iterations.`,
             y: {
               nice: true,
               label: null,
@@ -230,8 +233,8 @@ export default async function makeChartsMonteCarlo(
                 x: "month",
                 y: "value",
                 z: "iteration",
-                stroke: "black",
-                strokeOpacity: 0.05,
+                stroke: "orange",
+                strokeOpacity: 0.1,
               }),
             ],
           });
@@ -255,6 +258,8 @@ export default async function makeChartsMonteCarlo(
 
           const variableName = data[0].variable;
 
+          const startValue = data.find((d) => d.month === 0)?.value * 100;
+
           const lastMonthAvgValue = (data.filter((d) => d.month === 299).reduce(
             (sum, d) => sum + d.value,
             0,
@@ -271,13 +276,14 @@ export default async function makeChartsMonteCarlo(
 
           return plot({
             title: `Generated values for ${variableName} variable`,
-            subtitle: `${
-              data.filter((d) => d.variable === variableName && d.month === 0)
-                .length
-                .toLocaleString()
-            } iterations with GBM generation. Last month average ${
-              lastMonthAvgValue.toFixed(2)
-            }% and median ${lastMonthMedianValue.toFixed(2)}%.`,
+            subtitle:
+              `Start value ${startValue.toLocaleString()}%. Last month average ${
+                lastMonthAvgValue.toFixed(2)
+              }% and median ${lastMonthMedianValue.toFixed(2)}% after ${
+                data.filter((d) => d.variable === variableName && d.month === 0)
+                  .length
+                  .toLocaleString()
+              } GBM iterations.`,
             y: {
               nice: true,
               label: null,
@@ -295,8 +301,8 @@ export default async function makeChartsMonteCarlo(
                 x: "month",
                 y: "value",
                 z: "iteration",
-                stroke: "black",
-                strokeOpacity: 0.05,
+                stroke: "orange",
+                strokeOpacity: 0.1,
               }),
             ],
           });
@@ -318,6 +324,8 @@ export default async function makeChartsMonteCarlo(
 
           const variableName = data[0].variable;
 
+          const startValue = data.find((d) => d.month === 0)?.value;
+
           const lastMonthAvgValue = Math.round(
             data.filter((d) => d.month === 299).reduce(
               (sum, d) => sum + d.value,
@@ -334,11 +342,12 @@ export default async function makeChartsMonteCarlo(
 
           return plot({
             title: `Generated values for ${variableName} variable`,
-            subtitle: `${
-              data.filter((d) => d.variable === variableName && d.month === 0)
-                .length
-                .toLocaleString()
-            } iterations with GBM generation. Last month average ${lastMonthAvgValue.toLocaleString()} and median ${lastMonthMedianValue.toLocaleString()}.`,
+            subtitle:
+              `Start value ${startValue.toLocaleString()}. Last month average ${lastMonthAvgValue.toLocaleString()} and median ${lastMonthMedianValue.toLocaleString()} after  ${
+                data.filter((d) => d.variable === variableName && d.month === 0)
+                  .length
+                  .toLocaleString()
+              } GBM iterations.`,
             y: {
               nice: true,
               label: null,
@@ -363,8 +372,8 @@ export default async function makeChartsMonteCarlo(
                 x: "month",
                 y: "value",
                 z: "iteration",
-                stroke: "black",
-                strokeOpacity: 0.05,
+                stroke: "orange",
+                strokeOpacity: 0.1,
               }),
             ],
           });
@@ -412,8 +421,8 @@ export default async function makeChartsMonteCarlo(
                 x: "month",
                 y: "value",
                 z: "iteration",
-                stroke: "black",
-                strokeOpacity: 0.01,
+                stroke: "orange",
+                strokeOpacity: 0.1,
               }),
             ],
           });

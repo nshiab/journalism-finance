@@ -11,7 +11,7 @@ import makeChartsMonteCarlo from "./helpers/makeChartsBuyVsRentMonteCarlo.ts";
 //     condoFees: 250,
 //   });
 
-//   console.log(params);
+//   // console.log(params);
 
 //   const simulationResults = simulateRentVsBuyMonteCarlo(params, {
 //     verbose: true,
@@ -23,52 +23,52 @@ import makeChartsMonteCarlo from "./helpers/makeChartsBuyVsRentMonteCarlo.ts";
 //   assertEquals(true, true);
 // });
 
-// Deno.test("should run a monte carlo simulation of rent vs buy with 10,000 iterations", async () => {
-//   const paramsBig = getParamsRentVsBuyMonteCarlo(10_000, "Montreal", "Quebec", {
-//     renterMonthlyInsurance: 70,
-//     ownerMonthlyInsurance: 125,
-//     sellingFixedFees: 2000,
-//     condoFees: 250,
-//   });
+Deno.test("should run a monte carlo simulation of rent vs buy with 10,000 iterations", async () => {
+  const paramsBig = getParamsRentVsBuyMonteCarlo(10_000, "Montreal", "Quebec", {
+    renterMonthlyInsurance: 70,
+    ownerMonthlyInsurance: 125,
+    sellingFixedFees: 2000,
+    condoFees: 250,
+  });
 
-//   console.log(paramsBig);
+  console.log(paramsBig);
 
-//   const simulationResultsBig = simulateRentVsBuyMonteCarlo(paramsBig, {
-//     verbose: true,
-//   });
+  const simulationResultsBig = simulateRentVsBuyMonteCarlo(paramsBig, {
+    verbose: true,
+  });
 
-//   await makeChartsMonteCarlo(simulationResultsBig);
-//   assertEquals(true, true);
-// });
-
-Deno.test("should run a monte carlo simulation of rent vs buy with 1,000 iterations for multiple cities", async () => {
-  const locations = [
-    { city: "Montreal", province: "Quebec" },
-    { city: "Toronto", province: "Ontario" },
-    { city: "Vancouver", province: "British Columbia" },
-    { city: "Calgary", province: "Alberta" },
-    { city: "Halifax", province: "Nova Scotia" },
-  ];
-
-  for (const location of locations) {
-    const params = getParamsRentVsBuyMonteCarlo(
-      1000,
-      location.city,
-      location.province,
-      {
-        renterMonthlyInsurance: 70,
-        ownerMonthlyInsurance: 125,
-        sellingFixedFees: 2000,
-        condoFees: 250,
-      },
-    );
-
-    const simulationResults = simulateRentVsBuyMonteCarlo(params, {
-      verbose: true,
-    });
-
-    await makeChartsMonteCarlo(simulationResults, true, location.city);
-  }
-
+  await makeChartsMonteCarlo(simulationResultsBig);
   assertEquals(true, true);
 });
+
+// Deno.test("should run a monte carlo simulation of rent vs buy with 1,000 iterations for multiple cities", async () => {
+//   const locations = [
+//     { city: "Montreal", province: "Quebec" },
+//     { city: "Toronto", province: "Ontario" },
+//     { city: "Vancouver", province: "British Columbia" },
+//     { city: "Calgary", province: "Alberta" },
+//     { city: "Halifax", province: "Nova Scotia" },
+//   ];
+
+//   for (const location of locations) {
+//     const params = getParamsRentVsBuyMonteCarlo(
+//       1000,
+//       location.city,
+//       location.province,
+//       {
+//         renterMonthlyInsurance: 70,
+//         ownerMonthlyInsurance: 125,
+//         sellingFixedFees: 2000,
+//         condoFees: 250,
+//       },
+//     );
+
+//     const simulationResults = simulateRentVsBuyMonteCarlo(params, {
+//       verbose: true,
+//     });
+
+//     await makeChartsMonteCarlo(simulationResults, true, location.city);
+//   }
+
+//   assertEquals(true, true);
+// });

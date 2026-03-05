@@ -15,6 +15,8 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
     condoFees: 250,
   });
 
+  // console.log(params);
+
   const results = simulateRentVsBuy(params);
 
   const mortgageRatesFixedBuyer = results.filter((d) =>
@@ -2040,61 +2042,61 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
     assertEquals(resultsFinalBalanceOnly, overallBalanceAfterSellingLastMonth);
   });
 
-  // await makeCharts("montreal", results, params.allRatesFiltered);
+  await makeCharts("montreal", results, params.allRatesFiltered);
 
   assertEquals(true, true);
 });
 
-Deno.test("should compute final results for multiple cities", async () => {
-  // Biggest cities
-  const locations = [
-    { city: "Toronto", province: "Ontario" },
-    { city: "Montreal", province: "Quebec" },
-    { city: "Calgary", province: "Alberta" },
-    { city: "Ottawa", province: "Ontario" },
-    { city: "Edmonton", province: "Alberta" },
-    { city: "Winnipeg", province: "Manitoba" },
-    { city: "Vancouver", province: "British Columbia" },
-    { city: "Hamilton", province: "Ontario" },
-    { city: "Quebec", province: "Quebec" },
-    { city: "Halifax", province: "Nova Scotia" },
-    { city: "London", province: "Ontario" },
-    { city: "Saskatoon", province: "Saskatchewan" },
-    { city: "Kitchener_waterloo", province: "Ontario" },
-    { city: "Regina", province: "Saskatchewan" },
-  ];
+// Deno.test("should compute final results for multiple cities", async () => {
+//   // Biggest cities
+//   const locations = [
+//     { city: "Toronto", province: "Ontario" },
+//     { city: "Montreal", province: "Quebec" },
+//     { city: "Calgary", province: "Alberta" },
+//     { city: "Ottawa", province: "Ontario" },
+//     { city: "Edmonton", province: "Alberta" },
+//     { city: "Winnipeg", province: "Manitoba" },
+//     { city: "Vancouver", province: "British Columbia" },
+//     { city: "Hamilton", province: "Ontario" },
+//     { city: "Quebec", province: "Quebec" },
+//     { city: "Halifax", province: "Nova Scotia" },
+//     { city: "London", province: "Ontario" },
+//     { city: "Saskatoon", province: "Saskatchewan" },
+//     { city: "Kitchener_waterloo", province: "Ontario" },
+//     { city: "Regina", province: "Saskatchewan" },
+//   ];
 
-  const finalResults = [];
-  for (const location of locations) {
-    console.log(
-      `Computing results for ${location.city}, ${location.province}...`,
-    );
-    const params = getParams(location.city, location.province, {
-      renterMonthlyInsurance: 70,
-      ownerMonthlyInsurance: 125,
-      sellingFixedFees: 2000,
-      condoFees: 250,
-    });
+//   const finalResults = [];
+//   for (const location of locations) {
+//     console.log(
+//       `Computing results for ${location.city}, ${location.province}...`,
+//     );
+//     const params = getParams(location.city, location.province, {
+//       renterMonthlyInsurance: 70,
+//       ownerMonthlyInsurance: 125,
+//       sellingFixedFees: 2000,
+//       condoFees: 250,
+//     });
 
-    const results = simulateRentVsBuy(params);
+//     const results = simulateRentVsBuy(params);
 
-    // await makeCharts(location.city, results, params.allRatesFiltered);
+//     // await makeCharts(location.city, results, params.allRatesFiltered);
 
-    finalResults.push(
-      ...results.filter((d) =>
-        d.group === "summaryCumulative" &&
-        d.variable === "balanceAfterSelling" &&
-        d.monthIndex === (params.numberOfYears * 12) - 1
-      ).map((d) => ({
-        amount: d.amount,
-        category: d.category,
-        city: location.city.replace("Kitchener_waterloo", "Kitchener-Waterloo"),
-        province: location.province,
-      })),
-    );
-  }
+//     finalResults.push(
+//       ...results.filter((d) =>
+//         d.group === "summaryCumulative" &&
+//         d.variable === "balanceAfterSelling" &&
+//         d.monthIndex === (params.numberOfYears * 12) - 1
+//       ).map((d) => ({
+//         amount: d.amount,
+//         category: d.category,
+//         city: location.city.replace("Kitchener_waterloo", "Kitchener-Waterloo"),
+//         province: location.province,
+//       })),
+//     );
+//   }
 
-  console.table(finalResults);
+//   console.table(finalResults);
 
-  await makeChartsBuyVsRentMultipleCities(finalResults);
-});
+//   await makeChartsBuyVsRentMultipleCities(finalResults);
+// });
