@@ -14,7 +14,7 @@ export default async function makeChartsBuyVsRentMultipleCities(finalResults: {
         throw new Error("Data should be an array");
       }
 
-      const n = 3; // number of facet columns
+      const n = 4; // number of facet columns
       const keys = Array.from(new Set(data.map((d) => d.city)));
       const index = new Map(keys.map((key, i) => [key, i]));
       //@ts-expect-error It's okay
@@ -36,7 +36,7 @@ export default async function makeChartsBuyVsRentMultipleCities(finalResults: {
         title:
           "Net gains/losses after selling all assets at the end of the simulation",
         subtitle:
-          "Simulation from 2000 to 2025: Comparing the purchase of a condo to renting and investing the difference.",
+          "Simulation from 2000 to 2025, comparing the purchase of a condo to renting and investing the difference.",
         color: {
           legend: true,
         },
@@ -48,7 +48,7 @@ export default async function makeChartsBuyVsRentMultipleCities(finalResults: {
         y: {
           label: null,
           insetTop: 20,
-          insetBottom: 5,
+          insetBottom: 15,
           grid: true,
           ticks: 5,
           nice: true,

@@ -128,6 +128,10 @@ export default function getParamsRentVsBuy(
     combinedTaxRate = 0.20;
   } else if (province === "Saskatchewan") {
     combinedTaxRate = 0.19;
+  } else if (province === "New Brunswick") {
+    combinedTaxRate = 0.20;
+  } else if (province === "Newfoundland and Labrador") {
+    combinedTaxRate = 0.21;
   }
 
   if (combinedTaxRate === undefined) {
@@ -222,6 +226,22 @@ export default function getParamsRentVsBuy(
     taxRate = 0.01272828;
   } else if (city === "Regina") {
     taxRate = 0.01485783;
+  } else if (city === "Victoria") {
+    taxRate = 0.00474160;
+  } else if (city === "Barrie") {
+    taxRate = 0.01353416;
+  } else if (city === "Guelph") {
+    taxRate = 0.01319641;
+  } else if (city === "Kingston") {
+    taxRate = 0.01478321;
+  } else if (city === "Fredericton") {
+    taxRate = 0.01328600;
+  } else if (city === "Moncton") {
+    taxRate = 0.01423100;
+  } else if (city === "Saint_john_nb") {
+    taxRate = 0.01580000;
+  } else if (city === "St_johns_nl") {
+    taxRate = 0.00910000;
   }
 
   if (taxRate === undefined) {
