@@ -71,7 +71,7 @@ Deno.test("should run a monte carlo simulation of rent vs buy with 1,000 iterati
   const allResults = [];
   for (const location of locations) {
     const params = getParamsRentVsBuyMonteCarlo(
-      10,
+      1000,
       location.city,
       location.province,
       {
@@ -86,7 +86,7 @@ Deno.test("should run a monte carlo simulation of rent vs buy with 1,000 iterati
       verbose: true,
     });
 
-    // await makeChartsMonteCarlo(simulationResults, true, location.city);
+    await makeChartsMonteCarlo(simulationResults, true, location.city);
 
     allResults.push(...simulationResults.winners.map((d) => ({
       amount: d.amount,

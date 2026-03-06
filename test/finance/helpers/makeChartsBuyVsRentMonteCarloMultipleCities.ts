@@ -35,8 +35,6 @@ export default async function makeChartsBuyVsRentMonteCarloMultipleCities(
     }
   }
 
-  console.log(aggregatedResults);
-
   await saveChart(
     aggregatedResults,
     (data) => {
@@ -64,7 +62,7 @@ export default async function makeChartsBuyVsRentMonteCarloMultipleCities(
         },
         y: {
           label: null,
-          insetTop: 25,
+          insetTop: 30,
           grid: true,
           ticks: 5,
           nice: true,
@@ -87,7 +85,7 @@ export default async function makeChartsBuyVsRentMonteCarloMultipleCities(
           text(data, {
             x: "category",
             y: "percentage",
-            text: (d) => `${d.percentage * 100}%`,
+            text: (d) => `${Math.round(d.percentage * 100)}%`,
             fill: "category",
             stroke: "white",
             fx: (d) => fx(d.city),
