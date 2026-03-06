@@ -1,7 +1,8 @@
-import { round } from "@nshiab/journalism-format";
-import adjustToInflation from "../../../src/finance/adjustToInflation.ts";
 import allRates from "../../data/allRates.json" with { type: "json" };
-import { getGbmParameters } from "@nshiab/journalism-statistics";
+import {
+  getCirParameters,
+  getGbmParameters,
+} from "@nshiab/journalism-statistics";
 import getParamsRentVsBuy from "./getParamsRentVsBuy.ts";
 
 export default function getParamsRentVsBuyMonteCarlo(
@@ -148,7 +149,7 @@ export default function getParamsRentVsBuyMonteCarlo(
       fiveYearInterestRates: {
         // Actual values
         startValue: fiveYearInterestRates.at(-1)!.value,
-        ...getGbmParameters(
+        ...getCirParameters(
           fiveYearInterestRates.map((d) => d.value),
           12,
         ),
@@ -156,7 +157,7 @@ export default function getParamsRentVsBuyMonteCarlo(
       fourYearInterestRates: {
         // Actual values
         startValue: fourYearInterestRates.at(-1)!.value,
-        ...getGbmParameters(
+        ...getCirParameters(
           fourYearInterestRates.map((d) => d.value),
           12,
         ),
@@ -164,7 +165,7 @@ export default function getParamsRentVsBuyMonteCarlo(
       threeYearInterestRates: {
         // Actual values
         startValue: threeYearInterestRates.at(-1)!.value,
-        ...getGbmParameters(
+        ...getCirParameters(
           threeYearInterestRates.map((d) => d.value),
           12,
         ),
@@ -172,7 +173,7 @@ export default function getParamsRentVsBuyMonteCarlo(
       twoYearInterestRates: {
         // Actual values
         startValue: twoYearInterestRates.at(-1)!.value,
-        ...getGbmParameters(
+        ...getCirParameters(
           twoYearInterestRates.map((d) => d.value),
           12,
         ),
@@ -180,7 +181,7 @@ export default function getParamsRentVsBuyMonteCarlo(
       oneYearInterestRates: {
         // Actual values
         startValue: oneYearInterestRates.at(-1)!.value,
-        ...getGbmParameters(
+        ...getCirParameters(
           oneYearInterestRates.map((d) => d.value),
           12,
         ),
@@ -188,7 +189,7 @@ export default function getParamsRentVsBuyMonteCarlo(
       variableInterestRates: {
         // Actual values
         startValue: variableInterestRates.at(-1)!.value,
-        ...getGbmParameters(
+        ...getCirParameters(
           variableInterestRates.map((d) => d.value),
           12,
         ),

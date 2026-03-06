@@ -388,7 +388,9 @@ export default async function makeChartsMonteCarlo(
     const rates = results.rates.filter((d) => parseInt(d.iteration) < 1000);
 
     for (
-      const variable of variables
+      const variable of variables.filter((d) =>
+        !d.toLowerCase().includes("rates")
+      )
     ) {
       console.log(`Writing chart for variable ${variable} (rates)...`);
       await saveChart(

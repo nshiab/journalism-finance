@@ -33,10 +33,8 @@ export default async function makeChartsBuyVsRentMultipleCities(finalResults: {
       }
 
       return plot({
-        title:
-          "Net gains/losses after selling all assets at the end of the simulation",
-        subtitle:
-          "Simulation from 2000 to 2025, comparing the purchase of a condo to renting and investing the difference.",
+        title: "Financial gains or losses after 25 years",
+        subtitle: "Simulation starting in 2000.",
         color: {
           legend: true,
         },
@@ -47,7 +45,7 @@ export default async function makeChartsBuyVsRentMultipleCities(finalResults: {
         },
         y: {
           label: null,
-          insetTop: 2,
+          insetTop: 30,
           insetBottom: 15,
           grid: true,
           ticks: 5,

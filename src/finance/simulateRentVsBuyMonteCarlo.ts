@@ -1,7 +1,10 @@
 import { prettyDuration } from "@nshiab/journalism-format";
 import simulateRentVsBuy from "./simulateRentVsBuy.ts";
 import { maxIndex } from "d3-array";
-import { generateGbmPath } from "@nshiab/journalism-statistics";
+import {
+  generateCirPath,
+  generateGbmPath,
+} from "@nshiab/journalism-statistics";
 
 export default function simulateRentVsBuyMonteCarlo(
   parameters: {
@@ -37,12 +40,6 @@ export default function simulateRentVsBuyMonteCarlo(
         mu: number;
         sigma: number;
       };
-      fiveYearInterestRates: { startValue: number; mu: number; sigma: number };
-      fourYearInterestRates: { startValue: number; mu: number; sigma: number };
-      threeYearInterestRates: { startValue: number; mu: number; sigma: number };
-      twoYearInterestRates: { startValue: number; mu: number; sigma: number };
-      oneYearInterestRates: { startValue: number; mu: number; sigma: number };
-      variableInterestRates: { startValue: number; mu: number; sigma: number };
       maintenance: { startValue: number; mu: number; sigma: number };
       propertyTax: { startValue: number; mu: number; sigma: number };
       condoFee: { startValue: number; mu: number; sigma: number };
@@ -51,6 +48,42 @@ export default function simulateRentVsBuyMonteCarlo(
         startValue: number;
         mu: number;
         sigma: number;
+      };
+      fiveYearInterestRates: {
+        a: number;
+        b: number;
+        sigma: number;
+        startValue: number;
+      };
+      fourYearInterestRates: {
+        a: number;
+        b: number;
+        sigma: number;
+        startValue: number;
+      };
+      threeYearInterestRates: {
+        a: number;
+        b: number;
+        sigma: number;
+        startValue: number;
+      };
+      twoYearInterestRates: {
+        a: number;
+        b: number;
+        sigma: number;
+        startValue: number;
+      };
+      oneYearInterestRates: {
+        a: number;
+        b: number;
+        sigma: number;
+        startValue: number;
+      };
+      variableInterestRates: {
+        a: number;
+        b: number;
+        sigma: number;
+        startValue: number;
       };
     };
   },
@@ -77,7 +110,7 @@ export default function simulateRentVsBuyMonteCarlo(
 
   const nbMonths = parameters.numberOfYears * 12;
 
-  function prepRates(
+  function prepRatesBgm(
     iteration: number,
     variable: string,
     params: { startValue: number; mu: number; sigma: number },
@@ -86,6 +119,50 @@ export default function simulateRentVsBuyMonteCarlo(
     const path = generateGbmPath(
       params.startValue,
       params.mu,
+      params.sigma,
+      parameters.numberOfYears + 0.9,
+      12,
+    );
+    if (options.values) {
+      values.push(
+        ...path.slice(0, nbMonths).map((value, i) => ({
+          iteration: iteration.toString(),
+          variable,
+          value,
+          month: i,
+        })),
+      );
+    }
+
+    // So we can compute the monthly returns, which is what we need for the simulation
+    const randomRates = [];
+    for (let i = 0; i < nbMonths; i++) {
+      randomRates.push((path[i + 1] - path[i]) / path[i]);
+    }
+    if (options.rates) {
+      rates.push(
+        ...randomRates.map((value, i) => ({
+          iteration: iteration.toString(),
+          variable,
+          value,
+          month: i,
+        })),
+      );
+    }
+
+    return randomRates;
+  }
+
+  function prepRatesCir(
+    iteration: number,
+    variable: string,
+    params: { startValue: number; a: number; b: number; sigma: number },
+  ): number[] {
+    // We generate a bit more than the number of months...
+    const path = generateCirPath(
+      params.startValue,
+      params.a,
+      params.b,
       params.sigma,
       parameters.numberOfYears + 0.9,
       12,
@@ -151,80 +228,80 @@ export default function simulateRentVsBuyMonteCarlo(
         sellingCommissionRate: parameters.buyer.sellingCommissionRate,
       },
       rates: {
-        marketReturnRate: prepRates(
+        marketReturnRate: prepRatesBgm(
           i,
           "S&P/TSX",
           parameters.gbmParameters.market,
         ),
-        rentIncrease: prepRates(
+        rentIncrease: prepRatesBgm(
           i,
           "rent",
           parameters.gbmParameters.rent,
         ),
-        renterInsuranceIncrease: prepRates(
+        renterInsuranceIncrease: prepRatesBgm(
           i,
           "renter insurance",
           parameters.gbmParameters.renterInsurance,
         ),
-        ownerInsuranceIncrease: prepRates(
+        ownerInsuranceIncrease: prepRatesBgm(
           i,
           "owner insurance",
           parameters.gbmParameters.ownerInsurance,
         ),
-        maintenanceIncrease: prepRates(
+        maintenanceIncrease: prepRatesBgm(
           i,
           "maintenance costs",
           parameters.gbmParameters.maintenance,
         ),
-        propertyTaxIncrease: prepRates(
+        propertyTaxIncrease: prepRatesBgm(
           i,
           "property taxes",
           parameters.gbmParameters.propertyTax,
         ),
-        condoFeeIncrease: prepRates(
+        condoFeeIncrease: prepRatesBgm(
           i,
           "condo fees",
           parameters.gbmParameters.condoFee,
         ),
-        fiveYearInterestRates: prepRates(
-          i,
-          "five year interest rates",
-          parameters.gbmParameters.fiveYearInterestRates,
-        ),
-        fourYearInterestRates: prepRates(
-          i,
-          "four year interest rates",
-          parameters.gbmParameters.fourYearInterestRates,
-        ),
-        threeYearInterestRates: prepRates(
-          i,
-          "three year interest rates",
-          parameters.gbmParameters.threeYearInterestRates,
-        ),
-        twoYearInterestRates: prepRates(
-          i,
-          "two year interest rates",
-          parameters.gbmParameters.twoYearInterestRates,
-        ),
-        oneYearInterestRates: prepRates(
-          i,
-          "one year interest rates",
-          parameters.gbmParameters.oneYearInterestRates,
-        ),
-        variableInterestRates: prepRates(
-          i,
-          "variable interest rates",
-          parameters.gbmParameters.variableInterestRates,
-        ),
-        appreciationIncrease: prepRates(
+        appreciationIncrease: prepRatesBgm(
           i,
           "property appreciation",
           parameters.gbmParameters.appreciation,
         ),
-        sellingFixedFeesIncrease: prepRates(
+        sellingFixedFeesIncrease: prepRatesBgm(
           i,
           "selling fixed fees",
           parameters.gbmParameters.sellingFixedFees,
+        ),
+        fiveYearInterestRates: prepRatesCir(
+          i,
+          "five year interest rates",
+          parameters.gbmParameters.fiveYearInterestRates,
+        ),
+        fourYearInterestRates: prepRatesCir(
+          i,
+          "four year interest rates",
+          parameters.gbmParameters.fourYearInterestRates,
+        ),
+        threeYearInterestRates: prepRatesCir(
+          i,
+          "three year interest rates",
+          parameters.gbmParameters.threeYearInterestRates,
+        ),
+        twoYearInterestRates: prepRatesCir(
+          i,
+          "two year interest rates",
+          parameters.gbmParameters.twoYearInterestRates,
+        ),
+        oneYearInterestRates: prepRatesCir(
+          i,
+          "one year interest rates",
+          parameters.gbmParameters.oneYearInterestRates,
+        ),
+        variableInterestRates: prepRatesCir(
+          i,
+          "variable interest rates",
+          parameters.gbmParameters.variableInterestRates,
         ),
       },
     }, { finalBalanceOnly: true });
