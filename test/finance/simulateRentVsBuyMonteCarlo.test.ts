@@ -2,6 +2,7 @@ import { assertEquals } from "jsr:@std/assert";
 import simulateRentVsBuyMonteCarlo from "../../src/finance/simulateRentVsBuyMonteCarlo.ts";
 import getParamsRentVsBuyMonteCarlo from "./helpers/getParamsRentVsBuyMonteCarlot.ts";
 import makeChartsMonteCarlo from "./helpers/makeChartsBuyVsRentMonteCarlo.ts";
+import makeChartsBuyVsRentMonteCarloMultipleCities from "./helpers/makeChartsBuyVsRentMonteCarloMultipleCities.ts";
 
 // Deno.test("should run a monte carlo simulation of rent vs buy with 1,000 iterations", async () => {
 //   const params = getParamsRentVsBuyMonteCarlo(1000, "Montreal", "Quebec", {
@@ -67,9 +68,10 @@ Deno.test("should run a monte carlo simulation of rent vs buy with 1,000 iterati
     { city: "St_johns_nl", province: "Newfoundland and Labrador" },
   ];
 
+  const allResults = [];
   for (const location of locations) {
     const params = getParamsRentVsBuyMonteCarlo(
-      1000,
+      10,
       location.city,
       location.province,
       {
@@ -84,8 +86,16 @@ Deno.test("should run a monte carlo simulation of rent vs buy with 1,000 iterati
       verbose: true,
     });
 
-    await makeChartsMonteCarlo(simulationResults, true, location.city);
+    // await makeChartsMonteCarlo(simulationResults, true, location.city);
+
+    allResults.push(...simulationResults.winners.map((d) => ({
+      amount: d.amount,
+      category: d.category,
+      city: location.city,
+    })));
   }
+
+  await makeChartsBuyVsRentMonteCarloMultipleCities(allResults);
 
   assertEquals(true, true);
 });

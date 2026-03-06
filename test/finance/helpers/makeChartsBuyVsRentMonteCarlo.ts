@@ -139,8 +139,11 @@ export default async function makeChartsMonteCarlo(
             lineAnchor: "top",
           }),
           textX([{
-            text:
-              `The renter wins ${renterPerc}% of times, with $${renterAverage.toLocaleString()} on average.`,
+            text: `The renter wins ${renterPerc}% of times${
+              renterPerc > 0
+                ? `, with $${renterAverage.toLocaleString()} on average`
+                : ``
+            }.`,
             category: "renter",
           }], {
             stroke: "white",
@@ -434,7 +437,7 @@ export default async function makeChartsMonteCarlo(
     }
   } else {
     console.log(
-      `Skipping variable charts because there are too many iterations (${values.length}).`,
+      `Skipping variable charts...`,
     );
   }
 }

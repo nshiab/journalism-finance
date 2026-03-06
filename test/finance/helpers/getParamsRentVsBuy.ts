@@ -317,7 +317,7 @@ export default function getParamsRentVsBuy(
     : 1;
   // console.log("endingAnnualMaintenanceCost:", endingAnnualMaintenanceCost);
 
-  const startingAnnualMaintenanceCost = adjustToInflation(
+  let startingAnnualMaintenanceCost = adjustToInflation(
     endingAnnualMaintenanceCost,
     allRates.find((d) =>
       d.geo === province && d.variable === "CPI Homeowners maintenance" &&
@@ -331,6 +331,10 @@ export default function getParamsRentVsBuy(
     )!.indexedValue,
     { decimals: 0 },
   );
+  // Minimum of $1, otherwise we have issues with the monte carlo simulation when maintenance costs go to 0
+  startingAnnualMaintenanceCost = startingAnnualMaintenanceCost > 0
+    ? startingAnnualMaintenanceCost
+    : 1;
   // console.log("startingAnnualMaintenanceCost:", startingAnnualMaintenanceCost);
 
   const baseParams = {

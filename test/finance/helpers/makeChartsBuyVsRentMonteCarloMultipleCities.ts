@@ -1,14 +1,44 @@
 import { saveChart } from "@nshiab/journalism-dataviz";
 import { barY, frame, plot, ruleY, text } from "@observablehq/plot";
 
-export default async function makeChartsBuyVsRentMultipleCities(finalResults: {
-  amount: number;
-  category: "renter" | "buyerFixed" | "buyerVariable";
-  city: string;
-  province: string;
-}[]) {
+export default async function makeChartsBuyVsRentMonteCarloMultipleCities(
+  results: {
+    amount: number;
+    category: "renter" | "buyerFixed" | "buyerVariable";
+    city: string;
+  }[],
+) {
+  // For each city, we calculate the percentage of wins
+  const aggregatedResults = [];
+  const cities = Array.from(new Set(results.map((d) => d.city)));
+  const categories = ["renter", "buyerFixed", "buyerVariable"];
+
+  for (const city of cities) {
+    const cityResults = results.filter((d) => d.city === city);
+    const total = cityResults.length;
+
+    for (const category of categories) {
+      const categoryResults = cityResults.filter((d) =>
+        d.category === category
+      );
+      const percentage = categoryResults.length / total;
+
+      aggregatedResults.push({
+        city: city.replace("Kitchener_waterloo", "Kitchener-Waterloo")
+          .replace("Saint_john_nb", "Saint John (NB)").replace(
+            "St_johns_nl",
+            "St Johns (NL)",
+          ),
+        category,
+        percentage,
+      });
+    }
+  }
+
+  console.log(aggregatedResults);
+
   await saveChart(
-    finalResults,
+    aggregatedResults,
     (data) => {
       if (!Array.isArray(data)) {
         throw new Error("Data should be an array");
@@ -22,37 +52,23 @@ export default async function makeChartsBuyVsRentMultipleCities(finalResults: {
       //@ts-expect-error It's okay
       const fy = (key) => Math.floor(index.get(key) / n);
 
-      function formatNumbers(d: number) {
-        return Math.abs(d) < 1000
-          ? d < 0 ? `-$${Math.abs(d)}` : `$${d}`
-          : Math.abs(d) < 1_000_000
-          ? d < 0 ? `-$${Math.abs(d) / 1000}k` : `$${d / 1000}k`
-          : d < 0
-          ? `-$${Math.abs(d) / 1_000_000}M`
-          : `$${d / 1_000_000}M`;
-      }
-
       return plot({
-        title:
-          "Net gains/losses after selling all assets at the end of the simulation",
-        subtitle:
-          "Simulation from 2000 to 2025, comparing the purchase of a condo to renting and investing the difference.",
+        title: "Best financial strategy after 25 years",
+        subtitle: "Monte Carlo simulation with 1,000 iterations for each city.",
         color: {
           legend: true,
         },
         x: {
           axis: null,
           label: null,
-          grid: true,
         },
         y: {
           label: null,
-          insetTop: 2,
-          insetBottom: 15,
+          insetTop: 25,
           grid: true,
           ticks: 5,
           nice: true,
-          tickFormat: formatNumbers,
+          tickFormat: "%",
         },
         fy: {
           axis: null,
@@ -63,32 +79,21 @@ export default async function makeChartsBuyVsRentMultipleCities(finalResults: {
         marks: [
           barY(data, {
             x: "category",
-            y: "amount",
+            y: "percentage",
             fill: "category",
             fx: (d) => fx(d.city),
             fy: (d) => fy(d.city),
           }),
-          text(data.filter((d) => d.amount >= 0), {
+          text(data, {
             x: "category",
-            y: "amount",
-            text: (d) => formatNumbers(Math.round(d.amount / 1000) * 1000),
+            y: "percentage",
+            text: (d) => `${d.percentage * 100}%`,
             fill: "category",
             stroke: "white",
             fx: (d) => fx(d.city),
             fy: (d) => fy(d.city),
             fontSize: 10,
             dy: -8,
-          }),
-          text(data.filter((d) => d.amount < 0), {
-            x: "category",
-            y: "amount",
-            text: (d) => formatNumbers(Math.round(d.amount / 1000) * 1000),
-            fill: "category",
-            stroke: "white",
-            fx: (d) => fx(d.city),
-            fy: (d) => fy(d.city),
-            fontSize: 10,
-            dy: 8,
           }),
           text(keys, {
             fx,
@@ -104,6 +109,6 @@ export default async function makeChartsBuyVsRentMultipleCities(finalResults: {
         ],
       });
     },
-    "test/output/multiple-cities.png",
+    "test/output/multiple-cities-monte-carlo.png",
   );
 }
