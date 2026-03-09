@@ -14,6 +14,8 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
     sellingFixedFees: 2000,
     condoFees: 250,
   });
+  // Just because we want to test it.
+  params.renter.securityDeposit = params.renter.startingMonthlyRent;
 
   // console.log(params);
 

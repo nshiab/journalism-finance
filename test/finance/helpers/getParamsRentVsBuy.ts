@@ -161,6 +161,26 @@ export default function getParamsRentVsBuy(
     throw new Error(`No rent data for city: ${city}`);
   }
 
+  let securityDeposit;
+  if (
+    ["Ontario", "Alberta", "Saskatchewan", "New Brunswick"]
+      .includes(province)
+  ) {
+    securityDeposit = startingMonthlyRent;
+  } else if (
+    ["British Columbia", "Manitoba", "Nova Scotia"].includes(province)
+  ) {
+    securityDeposit = startingMonthlyRent / 2;
+  } else if (province === "Newfoundland and Labrador") {
+    securityDeposit = Math.round(startingMonthlyRent * 0.75);
+  } else if (province === "Quebec") {
+    securityDeposit = 0;
+  }
+
+  if (securityDeposit === undefined) {
+    throw new Error(`No security deposit data for province: ${province}`);
+  }
+
   const renterStartingMonthlyInsurance = adjustToInflation(
     endingValues.renterMonthlyInsurance,
     allRates.find((d) =>
@@ -345,7 +365,7 @@ export default function getParamsRentVsBuy(
     renter: {
       startingMonthlyRent,
       endingMonthlyRent,
-      securityDeposit: startingMonthlyRent,
+      securityDeposit,
       startingMonthlyInsurance: renterStartingMonthlyInsurance,
     },
     buyer: {
