@@ -53,7 +53,7 @@ export default function getMortgagePenalty(
     currentPostedRates: Record<number, number>;
     mortgageType: "fixed" | "variable";
   },
-) {
+): number {
   const {
     remainingMonthsToTerm,
     mortgageBalance,

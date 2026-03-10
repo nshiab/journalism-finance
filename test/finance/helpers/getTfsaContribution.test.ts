@@ -41,7 +41,7 @@ Deno.test("should handle exact contribution match", () => {
 
 Deno.test("should throw error for future years", () => {
   assertThrows(
-    () => getTfsaContribution(2050, 0),
+    () => getTfsaContribution(2051, 0),
     Error,
     "Year exceeds the latest TFSA contribution limit data.",
   );
