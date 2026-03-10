@@ -1,18 +1,27 @@
 {
   "version": "5",
   "specifiers": {
-    "jsr:@nshiab/journalism-format@^1.0.2": "1.0.2",
+    "jsr:@nshiab/journalism-format@^1.1.2": "1.1.2",
+    "jsr:@nshiab/journalism-statistics@^1.2.2": "1.2.2",
     "jsr:@std/assert@*": "1.0.16",
     "jsr:@std/internal@^1.0.12": "1.0.12",
+    "npm:d3-array@^3.2.4": "3.2.4",
     "npm:d3-dsv@^3.0.1": "3.0.1",
-    "npm:date-fns-tz@^3.2.0": "3.2.0_date-fns@4.1.0"
+    "npm:date-fns-tz@^3.2.0": "3.2.0_date-fns@4.1.0",
+    "npm:jstat@^1.9.6": "1.9.6"
   },
   "jsr": {
-    "@nshiab/journalism-format@1.0.2": {
-      "integrity": "2974e5ce6a542c3e8457476d3c9f5f1d17ede6fe44652a9e65a0f8f62727cafd",
+    "@nshiab/journalism-format@1.1.2": {
+      "integrity": "a1fe1d250872dfa94e9d3b162c4bce9a5b2ba7279d53195b03cdccc443f4760d",
       "dependencies": [
         "npm:d3-dsv",
         "npm:date-fns-tz"
+      ]
+    },
+    "@nshiab/journalism-statistics@1.2.2": {
+      "integrity": "3b08b12d0447278d1e0c5d123147261073fde8022eac40a02148aec88473cd4f",
+      "dependencies": [
+        "npm:jstat"
       ]
     },
     "@std/assert@1.0.16": {
@@ -28,6 +37,12 @@
   "npm": {
     "commander@7.2.0": {
       "integrity": "sha512-QrWXB+ZQSVPmIWIhtEO9H+gwHaMGYiF5ChvoJ+K9ZGHG/sVsa6yiesAD1GC/x46sET00Xlwo1u49RVVVzvcSkw=="
+    },
+    "d3-array@3.2.4": {
+      "integrity": "sha512-tdQAmyA18i4J7wprpYq8ClcxZy3SC31QMeByyCFyRt7BVHdREQZ5lpzoe5mFEYZUWe+oq8HBvk9JjpibyEV4Jg==",
+      "dependencies": [
+        "internmap"
+      ]
     },
     "d3-dsv@3.0.1": {
       "integrity": "sha512-UG6OvdI5afDIFP9w4G0mNq50dSOsXHJaRE8arAS5o9ApWnIElp8GZw1Dun8vP8OyHOZ/QJUKUJwxiiCCnUwm+Q==",
@@ -53,6 +68,12 @@
         "safer-buffer"
       ]
     },
+    "internmap@2.0.3": {
+      "integrity": "sha512-5Hh7Y1wQbvY5ooGgPbDaL5iYLAPzMTUrjMulskHLH6wnv/A+1q5rgEaiuqEjB+oxGXIVZs1FF+R/KPN3ZSQYYg=="
+    },
+    "jstat@1.9.6": {
+      "integrity": "sha512-rPBkJbK2TnA8pzs93QcDDPlKcrtZWuuCo2dVR0TFLOJSxhqfWOVCSp8aV3/oSbn+4uY4yw1URtLpHQedtmXfug=="
+    },
     "rw@1.3.3": {
       "integrity": "sha512-PdhdWy89SiZogBLaw42zdeqtRJ//zFd2PgQavcICDUgJT5oW10QCRKbJ6bg4r0/UY2M6BWd5tkxuGFRvCkgfHQ=="
     },
@@ -62,7 +83,9 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@nshiab/journalism-format@^1.0.2"
+      "jsr:@nshiab/journalism-format@^1.1.2",
+      "jsr:@nshiab/journalism-statistics@^1.2.2",
+      "npm:d3-array@^3.2.4"
     ]
   }
 }

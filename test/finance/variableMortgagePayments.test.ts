@@ -418,3 +418,46 @@ Deno.test("variableMortgagePayments should show significant balance growth with 
   // Should have many periods of balance growth
   assertEquals(balanceIncreases > 40, true);
 });
+
+Deno.test("variableMortgagePayments should allow early payoff with high initial rate and low sustained rates", () => {
+  // VRM opposite scenario: HIGH initial rate (sets HIGH fixed payment),
+  // then rates drop VERY LOW and stay low
+  // This causes rapid principal paydown and could lead to early payoff
+  // 5 year term = 60 payments: 1 at 15%, then 59 at 1% (very low)
+  const originalLoan = 100_000;
+  const rates = [15, ...Array(59).fill(1)]; // High start, then very low sustained rate
+  const payments = variableMortgagePayments(
+    originalLoan,
+    rates,
+    5,
+    25,
+  );
+
+  // After rate drop, most payment goes to principal (very little interest)
+  assertEquals(payments[10].interest < payments[0].interest, true);
+  assertEquals(payments[10].capital > payments[0].capital, true);
+
+  // With high payment and low rates, mortgage could be paid off early
+  const lastPayment = payments[payments.length - 1];
+
+  // Check if paid off early (fewer than 60 payments)
+  if (payments.length < 60) {
+    // Early payoff occurred
+    assertEquals(lastPayment.balance, 0);
+    assertEquals(lastPayment.capitalPaid, originalLoan);
+  } else {
+    // If not paid off early, should have significantly lower balance than normal
+    // (balance reduction should be much greater than typical)
+    assertEquals(lastPayment.balance < originalLoan * 0.5, true); // Less than 50% remaining
+  }
+
+  // All payments after rate drop should have positive capital
+  const paymentsAfterDrop = payments.slice(1);
+  const allPositiveCapital = paymentsAfterDrop.every((p) => p.capital > 0);
+  assertEquals(allPositiveCapital, true);
+
+  // Balance should decrease steadily after rate drop
+  for (let i = 2; i < payments.length; i++) {
+    assertEquals(payments[i].balance < payments[i - 1].balance, true);
+  }
+});
