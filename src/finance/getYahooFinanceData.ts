@@ -1,4 +1,5 @@
 import { arraysToData } from "@nshiab/journalism-format";
+import { chromium } from "playwright";
 
 /**
  * Fetches historical financial data for a given stock symbol from Yahoo Finance. This function provides a convenient way to access various financial metrics (e.g., open, high, low, close, adjusted close, volume) at specified intervals (daily, hourly, or minute-by-minute).
@@ -19,6 +20,7 @@ import { arraysToData } from "@nshiab/journalism-format";
  *   - `"1d"`: Daily data.
  *   - `"1h"`: Hourly data.
  *   - `"1m"`: Minute-by-minute data.
+ * @param useBrowser - If true, the function will use Playwright to fetch the data. This can be useful when facing rate limiting issues with the traditional fetch.
  * @returns A promise that resolves to an array of objects, where each object contains a `timestamp` (Unix timestamp in milliseconds) and the `value` of the requested financial variable for that period.
  *
  * @example
@@ -54,6 +56,7 @@ export default async function getYahooFinanceData(
   endDate: Date,
   variable: "open" | "high" | "low" | "close" | "adjclose" | "volume",
   interval: "1d" | "1h" | "1m",
+  useBrowser = false,
 ): Promise<{ timestamp: number; value: number }[]> {
   const period1 = Math.round(startDate.getTime() / 1000);
   const period2 = Math.round(endDate.getTime() / 1000);
@@ -62,9 +65,22 @@ export default async function getYahooFinanceData(
     encodeURIComponent(symbol)
   }?events=capitalGain%7Cdiv%7Csplit&formatted=true&includeAdjustedClose=true&interval=${interval}&period1=${period1}&period2=${period2}&symbol=${symbol}&userYfid=true&lang=en-CA&region=CA`;
 
-  const response = await fetch(url);
+  let data;
+  if (useBrowser) {
+    const browser = await chromium.launch();
+    const page = await browser.newPage();
+    await page.goto(url);
+    const content = await page.textContent("pre");
+    if (!content) {
+      throw new Error("No content found in browser.");
+    }
+    data = JSON.parse(content);
+    await browser.close();
+  } else {
+    const response = await fetch(url);
 
-  const data = await response.json();
+    data = await response.json();
+  }
 
   if (data.chart.result.length === 0) {
     throw new Error("No data found.");

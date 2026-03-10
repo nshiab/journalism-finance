@@ -25,7 +25,8 @@
   "imports": {
     "@nshiab/journalism-format": "jsr:@nshiab/journalism-format@^1.1.2",
     "@nshiab/journalism-statistics": "jsr:@nshiab/journalism-statistics@^1.2.2",
-    "d3-array": "npm:d3-array@^3.2.4"
+    "d3-array": "npm:d3-array@^3.2.4",
+    "playwright": "npm:playwright@^1.58.2"
   },
   "compilerOptions": {
     "lib": [
