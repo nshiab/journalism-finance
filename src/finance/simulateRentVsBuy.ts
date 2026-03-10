@@ -113,47 +113,122 @@ import mortgageInsurancePremium from "./mortgageInsurancePremium.ts";
  * }, { finalBalanceOnly: true });
  * ```
  */
-export default function simulateRentVsBuy(parameters: {
-  startingYear: number;
-  numberOfYears: number;
-  tfsaContributions: boolean;
-  combinedTaxRate: number;
-  renter: {
-    startingMonthlyRent: number;
-    securityDeposit: number;
-    startingMonthlyInsurance: number;
-  };
-  buyer: {
-    downPayment: number;
-    purchasePrice: number;
-    fixedRateDiscount: number;
-    variableRateMargin: number;
-    purchaseFixedFees: number;
-    startingAnnualMaintenanceCost: number;
-    startingAnnualPropertyTax: number;
-    startingMonthlyCondoFees: number;
-    startingMonthlyInsurance: number;
-    sellingFixedFees: number;
-    sellingCommissionRate: number;
-  };
-  rates: {
-    marketReturnRate: number[];
-    rentIncrease: number[];
-    ownerInsuranceIncrease: number[];
-    renterInsuranceIncrease: number[];
-    maintenanceIncrease: number[];
-    propertyTaxIncrease: number[];
-    condoFeeIncrease: number[];
-    fiveYearInterestRates: number[];
-    fourYearInterestRates: number[];
-    threeYearInterestRates: number[];
-    twoYearInterestRates: number[];
-    oneYearInterestRates: number[];
-    variableInterestRates: number[];
-    appreciationIncrease: number[];
-    sellingFixedFeesIncrease: number[];
-  };
-}, options: { finalBalanceOnly?: boolean } = {}) {
+export default function simulateRentVsBuy(
+  parameters: {
+    startingYear: number;
+    numberOfYears: number;
+    tfsaContributions: boolean;
+    combinedTaxRate: number;
+    renter: {
+      startingMonthlyRent: number;
+      securityDeposit: number;
+      startingMonthlyInsurance: number;
+    };
+    buyer: {
+      downPayment: number;
+      purchasePrice: number;
+      fixedRateDiscount: number;
+      variableRateMargin: number;
+      purchaseFixedFees: number;
+      startingAnnualMaintenanceCost: number;
+      startingAnnualPropertyTax: number;
+      startingMonthlyCondoFees: number;
+      startingMonthlyInsurance: number;
+      sellingFixedFees: number;
+      sellingCommissionRate: number;
+    };
+    rates: {
+      marketReturnRate: number[];
+      rentIncrease: number[];
+      ownerInsuranceIncrease: number[];
+      renterInsuranceIncrease: number[];
+      maintenanceIncrease: number[];
+      propertyTaxIncrease: number[];
+      condoFeeIncrease: number[];
+      fiveYearInterestRates: number[];
+      fourYearInterestRates: number[];
+      threeYearInterestRates: number[];
+      twoYearInterestRates: number[];
+      oneYearInterestRates: number[];
+      variableInterestRates: number[];
+      appreciationIncrease: number[];
+      sellingFixedFeesIncrease: number[];
+    };
+  },
+  options: { finalBalanceOnly?: boolean } = {},
+): (
+  & {
+    year: number;
+    month: number;
+    monthIndex: number;
+    date: Date;
+    amount: number;
+    category: "renter" | "buyerFixed" | "buyerVariable";
+  }
+  & (
+    | {
+      group: "monthlyExpenses" | "cumulativeExpenses";
+      variable:
+        | "rent"
+        | "insurance"
+        | "securityDeposit"
+        | "mortgageCapital"
+        | "mortgageInterests"
+        | "maintenance"
+        | "propertyTax"
+        | "condoFees"
+        | "downPayment"
+        | "purchaseFixedFees"
+        | "insurancePremium";
+      effectiveInterestRate?: number;
+      postedInterestRate?: number;
+      fixedRateDiscount?: number;
+      variableRateMargin?: number;
+    }
+    | {
+      group: "monthlyGains" | "cumulativeGains";
+      variable:
+        | "tfsaGains"
+        | "tfsaContribution"
+        | "stocksGains"
+        | "newStocks"
+        | "homeEquityGains";
+      homeValue?: number;
+    }
+    | {
+      group: "assets";
+      variable:
+        | "tfsa"
+        | "stocks"
+        | "securityDeposit"
+        | "homeEquity";
+    }
+    | { group: "summary"; variable: "balance" }
+    | {
+      group: "summaryCumulative";
+      variable:
+        | "balance"
+        | "balanceAfterSelling";
+    }
+    | {
+      group: "saleCosts";
+      variable:
+        | "stockTaxes"
+        | "homeSellingCommission"
+        | "homeSellingFixedFees"
+        | "mortgagePenalty"
+        | "mortgageBalance";
+    }
+    | {
+      group: "saleNetGains";
+      variable:
+        | "stockSellingGains"
+        | "tfsaSellingGains"
+        | "homeSellingGains"
+        | "securityDeposit";
+    }
+  )
+)[] {
   const results: (
     & {
       year: number;

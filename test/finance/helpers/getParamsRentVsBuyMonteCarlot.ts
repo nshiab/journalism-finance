@@ -18,7 +18,125 @@ export default function getParamsRentVsBuyMonteCarlo(
     sellingFixedFees: number;
     condoFees: number;
   },
-) {
+): {
+  iterations: number;
+  startingYear: number;
+  numberOfYears: number;
+  tfsaContributions: boolean;
+  combinedTaxRate: number;
+  renter: {
+    startingMonthlyRent: number;
+    securityDeposit: number;
+    startingMonthlyInsurance: number;
+  };
+  buyer: {
+    purchasePrice: number;
+    downPayment: number;
+    purchaseFixedFees: number;
+    fixedRateDiscount: number;
+    variableRateMargin: number;
+    startingAnnualMaintenanceCost: number;
+    startingMonthlyCondoFees: number;
+    startingAnnualPropertyTax: number;
+    startingMonthlyInsurance: number;
+    sellingFixedFees: number;
+    sellingCommissionRate: number;
+  };
+  gbmParameters: {
+    market: {
+      mu: number;
+      sigma: number;
+      // Actual values
+      startValue: number;
+    };
+    rent: {
+      mu: number;
+      sigma: number;
+      // Using CMHC data for start value but CPI for growth rate
+      startValue: number;
+    };
+    ownerInsurance: {
+      mu: number;
+      sigma: number;
+      // CPI
+      startValue: number;
+    };
+    renterInsurance: {
+      mu: number;
+      sigma: number;
+      // CPI
+      startValue: number;
+    };
+    fiveYearInterestRates: {
+      a: number;
+      b: number;
+      sigma: number;
+      // Actual values
+      startValue: number;
+    };
+    fourYearInterestRates: {
+      a: number;
+      b: number;
+      sigma: number;
+      // Actual values
+      startValue: number;
+    };
+    threeYearInterestRates: {
+      a: number;
+      b: number;
+      sigma: number;
+      // Actual values
+      startValue: number;
+    };
+    twoYearInterestRates: {
+      a: number;
+      b: number;
+      sigma: number;
+      // Actual values
+      startValue: number;
+    };
+    oneYearInterestRates: {
+      a: number;
+      b: number;
+      sigma: number;
+      // Actual values
+      startValue: number;
+    };
+    variableInterestRates: {
+      a: number;
+      b: number;
+      sigma: number;
+      // Actual values
+      startValue: number;
+    };
+    maintenance: {
+      mu: number;
+      sigma: number;
+      // CPI
+      startValue: number;
+    };
+    propertyTax: {
+      mu: number;
+      sigma: number;
+      // CPI
+      startValue: number;
+    };
+    // We use the homeowners maintenance CPI as a proxy for condo fee increases
+    condoFee: { mu: number; sigma: number; startValue: number };
+    appreciation: {
+      mu: number;
+      sigma: number;
+      // Actual values
+      startValue: number;
+    };
+    sellingFixedFees: {
+      mu: number;
+      sigma: number;
+      // CPI
+      startValue: number;
+    };
+  };
+} {
   console.log("\ncity:", city);
 
   const params = getParamsRentVsBuy(city, province, endingValues, true);

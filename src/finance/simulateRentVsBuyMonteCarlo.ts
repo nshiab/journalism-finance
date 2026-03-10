@@ -208,7 +208,30 @@ export default function simulateRentVsBuyMonteCarlo(
     values?: boolean;
     rates?: boolean;
   } = {},
-) {
+): {
+  values: {
+    iteration: string;
+    variable: string;
+    value: number;
+    month: number;
+  }[];
+  rates: {
+    iteration: string;
+    variable: string;
+    value: number;
+    month: number;
+  }[];
+  winners: {
+    year: number;
+    month: number;
+    monthIndex: number;
+    date: Date;
+    amount: number;
+    category: "renter" | "buyerFixed" | "buyerVariable";
+    group: "summaryCumulative";
+    variable: "balanceAfterSelling";
+  }[];
+} {
   const winners = [];
   const values: {
     iteration: string;
@@ -435,9 +458,25 @@ export default function simulateRentVsBuyMonteCarlo(
     prettyDuration(start, { log: true, prefix: "Completed in " });
   }
 
+  // To make the types happy
+  const winnersFiltered = winners.filter((d) =>
+    d.variable === "balanceAfterSelling" && d.group === "summaryCumulative"
+  ) as {
+    year: number;
+    month: number;
+    monthIndex: number;
+    date: Date;
+    amount: number;
+    category: "renter" | "buyerFixed" | "buyerVariable";
+    group: "summaryCumulative";
+    variable: "balanceAfterSelling";
+  }[];
+
   return {
     values,
     rates,
-    winners: winners.sort((a, b) => b.category.localeCompare(a.category)),
+    winners: winnersFiltered.sort((a, b) =>
+      b.category.localeCompare(a.category)
+    ),
   };
 }

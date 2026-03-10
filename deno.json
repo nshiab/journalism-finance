@@ -37,12 +37,5 @@
     "include": [
       "src/**/*.ts"
     ]
-  },
-  "fmt": {
-    "exclude": ["test/data/*"]
-  },
-  "allowScripts": [
-    "npm:playwright-chromium@1.57.0",
-    "npm:playwright-chromium@1.58.2"
-  ]
+  }
 }

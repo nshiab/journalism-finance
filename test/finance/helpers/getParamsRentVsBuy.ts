@@ -43,6 +43,9 @@ export default function getParamsRentVsBuy(
     sellingCommissionRate: number;
   };
 };
+/**
+ * Helper function to get the parameters for the simulateRentVsBuy function.
+ */
 export default function getParamsRentVsBuy(
   city: string,
   province: string,
