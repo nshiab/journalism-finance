@@ -1,5 +1,5 @@
 import { round } from "@nshiab/journalism-format";
-import getMortgagePenalty from "./getMortgagePenalty.ts";
+import getMortgagePenalty from "../../getMortgagePenalty.ts";
 import type { Persona } from "./types/persona.ts";
 import type { MortgagePayment } from "./types/mortgagePayment.ts";
 
@@ -37,6 +37,7 @@ export default function computeSale(
         mortgageBalance: mortgagePayment.balance,
         postedInterestRate: mortgagePayment.postedInterestRate,
         rateDiscount: mortgagePayment.fixedRateDiscount,
+        rateMargin: mortgagePayment.variableRateMargin,
         currentPostedRates,
         mortgageType,
       });

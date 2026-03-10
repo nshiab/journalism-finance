@@ -337,7 +337,7 @@ export default function simulateRentVsBuy(
     insurancePremium,
     homeValue: parameters.buyer.purchasePrice,
     fixedRateDiscount: parameters.buyer.fixedRateDiscount,
-    variableRateMargin: parameters.buyer.variableRateMargin,
+    variableRateMargin: 0, // No variable rate margin for fixed mortgage
     purchaseFixedFees: parameters.buyer.purchaseFixedFees,
     startingAnnualMaintenanceCost:
       parameters.buyer.startingAnnualMaintenanceCost,
@@ -354,7 +354,7 @@ export default function simulateRentVsBuy(
     purchasePrice: parameters.buyer.purchasePrice,
     homeValue: parameters.buyer.purchasePrice,
     insurancePremium,
-    fixedRateDiscount: parameters.buyer.fixedRateDiscount,
+    fixedRateDiscount: 0, // No fixed rate discount for variable mortgage
     variableRateMargin: parameters.buyer.variableRateMargin,
     purchaseFixedFees: parameters.buyer.purchaseFixedFees,
     startingAnnualMaintenanceCost:
