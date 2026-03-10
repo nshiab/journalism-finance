@@ -2,6 +2,9 @@ import { round } from "@nshiab/journalism-format";
 import adjustToInflation from "../../../src/finance/adjustToInflation.ts";
 import allRates from "../../data/allRates.json" with { type: "json" };
 
+/**
+ * Helper function to get the parameters for the simulateRentVsBuy function.
+ */
 export default function getParamsRentVsBuy(
   city: string,
   province: string,

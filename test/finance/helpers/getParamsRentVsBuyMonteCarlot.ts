@@ -5,6 +5,9 @@ import {
 } from "@nshiab/journalism-statistics";
 import getParamsRentVsBuy from "./getParamsRentVsBuy.ts";
 
+/**
+ * Helper function to get the parameters for the simulateRentVsBuyMonteCarlo function.
+ */
 export default function getParamsRentVsBuyMonteCarlo(
   iterations: number,
   city: string,

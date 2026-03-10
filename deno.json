@@ -23,10 +23,8 @@
   },
   "nodeModulesDir": "auto",
   "imports": {
-    "@nshiab/journalism-dataviz": "jsr:@nshiab/journalism-dataviz@^1.0.3",
     "@nshiab/journalism-format": "jsr:@nshiab/journalism-format@^1.1.2",
     "@nshiab/journalism-statistics": "jsr:@nshiab/journalism-statistics@^1.2.2",
-    "@observablehq/plot": "npm:@observablehq/plot@^0.6.17",
     "d3-array": "npm:d3-array@^3.2.4"
   },
   "compilerOptions": {

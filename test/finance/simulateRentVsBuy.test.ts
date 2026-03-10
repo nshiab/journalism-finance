@@ -1,11 +1,57 @@
-import { assertEquals } from "jsr:@std/assert";
+import { assert, assertEquals } from "jsr:@std/assert";
 import simulateRentVsBuy from "../../src/finance/simulateRentVsBuy.ts";
-import makeCharts from "./helpers/makeChartsBuyVsRent.ts";
 import getParams from "./helpers/getParamsRentVsBuy.ts";
 import { round } from "@nshiab/journalism-format";
-import makeChartsBuyVsRentMultipleCities from "./helpers/makeChartsBuyVsRentMultipleCities.ts";
 
 const numberOfYears = 25;
+
+Deno.test("documentation example: simulateRentVsBuy should run without errors", () => {
+  const rates = {
+    marketReturnRate: new Array(120).fill(0.005), // 0.5% monthly
+    rentIncrease: new Array(120).fill(0.002),
+    ownerInsuranceIncrease: new Array(120).fill(0.002),
+    renterInsuranceIncrease: new Array(120).fill(0.002),
+    maintenanceIncrease: new Array(120).fill(0.002),
+    propertyTaxIncrease: new Array(120).fill(0.002),
+    condoFeeIncrease: new Array(120).fill(0.002),
+    fiveYearInterestRates: new Array(120).fill(0.05),
+    fourYearInterestRates: new Array(120).fill(0.05),
+    threeYearInterestRates: new Array(120).fill(0.05),
+    twoYearInterestRates: new Array(120).fill(0.05),
+    oneYearInterestRates: new Array(120).fill(0.05),
+    variableInterestRates: new Array(120).fill(0.06),
+    appreciationIncrease: new Array(120).fill(0.003),
+    sellingFixedFeesIncrease: new Array(120).fill(0.002),
+  };
+
+  const results = simulateRentVsBuy({
+    startingYear: 2024,
+    numberOfYears: 10,
+    tfsaContributions: true,
+    combinedTaxRate: 0.4,
+    renter: {
+      startingMonthlyRent: 2000,
+      securityDeposit: 2000,
+      startingMonthlyInsurance: 30,
+    },
+    buyer: {
+      downPayment: 100000,
+      purchasePrice: 500000,
+      fixedRateDiscount: 1.5,
+      variableRateMargin: -0.5,
+      purchaseFixedFees: 5000,
+      startingAnnualMaintenanceCost: 2000,
+      startingAnnualPropertyTax: 3000,
+      startingMonthlyCondoFees: 300,
+      startingMonthlyInsurance: 100,
+      sellingFixedFees: 2000,
+      sellingCommissionRate: 0.05,
+    },
+    rates,
+  }, { finalBalanceOnly: true });
+
+  assert(results.length > 0);
+});
 
 Deno.test("should compute the total expenses and savings of a renter and buyer in Montreal", async (t) => {
   const params = getParams("Montreal", "Quebec", {
@@ -2044,72 +2090,5 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
     assertEquals(resultsFinalBalanceOnly, overallBalanceAfterSellingLastMonth);
   });
 
-  // await makeCharts("montreal", results, params.allRatesFiltered);
-
   assertEquals(true, true);
-});
-
-Deno.test("should compute final results for multiple cities", async () => {
-  const locations = [
-    { city: "Toronto", province: "Ontario" },
-    { city: "Montreal", province: "Quebec" },
-    { city: "Calgary", province: "Alberta" },
-    { city: "Ottawa", province: "Ontario" },
-    { city: "Edmonton", province: "Alberta" },
-    { city: "Winnipeg", province: "Manitoba" },
-    { city: "Vancouver", province: "British Columbia" },
-    { city: "Hamilton", province: "Ontario" },
-    { city: "Quebec", province: "Quebec" },
-    { city: "Halifax", province: "Nova Scotia" },
-    { city: "London", province: "Ontario" },
-    { city: "Saskatoon", province: "Saskatchewan" },
-    { city: "Kitchener_waterloo", province: "Ontario" },
-    { city: "Regina", province: "Saskatchewan" },
-    { city: "Victoria", province: "British Columbia" },
-    { city: "Barrie", province: "Ontario" },
-    { city: "Guelph", province: "Ontario" },
-    { city: "Kingston", province: "Ontario" },
-    { city: "Fredericton", province: "New Brunswick" },
-    { city: "Moncton", province: "New Brunswick" },
-    { city: "Saint_john_nb", province: "New Brunswick" },
-    { city: "St_johns_nl", province: "Newfoundland and Labrador" },
-  ];
-
-  const finalResults = [];
-  for (const location of locations) {
-    console.log(
-      `Computing results for ${location.city}, ${location.province}...`,
-    );
-    const params = getParams(location.city, location.province, {
-      renterMonthlyInsurance: 70,
-      ownerMonthlyInsurance: 125,
-      sellingFixedFees: 2000,
-      condoFees: 250,
-    });
-
-    const results = simulateRentVsBuy(params);
-
-    // await makeCharts(location.city, results, params.allRatesFiltered);
-
-    finalResults.push(
-      ...results.filter((d) =>
-        d.group === "summaryCumulative" &&
-        d.variable === "balanceAfterSelling" &&
-        d.monthIndex === (params.numberOfYears * 12) - 1
-      ).map((d) => ({
-        amount: d.amount,
-        category: d.category,
-        city: location.city.replace("Kitchener_waterloo", "Kitchener-Waterloo")
-          .replace("Saint_john_nb", "Saint John (NB)").replace(
-            "St_johns_nl",
-            "St Johns (NL)",
-          ),
-        province: location.province,
-      })),
-    );
-  }
-
-  console.table(finalResults);
-
-  await makeChartsBuyVsRentMultipleCities(finalResults);
 });
