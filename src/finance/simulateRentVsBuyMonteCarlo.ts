@@ -16,6 +16,8 @@ import {
  * - **Geometric Brownian Motion (GBM)** for paths like market returns, rent increases, and home appreciation.
  * - **Cox-Ingersoll-Ross (CIR)** models for interest rate paths.
  *
+ * Parameters for these models can be generated from historical data using `getCirParameters` and `getGbmParameters` from `@nshiab/journalism`.
+ *
  * @param parameters - The input parameters for the Monte Carlo simulation.
  * @param parameters.iterations - The number of simulation iterations to run.
  * @param parameters.startingYear - The year the simulation begins.
