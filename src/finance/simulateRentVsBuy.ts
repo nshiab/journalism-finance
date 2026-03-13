@@ -21,13 +21,14 @@ import mortgageInsurancePremium from "./mortgageInsurancePremium.ts";
  * 3. **Buyer (Variable)**: Purchases a home using a variable-rate mortgage and invests any remaining surplus.
  *
  * It provides a detailed breakdown of monthly expenses, gains, assets, and a final summary including the
- * net balance after selling the property and paying all associated costs (taxes, commissions, penalties).
+ * net balance after selling the property and paying all associated costs (taxes, legal fees, penalties).
  *
  * @param parameters - The input parameters for the simulation.
  * @param parameters.startingYear - The year the simulation begins.
  * @param parameters.numberOfYears - The duration of the simulation in years.
  * @param parameters.tfsaContributions - Whether to prioritize TFSA contributions for investments (tax-free gains).
  * @param parameters.combinedTaxRate - The combined marginal tax rate used for calculating taxes on investment gains.
+ * @param parameters.province - The province used to calculate sales tax on the selling fixed fees and commission when selling the home.
  * @param parameters.renter - Configuration for the renter scenario.
  *   @param parameters.renter.startingMonthlyRent - The initial monthly rent payment.
  *   @param parameters.renter.securityDeposit - The initial security deposit.
@@ -42,7 +43,7 @@ import mortgageInsurancePremium from "./mortgageInsurancePremium.ts";
  *   @param parameters.buyer.startingAnnualPropertyTax - The initial annual property tax.
  *   @param parameters.buyer.startingMonthlyCondoFees - The initial monthly condo fees.
  *   @param parameters.buyer.startingMonthlyInsurance - The initial monthly homeowner's insurance.
- *   @param parameters.buyer.sellingFixedFees - Fixed fees associated with selling the home.
+ *   @param parameters.buyer.sellingFixedFees - Fixed fees associated with selling the home (before sales tax).
  *   @param parameters.buyer.sellingCommissionRate - The real estate commission rate for selling the home (e.g., 0.05 for 5%).
  * @param parameters.rates - Annualized rates and their values over the simulation period. Each array should have a length of `numberOfYears * 12`. These can be historical or projected rates.
  *   @param parameters.rates.marketReturnRate - Monthly market return rates.
@@ -91,6 +92,7 @@ import mortgageInsurancePremium from "./mortgageInsurancePremium.ts";
  *   numberOfYears: 10,
  *   tfsaContributions: true,
  *   combinedTaxRate: 0.4,
+ *   province: "Ontario",
  *   renter: {
  *     startingMonthlyRent: 2000,
  *     securityDeposit: 2000,
@@ -119,6 +121,20 @@ export default function simulateRentVsBuy(
     numberOfYears: number;
     tfsaContributions: boolean;
     combinedTaxRate: number;
+    province:
+      | "Alberta"
+      | "British Columbia"
+      | "Manitoba"
+      | "New Brunswick"
+      | "Newfoundland and Labrador"
+      | "Nova Scotia"
+      | "Northwest Territories"
+      | "Nunavut"
+      | "Ontario"
+      | "Prince Edward Island"
+      | "Quebec"
+      | "Saskatchewan"
+      | "Yukon";
     renter: {
       startingMonthlyRent: number;
       securityDeposit: number;
@@ -458,6 +474,7 @@ export default function simulateRentVsBuy(
       null,
       options.finalBalanceOnly ?? false,
       numberOfMonths,
+      parameters.province,
     );
     computeSale(
       monthIndex,
@@ -468,6 +485,7 @@ export default function simulateRentVsBuy(
       "fixed",
       options.finalBalanceOnly ?? false,
       numberOfMonths,
+      parameters.province,
     );
     computeSale(
       monthIndex,
@@ -478,6 +496,7 @@ export default function simulateRentVsBuy(
       "variable",
       options.finalBalanceOnly ?? false,
       numberOfMonths,
+      parameters.province,
     );
 
     // We compute the balances

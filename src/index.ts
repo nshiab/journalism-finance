@@ -28,10 +28,12 @@ import variableMortgagePayments from "./finance/variableMortgagePayments.ts";
 import simulateRentVsBuy from "./finance/simulateRentVsBuy.ts";
 import simulateRentVsBuyMonteCarlo from "./finance/simulateRentVsBuyMonteCarlo.ts";
 import getMortgagePenalty from "./finance/getMortgagePenalty.ts";
+import getSalesTax from "./finance/getSalesTax.ts";
 
 export {
   adjustToInflation,
   getMortgagePenalty,
+  getSalesTax,
   getYahooFinanceData,
   mortgageInsurancePremium,
   mortgageMaxAmount,
