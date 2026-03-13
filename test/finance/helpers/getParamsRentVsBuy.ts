@@ -48,7 +48,20 @@ export default function getParamsRentVsBuy(
  */
 export default function getParamsRentVsBuy(
   city: string,
-  province: string,
+  province:
+    | "Alberta"
+    | "British Columbia"
+    | "Manitoba"
+    | "New Brunswick"
+    | "Newfoundland and Labrador"
+    | "Nova Scotia"
+    | "Northwest Territories"
+    | "Nunavut"
+    | "Ontario"
+    | "Prince Edward Island"
+    | "Quebec"
+    | "Saskatchewan"
+    | "Yukon",
   endingValues: {
     renterMonthlyInsurance: number;
     ownerMonthlyInsurance: number;
@@ -61,6 +74,20 @@ export default function getParamsRentVsBuy(
   numberOfYears: number;
   tfsaContributions: boolean;
   combinedTaxRate: number;
+  province:
+    | "Alberta"
+    | "British Columbia"
+    | "Manitoba"
+    | "New Brunswick"
+    | "Newfoundland and Labrador"
+    | "Nova Scotia"
+    | "Northwest Territories"
+    | "Nunavut"
+    | "Ontario"
+    | "Prince Edward Island"
+    | "Quebec"
+    | "Saskatchewan"
+    | "Yukon";
   renter: {
     startingMonthlyRent: number;
     endingMonthlyRent: number;
@@ -368,6 +395,7 @@ export default function getParamsRentVsBuy(
     numberOfYears,
     tfsaContributions: true,
     combinedTaxRate,
+    province,
     renter: {
       startingMonthlyRent,
       endingMonthlyRent,
