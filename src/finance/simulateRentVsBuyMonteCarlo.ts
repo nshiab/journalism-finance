@@ -70,10 +70,10 @@ import {
  *   @param options.rates - If `true`, the function will capture and return the exact stochastic interest and appreciation rates generated for every iteration. Useful for auditing the simulation's statistical properties.
  *
  * @returns An object containing the simulation results:
- *   - `winners`: An array of objects indicating which scenario yielded the highest final net balance (after house and investment sale) for each iteration.
- *   - `winnersBeforeSelling`: An array of objects indicating which scenario yielded the highest final asset balance (before house and investment sale) for each iteration.
- *   - `values`: (Optional) If `options.values` is `true`, an array of objects containing the generated values paths for each iteration. Each object includes `iteration`, `variable` (e.g., "rent"), `value`, and `month`.
- *   - `rates`: (Optional) If `options.rates` is `true`, an array of objects containing the generated rate paths for each iteration. Each object includes `iteration`, `variable` (e.g., "marketReturnRate"), `value`, and `month`.
+ *   - `winners`: An array of objects indicating which scenario yielded the highest final net balance (after house and investment sale) for each iteration. Each object includes the `amount`, `category` (renter, buyerFixed, buyerVariable), and the `iteration` details.
+ *   - `winnersBeforeSelling`: An array of objects indicating which scenario yielded the highest final asset balance (before house and investment sale) for each iteration. Contains similar details to `winners`.
+ *   - `values`: An array of objects containing the generated values paths for each iteration. Returns an empty array unless `options.values` is `true`.
+ *   - `rates`: An array of objects containing the generated rate paths for each iteration. Returns an empty array unless `options.rates` is `true`.
  *
  * @example
  * ```ts

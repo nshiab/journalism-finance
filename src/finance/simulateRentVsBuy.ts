@@ -65,7 +65,14 @@ import mortgageInsurancePremium from "./mortgageInsurancePremium.ts";
  *   @param options.finalBalanceOnly - If `true`, the returned results will only include the final balance (before and after selling) for each scenario. Defaults to `false`.
  *
  * @returns A detailed array of monthly results for each scenario (renter, buyerFixed, buyerVariable).
- * Each object in the array represents a specific data point (expense, gain, asset, or summary) for a given month.
+ * Each object in the array represents a specific data point for a given month, categorized by:
+ * - `monthlyExpenses` or `cumulativeExpenses` (e.g., rent, mortgage payments)
+ * - `monthlyGains` or `cumulativeGains` (e.g., investment gains)
+ * - `assets` (e.g., home equity, TFSA)
+ * - `summary` (monthly balance)
+ * - `summaryCumulative` (cumulative balance, final balance after selling)
+ * - `saleCosts` (costs incurred upon selling)
+ * - `saleNetGains` (gains realized upon selling)
  *
  * @example
  * ```ts
