@@ -24,6 +24,7 @@ import {
  * @param parameters.numberOfYears - The duration of each simulation in years.
  * @param parameters.tfsaContributions - Whether to prioritize TFSA contributions for investments (tax-free gains).
  * @param parameters.combinedTaxRate - The combined marginal tax rate used for calculating taxes on investment gains.
+ * @param parameters.province - The Canadian province or territory, used for calculating sales taxes.
  * @param parameters.renter - Configuration for the renter scenario.
  *   @param parameters.renter.startingMonthlyRent - The initial monthly rent payment.
  *   @param parameters.renter.securityDeposit - The initial security deposit (e.g., last month's rent).
@@ -38,7 +39,7 @@ import {
  *   @param parameters.buyer.startingAnnualPropertyTax - Initial annual property tax amount.
  *   @param parameters.buyer.startingMonthlyCondoFees - Initial monthly condo fees (if applicable).
  *   @param parameters.buyer.startingMonthlyInsurance - Initial monthly homeowner's insurance cost.
- *   @param parameters.buyer.sellingFixedFees - One-time fixed costs when selling the property.
+ *   @param parameters.buyer.sellingFixedFees - One-time fixed costs when selling the property (before sales tax).
  *   @param parameters.buyer.sellingCommissionRate - The commission rate paid to real estate agents upon sale (e.g., `0.05` for 5%).
  * @param parameters.gbmParameters - Parameters for the Geometric Brownian Motion models.
  *   Each sub-object (market, rent, etc.) requires:
@@ -81,6 +82,7 @@ import {
  *   numberOfYears: 25,
  *   tfsaContributions: true,
  *   combinedTaxRate: 0.4,
+ *   province: "Ontario",
  *   renter: {
  *     startingMonthlyRent: 1500,
  *     securityDeposit: 1500,
@@ -128,6 +130,20 @@ export default function simulateRentVsBuyMonteCarlo(
     numberOfYears: number;
     tfsaContributions: boolean;
     combinedTaxRate: number;
+    province:
+      | "Alberta"
+      | "British Columbia"
+      | "Manitoba"
+      | "New Brunswick"
+      | "Newfoundland and Labrador"
+      | "Nova Scotia"
+      | "Northwest Territories"
+      | "Nunavut"
+      | "Ontario"
+      | "Prince Edward Island"
+      | "Quebec"
+      | "Saskatchewan"
+      | "Yukon";
     renter: {
       startingMonthlyRent: number;
       securityDeposit: number;
@@ -346,6 +362,7 @@ export default function simulateRentVsBuyMonteCarlo(
       numberOfYears: parameters.numberOfYears,
       tfsaContributions: parameters.tfsaContributions,
       combinedTaxRate: parameters.combinedTaxRate,
+      province: parameters.province,
       renter: {
         startingMonthlyRent: parameters.renter.startingMonthlyRent,
         securityDeposit: parameters.renter.securityDeposit,

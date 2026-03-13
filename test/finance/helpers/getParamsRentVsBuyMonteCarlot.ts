@@ -11,7 +11,20 @@ import getParamsRentVsBuy from "./getParamsRentVsBuy.ts";
 export default function getParamsRentVsBuyMonteCarlo(
   iterations: number,
   city: string,
-  province: string,
+  province:
+    | "Alberta"
+    | "British Columbia"
+    | "Manitoba"
+    | "New Brunswick"
+    | "Newfoundland and Labrador"
+    | "Nova Scotia"
+    | "Northwest Territories"
+    | "Nunavut"
+    | "Ontario"
+    | "Prince Edward Island"
+    | "Quebec"
+    | "Saskatchewan"
+    | "Yukon",
   endingValues: {
     renterMonthlyInsurance: number;
     ownerMonthlyInsurance: number;
@@ -24,6 +37,20 @@ export default function getParamsRentVsBuyMonteCarlo(
   numberOfYears: number;
   tfsaContributions: boolean;
   combinedTaxRate: number;
+  province:
+    | "Alberta"
+    | "British Columbia"
+    | "Manitoba"
+    | "New Brunswick"
+    | "Newfoundland and Labrador"
+    | "Nova Scotia"
+    | "Northwest Territories"
+    | "Nunavut"
+    | "Ontario"
+    | "Prince Edward Island"
+    | "Quebec"
+    | "Saskatchewan"
+    | "Yukon";
   renter: {
     startingMonthlyRent: number;
     securityDeposit: number;
@@ -210,6 +237,7 @@ export default function getParamsRentVsBuyMonteCarlo(
     numberOfYears: 25,
     tfsaContributions: true,
     combinedTaxRate: 0.21,
+    province,
     renter: {
       startingMonthlyRent: params.renter.endingMonthlyRent,
       securityDeposit: params.renter.endingMonthlyRent,

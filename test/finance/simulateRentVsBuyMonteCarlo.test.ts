@@ -9,6 +9,7 @@ Deno.test("documentation example: simulateRentVsBuyMonteCarlo should run without
     numberOfYears: 25,
     tfsaContributions: true,
     combinedTaxRate: 0.4,
+    province: "Ontario",
     renter: {
       startingMonthlyRent: 1500,
       securityDeposit: 1500,
