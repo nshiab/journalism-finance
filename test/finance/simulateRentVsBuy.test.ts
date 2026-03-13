@@ -2087,8 +2087,79 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
   const resultsFinalBalanceOnly = simulateRentVsBuy(params, {
     finalBalanceOnly: true,
   });
+  // console.log(resultsFinalBalanceOnly.map((d) => ({
+  //   ...d,
+  //   date: d.date.toISOString(),
+  // })));
   await t.step("the final balance only option should work", async () => {
-    assertEquals(resultsFinalBalanceOnly, overallBalanceAfterSellingLastMonth);
+    assertEquals(
+      resultsFinalBalanceOnly.map((d) => ({
+        ...d,
+        date: d.date.toISOString(),
+      })),
+      [
+        {
+          year: 2024,
+          month: 11,
+          monthIndex: 299,
+          date: "2024-12-01T00:00:00.000Z",
+          amount: 112798.39,
+          category: "renter",
+          group: "summaryCumulative",
+          variable: "balanceAfterSelling",
+        },
+        {
+          year: 2024,
+          month: 11,
+          monthIndex: 299,
+          date: "2024-12-01T00:00:00.000Z",
+          amount: 124549.39,
+          category: "renter",
+          group: "summaryCumulative",
+          variable: "balance",
+        },
+        {
+          year: 2024,
+          month: 11,
+          monthIndex: 299,
+          date: "2024-12-01T00:00:00.000Z",
+          amount: 45944.62,
+          category: "buyerFixed",
+          group: "summaryCumulative",
+          variable: "balanceAfterSelling",
+        },
+        {
+          year: 2024,
+          month: 11,
+          monthIndex: 299,
+          date: "2024-12-01T00:00:00.000Z",
+          amount: 67198.23,
+          category: "buyerFixed",
+          group: "summaryCumulative",
+          variable: "balance",
+        },
+        {
+          year: 2024,
+          month: 11,
+          monthIndex: 299,
+          date: "2024-12-01T00:00:00.000Z",
+          amount: 95316.88,
+          category: "buyerVariable",
+          group: "summaryCumulative",
+          variable: "balanceAfterSelling",
+        },
+        {
+          year: 2024,
+          month: 11,
+          monthIndex: 299,
+          date: "2024-12-01T00:00:00.000Z",
+          amount: 117350.15,
+          category: "buyerVariable",
+          group: "summaryCumulative",
+          variable: "balance",
+        },
+      ],
+    );
   });
 
   assertEquals(true, true);

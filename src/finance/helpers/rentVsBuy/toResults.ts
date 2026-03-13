@@ -101,6 +101,16 @@ export default function toResults(
         group: "summaryCumulative",
         variable: "balanceAfterSelling",
       });
+      results.push({
+        year,
+        month,
+        monthIndex,
+        date,
+        amount: persona.summaryCumulative.balance,
+        category,
+        group: "summaryCumulative",
+        variable: "balance",
+      });
     }
   } else {
     // Process monthlyExpenses

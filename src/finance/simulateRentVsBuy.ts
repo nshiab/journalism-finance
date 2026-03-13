@@ -62,7 +62,7 @@ import mortgageInsurancePremium from "./mortgageInsurancePremium.ts";
  *   @param parameters.rates.appreciationIncrease - Monthly home appreciation rates.
  *   @param parameters.rates.sellingFixedFeesIncrease - Monthly increase rates for selling fixed fees.
  * @param options - Additional simulation options.
- *   @param options.finalBalanceOnly - If `true`, the returned results will only include the final month's summary and sale data for each scenario. Defaults to `false`.
+ *   @param options.finalBalanceOnly - If `true`, the returned results will only include the final balance (before and after selling) for each scenario. Defaults to `false`.
  *
  * @returns A detailed array of monthly results for each scenario (renter, buyerFixed, buyerVariable).
  * Each object in the array represents a specific data point (expense, gain, asset, or summary) for a given month.
