@@ -240,7 +240,7 @@ export default function getParamsRentVsBuyMonteCarlo(
     province,
     renter: {
       startingMonthlyRent: params.renter.endingMonthlyRent,
-      securityDeposit: params.renter.endingMonthlyRent,
+      securityDeposit: params.renter.securityDeposit,
       startingMonthlyInsurance: endingValues.renterMonthlyInsurance,
     },
     buyer: {
