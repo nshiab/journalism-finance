@@ -120,6 +120,31 @@ const PROVINCIAL_BRACKETS: Record<Province, TaxBracket[]> = {
   ],
 };
 
+export interface TaxBreakdown {
+  // Rates
+  federalRate: number;
+  provincialRate: number;
+
+  // Dollar Amounts (Can be directly summed)
+  grossFederalTax: number;
+  appliedFederalCredits: number; // Negative
+  quebecAbatement: number; // Negative
+  grossProvincialTax: number;
+  appliedProvincialCredits: number; // Negative
+  ontarioTaxReduction: number; // Negative
+  provincialSurtax: number;
+  healthPremium: number;
+
+  // Payroll Premiums
+  cppOrQppPremium: number;
+  cpp2OrQpp2Premium: number; // NEW: The second additional tier
+  eiPremium: number;
+  qpipPremium: number;
+
+  // Final Sum
+  totalTaxAndPremiums: number;
+}
+
 function calculateTax(
   income: number,
   brackets: TaxBracket[],
@@ -145,10 +170,50 @@ function calculateTax(
   return { amount: tax, marginalRate };
 }
 
-/**
- * Calculates the 2026 Federal Basic Personal Amount.
- * The BPA scales down for high earners between $181,440 and $258,482.
- */
+function getPayrollDeductions(income: number, province: Province) {
+  const basicExemption = 3500;
+
+  // Official 2026 Thresholds
+  const ympe = 74600; // First Ceiling
+  const yampe = 85000; // Second Ceiling (CPP2/QPP2)
+  const eiMaxEarnings = 68900;
+  const qpipMaxEarnings = 103000;
+
+  let cppOrQpp = 0;
+  let cpp2OrQpp2 = 0;
+  let ei = 0;
+  let qpip = 0;
+
+  if (province === "Quebec") {
+    // 2026 QPP
+    const qppPensionable = Math.max(0, Math.min(income, ympe) - basicExemption);
+    cppOrQpp = qppPensionable * 0.063; // Reduced to 6.30% in 2026
+
+    // 2026 QPP2
+    const qpp2Pensionable = Math.max(0, Math.min(income, yampe) - ympe);
+    cpp2OrQpp2 = qpp2Pensionable * 0.04;
+
+    // 2026 Quebec EI
+    ei = Math.min(income, eiMaxEarnings) * 0.0130;
+
+    // 2026 QPIP
+    qpip = Math.min(income, qpipMaxEarnings) * 0.00430;
+  } else {
+    // 2026 Standard CPP
+    const cppPensionable = Math.max(0, Math.min(income, ympe) - basicExemption);
+    cppOrQpp = cppPensionable * 0.0595;
+
+    // 2026 Standard CPP2
+    const cpp2Pensionable = Math.max(0, Math.min(income, yampe) - ympe);
+    cpp2OrQpp2 = cpp2Pensionable * 0.04;
+
+    // 2026 Standard EI
+    ei = Math.min(income, eiMaxEarnings) * 0.0163;
+  }
+
+  return { cppOrQpp, cpp2OrQpp2, ei, qpip };
+}
+
 function getFederalBPA(income: number): number {
   const maxBPA = 16452;
   const minBPA = 14829;
@@ -163,9 +228,6 @@ function getFederalBPA(income: number): number {
   return maxBPA - (phaseOutRatio * (maxBPA - minBPA));
 }
 
-/**
- * Returns the 2026 Provincial Basic Personal Amount based on the province.
- */
 function getProvincialBPA(income: number, province: Province): number {
   switch (province) {
     case "Yukon":
@@ -206,10 +268,22 @@ function getProvincialBPA(income: number, province: Province): number {
   }
 }
 
-/**
- * Calculates the Ontario Surtax for 2026 based on the Basic Ontario Tax.
- * Returns the surtax amount and the multiplier to adjust the effective marginal rate.
- */
+function applyOntarioTaxReduction(
+  basicTax: number,
+): { reducedTax: number; reductionAmount: number } {
+  const baseOTRAmount = 284;
+  if (basicTax <= baseOTRAmount) {
+    return { reducedTax: basicTax, reductionAmount: 0 };
+  }
+
+  const potentialReduction = (baseOTRAmount * 2) - basicTax;
+  if (potentialReduction > 0) {
+    const reducedTax = Math.max(0, basicTax - potentialReduction);
+    return { reducedTax, reductionAmount: basicTax - reducedTax };
+  }
+  return { reducedTax: basicTax, reductionAmount: 0 };
+}
+
 function getOntarioSurtax(
   basicOntarioTax: number,
 ): { surtaxAmount: number; marginalMultiplier: number } {
@@ -226,74 +300,178 @@ function getOntarioSurtax(
 
   if (basicOntarioTax > surtaxThreshold2) {
     surtaxAmount += 0.36 * (basicOntarioTax - surtaxThreshold2);
-    marginalMultiplier += 0.36; // Stacks with the 20% tier for a total of 1.56
+    marginalMultiplier += 0.36;
   }
 
   return { surtaxAmount, marginalMultiplier };
 }
 
+function getOntarioHealthPremium(income: number): number {
+  if (income <= 20000) return 0;
+  if (income <= 36000) return Math.min(300, (income - 20000) * 0.06);
+  if (income <= 48000) return Math.min(450, 300 + (income - 36000) * 0.06);
+  if (income <= 72000) return Math.min(600, 450 + (income - 48000) * 0.25);
+  if (income <= 200000) return Math.min(900, 600 + (income - 72000) * 0.25);
+  return 900;
+}
+
 /**
- * Calculates federal and provincial income tax for a given income in a specific province.
+ * Calculates a comprehensive breakdown of 2026 Canadian federal and provincial income taxes,
+ * including mandatory payroll deductions (CPP/QPP, CPP2/QPP2, EI, QPIP) and provincial
+ * premiums/surtaxes.
+ * * This function models the exact mechanics of the Canadian tax system:
+ * 1. Second-tier pension contributions (CPP2/QPP2) are applied as a direct deduction
+ * against taxable income *before* brackets are calculated.
+ * 2. Base pension contributions (CPP/QPP), EI premiums, and the Basic Personal Amount (BPA)
+ * generate Non-Refundable Tax Credits (NRTCs), which reduce the gross tax owing.
+ * * **Important Structural Note:** * To guarantee 100% mathematical transparency without hidden net calculations, all tax
+ * credits, abatements, and reductions in the returned `TaxBreakdown` object are output
+ * as **negative numbers**. This ensures that summing every dollar-based property
+ * (excluding rates) perfectly equals the final `totalTaxAndPremiums` value.
  *
- * Updated for 2026 tax brackets, Basic Personal Amounts (BPA), Quebec Abatement, and Ontario Surtax.
- * * @param income - Taxable income
- * @param province - The province or territory for provincial tax calculation
- * @returns An object containing federal and provincial tax details, including separate surtax values.
+ * @param {number} income - The individual's total gross annual taxable employment income.
+ * @param {Province} province - The Canadian province or territory of residence as of Dec 31st.
+ * @returns {TaxBreakdown} A fully itemized object containing marginal rates, gross taxes,
+ * negative-valued credits, mandatory premiums, and the mathematically sum-verified total.
+ *
+ * @example
+ * // Calculate taxes for an individual earning $90,000 in Ontario
+ * const taxData = getIncomeTax(90000, "Ontario");
+ * * console.log(`Total Deductions: $${taxData.totalTaxAndPremiums}`);
+ * * // Because credits and reductions are negative, summing the properties mathematically balances:
+ * const verificationSum =
+ * taxData.grossFederalTax +
+ * taxData.appliedFederalCredits +
+ * taxData.quebecAbatement +
+ * taxData.grossProvincialTax +
+ * taxData.appliedProvincialCredits +
+ * taxData.ontarioTaxReduction +
+ * taxData.provincialSurtax +
+ * taxData.healthPremium +
+ * taxData.cppOrQppPremium +
+ * taxData.cpp2OrQpp2Premium +
+ * taxData.eiPremium +
+ * taxData.qpipPremium;
+ * * console.assert(verificationSum === taxData.totalTaxAndPremiums); // Evaluates to true
  */
 export function getIncomeTax(
   income: number,
   province: Province,
-): {
-  federalRate: number;
-  provincialRate: number;
-  federalTax: number;
-  provincialTax: number; // Base provincial tax only (excludes surtax)
-  provincialSurtax: number; // The explicit surtax amount
-  totalTax: number;
-} {
-  // --- 1. FEDERAL TAX CALCULATION ---
-  const federalResult = calculateTax(income, FEDERAL_BRACKETS);
+): TaxBreakdown {
+  // 1. Mandatory Payroll Deductions
+  const deductions = getPayrollDeductions(income, province);
 
-  const federalBpaAmount = getFederalBPA(income);
-  const federalBpaCredit = federalBpaAmount * FEDERAL_BRACKETS[0].rate;
-  let federalTax = Math.max(0, federalResult.amount - federalBpaCredit);
+  // CRITICAL STEP: CPP2/QPP2 is a direct deduction from taxable income, not a credit.
+  const taxableIncome = Math.max(0, income - deductions.cpp2OrQpp2);
+
+  // 2. FEDERAL TAX CALCULATION
+  const federalResult = calculateTax(taxableIncome, FEDERAL_BRACKETS);
+  const federalGrossTax = federalResult.amount;
+
+  const federalBpaAmount = getFederalBPA(taxableIncome);
+  const canadaEmploymentAmount = Math.min(income, 1462); // 2026 indexed CEA
+  const federalNRTCBase = federalBpaAmount + deductions.cppOrQpp +
+    deductions.ei + deductions.qpip + canadaEmploymentAmount;
+
+  const federalCreditTotal = federalNRTCBase * FEDERAL_BRACKETS[0].rate;
+  const appliedFederalCredits = Math.min(federalGrossTax, federalCreditTotal);
+
+  let netFederalTax = federalGrossTax - appliedFederalCredits;
+  let quebecAbatement = 0;
 
   if (province === "Quebec") {
-    const quebecAbatement = federalTax * 0.165;
-    federalTax = Math.max(0, federalTax - quebecAbatement);
+    quebecAbatement = netFederalTax * 0.165;
+    netFederalTax = Math.max(0, netFederalTax - quebecAbatement);
   }
 
-  // --- 2. PROVINCIAL TAX CALCULATION ---
+  // 3. PROVINCIAL TAX CALCULATION
   const provincialBrackets = PROVINCIAL_BRACKETS[province];
-  const provincialResult = calculateTax(income, provincialBrackets);
+  const provincialResult = calculateTax(taxableIncome, provincialBrackets);
+  const provincialGrossTax = provincialResult.amount;
 
-  const provincialBpaAmount = getProvincialBPA(income, province);
-  const provincialBpaCredit = provincialBpaAmount * provincialBrackets[0].rate;
+  const provincialBpaAmount = getProvincialBPA(taxableIncome, province);
+  let provincialNRTCBase = provincialBpaAmount + deductions.cppOrQpp +
+    deductions.ei;
+  if (province === "Quebec") provincialNRTCBase += deductions.qpip;
 
-  const provincialTax = Math.max(
-    0,
-    provincialResult.amount - provincialBpaCredit,
+  const provincialCreditTotal = provincialNRTCBase * provincialBrackets[0].rate;
+  const appliedProvincialCredits = Math.min(
+    provincialGrossTax,
+    provincialCreditTotal,
   );
-  let provincialMarginalRate = provincialResult.marginalRate;
-  let provincialSurtaxAmount = 0;
 
-  // Apply Ontario Surtax and adjust the effective marginal rate
-  if (province === "Ontario" && provincialTax > 0) {
-    const { surtaxAmount, marginalMultiplier } = getOntarioSurtax(
-      provincialTax,
-    );
-    provincialSurtaxAmount = surtaxAmount;
-    // We no longer add surtaxAmount to provincialTax here.
-    provincialMarginalRate *= marginalMultiplier;
+  let netProvincialTax = provincialGrossTax - appliedProvincialCredits;
+  let provincialMarginalRate = provincialResult.marginalRate;
+
+  let ontarioTaxReduction = 0;
+  let provincialSurtaxAmount = 0;
+  let healthPremium = 0;
+
+  // 4. ONTARIO SPECIFIC MODIFIERS
+  if (province === "Ontario") {
+    const otrResult = applyOntarioTaxReduction(netProvincialTax);
+    netProvincialTax = otrResult.reducedTax;
+    ontarioTaxReduction = otrResult.reductionAmount;
+
+    if (netProvincialTax > 0) {
+      const { surtaxAmount, marginalMultiplier } = getOntarioSurtax(
+        netProvincialTax,
+      );
+      provincialSurtaxAmount = surtaxAmount;
+      provincialMarginalRate *= marginalMultiplier;
+    }
+
+    healthPremium = getOntarioHealthPremium(income); // OHP is based on Gross Income, not taxable.
   }
 
-  // --- 3. RETURN RESULTS ---
+  // 5. ROUNDING AND SUMMATION
+  const roundedFedGross = Math.round(federalGrossTax);
+  const roundedFedCredits = -Math.round(appliedFederalCredits);
+  const roundedQcAbatment = -Math.round(quebecAbatement);
+
+  const roundedProvGross = Math.round(provincialGrossTax);
+  const roundedProvCredits = -Math.round(appliedProvincialCredits);
+  const roundedOnTaxRed = -Math.round(ontarioTaxReduction);
+  const roundedProvSurtax = Math.round(provincialSurtaxAmount);
+
+  const roundedHealthPrem = Math.round(healthPremium);
+  const roundedCpp = Math.round(deductions.cppOrQpp);
+  const roundedCpp2 = Math.round(deductions.cpp2OrQpp2);
+  const roundedEi = Math.round(deductions.ei);
+  const roundedQpip = Math.round(deductions.qpip);
+
+  const totalSum = roundedFedGross +
+    roundedFedCredits +
+    roundedQcAbatment +
+    roundedProvGross +
+    roundedProvCredits +
+    roundedOnTaxRed +
+    roundedProvSurtax +
+    roundedHealthPrem +
+    roundedCpp +
+    roundedCpp2 +
+    roundedEi +
+    roundedQpip;
+
   return {
     federalRate: federalResult.marginalRate,
     provincialRate: provincialMarginalRate,
-    federalTax: Math.round(federalTax),
-    provincialTax: Math.round(provincialTax),
-    provincialSurtax: Math.round(provincialSurtaxAmount),
-    totalTax: Math.round(federalTax + provincialTax + provincialSurtaxAmount),
+
+    grossFederalTax: roundedFedGross,
+    appliedFederalCredits: roundedFedCredits,
+    quebecAbatement: roundedQcAbatment,
+
+    grossProvincialTax: roundedProvGross,
+    appliedProvincialCredits: roundedProvCredits,
+    ontarioTaxReduction: roundedOnTaxRed,
+    provincialSurtax: roundedProvSurtax,
+
+    healthPremium: roundedHealthPrem,
+    cppOrQppPremium: roundedCpp,
+    cpp2OrQpp2Premium: roundedCpp2,
+    eiPremium: roundedEi,
+    qpipPremium: roundedQpip,
+
+    totalTaxAndPremiums: totalSum,
   };
 }

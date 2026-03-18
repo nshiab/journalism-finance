@@ -29,7 +29,7 @@ import simulateRentVsBuy from "./finance/simulateRentVsBuy.ts";
 import simulateRentVsBuyMonteCarlo from "./finance/simulateRentVsBuyMonteCarlo.ts";
 import getMortgagePenalty from "./finance/getMortgagePenalty.ts";
 import getSalesTax from "./finance/getSalesTax.ts";
-import { getIncomeTax } from "./finance/getIncomeTax.ts";
+import getIncomeTax from "./finance/getIncomeTax.ts";
 
 export {
   adjustToInflation,
