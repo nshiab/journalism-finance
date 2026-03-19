@@ -13,7 +13,7 @@ export type Province =
   | "Northwest Territories"
   | "Nunavut";
 
-export type TaxYear = 2025 | 2026;
+export type TaxYear = 2025; // Consider changing to e.g., 2024 | 2025 for scalability
 
 interface TaxBracket {
   rate: number;
@@ -31,7 +31,8 @@ export interface TaxBreakdown {
   ontarioTaxReduction: number;
   provincialSurtax: number;
   healthPremium: number;
-  cppOrQppPremium: number;
+  cppOrQppBase: number;
+  cppOrQppEnhanced: number;
   cpp2OrQpp2Premium: number;
   eiPremium: number;
   qpipPremium: number;
@@ -57,47 +58,25 @@ const FEDERAL_LIMITS: Record<
     phaseOutEnd: 253414,
     maxCEA: 1471,
   },
-  2026: {
-    maxBPA: 16452,
-    minBPA: 14829,
-    phaseOutStart: 181440,
-    phaseOutEnd: 258482,
-    maxCEA: 1501,
-  },
 };
 
 // --- 2. PROVINCIAL BPA DICTIONARY ---
 
 const PROVINCIAL_BPA: Record<TaxYear, Record<Province, number>> = {
   2025: {
-    "Yukon": FEDERAL_LIMITS[2025].maxBPA, // Dynamically maps to Federal
+    "Yukon": FEDERAL_LIMITS[2025].maxBPA,
     "Manitoba": 15780,
-    "Alberta": 21885,
-    "Saskatchewan": 18491,
-    "Nunavut": 18788,
-    "Quebec": 18638,
-    "Northwest Territories": 17373,
-    "Prince Edward Island": 13500,
-    "New Brunswick": 13054,
-    "British Columbia": 12580,
+    "Alberta": 22323,
+    "Saskatchewan": 19491,
+    "Nunavut": 19274,
+    "Quebec": 18571,
+    "Northwest Territories": 17842,
+    "Prince Edward Island": 14650,
+    "New Brunswick": 13396,
+    "British Columbia": 12932,
     "Ontario": 12747,
-    "Nova Scotia": 11481,
-    "Newfoundland and Labrador": 10818,
-  },
-  2026: {
-    "Yukon": FEDERAL_LIMITS[2026].maxBPA,
-    "Manitoba": 15780,
-    "Alberta": 22769,
-    "Saskatchewan": 20381,
-    "Nunavut": 19659,
-    "Quebec": 18952,
-    "Northwest Territories": 18198,
-    "Prince Edward Island": 15000,
-    "New Brunswick": 13664,
-    "British Columbia": 13216,
-    "Ontario": 12989,
-    "Nova Scotia": 11932,
-    "Newfoundland and Labrador": 11188,
+    "Nova Scotia": 11744,
+    "Newfoundland and Labrador": 11067,
   },
 };
 
@@ -110,12 +89,14 @@ const PAYROLL_LIMITS: Record<
     yampe: number;
     eiMaxEarnings: number;
     qpipMaxEarnings: number;
-    qppRate: number;
-    eiRateQC: number;
-    qpipRate: number;
-    eiRate: number;
-    cppRate: number;
+    qppBaseRate: number;
+    qppEnhancedRate: number;
+    cppBaseRate: number;
+    cppEnhancedRate: number;
     cpp2Rate: number;
+    eiRateQC: number;
+    eiRate: number;
+    qpipRate: number;
   }
 > = {
   2025: {
@@ -123,24 +104,14 @@ const PAYROLL_LIMITS: Record<
     yampe: 81200,
     eiMaxEarnings: 65700,
     qpipMaxEarnings: 98000,
-    qppRate: 0.064,
+    qppBaseRate: 0.054, // QPP Base
+    qppEnhancedRate: 0.01, // QPP Tier 1 Enhanced
+    cppBaseRate: 0.0495, // CPP Base
+    cppEnhancedRate: 0.01, // CPP Tier 1 Enhanced
+    cpp2Rate: 0.04, // CPP2 / QPP2 Tier 2
     eiRateQC: 0.0131,
-    qpipRate: 0.00494,
     eiRate: 0.0164,
-    cppRate: 0.0595,
-    cpp2Rate: 0.04,
-  },
-  2026: {
-    ympe: 74600,
-    yampe: 85000,
-    eiMaxEarnings: 68900,
-    qpipMaxEarnings: 103000,
-    qppRate: 0.063,
-    eiRateQC: 0.0130,
-    qpipRate: 0.00430,
-    eiRate: 0.0163,
-    cppRate: 0.0595,
-    cpp2Rate: 0.04,
+    qpipRate: 0.00494,
   },
 };
 
@@ -150,11 +121,27 @@ const ONTARIO_LIMITS: Record<
   TaxYear,
   { baseOTRAmount: number; surtaxThreshold1: number; surtaxThreshold2: number }
 > = {
-  2025: { baseOTRAmount: 294, surtaxThreshold1: 5659, surtaxThreshold2: 7243 },
-  2026: { baseOTRAmount: 284, surtaxThreshold1: 5818, surtaxThreshold2: 7446 },
+  2025: { baseOTRAmount: 294, surtaxThreshold1: 5710, surtaxThreshold2: 7307 },
 };
 
-// --- 5. TAX BRACKETS DICTIONARIES ---
+// --- 5. QUEBEC SPECIFIC LIMITS DICTIONARY ---
+
+const QUEBEC_LIMITS: Record<
+  TaxYear,
+  {
+    deductionForWorkersRate: number;
+    maxDeductionForWorkers: number;
+    nrtcRate: number;
+  }
+> = {
+  2025: {
+    deductionForWorkersRate: 0.06,
+    maxDeductionForWorkers: 1420,
+    nrtcRate: 0.15,
+  },
+};
+
+// --- 6. TAX BRACKETS DICTIONARIES ---
 
 const FEDERAL_BRACKETS: Record<TaxYear, TaxBracket[]> = {
   2025: [
@@ -163,13 +150,6 @@ const FEDERAL_BRACKETS: Record<TaxYear, TaxBracket[]> = {
     { rate: 0.26, threshold: 114750 },
     { rate: 0.29, threshold: 177882 },
     { rate: 0.33, threshold: 253414 },
-  ],
-  2026: [
-    { rate: 0.14, threshold: 0 },
-    { rate: 0.205, threshold: 58523 },
-    { rate: 0.26, threshold: 117045 },
-    { rate: 0.29, threshold: 181440 },
-    { rate: 0.33, threshold: 258482 },
   ],
 };
 
@@ -182,10 +162,12 @@ const PROVINCIAL_BRACKETS: Record<TaxYear, Record<Province, TaxBracket[]>> = {
       { rate: 0.1216, threshold: 150000 },
       { rate: 0.1316, threshold: 220000 },
     ],
-    "Quebec": [{ rate: 0.14, threshold: 0 }, { rate: 0.19, threshold: 53255 }, {
-      rate: 0.24,
-      threshold: 106495,
-    }, { rate: 0.2575, threshold: 129590 }],
+    "Quebec": [
+      { rate: 0.14, threshold: 0 },
+      { rate: 0.19, threshold: 53255 },
+      { rate: 0.24, threshold: 106495 },
+      { rate: 0.2575, threshold: 129590 },
+    ],
     "British Columbia": [
       { rate: 0.0506, threshold: 0 },
       { rate: 0.077, threshold: 49279 },
@@ -203,14 +185,16 @@ const PROVINCIAL_BRACKETS: Record<TaxYear, Record<Province, TaxBracket[]>> = {
       { rate: 0.14, threshold: 241974 },
       { rate: 0.15, threshold: 362961 },
     ],
-    "Manitoba": [{ rate: 0.108, threshold: 0 }, {
-      rate: 0.1275,
-      threshold: 47564,
-    }, { rate: 0.174, threshold: 101200 }],
-    "Saskatchewan": [{ rate: 0.105, threshold: 0 }, {
-      rate: 0.125,
-      threshold: 53463,
-    }, { rate: 0.145, threshold: 152750 }],
+    "Manitoba": [
+      { rate: 0.108, threshold: 0 },
+      { rate: 0.1275, threshold: 47564 },
+      { rate: 0.174, threshold: 101200 },
+    ],
+    "Saskatchewan": [
+      { rate: 0.105, threshold: 0 },
+      { rate: 0.125, threshold: 53463 },
+      { rate: 0.145, threshold: 152750 },
+    ],
     "Nova Scotia": [
       { rate: 0.0879, threshold: 0 },
       { rate: 0.1495, threshold: 30507 },
@@ -261,93 +245,6 @@ const PROVINCIAL_BRACKETS: Record<TaxYear, Record<Province, TaxBracket[]>> = {
       { rate: 0.115, threshold: 177881 },
     ],
   },
-  2026: {
-    "Ontario": [
-      { rate: 0.0505, threshold: 0 },
-      { rate: 0.0915, threshold: 53891 },
-      { rate: 0.1116, threshold: 107785 },
-      { rate: 0.1216, threshold: 150000 },
-      { rate: 0.1316, threshold: 220000 },
-    ],
-    "Quebec": [{ rate: 0.14, threshold: 0 }, { rate: 0.19, threshold: 54345 }, {
-      rate: 0.24,
-      threshold: 108680,
-    }, { rate: 0.2575, threshold: 132245 }],
-    "British Columbia": [
-      { rate: 0.0506, threshold: 0 },
-      { rate: 0.077, threshold: 50363 },
-      { rate: 0.105, threshold: 100728 },
-      { rate: 0.1229, threshold: 115648 },
-      { rate: 0.147, threshold: 140430 },
-      { rate: 0.168, threshold: 190405 },
-      { rate: 0.205, threshold: 265545 },
-    ],
-    "Alberta": [
-      { rate: 0.08, threshold: 0 },
-      { rate: 0.10, threshold: 61200 },
-      { rate: 0.12, threshold: 154259 },
-      { rate: 0.13, threshold: 185111 },
-      { rate: 0.14, threshold: 246813 },
-      { rate: 0.15, threshold: 370220 },
-    ],
-    "Manitoba": [{ rate: 0.108, threshold: 0 }, {
-      rate: 0.1275,
-      threshold: 47000,
-    }, { rate: 0.174, threshold: 100000 }],
-    "Saskatchewan": [{ rate: 0.105, threshold: 0 }, {
-      rate: 0.125,
-      threshold: 54532,
-    }, { rate: 0.145, threshold: 155805 }],
-    "Nova Scotia": [
-      { rate: 0.0879, threshold: 0 },
-      { rate: 0.1495, threshold: 30995 },
-      { rate: 0.1667, threshold: 61991 },
-      { rate: 0.175, threshold: 97417 },
-      { rate: 0.21, threshold: 157124 },
-    ],
-    "New Brunswick": [
-      { rate: 0.094, threshold: 0 },
-      { rate: 0.14, threshold: 52333 },
-      { rate: 0.16, threshold: 104666 },
-      { rate: 0.195, threshold: 193861 },
-    ],
-    "Newfoundland and Labrador": [
-      { rate: 0.087, threshold: 0 },
-      { rate: 0.145, threshold: 44678 },
-      { rate: 0.158, threshold: 89354 },
-      { rate: 0.178, threshold: 159528 },
-      { rate: 0.198, threshold: 223340 },
-      { rate: 0.208, threshold: 285319 },
-      { rate: 0.213, threshold: 570638 },
-      { rate: 0.218, threshold: 1141275 },
-    ],
-    "Prince Edward Island": [
-      { rate: 0.095, threshold: 0 },
-      { rate: 0.1347, threshold: 33928 },
-      { rate: 0.166, threshold: 65820 },
-      { rate: 0.1762, threshold: 106890 },
-      { rate: 0.19, threshold: 142250 },
-    ],
-    "Yukon": [
-      { rate: 0.064, threshold: 0 },
-      { rate: 0.09, threshold: 58523 },
-      { rate: 0.109, threshold: 117045 },
-      { rate: 0.128, threshold: 181440 },
-      { rate: 0.15, threshold: 500000 },
-    ],
-    "Northwest Territories": [
-      { rate: 0.059, threshold: 0 },
-      { rate: 0.086, threshold: 53003 },
-      { rate: 0.122, threshold: 106009 },
-      { rate: 0.1405, threshold: 172346 },
-    ],
-    "Nunavut": [
-      { rate: 0.04, threshold: 0 },
-      { rate: 0.07, threshold: 55801 },
-      { rate: 0.09, threshold: 111602 },
-      { rate: 0.115, threshold: 181439 },
-    ],
-  },
 };
 
 // --- CORE CALCULATION ENGINE ---
@@ -378,14 +275,15 @@ function calculateTax(
 }
 
 function getPayrollDeductions(
-  income: number,
+  employmentIncome: number,
   province: Province,
   year: TaxYear,
 ) {
   const limits = PAYROLL_LIMITS[year];
   const basicExemption = 3500;
 
-  let cppOrQpp = 0;
+  let cppOrQppBase = 0;
+  let cppOrQppEnhanced = 0;
   let cpp2OrQpp2 = 0;
   let ei = 0;
   let qpip = 0;
@@ -393,35 +291,37 @@ function getPayrollDeductions(
   if (province === "Quebec") {
     const qppPensionable = Math.max(
       0,
-      Math.min(income, limits.ympe) - basicExemption,
+      Math.min(employmentIncome, limits.ympe) - basicExemption,
     );
-    cppOrQpp = qppPensionable * limits.qppRate;
+    cppOrQppBase = qppPensionable * limits.qppBaseRate;
+    cppOrQppEnhanced = qppPensionable * limits.qppEnhancedRate;
 
     const qpp2Pensionable = Math.max(
       0,
-      Math.min(income, limits.yampe) - limits.ympe,
+      Math.min(employmentIncome, limits.yampe) - limits.ympe,
     );
     cpp2OrQpp2 = qpp2Pensionable * limits.cpp2Rate;
 
-    ei = Math.min(income, limits.eiMaxEarnings) * limits.eiRateQC;
-    qpip = Math.min(income, limits.qpipMaxEarnings) * limits.qpipRate;
+    ei = Math.min(employmentIncome, limits.eiMaxEarnings) * limits.eiRateQC;
+    qpip = Math.min(employmentIncome, limits.qpipMaxEarnings) * limits.qpipRate;
   } else {
     const cppPensionable = Math.max(
       0,
-      Math.min(income, limits.ympe) - basicExemption,
+      Math.min(employmentIncome, limits.ympe) - basicExemption,
     );
-    cppOrQpp = cppPensionable * limits.cppRate;
+    cppOrQppBase = cppPensionable * limits.cppBaseRate;
+    cppOrQppEnhanced = cppPensionable * limits.cppEnhancedRate;
 
     const cpp2Pensionable = Math.max(
       0,
-      Math.min(income, limits.yampe) - limits.ympe,
+      Math.min(employmentIncome, limits.yampe) - limits.ympe,
     );
     cpp2OrQpp2 = cpp2Pensionable * limits.cpp2Rate;
 
-    ei = Math.min(income, limits.eiMaxEarnings) * limits.eiRate;
+    ei = Math.min(employmentIncome, limits.eiMaxEarnings) * limits.eiRate;
   }
 
-  return { cppOrQpp, cpp2OrQpp2, ei, qpip };
+  return { cppOrQppBase, cppOrQppEnhanced, cpp2OrQpp2, ei, qpip };
 }
 
 function getFederalBPA(income: number, year: TaxYear): number {
@@ -440,10 +340,6 @@ function applyOntarioTaxReduction(
   year: TaxYear,
 ): { reducedTax: number; reductionAmount: number } {
   const limits = ONTARIO_LIMITS[year];
-
-  if (basicTax <= limits.baseOTRAmount) {
-    return { reducedTax: basicTax, reductionAmount: 0 };
-  }
 
   const potentialReduction = (limits.baseOTRAmount * 2) - basicTax;
   if (potentialReduction > 0) {
@@ -475,35 +371,70 @@ function getOntarioSurtax(
   return { surtaxAmount, marginalMultiplier };
 }
 
-function getOntarioHealthPremium(income: number): number {
-  if (income <= 20000) return 0;
-  if (income <= 36000) return Math.min(300, (income - 20000) * 0.06);
-  if (income <= 48000) return Math.min(450, 300 + (income - 36000) * 0.06);
-  if (income <= 72000) return Math.min(600, 450 + (income - 48000) * 0.25);
-  if (income <= 200000) return Math.min(900, 600 + (income - 72000) * 0.25);
+function getOntarioHealthPremium(taxableIncome: number): number {
+  if (taxableIncome <= 20000) return 0;
+  if (taxableIncome <= 36000) {
+    return Math.min(300, (taxableIncome - 20000) * 0.06);
+  }
+  if (taxableIncome <= 48000) {
+    return Math.min(450, 300 + (taxableIncome - 36000) * 0.06);
+  }
+  if (taxableIncome <= 72000) {
+    return Math.min(600, 450 + (taxableIncome - 48000) * 0.25);
+  }
+  if (taxableIncome <= 200000) {
+    return Math.min(900, 600 + (taxableIncome - 72000) * 0.25);
+  }
   return 900;
 }
 
 /**
  * Calculates a comprehensive breakdown of Canadian federal and provincial income taxes.
- * Extracts all year-to-year variables dynamically from static configuration dictionaries.
  *
- * @param {number} income - The individual's total gross annual taxable employment income.
- * @param {Province} province - The Canadian province or territory of residence as of Dec 31st.
- * @param {TaxYear} year - The specific tax year for the calculation (e.g., 2025 or 2026).
- * @returns {TaxBreakdown} A fully itemized object containing marginal rates, gross taxes,
- * negative-valued credits, mandatory premiums, and the mathematically sum-verified total.
+ * Calculation Engine Methodology:
+ *
+ * **1. Mandatory Payroll Deductions:**
+ * - Calculates Tier 1 CPP/QPP base contribution (claimed as NRTC).
+ * - Calculates Tier 1 CPP/QPP enhanced contribution (claimed as tax deduction).
+ * - Calculates Tier 2 CPP2/QPP2 based on the Yearly Additional Maximum Pensionable Earnings (YAMPE) (tax deduction).
+ * - Calculates EI (and QPIP for Quebec residents) up to their respective annual maximum insurable earnings.
+ *
+ * **2. Federal Tax & Non-Refundable Tax Credits (NRTCs):**
+ * - Calculates gross federal tax using progressive federal tax brackets.
+ * - Determines the Federal Basic Personal Amount (BPA), applying a linear phase-out for high earners.
+ * - Calculates the Canada Employment Amount (CEA) against employment income up to the annual maximum.
+ * - Aggregates the federal NRTC base (BPA + Base CPP/QPP + EI + QPIP + CEA) and converts it to a credit amount.
+ * - Applies the Quebec Abatement exclusively for Quebec residents.
+ *
+ * **3. Provincial Tax & NRTCs:**
+ * - Calculates gross provincial tax using the specific province's progressive tax brackets.
+ * - **Quebec-Specific:** Applies the Deduction for Workers as an income reduction before tax calculation. Uses specific 15% rate for NRTCs.
+ * - Retrieves the provincial BPA, executing a specific linear phase-out for Manitoba residents.
+ * - Aggregates the provincial NRTC base (Provincial BPA + Base CPP/QPP + EI + QPIP if in Quebec).
+ *
+ * **4. Ontario-Specific Modifiers (If Applicable):**
+ * - **Ontario Tax Reduction (OTR):** Reduces or eliminates basic Ontario tax for low-income earners.
+ * - **Provincial Surtax:** Applies a two-tier cascading surtax on net provincial tax.
+ * - **Ontario Health Premium:** Calculated based on strict taxable income bands.
+ *
+ * @param employmentIncome - The individual's total gross annual taxable employment income (assumes T4 income).
+ * @param province - The Canadian province or territory of residence.
+ * @param year - The specific tax year.
+ * @returns A fully itemized object containing marginal rates, gross taxes, applied negative-valued credits, mandatory premiums, and the verified total deduction sum.
  */
 export function getIncomeTax(
-  income: number,
+  employmentIncome: number,
   province: Province,
   year: TaxYear,
 ): TaxBreakdown {
   // 1. Mandatory Payroll Deductions
-  const deductions = getPayrollDeductions(income, province, year);
+  const deductions = getPayrollDeductions(employmentIncome, province, year);
 
-  // CRITICAL STEP: CPP2/QPP2 is a direct deduction from taxable income.
-  const taxableIncome = Math.max(0, income - deductions.cpp2OrQpp2);
+  // CRITICAL STEP: Enhanced Tier 1 (CPP/QPP) and Tier 2 (CPP2/QPP2) are direct deductions from taxable income.
+  const taxableIncome = Math.max(
+    0,
+    employmentIncome - deductions.cppOrQppEnhanced - deductions.cpp2OrQpp2,
+  );
 
   // 2. FEDERAL TAX CALCULATION
   const federalBrackets = FEDERAL_BRACKETS[year];
@@ -512,10 +443,17 @@ export function getIncomeTax(
 
   const federalLimits = FEDERAL_LIMITS[year];
   const federalBpaAmount = getFederalBPA(taxableIncome, year);
-  const canadaEmploymentAmount = Math.min(income, federalLimits.maxCEA);
-  const federalNRTCBase = federalBpaAmount + deductions.cppOrQpp +
+  const canadaEmploymentAmount = Math.min(
+    employmentIncome,
+    federalLimits.maxCEA,
+  );
+
+  // NRTC base only uses the BASE CPP/QPP contribution.
+  const federalNRTCBase = federalBpaAmount + deductions.cppOrQppBase +
     deductions.ei + deductions.qpip + canadaEmploymentAmount;
 
+  // Uses 14.5% federal lowest bracket rate for credits
+  // Note: Simplified logic. A full implementation would apply the Top-Up credit for incomes over $57,375.
   const federalCreditTotal = federalNRTCBase * federalBrackets[0].rate;
   const appliedFederalCredits = Math.min(federalGrossTax, federalCreditTotal);
 
@@ -528,25 +466,43 @@ export function getIncomeTax(
   }
 
   // 3. PROVINCIAL TAX CALCULATION
+  let provincialTaxableIncome = taxableIncome;
+  if (province === "Quebec") {
+    const qcLimits = QUEBEC_LIMITS[year];
+    const deductionForWorkers = Math.min(
+      qcLimits.maxDeductionForWorkers,
+      employmentIncome * qcLimits.deductionForWorkersRate,
+    );
+    provincialTaxableIncome = Math.max(0, taxableIncome - deductionForWorkers);
+  }
+
   const provincialBrackets = PROVINCIAL_BRACKETS[year][province];
-  const provincialResult = calculateTax(taxableIncome, provincialBrackets);
+  const provincialResult = calculateTax(
+    provincialTaxableIncome,
+    provincialBrackets,
+  );
   const provincialGrossTax = provincialResult.amount;
 
   let provincialBpaAmount = PROVINCIAL_BPA[year][province];
 
-  // Special handling for Manitoba's high-income BPA phase-out logic
-  if (province === "Manitoba" && income > 200000) {
-    const phaseOutRatio = (income - 200000) / (400000 - 200000);
-    provincialBpaAmount = income >= 400000
+  if (province === "Manitoba" && employmentIncome > 200000) {
+    const phaseOutRatio = (employmentIncome - 200000) / (400000 - 200000);
+    provincialBpaAmount = employmentIncome >= 400000
       ? 0
       : provincialBpaAmount - (provincialBpaAmount * phaseOutRatio);
   }
 
-  let provincialNRTCBase = provincialBpaAmount + deductions.cppOrQpp +
+  let provincialNRTCBase = provincialBpaAmount + deductions.cppOrQppBase +
     deductions.ei;
   if (province === "Quebec") provincialNRTCBase += deductions.qpip;
+  if (province === "Yukon") provincialNRTCBase += canadaEmploymentAmount;
 
-  const provincialCreditTotal = provincialNRTCBase * provincialBrackets[0].rate;
+  // Decoupled Quebec's specific 15% NRTC rate from its 14% lowest tax bracket
+  const provincialNRTCRate = province === "Quebec"
+    ? QUEBEC_LIMITS[year].nrtcRate
+    : provincialBrackets[0].rate;
+  const provincialCreditTotal = provincialNRTCBase * provincialNRTCRate;
+
   const appliedProvincialCredits = Math.min(
     provincialGrossTax,
     provincialCreditTotal,
@@ -574,7 +530,8 @@ export function getIncomeTax(
       provincialMarginalRate *= marginalMultiplier;
     }
 
-    healthPremium = getOntarioHealthPremium(income);
+    // Health premium is calculated against Taxable Income, not Gross Income
+    healthPremium = getOntarioHealthPremium(taxableIncome);
   }
 
   // 5. ROUNDING AND SUMMATION
@@ -588,7 +545,8 @@ export function getIncomeTax(
   const roundedProvSurtax = Math.round(provincialSurtaxAmount);
 
   const roundedHealthPrem = Math.round(healthPremium);
-  const roundedCpp = Math.round(deductions.cppOrQpp);
+  const roundedCppBase = Math.round(deductions.cppOrQppBase);
+  const roundedCppEnhanced = Math.round(deductions.cppOrQppEnhanced);
   const roundedCpp2 = Math.round(deductions.cpp2OrQpp2);
   const roundedEi = Math.round(deductions.ei);
   const roundedQpip = Math.round(deductions.qpip);
@@ -601,7 +559,8 @@ export function getIncomeTax(
     roundedOnTaxRed +
     roundedProvSurtax +
     roundedHealthPrem +
-    roundedCpp +
+    roundedCppBase +
+    roundedCppEnhanced +
     roundedCpp2 +
     roundedEi +
     roundedQpip;
@@ -617,7 +576,8 @@ export function getIncomeTax(
     ontarioTaxReduction: roundedOnTaxRed,
     provincialSurtax: roundedProvSurtax,
     healthPremium: roundedHealthPrem,
-    cppOrQppPremium: roundedCpp,
+    cppOrQppBase: roundedCppBase,
+    cppOrQppEnhanced: roundedCppEnhanced,
     cpp2OrQpp2Premium: roundedCpp2,
     eiPremium: roundedEi,
     qpipPremium: roundedQpip,

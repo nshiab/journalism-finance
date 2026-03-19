@@ -5,19 +5,19 @@ const WEALTHSIMPLE_OUTPUT_DIR =
 const TURBOTAX_OUTPUT_DIR = "./test/data/taxIncomeExternalSource/TurboTax/2025";
 
 const PROVINCES = [
-  { name: "Newfoundland and Labrador", slug: "newfoundland", tt: "NL" },
-  { name: "Prince Edward Island", slug: "prince-edward-island", tt: "PE" },
-  { name: "Nova Scotia", slug: "nova-scotia", tt: "NS" },
-  { name: "New Brunswick", slug: "new-brunswick", tt: "NB" },
-  { name: "Quebec", slug: "quebec", tt: "QC" },
-  { name: "Ontario", slug: "ontario", tt: "ON" },
-  { name: "Manitoba", slug: "manitoba", tt: "MB" },
-  { name: "Saskatchewan", slug: "saskatchewan", tt: "SK" },
-  { name: "Alberta", slug: "alberta", tt: "AB" },
-  { name: "British Columbia", slug: "british-columbia", tt: "BC" },
-  { name: "Yukon", slug: "yukon", tt: "YT" },
-  { name: "Northwest Territories", slug: "northwest-territories", tt: "NT" },
-  { name: "Nunavut", slug: "nunavut", tt: "NU" },
+  { name: "Newfoundland and Labrador", slug: "newfoundland", tt: "10" },
+  { name: "Prince Edward Island", slug: "prince-edward-island", tt: "9" },
+  { name: "Nova Scotia", slug: "nova-scotia", tt: "8" },
+  { name: "New Brunswick", slug: "new-brunswick", tt: "7" },
+  { name: "Quebec", slug: "quebec", tt: "6" },
+  { name: "Ontario", slug: "ontario", tt: "5" },
+  { name: "Manitoba", slug: "manitoba", tt: "4" },
+  { name: "Saskatchewan", slug: "saskatchewan", tt: "3" },
+  { name: "Alberta", slug: "alberta", tt: "2" },
+  { name: "British Columbia", slug: "british-columbia", tt: "1" },
+  { name: "Yukon", slug: "yukon", tt: "11" },
+  { name: "Northwest Territories", slug: "northwest-territories", tt: "12" },
+  { name: "Nunavut", slug: "nunavut", tt: "17" },
 ];
 
 const INCOMES = [
@@ -109,11 +109,22 @@ async function scrapeTurboTax(page: any) {
   await Deno.mkdir(TURBOTAX_OUTPUT_DIR, { recursive: true });
 
   const url =
-    "https://turbotax.intuit.ca/tax-resources/canada-income-tax-calculator.jsp";
+    "https://turbotax.intuit.ca/tax-resources/canada-income-tax-calculator";
   console.log(`TurboTax: Navigating to ${url}...`);
 
   try {
-    await page.goto(url, { waitUntil: "networkidle", timeout: 60000 });
+    await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });
+
+    // Handle TurboTax popup
+    const popupCloseButton =
+      "#email-capture-modal-2026 > div > div.Modal-controlsWrapper-3cf3cc3 > button";
+    try {
+      await page.waitForSelector(popupCloseButton, { timeout: 5000 });
+      await page.click(popupCloseButton);
+      console.log("TurboTax: Closed popup");
+    } catch (e) {
+      console.log("TurboTax: Popup not found or already closed");
+    }
   } catch (e) {
     console.error("TurboTax: Failed to load page:", JSON.stringify(e));
     return;
@@ -131,8 +142,7 @@ async function scrapeTurboTax(page: any) {
     const provinceResults: Record<number, number> = {};
 
     try {
-      const provinceSelector =
-        'select#province, select[name="province"], .province-select';
+      const provinceSelector = "#province";
       await page.waitForSelector(provinceSelector, { timeout: 10000 });
       await page.selectOption(provinceSelector, tt);
     } catch (e) {
@@ -143,14 +153,13 @@ async function scrapeTurboTax(page: any) {
 
     for (const income of INCOMES) {
       try {
-        const incomeSelector =
-          'input#totalIncome, input#employmentIncome, input[name="income"], .income-input';
+        const incomeSelector = "#income";
         await page.fill(incomeSelector, income.toString());
         await page.keyboard.press("Tab");
-        await page.waitForTimeout(1000);
+        await page.waitForTimeout(2000);
 
         const taxSelector =
-          '.total-tax, #totalTax, .tax-result, [data-testid="total-tax"]';
+          "#collapsible-panel-1 > div > table > tbody > tr.border-top > td > strong";
         const taxText = await page.innerText(taxSelector).catch(() => "0");
         const match = taxText.match(/[\d,]+/);
         provinceResults[income] = match
