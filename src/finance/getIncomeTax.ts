@@ -180,7 +180,39 @@ const NL_LIMITS: Record<
   },
 };
 
-// --- 9. TAX BRACKETS DICTIONARIES ---
+// --- 9. NOVA SCOTIA SPECIFIC LIMITS DICTIONARY ---
+
+const NS_LIMITS: Record<
+  TaxYear,
+  { baseAmount: number; threshold: number; reductionFactor: number }
+> = {
+  2025: {
+    baseAmount: 300,
+    threshold: 15100,
+    reductionFactor: 0.05,
+  },
+};
+
+// --- 10. MANITOBA SPECIFIC LIMITS DICTIONARY ---
+
+const MB_LIMITS: Record<
+  TaxYear,
+  {
+    phaseOutThreshold1: number;
+    phaseOutThreshold2: number;
+    familyTaxBenefitBase: number;
+    familyTaxBenefitReductionRate: number;
+  }
+> = {
+  2025: {
+    phaseOutThreshold1: 200000,
+    phaseOutThreshold2: 400000,
+    familyTaxBenefitBase: 2065,
+    familyTaxBenefitReductionRate: 0.09,
+  },
+};
+
+// --- 11. TAX BRACKETS DICTIONARIES ---
 
 const FEDERAL_BRACKETS: Record<TaxYear, TaxBracket[]> = {
   2025: [
@@ -301,14 +333,14 @@ function calculateTax(
     const threshold = currentBracket.threshold;
     const nextThreshold = nextBracket ? nextBracket.threshold : Infinity;
 
-    if (income > threshold) {
-      const taxableInThisBracket = Math.min(income, nextThreshold) - threshold;
-      tax += taxableInThisBracket * currentBracket.rate;
+    if (income >= threshold) {
       marginalRate = currentBracket.rate;
-    } else {
-      if (income === threshold) {
-        marginalRate = currentBracket.rate;
+      const taxableInThisBracket = Math.min(income, nextThreshold) - threshold;
+
+      if (taxableInThisBracket > 0) {
+        tax += taxableInThisBracket * currentBracket.rate;
       }
+    } else {
       break;
     }
   }
@@ -413,6 +445,24 @@ function getOntarioSurtax(
   return { surtaxAmount, marginalMultiplier };
 }
 
+function getOntarioLIFTCredit(
+  employmentIncome: number,
+  netIncome: number, // In this basic scenario, taxableIncome works fine
+  basicOntarioTax: number,
+): number {
+  if (basicOntarioTax <= 0) return 0;
+
+  // LIFT is the lesser of $875 or 5.05% of employment income
+  const maxLift = Math.min(875, employmentIncome * 0.0505);
+
+  // Phased out at 5% of net income over $32,500
+  const phaseOut = Math.max(0, (netIncome - 32500) * 0.05);
+
+  const liftCredit = Math.max(0, maxLift - phaseOut);
+
+  return Math.min(basicOntarioTax, liftCredit);
+}
+
 function getOntarioHealthPremium(taxableIncome: number): number {
   if (taxableIncome <= 20000) return 0;
   if (taxableIncome <= 36000) {
@@ -425,9 +475,9 @@ function getOntarioHealthPremium(taxableIncome: number): number {
     return Math.min(600, 450 + (taxableIncome - 48000) * 0.25);
   }
   if (taxableIncome <= 200000) {
-    return Math.min(900, 600 + (taxableIncome - 72000) * 0.25);
+    return Math.min(750, 600 + (taxableIncome - 72000) * 0.25); // Fixed tier
   }
-  return 900;
+  return Math.min(900, 750 + (taxableIncome - 200000) * 0.25); // Phase into max $900
 }
 function getBCTaxReduction(
   netProvincialTax: number,
@@ -470,6 +520,21 @@ function getNLTaxReduction(
 
   return Math.max(0, Math.min(netProvincialTax, reduction));
 }
+
+function getNSTaxReduction(
+  netProvincialTax: number,
+  taxableIncome: number,
+  year: TaxYear,
+): number {
+  const limits = NS_LIMITS[year];
+  if (!limits) return 0;
+
+  // The clawback applies to income over the threshold
+  const excess = Math.max(0, taxableIncome - limits.threshold);
+  const reduction = limits.baseAmount - (excess * limits.reductionFactor);
+
+  return Math.max(0, Math.min(netProvincialTax, reduction));
+}
 /**
  * Calculates a comprehensive breakdown of Canadian federal and provincial income taxes.
  *
@@ -498,6 +563,7 @@ function getNLTaxReduction(
  * - **B.C. Tax Reduction:** A non-refundable credit for B.C. residents with low-to-moderate taxable income (subject to phase-out).
  * - **New Brunswick Tax Reduction:** A non-refundable credit for N.B. residents with low-to-moderate taxable income (subject to phase-out).
  * - **Newfoundland and Labrador Tax Reduction:** A non-refundable credit for N.L. residents with low-to-moderate taxable income (subject to phase-out).
+ * - **Nova Scotia Tax Reduction:** A non-refundable credit for N.S. residents with low-to-moderate taxable income (subject to phase-out).
  * - **Ontario Tax Reduction (OTR):** Reduces or eliminates basic Ontario tax for low-income earners.
  * - **Provincial Surtax:** Applies a two-tier cascading surtax on net provincial tax in Ontario.
  * - **Ontario Health Premium:** Calculated based on strict taxable income bands.
@@ -590,17 +656,32 @@ export function getIncomeTax(
 
   let provincialBpaAmount = PROVINCIAL_BPA[year][province];
 
-  if (province === "Manitoba" && taxableIncome > 200000) {
-    const phaseOutRatio = (taxableIncome - 200000) / (400000 - 200000);
-    provincialBpaAmount = taxableIncome >= 400000
-      ? 0
-      : provincialBpaAmount - (provincialBpaAmount * phaseOutRatio);
+  if (province === "Manitoba") {
+    const mbLimits = MB_LIMITS[year];
+    if (taxableIncome > mbLimits.phaseOutThreshold1) {
+      const phaseOutRatio = (taxableIncome - mbLimits.phaseOutThreshold1) /
+        (mbLimits.phaseOutThreshold2 - mbLimits.phaseOutThreshold1);
+      provincialBpaAmount = taxableIncome >= mbLimits.phaseOutThreshold2
+        ? 0
+        : provincialBpaAmount - (provincialBpaAmount * phaseOutRatio);
+    }
   }
 
   let provincialNRTCBase = provincialBpaAmount + deductions.cppOrQppBase +
     deductions.ei;
   if (province === "Quebec") provincialNRTCBase += deductions.qpip;
   if (province === "Yukon") provincialNRTCBase += canadaEmploymentAmount;
+
+  // Manitoba Family Tax Benefit
+  if (province === "Manitoba") {
+    const mbLimits = MB_LIMITS[year];
+    const mbFamilyTaxBenefit = Math.max(
+      0,
+      mbLimits.familyTaxBenefitBase -
+        (taxableIncome * mbLimits.familyTaxBenefitReductionRate),
+    );
+    provincialNRTCBase += mbFamilyTaxBenefit;
+  }
 
   // Decoupled Quebec's specific 15% NRTC rate from its 14% lowest tax bracket
   const provincialNRTCRate = province === "Quebec"
@@ -620,6 +701,7 @@ export function getIncomeTax(
   let bcTaxReduction = 0;
   let nbTaxReduction = 0;
   let nlTaxReduction = 0;
+  let nsTaxReduction = 0;
   let ontarioSurtaxAmount = 0;
   let healthPremium = 0;
 
@@ -637,6 +719,15 @@ export function getIncomeTax(
     );
     netProvincialTax = otrResult.reducedTax;
     ontarioTaxReduction = otrResult.reductionAmount;
+
+    // --- NEW: LIFT Credit applied after OTR ---
+    const liftCredit = getOntarioLIFTCredit(
+      employmentIncome,
+      taxableIncome,
+      netProvincialTax,
+    );
+    netProvincialTax -= liftCredit;
+    ontarioTaxReduction += liftCredit; // Bundle it with the OTR output for summation
 
     if (netProvincialTax > 0) {
       provincialMarginalRate *= marginalMultiplier;
@@ -673,6 +764,15 @@ export function getIncomeTax(
     netProvincialTax -= nlTaxReduction;
   }
 
+  if (province === "Nova Scotia") {
+    nsTaxReduction = getNSTaxReduction(
+      netProvincialTax,
+      taxableIncome,
+      year,
+    );
+    netProvincialTax -= nsTaxReduction;
+  }
+
   // 5. ROUNDING AND SUMMATION
   const roundedFedGross = Math.round(federalGrossTax);
   const roundedFedCredits = -Math.round(appliedFederalCredits);
@@ -681,7 +781,8 @@ export function getIncomeTax(
   const roundedProvGross = Math.round(provincialGrossTax);
   const roundedProvCredits = -Math.round(appliedProvincialCredits);
   const totalProvincialTaxReduction = -Math.round(
-    ontarioTaxReduction + bcTaxReduction + nbTaxReduction + nlTaxReduction,
+    ontarioTaxReduction + bcTaxReduction + nbTaxReduction + nlTaxReduction +
+      nsTaxReduction,
   );
   const roundedOntarioSurtax = Math.round(ontarioSurtaxAmount);
 
