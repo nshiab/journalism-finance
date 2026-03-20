@@ -29,7 +29,9 @@ export interface TaxBreakdown {
   grossProvincialTax: number;
   appliedProvincialCredits: number;
   ontarioTaxReduction: number;
-  provincialSurtax: number;
+  ontarioSurtax: number;
+  bcTaxReduction: number;
+  provincialTaxReduction: number;
   healthPremium: number;
   cppOrQppBase: number;
   cppOrQppEnhanced: number;
@@ -137,11 +139,24 @@ const QUEBEC_LIMITS: Record<
   2025: {
     deductionForWorkersRate: 0.06,
     maxDeductionForWorkers: 1420,
-    nrtcRate: 0.15,
+    nrtcRate: 0.14,
   },
 };
 
-// --- 6. TAX BRACKETS DICTIONARIES ---
+// --- 6. BRITISH COLUMBIA SPECIFIC LIMITS DICTIONARY ---
+
+const BC_LIMITS: Record<
+  TaxYear,
+  { baseAmount: number; threshold: number; reductionFactor: number }
+> = {
+  2025: {
+    baseAmount: 562,
+    threshold: 25020,
+    reductionFactor: 0.0356,
+  },
+};
+
+// --- 7. TAX BRACKETS DICTIONARIES ---
 
 const FEDERAL_BRACKETS: Record<TaxYear, TaxBracket[]> = {
   2025: [
@@ -187,8 +202,8 @@ const PROVINCIAL_BRACKETS: Record<TaxYear, Record<Province, TaxBracket[]>> = {
     ],
     "Manitoba": [
       { rate: 0.108, threshold: 0 },
-      { rate: 0.1275, threshold: 47564 },
-      { rate: 0.174, threshold: 101200 },
+      { rate: 0.1275, threshold: 47000 },
+      { rate: 0.174, threshold: 100000 },
     ],
     "Saskatchewan": [
       { rate: 0.105, threshold: 0 },
@@ -267,6 +282,9 @@ function calculateTax(
       tax += taxableInThisBracket * currentBracket.rate;
       marginalRate = currentBracket.rate;
     } else {
+      if (income === threshold) {
+        marginalRate = currentBracket.rate;
+      }
       break;
     }
   }
@@ -387,7 +405,19 @@ function getOntarioHealthPremium(taxableIncome: number): number {
   }
   return 900;
 }
+function getBCTaxReduction(
+  netProvincialTax: number,
+  taxableIncome: number,
+  year: TaxYear,
+): number {
+  const limits = BC_LIMITS[year];
+  if (!limits) return 0;
 
+  const reduction = limits.baseAmount -
+    (taxableIncome - limits.threshold) * limits.reductionFactor;
+
+  return Math.max(0, Math.min(netProvincialTax, reduction));
+}
 /**
  * Calculates a comprehensive breakdown of Canadian federal and provincial income taxes.
  *
@@ -408,13 +438,14 @@ function getOntarioHealthPremium(taxableIncome: number): number {
  *
  * **3. Provincial Tax & NRTCs:**
  * - Calculates gross provincial tax using the specific province's progressive tax brackets.
- * - **Quebec-Specific:** Applies the Deduction for Workers as an income reduction before tax calculation. Uses specific 15% rate for NRTCs.
+ * - **Quebec-Specific:** Applies the Deduction for Workers as an income reduction before tax calculation. Uses specific 14% rate for NRTCs. Note: This function does not take into account RAMQ premiums for Quebec residents.
  * - Retrieves the provincial BPA, executing a specific linear phase-out for Manitoba residents.
  * - Aggregates the provincial NRTC base (Provincial BPA + Base CPP/QPP + EI + QPIP if in Quebec).
  *
- * **4. Ontario-Specific Modifiers (If Applicable):**
+ * **4. Provincial-Specific Modifiers (If Applicable):**
+ * - **B.C. Tax Reduction:** A non-refundable credit for B.C. residents with low-to-moderate taxable income (subject to phase-out).
  * - **Ontario Tax Reduction (OTR):** Reduces or eliminates basic Ontario tax for low-income earners.
- * - **Provincial Surtax:** Applies a two-tier cascading surtax on net provincial tax.
+ * - **Provincial Surtax:** Applies a two-tier cascading surtax on net provincial tax in Ontario.
  * - **Ontario Health Premium:** Calculated based on strict taxable income bands.
  *
  * @param employmentIncome - The individual's total gross annual taxable employment income (assumes T4 income).
@@ -452,9 +483,29 @@ export function getIncomeTax(
   const federalNRTCBase = federalBpaAmount + deductions.cppOrQppBase +
     deductions.ei + deductions.qpip + canadaEmploymentAmount;
 
-  // Uses 14.5% federal lowest bracket rate for credits
-  // Note: Simplified logic. A full implementation would apply the Top-Up credit for incomes over $57,375.
-  const federalCreditTotal = federalNRTCBase * federalBrackets[0].rate;
+  // --- Top-Up Tax Credit (Bill C-4 / Budget 2025) ---
+  // The rate for non-refundable tax credits is reduced to 14.5% in 2025.
+  // However, the Top-Up Tax Credit maintains the 15% rate for credits claimed
+  // on amounts in excess of the first bracket threshold ($57,375).
+  const firstBracketThreshold = federalBrackets[1].threshold;
+  const baseNRTCRate = federalBrackets[0].rate;
+
+  let federalCreditTotal = 0;
+  if (
+    taxableIncome > firstBracketThreshold &&
+    federalNRTCBase > firstBracketThreshold
+  ) {
+    // If NRTC base and taxable income exceed threshold,
+    // the portion of NRTC base above threshold gets 15%
+    const amountAtFirstRate = firstBracketThreshold;
+    const amountAtTopUpRate = federalNRTCBase - firstBracketThreshold;
+    federalCreditTotal = (amountAtFirstRate * baseNRTCRate) +
+      (amountAtTopUpRate * 0.15);
+  } else {
+    // Otherwise, the standard reduced rate applies to the whole base
+    federalCreditTotal = federalNRTCBase * baseNRTCRate;
+  }
+
   const appliedFederalCredits = Math.min(federalGrossTax, federalCreditTotal);
 
   let netFederalTax = federalGrossTax - appliedFederalCredits;
@@ -512,26 +563,40 @@ export function getIncomeTax(
   let provincialMarginalRate = provincialResult.marginalRate;
 
   let ontarioTaxReduction = 0;
-  let provincialSurtaxAmount = 0;
+  let bcTaxReduction = 0;
+  let ontarioSurtaxAmount = 0;
   let healthPremium = 0;
 
-  // 4. ONTARIO SPECIFIC MODIFIERS
+  // 4. PROVINCIAL SPECIFIC MODIFIERS
   if (province === "Ontario") {
-    const otrResult = applyOntarioTaxReduction(netProvincialTax, year);
+    const { surtaxAmount, marginalMultiplier } = getOntarioSurtax(
+      netProvincialTax,
+      year,
+    );
+    ontarioSurtaxAmount = surtaxAmount;
+
+    const otrResult = applyOntarioTaxReduction(
+      netProvincialTax + ontarioSurtaxAmount,
+      year,
+    );
     netProvincialTax = otrResult.reducedTax;
     ontarioTaxReduction = otrResult.reductionAmount;
 
     if (netProvincialTax > 0) {
-      const { surtaxAmount, marginalMultiplier } = getOntarioSurtax(
-        netProvincialTax,
-        year,
-      );
-      provincialSurtaxAmount = surtaxAmount;
       provincialMarginalRate *= marginalMultiplier;
     }
 
     // Health premium is calculated against Taxable Income, not Gross Income
     healthPremium = getOntarioHealthPremium(taxableIncome);
+  }
+
+  if (province === "British Columbia") {
+    bcTaxReduction = getBCTaxReduction(
+      netProvincialTax,
+      taxableIncome,
+      year,
+    );
+    netProvincialTax -= bcTaxReduction;
   }
 
   // 5. ROUNDING AND SUMMATION
@@ -541,8 +606,10 @@ export function getIncomeTax(
 
   const roundedProvGross = Math.round(provincialGrossTax);
   const roundedProvCredits = -Math.round(appliedProvincialCredits);
-  const roundedOnTaxRed = -Math.round(ontarioTaxReduction);
-  const roundedProvSurtax = Math.round(provincialSurtaxAmount);
+  const totalProvincialTaxReduction = -Math.round(
+    ontarioTaxReduction + bcTaxReduction,
+  );
+  const roundedOntarioSurtax = Math.round(ontarioSurtaxAmount);
 
   const roundedHealthPrem = Math.round(healthPremium);
   const roundedCppBase = Math.round(deductions.cppOrQppBase);
@@ -556,8 +623,8 @@ export function getIncomeTax(
     roundedQcAbatment +
     roundedProvGross +
     roundedProvCredits +
-    roundedOnTaxRed +
-    roundedProvSurtax +
+    totalProvincialTaxReduction +
+    roundedOntarioSurtax +
     roundedHealthPrem +
     roundedCppBase +
     roundedCppEnhanced +
@@ -573,8 +640,10 @@ export function getIncomeTax(
     quebecAbatement: roundedQcAbatment,
     grossProvincialTax: roundedProvGross,
     appliedProvincialCredits: roundedProvCredits,
-    ontarioTaxReduction: roundedOnTaxRed,
-    provincialSurtax: roundedProvSurtax,
+    ontarioTaxReduction: -Math.round(ontarioTaxReduction),
+    ontarioSurtax: roundedOntarioSurtax,
+    bcTaxReduction: -Math.round(bcTaxReduction),
+    provincialTaxReduction: totalProvincialTaxReduction,
     healthPremium: roundedHealthPrem,
     cppOrQppBase: roundedCppBase,
     cppOrQppEnhanced: roundedCppEnhanced,
