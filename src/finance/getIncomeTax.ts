@@ -25,13 +25,11 @@ export interface TaxBreakdown {
   provincialRate: number;
   grossFederalTax: number;
   appliedFederalCredits: number;
-  quebecAbatement: number;
+  federalAbatement: number;
   grossProvincialTax: number;
   appliedProvincialCredits: number;
-  ontarioTaxReduction: number;
-  ontarioSurtax: number;
-  bcTaxReduction: number;
   provincialTaxReduction: number;
+  provincialSurtax: number;
   healthPremium: number;
   cppOrQppBase: number;
   cppOrQppEnhanced: number;
@@ -156,7 +154,33 @@ const BC_LIMITS: Record<
   },
 };
 
-// --- 7. TAX BRACKETS DICTIONARIES ---
+// --- 7. NEW BRUNSWICK SPECIFIC LIMITS DICTIONARY ---
+
+const NB_LIMITS: Record<
+  TaxYear,
+  { baseAmount: number; threshold: number; reductionFactor: number }
+> = {
+  2025: {
+    baseAmount: 802,
+    threshold: 21920,
+    reductionFactor: 0.03,
+  },
+};
+
+// --- 8. NEWFOUNDLAND AND LABRADOR SPECIFIC LIMITS DICTIONARY ---
+
+const NL_LIMITS: Record<
+  TaxYear,
+  { baseAmount: number; threshold: number; reductionFactor: number }
+> = {
+  2025: {
+    baseAmount: 997,
+    threshold: 23928,
+    reductionFactor: 0.16,
+  },
+};
+
+// --- 9. TAX BRACKETS DICTIONARIES ---
 
 const FEDERAL_BRACKETS: Record<TaxYear, TaxBracket[]> = {
   2025: [
@@ -418,6 +442,34 @@ function getBCTaxReduction(
 
   return Math.max(0, Math.min(netProvincialTax, reduction));
 }
+
+function getNBTaxReduction(
+  netProvincialTax: number,
+  taxableIncome: number,
+  year: TaxYear,
+): number {
+  const limits = NB_LIMITS[year];
+  if (!limits) return 0;
+
+  const excess = Math.max(0, taxableIncome - limits.threshold);
+  const reduction = limits.baseAmount - (excess * limits.reductionFactor);
+
+  return Math.max(0, Math.min(netProvincialTax, reduction));
+}
+
+function getNLTaxReduction(
+  netProvincialTax: number,
+  taxableIncome: number,
+  year: TaxYear,
+): number {
+  const limits = NL_LIMITS[year];
+  if (!limits) return 0;
+
+  const excess = Math.max(0, taxableIncome - limits.threshold);
+  const reduction = limits.baseAmount - (excess * limits.reductionFactor);
+
+  return Math.max(0, Math.min(netProvincialTax, reduction));
+}
 /**
  * Calculates a comprehensive breakdown of Canadian federal and provincial income taxes.
  *
@@ -434,7 +486,7 @@ function getBCTaxReduction(
  * - Determines the Federal Basic Personal Amount (BPA), applying a linear phase-out for high earners.
  * - Calculates the Canada Employment Amount (CEA) against employment income up to the annual maximum.
  * - Aggregates the federal NRTC base (BPA + Base CPP/QPP + EI + QPIP + CEA) and converts it to a credit amount.
- * - Applies the Quebec Abatement exclusively for Quebec residents.
+ * - Applies the Federal Abatement exclusively for Quebec residents.
  *
  * **3. Provincial Tax & NRTCs:**
  * - Calculates gross provincial tax using the specific province's progressive tax brackets.
@@ -444,6 +496,8 @@ function getBCTaxReduction(
  *
  * **4. Provincial-Specific Modifiers (If Applicable):**
  * - **B.C. Tax Reduction:** A non-refundable credit for B.C. residents with low-to-moderate taxable income (subject to phase-out).
+ * - **New Brunswick Tax Reduction:** A non-refundable credit for N.B. residents with low-to-moderate taxable income (subject to phase-out).
+ * - **Newfoundland and Labrador Tax Reduction:** A non-refundable credit for N.L. residents with low-to-moderate taxable income (subject to phase-out).
  * - **Ontario Tax Reduction (OTR):** Reduces or eliminates basic Ontario tax for low-income earners.
  * - **Provincial Surtax:** Applies a two-tier cascading surtax on net provincial tax in Ontario.
  * - **Ontario Health Premium:** Calculated based on strict taxable income bands.
@@ -536,9 +590,9 @@ export function getIncomeTax(
 
   let provincialBpaAmount = PROVINCIAL_BPA[year][province];
 
-  if (province === "Manitoba" && employmentIncome > 200000) {
-    const phaseOutRatio = (employmentIncome - 200000) / (400000 - 200000);
-    provincialBpaAmount = employmentIncome >= 400000
+  if (province === "Manitoba" && taxableIncome > 200000) {
+    const phaseOutRatio = (taxableIncome - 200000) / (400000 - 200000);
+    provincialBpaAmount = taxableIncome >= 400000
       ? 0
       : provincialBpaAmount - (provincialBpaAmount * phaseOutRatio);
   }
@@ -564,6 +618,8 @@ export function getIncomeTax(
 
   let ontarioTaxReduction = 0;
   let bcTaxReduction = 0;
+  let nbTaxReduction = 0;
+  let nlTaxReduction = 0;
   let ontarioSurtaxAmount = 0;
   let healthPremium = 0;
 
@@ -599,6 +655,24 @@ export function getIncomeTax(
     netProvincialTax -= bcTaxReduction;
   }
 
+  if (province === "New Brunswick") {
+    nbTaxReduction = getNBTaxReduction(
+      netProvincialTax,
+      taxableIncome,
+      year,
+    );
+    netProvincialTax -= nbTaxReduction;
+  }
+
+  if (province === "Newfoundland and Labrador") {
+    nlTaxReduction = getNLTaxReduction(
+      netProvincialTax,
+      taxableIncome,
+      year,
+    );
+    netProvincialTax -= nlTaxReduction;
+  }
+
   // 5. ROUNDING AND SUMMATION
   const roundedFedGross = Math.round(federalGrossTax);
   const roundedFedCredits = -Math.round(appliedFederalCredits);
@@ -607,7 +681,7 @@ export function getIncomeTax(
   const roundedProvGross = Math.round(provincialGrossTax);
   const roundedProvCredits = -Math.round(appliedProvincialCredits);
   const totalProvincialTaxReduction = -Math.round(
-    ontarioTaxReduction + bcTaxReduction,
+    ontarioTaxReduction + bcTaxReduction + nbTaxReduction + nlTaxReduction,
   );
   const roundedOntarioSurtax = Math.round(ontarioSurtaxAmount);
 
@@ -637,13 +711,11 @@ export function getIncomeTax(
     provincialRate: provincialMarginalRate,
     grossFederalTax: roundedFedGross,
     appliedFederalCredits: roundedFedCredits,
-    quebecAbatement: roundedQcAbatment,
+    federalAbatement: roundedQcAbatment,
     grossProvincialTax: roundedProvGross,
     appliedProvincialCredits: roundedProvCredits,
-    ontarioTaxReduction: -Math.round(ontarioTaxReduction),
-    ontarioSurtax: roundedOntarioSurtax,
-    bcTaxReduction: -Math.round(bcTaxReduction),
     provincialTaxReduction: totalProvincialTaxReduction,
+    provincialSurtax: roundedOntarioSurtax,
     healthPremium: roundedHealthPrem,
     cppOrQppBase: roundedCppBase,
     cppOrQppEnhanced: roundedCppEnhanced,
