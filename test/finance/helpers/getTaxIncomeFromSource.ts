@@ -1,7 +1,5 @@
 import { chromium } from "npm:playwright";
 
-const WEALTHSIMPLE_OUTPUT_DIR =
-  "./test/data/taxIncomeExternalSource/WealthSimple/2025";
 const TURBOTAX_OUTPUT_DIR = "./test/data/taxIncomeExternalSource/TurboTax/2025";
 
 const PROVINCES = [
@@ -58,50 +56,6 @@ async function fileExists(path: string) {
     return true;
   } catch {
     return false;
-  }
-}
-
-async function scrapeWealthsimple(page: any) {
-  await Deno.mkdir(WEALTHSIMPLE_OUTPUT_DIR, { recursive: true });
-
-  for (const { name, slug } of PROVINCES) {
-    const filePath = `${WEALTHSIMPLE_OUTPUT_DIR}/${name}.json`;
-
-    if (await fileExists(filePath)) {
-      console.log(`Wealthsimple: ${name} already exists, skipping...`);
-      continue;
-    }
-
-    console.log(`Wealthsimple: Scraping ${name}...`);
-    const provinceResults: Record<number, number> = {};
-
-    await page.goto(
-      `https://www.wealthsimple.com/en-ca/tool/tax-calculator/${slug}`,
-    );
-    await page.waitForSelector("#employmentIncome", { timeout: 60000 });
-
-    for (const income of INCOMES) {
-      await page.locator("#employmentIncome").fill(income.toString());
-      await page.keyboard.press("Tab"); // Trigger calculation
-
-      // Wait for React to calculate and update the DOM
-      await page.waitForTimeout(1000);
-
-      // Target the #totalTax element directly
-      const taxText = await page.locator("#totalTax").textContent() || "";
-      const match = taxText.match(/[\d,]+/); // Extracts digits and commas, ignoring the $
-
-      provinceResults[income] = match
-        ? parseInt(match[0].replace(/,/g, ""), 10)
-        : 0;
-      console.log(`  ${income}: $${provinceResults[income]}`);
-    }
-
-    await Deno.writeTextFile(
-      filePath,
-      JSON.stringify(provinceResults, null, 2),
-    );
-    console.log(`Results saved to ${filePath}`);
   }
 }
 
@@ -188,7 +142,6 @@ async function runScrapers() {
   });
   const page = await context.newPage();
 
-  await scrapeWealthsimple(page);
   await scrapeTurboTax(page);
 
   await browser.close();

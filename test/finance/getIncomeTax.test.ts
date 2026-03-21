@@ -17,7 +17,7 @@ const PROVINCES = [
   "Yukon",
 ];
 
-const SOURCES = ["WealthSimple", "TurboTax"];
+const SOURCES = ["TurboTax"];
 
 for (const province of PROVINCES) {
   for (const source of SOURCES) {
