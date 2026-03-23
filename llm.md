@@ -75,6 +75,148 @@ console.log(
 // Expected output: "A $45,000 salary in 1990 is equivalent to approximately $100149 in 2023."
 ```
 
+## getIncomeTax
+
+Calculates a comprehensive breakdown of Canadian federal and provincial income
+taxes, including capital gains.
+
+Calculation Engine Methodology:
+
+**1. Mandatory Payroll Deductions:**
+
+- Calculates Tier 1 CPP/QPP base contribution (claimed as a Non-Refundable Tax
+  Credit (NRTC)).
+- Calculates Tier 1 CPP/QPP enhanced contribution (claimed as a tax deduction).
+- Calculates Tier 2 CPP2/QPP2 based on the Yearly Additional Maximum Pensionable
+  Earnings (YAMPE) (claimed as a tax deduction).
+- Calculates EI (and QPIP for Quebec residents) up to their respective annual
+  maximum insurable earnings.
+
+**2. Federal Tax & Non-Refundable Tax Credits (NRTCs):**
+
+- Calculates gross federal tax using progressive federal tax brackets.
+- Determines the Federal Basic Personal Amount (BPA), applying a linear
+  phase-out for high earners.
+- Calculates the Canada Employment Amount (CEA) against employment income up to
+  the annual maximum.
+- Aggregates the federal NRTC base (BPA + Base CPP/QPP + EI + QPIP + CEA) and
+  converts it to a credit amount, accounting for the 15% top-up credit rate for
+  amounts above the first bracket threshold.
+- Applies the Federal Abatement exclusively for Quebec residents.
+
+**3. Provincial Tax & NRTCs:**
+
+- Calculates gross provincial tax using the specific province's progressive tax
+  brackets.
+- **Quebec-Specific:** Applies the Deduction for Workers as an income reduction
+  before tax calculation. Applies the Person Living Alone amount to the NRTC
+  base (if applicable). Uses a decoupled NRTC rate.
+- Retrieves the provincial BPA, executing a specific linear phase-out for
+  Manitoba residents, and dynamically mirroring the federal BPA phase-out for
+  Yukon residents.
+- Aggregates the provincial NRTC base (Provincial BPA + Base CPP/QPP + EI + QPIP
+  if in Quebec + CEA if in Yukon + Family Tax Benefit if in Manitoba).
+
+**4. Provincial-Specific Modifiers (If Applicable):**
+
+- **B.C. Tax Reduction:** A non-refundable credit for B.C. residents with
+  low-to-moderate taxable income (subject to phase-out).
+- **New Brunswick Tax Reduction:** A non-refundable credit for N.B. residents
+  with low-to-moderate taxable income (subject to phase-out).
+- **Newfoundland and Labrador Tax Reduction:** A non-refundable credit for N.L.
+  residents with low-to-moderate taxable income (subject to phase-out).
+- **Nova Scotia Tax Reduction:** A non-refundable credit for N.S. residents with
+  low-to-moderate taxable income (subject to phase-out).
+- **Prince Edward Island Tax Reduction:** A non-refundable credit for P.E.I.
+  residents with low-to-moderate taxable income (subject to phase-out).
+- **Ontario Tax Reduction (OTR) & LIFT:** Reduces or eliminates basic Ontario
+  tax for low-income earners, and applies the Low-income Individuals and
+  Families Tax (LIFT) Credit.
+- **Ontario Surtax:** Applies a two-tier cascading surtax on net provincial tax
+  in Ontario.
+- **Provincial Health Premiums:** Calculates the Ontario Health Premium based on
+  strict taxable income bands, and the Quebec RAMQ premium based on income
+  thresholds.
+
+**5. Capital Gains:**
+
+- Applies a 50% inclusion rate to any provided capital gains.
+- Isolates the exact tax burden associated with those capital gains by computing
+  the marginal difference between a "with gains" and "without gains" tax
+  profile.
+
+### Signature
+
+```typescript
+function getIncomeTax(
+  employmentIncome: number,
+  province:
+    | "Newfoundland and Labrador"
+    | "Prince Edward Island"
+    | "Nova Scotia"
+    | "New Brunswick"
+    | "Quebec"
+    | "Ontario"
+    | "Manitoba"
+    | "Saskatchewan"
+    | "Alberta"
+    | "British Columbia"
+    | "Yukon"
+    | "Northwest Territories"
+    | "Nunavut",
+  year: 2025,
+  options?: {
+    quebec?: { ramq?: boolean; livingAlone?: boolean };
+    capitalGains?: number;
+    rrsp?: number;
+  },
+): {
+  federalRate: number;
+  provincialRate: number;
+  grossFederalTax: number;
+  appliedFederalCredits: number;
+  federalAbatement: number;
+  grossProvincialTax: number;
+  appliedProvincialCredits: number;
+  provincialTaxReduction: number;
+  provincialSurtax: number;
+  healthPremium: number;
+  cppOrQppBase: number;
+  cppOrQppEnhanced: number;
+  cpp2OrQpp2Premium: number;
+  eiPremium: number;
+  qpipPremium: number;
+  taxableCapitalGains: number;
+  capitalGainsTax: number;
+  capitalGainsRate: number;
+  totalTaxAndPremiums: number;
+};
+```
+
+### Parameters
+
+- **`employmentIncome`**: The individual's total gross annual taxable employment
+  income (assumes T4 income).
+- **`province`**: The Canadian province or territory of residence.
+- **`year`**: The specific tax year.
+- **`options`**: Additional options for specific tax scenarios. Includes
+  `quebec.ramq`, `quebec.livingAlone`, `capitalGains`, and `rrsp`.
+
+### Returns
+
+A fully itemized object containing marginal rates, gross taxes, applied
+negative-valued credits, mandatory premiums, capital gains specifics, and the
+verified total deduction sum.
+
+### Examples
+
+// Basic scenario: $100k employment income in Ontario getIncomeTax(100000,
+"Ontario", 2025);
+
+// With options: $80k employment income in Quebec, with $10k RRSP contribution
+and $5k Capital Gains, excluding RAMQ getIncomeTax(80000, "Quebec", 2025, {
+rrsp: 10000, capitalGains: 5000, quebec: { ramq: false } });
+
 ## getMortgagePenalty
 
 Calculates the mortgage prepayment penalty.
@@ -101,18 +243,18 @@ function getMortgagePenalty(
 
 ### Parameters
 
-- **`parameters`**: - The mortgage details.
-- **`parameters.remainingMonthsToTerm`**: - Number of months left in the current
+- **`parameters`**: The mortgage details.
+- **`parameters.remainingMonthsToTerm`**: Number of months left in the current
   mortgage term.
-- **`parameters.mortgageBalance`**: - The current outstanding mortgage balance.
-- **`parameters.postedInterestRate`**: - The original posted interest rate when
+- **`parameters.mortgageBalance`**: The current outstanding mortgage balance.
+- **`parameters.postedInterestRate`**: The original posted interest rate when
   the mortgage was signed.
-- **`parameters.rateDiscount`**: - The discount received from the posted rate
-  (as a decimal, e.g., 0.01 for 1%).
-- **`parameters.rateMargin`**: - Any additional margin added to the rate.
-- **`parameters.currentPostedRates`**: - A record mapping term lengths (in
-  years) to current posted interest rates.
-- **`parameters.mortgageType`**: - Either "fixed" or "variable".
+- **`parameters.rateDiscount`**: The discount received from the posted rate (as
+  a decimal, e.g., 0.01 for 1%).
+- **`parameters.rateMargin`**: Any additional margin added to the rate.
+- **`parameters.currentPostedRates`**: A record mapping term lengths (in years)
+  to current posted interest rates.
+- **`parameters.mortgageType`**: Either "fixed" or "variable".
 
 ### Returns
 
@@ -151,8 +293,7 @@ const penalty = getMortgagePenalty({
 
 ## getSalesTax
 
-Calculates the Canadian sales tax for a given amount and province. Rates as of
-March 2026.
+Calculates the Canadian sales tax for a given amount, province, and year.
 
 ### Signature
 
@@ -173,6 +314,7 @@ function getSalesTax(
     | "Quebec"
     | "Saskatchewan"
     | "Yukon",
+  year: 2025,
 ): {
   gst: number;
   pst: number;
@@ -184,8 +326,9 @@ function getSalesTax(
 
 ### Parameters
 
-- **`amount`**: - The base amount before tax.
-- **`province`**: - The province or territory.
+- **`amount`**: The base amount before tax.
+- **`province`**: The province or territory.
+- **`year`**: The tax year.
 
 ### Returns
 
@@ -194,7 +337,7 @@ An object containing the breakdown of taxes and the total amount.
 ### Examples
 
 ```ts
-const salesTax = getSalesTax(100, "QC");
+const salesTax = getSalesTax(100, "Quebec", 2025);
 console.log(salesTax);
 // { gst: 5, pst: 9.975, hst: 0, totalTax: 14.975, totalAmount: 114.975 }
 ```
@@ -231,22 +374,22 @@ async function getYahooFinanceData(
 
 ### Parameters
 
-- **`symbol`**: - The stock symbol (ticker) for which to fetch data (e.g.,
-  'AAPL' for Apple Inc., '^GSPTSE' for S&P/TSX Composite Index).
-- **`startDate`**: - The start date for the data range (inclusive). Data will be
+- **`symbol`**: The stock symbol (ticker) for which to fetch data (e.g., 'AAPL'
+  for Apple Inc., '^GSPTSE' for S&P/TSX Composite Index).
+- **`startDate`**: The start date for the data range (inclusive). Data will be
   fetched from this date onwards.
-- **`endDate`**: - The end date for the data range (inclusive). Data will be
+- **`endDate`**: The end date for the data range (inclusive). Data will be
   fetched up to this date.
-- **`variable`**: - The specific financial variable to retrieve. Can be one
-  of: - `"open"`: The opening price for the period. - `"high"`: The highest
-  price for the period. - `"low"`: The lowest price for the period. - `"close"`:
-  The closing price for the period. - `"adjclose"`: The adjusted closing price,
+- **`variable`**: The specific financial variable to retrieve. Can be one of: -
+  `"open"`: The opening price for the period. - `"high"`: The highest price for
+  the period. - `"low"`: The lowest price for the period. - `"close"`: The
+  closing price for the period. - `"adjclose"`: The adjusted closing price,
   accounting for dividends and stock splits. - `"volume"`: The trading volume
   for the period.
-- **`interval`**: - The time interval for the data points. Can be one of: -
+- **`interval`**: The time interval for the data points. Can be one of: -
   `"1d"`: Daily data. - `"1h"`: Hourly data. - `"1m"`: Minute-by-minute data.
-- **`useBrowser`**: - If true, the function will use Playwright to fetch the
-  data. This can be useful when facing rate limiting issues with the traditional
+- **`useBrowser`**: If true, the function will use Playwright to fetch the data.
+  This can be useful when facing rate limiting issues with the traditional
   fetch.
 
 ### Returns
@@ -303,8 +446,8 @@ function mortgageInsurancePremium(
 
 ### Parameters
 
-- **`purchasePrice`**: - The total price of the property being purchased.
-- **`downPayment`**: - The amount of money paid upfront by the buyer towards the
+- **`purchasePrice`**: The total price of the property being purchased.
+- **`downPayment`**: The amount of money paid upfront by the buyer towards the
   purchase price.
 
 ### Returns
@@ -402,20 +545,20 @@ function mortgageMaxAmount(
 
 ### Parameters
 
-- **`annualIncome`**: - The borrower's gross annual income.
-- **`downPayment`**: - The amount of money the borrower is putting down as a
-  down payment.
-- **`rate`**: - The current mortgage interest rate (e.g., 5.25 for 5.25%).
-- **`options`**: - Additional options to fine-tune the calculation:
-- **`options.monthlyDebtPayment`**: - The borrower's total monthly payments for
+- **`annualIncome`**: The borrower's gross annual income.
+- **`downPayment`**: The amount of money the borrower is putting down as a down
+  payment.
+- **`rate`**: The current mortgage interest rate (e.g., 5.25 for 5.25%).
+- **`options`**: Additional options to fine-tune the calculation:
+- **`options.monthlyDebtPayment`**: The borrower's total monthly payments for
   other debts (e.g., car loans, credit cards). Defaults to `0`.
-- **`options.monthlyHeating`**: - The estimated monthly heating costs for the
+- **`options.monthlyHeating`**: The estimated monthly heating costs for the
   property. Defaults to `175` (a common estimate, e.g., by Royal Bank of
   Canada).
-- **`options.monthlyTax`**: - The estimated monthly property tax. Defaults to
+- **`options.monthlyTax`**: The estimated monthly property tax. Defaults to
   `1.5%` of the purchase price annually, divided by 12 (a common estimate, e.g.,
   by Royal Bank of Canada).
-- **`options.monthlyCondoFees`**: - The estimated monthly condo fees, if
+- **`options.monthlyCondoFees`**: The estimated monthly condo fees, if
   applicable. Defaults to `0`.
 
 ### Returns
@@ -533,27 +676,26 @@ function mortgagePayments(
 
 ### Parameters
 
-- **`mortgageAmount`**: - The total amount of the mortgage loan.
-- **`rate`**: - The annual interest rate of the mortgage (e.g., `6.00` for
-  6.00%).
-- **`paymentFrequency`**: - The frequency at which mortgage payments are made.
+- **`mortgageAmount`**: The total amount of the mortgage loan.
+- **`rate`**: The annual interest rate of the mortgage (e.g., `6.00` for 6.00%).
+- **`paymentFrequency`**: The frequency at which mortgage payments are made.
   Supported values are: `"weekly"`, `"biWeekly"`, `"monthly"`, `"semiMonthly"`,
   `"acceleratedWeekly"`, `"acceleratedBiWeekly"`.
-- **`term`**: - The term of the mortgage in years. This is the length of the
+- **`term`**: The term of the mortgage in years. This is the length of the
   current mortgage contract.
-- **`amortizationPeriod`**: - The total amortization period of the mortgage in
+- **`amortizationPeriod`**: The total amortization period of the mortgage in
   years. This is the total time it will take to pay off the mortgage.
-- **`options`**: - Additional options for customizing the mortgage calculation
-  and output.
-- **`options.id`**: - An optional string ID to be added to each payment object
-  in the returned array. Useful for tracking payments related to a specific
+- **`options`**: Additional options for customizing the mortgage calculation and
+  output.
+- **`options.id`**: An optional string ID to be added to each payment object in
+  the returned array. Useful for tracking payments related to a specific
   mortgage.
-- **`options.decimals`**: - The number of decimal places to round the financial
+- **`options.decimals`**: The number of decimal places to round the financial
   values (payment, interest, capital, balance) to. Defaults to `2`.
-- **`options.annualCompounding`**: - The number of times the mortgage interest
+- **`options.annualCompounding`**: The number of times the mortgage interest
   should be compounded per year. Defaults to `2` (semi-annual compounding, as is
   standard in Canada).
-- **`options.debug`**: - If `true`, enables debug logging to the console,
+- **`options.debug`**: If `true`, enables debug logging to the console,
   providing additional insights into the calculation process. Defaults to
   `false`.
 
@@ -650,7 +792,7 @@ function simulateRentVsBuy(
     startingYear: number;
     numberOfYears: number;
     tfsaContributions: boolean;
-    combinedTaxRate: number;
+    employmentIncome: number;
     province:
       | "Alberta"
       | "British Columbia"
@@ -773,74 +915,72 @@ function simulateRentVsBuy(
 
 ### Parameters
 
-- **`parameters`**: - The input parameters for the simulation.
-- **`parameters.startingYear`**: - The year the simulation begins.
-- **`parameters.numberOfYears`**: - The duration of the simulation in years.
-- **`parameters.tfsaContributions`**: - Whether to prioritize TFSA contributions
+- **`parameters`**: The input parameters for the simulation.
+- **`parameters.startingYear`**: The year the simulation begins.
+- **`parameters.numberOfYears`**: The duration of the simulation in years.
+- **`parameters.tfsaContributions`**: Whether to prioritize TFSA contributions
   for investments (tax-free gains).
-- **`parameters.combinedTaxRate`**: - The combined marginal tax rate used for
+- **`parameters.combinedTaxRate`**: The combined marginal tax rate used for
   calculating taxes on investment gains.
-- **`parameters.province`**: - The province used to calculate sales tax on the
+- **`parameters.province`**: The province used to calculate sales tax on the
   selling fixed fees and commission when selling the home.
-- **`parameters.renter`**: - Configuration for the renter scenario.
-- **`parameters.renter.startingMonthlyRent`**: - The initial monthly rent
-  payment.
-- **`parameters.renter.securityDeposit`**: - The initial security deposit.
-- **`parameters.renter.startingMonthlyInsurance`**: - The initial monthly
-  renter's insurance.
-- **`parameters.buyer`**: - Configuration for the buyer scenarios.
-- **`parameters.buyer.downPayment`**: - The down payment amount.
-- **`parameters.buyer.purchasePrice`**: - The purchase price of the home.
-- **`parameters.buyer.fixedRateDiscount`**: - The discount applied to the posted
+- **`parameters.renter`**: Configuration for the renter scenario.
+- **`parameters.renter.startingMonthlyRent`**: The initial monthly rent payment.
+- **`parameters.renter.securityDeposit`**: The initial security deposit.
+- **`parameters.renter.startingMonthlyInsurance`**: The initial monthly renter's
+  insurance.
+- **`parameters.buyer`**: Configuration for the buyer scenarios.
+- **`parameters.buyer.downPayment`**: The down payment amount.
+- **`parameters.buyer.purchasePrice`**: The purchase price of the home.
+- **`parameters.buyer.fixedRateDiscount`**: The discount applied to the posted
   fixed mortgage rate.
-- **`parameters.buyer.variableRateMargin`**: - The margin added to the variable
+- **`parameters.buyer.variableRateMargin`**: The margin added to the variable
   mortgage rate.
-- **`parameters.buyer.purchaseFixedFees`**: - Fixed fees associated with the
+- **`parameters.buyer.purchaseFixedFees`**: Fixed fees associated with the
   purchase (e.g., notary, land transfer tax).
-- **`parameters.buyer.startingAnnualMaintenanceCost`**: - The initial annual
+- **`parameters.buyer.startingAnnualMaintenanceCost`**: The initial annual
   maintenance cost.
-- **`parameters.buyer.startingAnnualPropertyTax`**: - The initial annual
-  property tax.
-- **`parameters.buyer.startingMonthlyCondoFees`**: - The initial monthly condo
+- **`parameters.buyer.startingAnnualPropertyTax`**: The initial annual property
+  tax.
+- **`parameters.buyer.startingMonthlyCondoFees`**: The initial monthly condo
   fees.
-- **`parameters.buyer.startingMonthlyInsurance`**: - The initial monthly
+- **`parameters.buyer.startingMonthlyInsurance`**: The initial monthly
   homeowner's insurance.
-- **`parameters.buyer.sellingFixedFees`**: - Fixed fees associated with selling
+- **`parameters.buyer.sellingFixedFees`**: Fixed fees associated with selling
   the home (before sales tax).
-- **`parameters.buyer.sellingCommissionRate`**: - The real estate commission
-  rate for selling the home (e.g., 0.05 for 5%).
-- **`parameters.rates`**: - Annualized rates and their values over the
-  simulation period. Each array should have a length of `numberOfYears * 12`.
-  These can be historical or projected rates.
-- **`parameters.rates.marketReturnRate`**: - Monthly market return rates.
-- **`parameters.rates.rentIncrease`**: - Monthly rent increase rates.
-- **`parameters.rates.ownerInsuranceIncrease`**: - Monthly homeowner's insurance
+- **`parameters.buyer.sellingCommissionRate`**: The real estate commission rate
+  for selling the home (e.g., 0.05 for 5%).
+- **`parameters.rates`**: Annualized rates and their values over the simulation
+  period. Each array should have a length of `numberOfYears * 12`. These can be
+  historical or projected rates.
+- **`parameters.rates.marketReturnRate`**: Monthly market return rates.
+- **`parameters.rates.rentIncrease`**: Monthly rent increase rates.
+- **`parameters.rates.ownerInsuranceIncrease`**: Monthly homeowner's insurance
   increase rates.
-- **`parameters.rates.renterInsuranceIncrease`**: - Monthly renter's insurance
+- **`parameters.rates.renterInsuranceIncrease`**: Monthly renter's insurance
   increase rates.
-- **`parameters.rates.maintenanceIncrease`**: - Monthly maintenance cost
-  increase rates.
-- **`parameters.rates.propertyTaxIncrease`**: - Monthly property tax increase
+- **`parameters.rates.maintenanceIncrease`**: Monthly maintenance cost increase
   rates.
-- **`parameters.rates.condoFeeIncrease`**: - Monthly condo fee increase rates.
-- **`parameters.rates.fiveYearInterestRates`**: - Monthly 5-year fixed mortgage
-  interest rates.
-- **`parameters.rates.fourYearInterestRates`**: - Monthly 4-year fixed mortgage
-  interest rates.
-- **`parameters.rates.threeYearInterestRates`**: - Monthly 3-year fixed mortgage
-  interest rates.
-- **`parameters.rates.twoYearInterestRates`**: - Monthly 2-year fixed mortgage
-  interest rates.
-- **`parameters.rates.oneYearInterestRates`**: - Monthly 1-year fixed mortgage
-  interest rates.
-- **`parameters.rates.variableInterestRates`**: - Monthly variable mortgage
-  interest rates.
-- **`parameters.rates.appreciationIncrease`**: - Monthly home appreciation
+- **`parameters.rates.propertyTaxIncrease`**: Monthly property tax increase
   rates.
-- **`parameters.rates.sellingFixedFeesIncrease`**: - Monthly increase rates for
+- **`parameters.rates.condoFeeIncrease`**: Monthly condo fee increase rates.
+- **`parameters.rates.fiveYearInterestRates`**: Monthly 5-year fixed mortgage
+  interest rates.
+- **`parameters.rates.fourYearInterestRates`**: Monthly 4-year fixed mortgage
+  interest rates.
+- **`parameters.rates.threeYearInterestRates`**: Monthly 3-year fixed mortgage
+  interest rates.
+- **`parameters.rates.twoYearInterestRates`**: Monthly 2-year fixed mortgage
+  interest rates.
+- **`parameters.rates.oneYearInterestRates`**: Monthly 1-year fixed mortgage
+  interest rates.
+- **`parameters.rates.variableInterestRates`**: Monthly variable mortgage
+  interest rates.
+- **`parameters.rates.appreciationIncrease`**: Monthly home appreciation rates.
+- **`parameters.rates.sellingFixedFeesIncrease`**: Monthly increase rates for
   selling fixed fees.
-- **`options`**: - Additional simulation options.
-- **`options.finalBalanceOnly`**: - If `true`, the returned results will only
+- **`options`**: Additional simulation options.
+- **`options.finalBalanceOnly`**: If `true`, the returned results will only
   include the final balance (before and after selling) for each scenario.
   Defaults to `false`.
 
@@ -934,7 +1074,7 @@ function simulateRentVsBuyMonteCarlo(
     startingYear: number;
     numberOfYears: number;
     tfsaContributions: boolean;
-    combinedTaxRate: number;
+    employmentIncome: number;
     province:
       | "Alberta"
       | "British Columbia"
@@ -1059,89 +1199,87 @@ function simulateRentVsBuyMonteCarlo(
 
 ### Parameters
 
-- **`parameters`**: - The input parameters for the Monte Carlo simulation.
-- **`parameters.iterations`**: - The number of simulation iterations to run.
-- **`parameters.startingYear`**: - The year the simulation begins.
-- **`parameters.numberOfYears`**: - The duration of each simulation in years.
-- **`parameters.tfsaContributions`**: - Whether to prioritize TFSA contributions
+- **`parameters`**: The input parameters for the Monte Carlo simulation.
+- **`parameters.iterations`**: The number of simulation iterations to run.
+- **`parameters.startingYear`**: The year the simulation begins.
+- **`parameters.numberOfYears`**: The duration of each simulation in years.
+- **`parameters.tfsaContributions`**: Whether to prioritize TFSA contributions
   for investments (tax-free gains).
-- **`parameters.combinedTaxRate`**: - The combined marginal tax rate used for
+- **`parameters.combinedTaxRate`**: The combined marginal tax rate used for
   calculating taxes on investment gains.
-- **`parameters.province`**: - The Canadian province or territory, used for
+- **`parameters.province`**: The Canadian province or territory, used for
   calculating sales taxes.
-- **`parameters.renter`**: - Configuration for the renter scenario.
-- **`parameters.renter.startingMonthlyRent`**: - The initial monthly rent
-  payment.
-- **`parameters.renter.securityDeposit`**: - The initial security deposit (e.g.,
+- **`parameters.renter`**: Configuration for the renter scenario.
+- **`parameters.renter.startingMonthlyRent`**: The initial monthly rent payment.
+- **`parameters.renter.securityDeposit`**: The initial security deposit (e.g.,
   last month's rent).
-- **`parameters.renter.startingMonthlyInsurance`**: - The initial monthly
-  renter's (tenant) insurance cost.
-- **`parameters.buyer`**: - Configuration for the buyer scenarios.
-- **`parameters.buyer.downPayment`**: - The total down payment amount paid at
-  the start.
-- **`parameters.buyer.purchasePrice`**: - The initial purchase price of the
-  home.
-- **`parameters.buyer.fixedRateDiscount`**: - The discount applied to the posted
+- **`parameters.renter.startingMonthlyInsurance`**: The initial monthly renter's
+  (tenant) insurance cost.
+- **`parameters.buyer`**: Configuration for the buyer scenarios.
+- **`parameters.buyer.downPayment`**: The total down payment amount paid at the
+  start.
+- **`parameters.buyer.purchasePrice`**: The initial purchase price of the home.
+- **`parameters.buyer.fixedRateDiscount`**: The discount applied to the posted
   fixed mortgage rate (e.g., `1.5` for 1.5% off).
-- **`parameters.buyer.variableRateMargin`**: - The margin added or subtracted
-  from the variable mortgage rate.
-- **`parameters.buyer.purchaseFixedFees`**: - One-time costs at purchase
-  (notary, land transfer tax, etc.).
-- **`parameters.buyer.startingAnnualMaintenanceCost`**: - Initial annual cost
-  for home maintenance.
-- **`parameters.buyer.startingAnnualPropertyTax`**: - Initial annual property
-  tax amount.
-- **`parameters.buyer.startingMonthlyCondoFees`**: - Initial monthly condo fees
+- **`parameters.buyer.variableRateMargin`**: The margin added or subtracted from
+  the variable mortgage rate.
+- **`parameters.buyer.purchaseFixedFees`**: One-time costs at purchase (notary,
+  land transfer tax, etc.).
+- **`parameters.buyer.startingAnnualMaintenanceCost`**: Initial annual cost for
+  home maintenance.
+- **`parameters.buyer.startingAnnualPropertyTax`**: Initial annual property tax
+  amount.
+- **`parameters.buyer.startingMonthlyCondoFees`**: Initial monthly condo fees
   (if applicable).
-- **`parameters.buyer.startingMonthlyInsurance`**: - Initial monthly homeowner's
+- **`parameters.buyer.startingMonthlyInsurance`**: Initial monthly homeowner's
   insurance cost.
-- **`parameters.buyer.sellingFixedFees`**: - One-time fixed costs when selling
-  the property (before sales tax).
-- **`parameters.buyer.sellingCommissionRate`**: - The commission rate paid to
-  real estate agents upon sale (e.g., `0.05` for 5%).
-- **`parameters.gbmParameters`**: - Parameters for the Geometric Brownian Motion
+- **`parameters.buyer.sellingFixedFees`**: One-time fixed costs when selling the
+  property (before sales tax).
+- **`parameters.buyer.sellingCommissionRate`**: The commission rate paid to real
+  estate agents upon sale (e.g., `0.05` for 5%).
+- **`parameters.gbmParameters`**: Parameters for the Geometric Brownian Motion
   models. Each sub-object (market, rent, etc.) requires: - `startValue`: The
   initial annual rate (e.g., 0.05 for 5%). - `mu`: The drift or expected annual
   growth rate. - `sigma`: The annual volatility.
-- **`parameters.gbmParameters.market`**: - Market return rates for savings.
-- **`parameters.gbmParameters.rent`**: - Rent increase rates.
-- **`parameters.gbmParameters.ownerInsurance`**: - Homeowner's insurance
-  increase rates.
-- **`parameters.gbmParameters.renterInsurance`**: - Renter's insurance increase
+- **`parameters.gbmParameters.market`**: Market return rates for savings.
+- **`parameters.gbmParameters.rent`**: Rent increase rates.
+- **`parameters.gbmParameters.ownerInsurance`**: Homeowner's insurance increase
   rates.
-- **`parameters.gbmParameters.maintenance`**: - Maintenance cost increase rates.
-- **`parameters.gbmParameters.propertyTax`**: - Property tax increase rates.
-- **`parameters.gbmParameters.condoFee`**: - Condo fee increase rates.
-- **`parameters.gbmParameters.appreciation`**: - Home value appreciation rates.
-- **`parameters.gbmParameters.sellingFixedFees`**: - Selling fixed fees increase
+- **`parameters.gbmParameters.renterInsurance`**: Renter's insurance increase
   rates.
-- **`parameters.gbmParameters.fiveYearInterestRates`**: - Parameters for the CIR
+- **`parameters.gbmParameters.maintenance`**: Maintenance cost increase rates.
+- **`parameters.gbmParameters.propertyTax`**: Property tax increase rates.
+- **`parameters.gbmParameters.condoFee`**: Condo fee increase rates.
+- **`parameters.gbmParameters.appreciation`**: Home value appreciation rates.
+- **`parameters.gbmParameters.sellingFixedFees`**: Selling fixed fees increase
+  rates.
+- **`parameters.gbmParameters.fiveYearInterestRates`**: Parameters for the CIR
   model for 5-year fixed rates. Requires `a` (speed of mean reversion), `b`
   (long-term mean), `sigma` (volatility), and `startValue`.
-- **`parameters.gbmParameters.fourYearInterestRates`**: - Parameters for the CIR
+- **`parameters.gbmParameters.fourYearInterestRates`**: Parameters for the CIR
   model for 4-year fixed rates.
-- **`parameters.gbmParameters.threeYearInterestRates`**: - Parameters for the
-  CIR model for 3-year fixed rates.
-- **`parameters.gbmParameters.twoYearInterestRates`**: - Parameters for the CIR
+- **`parameters.gbmParameters.threeYearInterestRates`**: Parameters for the CIR
+  model for 3-year fixed rates.
+- **`parameters.gbmParameters.twoYearInterestRates`**: Parameters for the CIR
   model for 2-year fixed rates.
-- **`parameters.gbmParameters.oneYearInterestRates`**: - Parameters for the CIR
+- **`parameters.gbmParameters.oneYearInterestRates`**: Parameters for the CIR
   model for 1-year fixed rates.
-- **`parameters.gbmParameters.variableInterestRates`**: - Parameters for the CIR
+- **`parameters.gbmParameters.variableInterestRates`**: Parameters for the CIR
   model for variable rates.
-- **`options`**: - Additional simulation options.
-- **`options.verbose`**: - If `true`, logs the simulation's progress to the
+- **`options`**: Additional simulation options.
+- **`options.verbose`**: If `true`, logs the simulation's progress to the
   console, including the current iteration and estimated time remaining. Useful
   for long-running simulations.
-- **`options.verboseStep`**: - The frequency of progress logging. For example,
+- **`options.verboseStep`**: The frequency of progress logging. For example,
   setting this to `50` will log progress every 50 iterations. Defaults to `1` if
   `verbose` is true.
-- **`options.values`**: - If `true`, the function will capture and return
-  detailed monthly financial data (such as asset balances and net gains) for
-  every iteration of the simulation. Be cautious with high iteration counts as
-  this can consume significant memory.
-- **`options.rates`**: - If `true`, the function will capture and return the
-  exact stochastic interest and appreciation rates generated for every
-  iteration. Useful for auditing the simulation's statistical properties.
+- **`options.values`**: If `true`, the function will capture and return detailed
+  monthly financial data (such as asset balances and net gains) for every
+  iteration of the simulation. Be cautious with high iteration counts as this
+  can consume significant memory.
+- **`options.rates`**: If `true`, the function will capture and return the exact
+  stochastic interest and appreciation rates generated for every iteration.
+  Useful for auditing the simulation's statistical properties.
 
 ### Returns
 
@@ -1252,26 +1390,26 @@ function variableMortgagePayments(
 
 ### Parameters
 
-- **`mortgageAmount`**: - The total amount of the mortgage loan.
-- **`rates`**: - An array of annual interest rates (e.g.,
+- **`mortgageAmount`**: The total amount of the mortgage loan.
+- **`rates`**: An array of annual interest rates (e.g.,
   `[6.00, 6.00, 5.50, 5.50, ...]` for rates in percentages). The array must
   contain at least as many rates as there are payments in the term. Each element
   corresponds to the rate for that payment period (0-based index).
-- **`term`**: - The term of the mortgage in years. This is the length of the
+- **`term`**: The term of the mortgage in years. This is the length of the
   current mortgage contract.
-- **`amortizationPeriod`**: - The total amortization period of the mortgage in
+- **`amortizationPeriod`**: The total amortization period of the mortgage in
   years. This is the total time it will take to pay off the mortgage.
-- **`options`**: - Additional options for customizing the mortgage calculation
-  and output.
-- **`options.id`**: - An optional string ID to be added to each payment object
-  in the returned array. Useful for tracking payments related to a specific
+- **`options`**: Additional options for customizing the mortgage calculation and
+  output.
+- **`options.id`**: An optional string ID to be added to each payment object in
+  the returned array. Useful for tracking payments related to a specific
   mortgage.
-- **`options.decimals`**: - The number of decimal places to round the financial
+- **`options.decimals`**: The number of decimal places to round the financial
   values (payment, interest, capital, balance) to. Defaults to `2`.
-- **`options.annualCompounding`**: - The number of times the mortgage interest
+- **`options.annualCompounding`**: The number of times the mortgage interest
   should be compounded per year. Defaults to `12` (monthly compounding). Set to
   `2` for semi-annual compounding as is standard in Canada.
-- **`options.debug`**: - If `true`, enables debug logging to the console,
+- **`options.debug`**: If `true`, enables debug logging to the console,
   providing additional insights into the calculation process. Defaults to
   `false`.
 

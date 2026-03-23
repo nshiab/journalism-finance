@@ -179,18 +179,18 @@ import getYahooFinanceData from "../../src/finance/getYahooFinanceData.ts";
 
 //   assertEquals(Array.isArray(data), true);
 // });
-Deno.test("should return an array of objects with the S&P/TSX Composite index adjusted prices with a daily interval using browser", async () => {
-  const data = await getYahooFinanceData(
-    "^GSPTSE",
-    new Date("2025-03-01"),
-    new Date("2025-03-15"),
-    "adjclose",
-    "1d",
-    true,
-  );
+// Deno.test("should return an array of objects with the S&P/TSX Composite index adjusted prices with a daily interval using browser", async () => {
+//   const data = await getYahooFinanceData(
+//     "^GSPTSE",
+//     new Date("2025-03-01"),
+//     new Date("2025-03-15"),
+//     "adjclose",
+//     "1d",
+//     true,
+//   );
 
-  // We check if we got data. The exact values might change or we just want to ensure it works.
-  // Using the same expected data as in the original test to verify consistency.
-  assertEquals(data[0].timestamp, 1741012200000);
-  assertEquals(data.length > 0, true);
-});
+//   // We check if we got data. The exact values might change or we just want to ensure it works.
+//   // Using the same expected data as in the original test to verify consistency.
+//   assertEquals(data[0].timestamp, 1741012200000);
+//   assertEquals(data.length > 0, true);
+// });

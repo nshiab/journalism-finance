@@ -3,11 +3,12 @@ import getMortgagePenalty from "../../getMortgagePenalty.ts";
 import type { Persona } from "./types/persona.ts";
 import type { MortgagePayment } from "./types/mortgagePayment.ts";
 import getSalesTax from "../../getSalesTax.ts";
+import getIncomeTax from "../../getIncomeTax.ts";
 
 export default function computeSale(
   monthIndex: number,
   persona: Persona,
-  combinedTaxRate: number,
+  employmentIncome: number,
   mortgagePayment: MortgagePayment | null,
   currentPostedRates: Record<number, number> | null,
   mortgageType: "fixed" | "variable" | null,
@@ -34,9 +35,13 @@ export default function computeSale(
     // First we calculate the sale costs
     const stockGains = persona.assets.stocks -
       persona.cumulativeGains.newStocks;
-    persona.saleCosts.stockTaxes = stockGains > 0
-      ? round((stockGains / 2) * combinedTaxRate, { decimals: 2 })
-      : 0;
+    persona.saleCosts.stockTaxes =
+      getIncomeTax(employmentIncome, province, 2025, {
+        capitalGains: stockGains,
+        quebec: {
+          ramq: false,
+        },
+      }).capitalGainsTax;
 
     // Then we calculate the home selling costs
     if (mortgagePayment && currentPostedRates && mortgageType) {
@@ -46,6 +51,7 @@ export default function computeSale(
           getSalesTax(
             persona.params.homeValue * persona.params.sellingCommissionRate,
             province,
+            2025,
           ).totalTax,
         { decimals: 2 },
       );
@@ -55,6 +61,7 @@ export default function computeSale(
           getSalesTax(
             persona.params.sellingFixedFees,
             province,
+            2025,
           ).totalTax,
         { decimals: 2 },
       );
