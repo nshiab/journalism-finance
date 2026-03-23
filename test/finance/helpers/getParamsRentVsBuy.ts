@@ -19,7 +19,7 @@ export default function getParamsRentVsBuy(
   startingYear: number;
   numberOfYears: number;
   tfsaContributions: boolean;
-  combinedTaxRate: number;
+  employmentIncome: number;
   renter: {
     startingMonthlyRent: number;
     endingMonthlyRent: number;
@@ -73,7 +73,7 @@ export default function getParamsRentVsBuy(
   startingYear: number;
   numberOfYears: number;
   tfsaContributions: boolean;
-  combinedTaxRate: number;
+  employmentIncome: number;
   province:
     | "Alberta"
     | "British Columbia"
@@ -144,32 +144,6 @@ export default function getParamsRentVsBuy(
 
   // Shared variables
   const numberOfYears = 25;
-  let combinedTaxRate;
-  // $75,000 dollars in 2025
-  // https://turbotax.intuit.ca/tax-resources/canada-income-tax-calculator
-  if (province === "Quebec") {
-    combinedTaxRate = 0.21;
-  } else if (province === "Ontario") {
-    combinedTaxRate = 0.17;
-  } else if (province === "British Columbia") {
-    combinedTaxRate = 0.16;
-  } else if (province === "Alberta") {
-    combinedTaxRate = 0.17;
-  } else if (province === "Nova Scotia") {
-    combinedTaxRate = 0.22;
-  } else if (province === "Manitoba") {
-    combinedTaxRate = 0.20;
-  } else if (province === "Saskatchewan") {
-    combinedTaxRate = 0.19;
-  } else if (province === "New Brunswick") {
-    combinedTaxRate = 0.20;
-  } else if (province === "Newfoundland and Labrador") {
-    combinedTaxRate = 0.21;
-  }
-
-  if (combinedTaxRate === undefined) {
-    throw new Error(`No tax data for province: ${province}`);
-  }
 
   // Renter
   const startingMonthlyRent = allRates.find((d) =>
@@ -394,7 +368,7 @@ export default function getParamsRentVsBuy(
     startingYear: 2000,
     numberOfYears,
     tfsaContributions: true,
-    combinedTaxRate,
+    employmentIncome: 75_000,
     province,
     renter: {
       startingMonthlyRent,

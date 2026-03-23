@@ -127,7 +127,7 @@ export default function simulateRentVsBuy(
     startingYear: number;
     numberOfYears: number;
     tfsaContributions: boolean;
-    combinedTaxRate: number;
+    employmentIncome: number;
     province:
       | "Alberta"
       | "British Columbia"
@@ -475,7 +475,7 @@ export default function simulateRentVsBuy(
     computeSale(
       monthIndex,
       renter,
-      parameters.combinedTaxRate,
+      parameters.employmentIncome,
       null,
       null,
       null,
@@ -486,7 +486,7 @@ export default function simulateRentVsBuy(
     computeSale(
       monthIndex,
       buyerFixed,
-      parameters.combinedTaxRate,
+      parameters.employmentIncome,
       allFixedMortgagePayments[monthIndex],
       currentPostedRates,
       "fixed",
@@ -497,7 +497,7 @@ export default function simulateRentVsBuy(
     computeSale(
       monthIndex,
       buyerVariable,
-      parameters.combinedTaxRate,
+      parameters.employmentIncome,
       allVariableMortgagePayments[monthIndex],
       currentPostedRates,
       "variable",
