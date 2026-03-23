@@ -11,6 +11,7 @@ export default function computeGains(
   totalMonthlyExpenses: number,
   maxMonthlyExpenses: number,
   tfsaContributions: boolean,
+  couple?: boolean,
 ) {
   // We start by calculating the current month TFSA and stock gains
   persona.monthlyGains.tfsaGains = round(
@@ -73,10 +74,17 @@ export default function computeGains(
 
   // We check if we can invest these savings in the TFSA first
   if (tfsaContributions && monthlySavings > 0) {
-    const tfsaRoom = getTfsaContribution(
+    let tfsaRoom = getTfsaContribution(
       year,
-      persona.cumulativeGains.tfsaContribution,
+      couple
+        ? persona.cumulativeGains.tfsaContribution / 2
+        : persona.cumulativeGains.tfsaContribution,
     );
+
+    if (couple) {
+      tfsaRoom *= 2;
+    }
+
     const tfsaContribution = Math.min(tfsaRoom, monthlySavings);
 
     persona.monthlyGains.tfsaContribution = tfsaContribution;

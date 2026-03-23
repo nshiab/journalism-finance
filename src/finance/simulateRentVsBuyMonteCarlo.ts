@@ -23,7 +23,8 @@ import {
  * @param parameters.startingYear - The year the simulation begins.
  * @param parameters.numberOfYears - The duration of each simulation in years.
  * @param parameters.tfsaContributions - Whether to prioritize TFSA contributions for investments (tax-free gains).
- * @param parameters.combinedTaxRate - The combined marginal tax rate used for calculating taxes on investment gains.
+ * @param parameters.couple - Whether to simulate investments and taxes for a couple computing TFSA contributions twice and splitting capital gains in 2. Assumes parameter employmentIncome represents the per-partner income. Defaults to `false`.
+ * @param parameters.employmentIncome - The employment income used for calculating income taxes on investment gains.
  * @param parameters.province - The Canadian province or territory, used for calculating sales taxes.
  * @param parameters.renter - Configuration for the renter scenario.
  *   @param parameters.renter.startingMonthlyRent - The initial monthly rent payment.
@@ -130,6 +131,7 @@ export default function simulateRentVsBuyMonteCarlo(
     startingYear: number;
     numberOfYears: number;
     tfsaContributions: boolean;
+    couple?: boolean;
     employmentIncome: number;
     province:
       | "Alberta"
@@ -371,6 +373,7 @@ export default function simulateRentVsBuyMonteCarlo(
       startingYear: parameters.startingYear,
       numberOfYears: parameters.numberOfYears,
       tfsaContributions: parameters.tfsaContributions,
+      couple: parameters.couple,
       employmentIncome: parameters.employmentIncome,
       province: parameters.province,
       renter: {

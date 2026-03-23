@@ -28,6 +28,7 @@ export default function computeSale(
     | "Quebec"
     | "Saskatchewan"
     | "Yukon",
+  couple?: boolean,
 ) {
   if (!finalBalanceOnly || monthIndex === numberOfMonths - 1) {
     const TERM_MONTHS = 60;
@@ -35,13 +36,19 @@ export default function computeSale(
     // First we calculate the sale costs
     const stockGains = persona.assets.stocks -
       persona.cumulativeGains.newStocks;
-    persona.saleCosts.stockTaxes =
-      getIncomeTax(employmentIncome, province, 2025, {
-        capitalGains: stockGains,
-        quebec: {
-          ramq: false,
-        },
-      }).capitalGainsTax;
+
+    let stockTaxes = getIncomeTax(employmentIncome, province, 2025, {
+      capitalGains: couple ? stockGains / 2 : stockGains,
+      quebec: {
+        ramq: false,
+      },
+    }).capitalGainsTax;
+
+    if (couple) {
+      stockTaxes *= 2;
+    }
+
+    persona.saleCosts.stockTaxes = stockTaxes;
 
     // Then we calculate the home selling costs
     if (mortgagePayment && currentPostedRates && mortgageType) {

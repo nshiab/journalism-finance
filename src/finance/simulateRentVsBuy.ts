@@ -27,6 +27,7 @@ import mortgageInsurancePremium from "./mortgageInsurancePremium.ts";
  * @param parameters.startingYear - The year the simulation begins.
  * @param parameters.numberOfYears - The duration of the simulation in years.
  * @param parameters.tfsaContributions - Whether to prioritize TFSA contributions for investments (tax-free gains).
+ * @param parameters.couple - Whether to simulate investments and taxes for a couple computing TFSA contributions twice and splitting capital gains in 2. Assumes parameter employmentIncome represents the per-partner income. Defaults to `false`.
  * @param parameters.employmentIncome - The employment income used for calculating income taxes on investment gains.
  * @param parameters.province - The province used to calculate sales tax on the selling fixed fees and commission when selling the home.
  * @param parameters.renter - Configuration for the renter scenario.
@@ -127,6 +128,7 @@ export default function simulateRentVsBuy(
     startingYear: number;
     numberOfYears: number;
     tfsaContributions: boolean;
+    couple?: boolean;
     employmentIncome: number;
     province:
       | "Alberta"
@@ -444,6 +446,7 @@ export default function simulateRentVsBuy(
       renterTotalMonthlyExpenses,
       maxMonthlyExpenses,
       parameters.tfsaContributions,
+      parameters.couple,
     );
     computeGains(
       year,
@@ -453,6 +456,7 @@ export default function simulateRentVsBuy(
       buyerFixedTotalMonthlyExpenses,
       maxMonthlyExpenses,
       parameters.tfsaContributions,
+      parameters.couple,
     );
     computeGains(
       year,
@@ -462,6 +466,7 @@ export default function simulateRentVsBuy(
       buyerVariableTotalMonthlyExpenses,
       maxMonthlyExpenses,
       parameters.tfsaContributions,
+      parameters.couple,
     );
 
     // Now we simulate a sale of all assets
@@ -482,6 +487,7 @@ export default function simulateRentVsBuy(
       options.finalBalanceOnly ?? false,
       numberOfMonths,
       parameters.province,
+      parameters.couple,
     );
     computeSale(
       monthIndex,
@@ -493,6 +499,7 @@ export default function simulateRentVsBuy(
       options.finalBalanceOnly ?? false,
       numberOfMonths,
       parameters.province,
+      parameters.couple,
     );
     computeSale(
       monthIndex,
@@ -504,6 +511,7 @@ export default function simulateRentVsBuy(
       options.finalBalanceOnly ?? false,
       numberOfMonths,
       parameters.province,
+      parameters.couple,
     );
 
     // We compute the balances

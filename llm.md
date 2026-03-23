@@ -792,6 +792,7 @@ function simulateRentVsBuy(
     startingYear: number;
     numberOfYears: number;
     tfsaContributions: boolean;
+    couple?: boolean;
     employmentIncome: number;
     province:
       | "Alberta"
@@ -920,8 +921,12 @@ function simulateRentVsBuy(
 - **`parameters.numberOfYears`**: The duration of the simulation in years.
 - **`parameters.tfsaContributions`**: Whether to prioritize TFSA contributions
   for investments (tax-free gains).
-- **`parameters.combinedTaxRate`**: The combined marginal tax rate used for
-  calculating taxes on investment gains.
+- **`parameters.couple`**: Whether to simulate investments and taxes for a
+  couple computing TFSA contributions twice and splitting capital gains in 2.
+  Assumes parameter employmentIncome represents the per-partner income. Defaults
+  to `false`.
+- **`parameters.employmentIncome`**: The employment income used for calculating
+  income taxes on investment gains.
 - **`parameters.province`**: The province used to calculate sales tax on the
   selling fixed fees and commission when selling the home.
 - **`parameters.renter`**: Configuration for the renter scenario.
@@ -1023,7 +1028,7 @@ const results = simulateRentVsBuy({
   startingYear: 2024,
   numberOfYears: 10,
   tfsaContributions: true,
-  combinedTaxRate: 0.4,
+  employmentIncome: 100000,
   province: "Ontario",
   renter: {
     startingMonthlyRent: 2000,
@@ -1074,6 +1079,7 @@ function simulateRentVsBuyMonteCarlo(
     startingYear: number;
     numberOfYears: number;
     tfsaContributions: boolean;
+    couple?: boolean;
     employmentIncome: number;
     province:
       | "Alberta"
@@ -1205,8 +1211,12 @@ function simulateRentVsBuyMonteCarlo(
 - **`parameters.numberOfYears`**: The duration of each simulation in years.
 - **`parameters.tfsaContributions`**: Whether to prioritize TFSA contributions
   for investments (tax-free gains).
-- **`parameters.combinedTaxRate`**: The combined marginal tax rate used for
-  calculating taxes on investment gains.
+- **`parameters.couple`**: Whether to simulate investments and taxes for a
+  couple computing TFSA contributions twice and splitting capital gains in 2.
+  Assumes parameter employmentIncome represents the per-partner income. Defaults
+  to `false`.
+- **`parameters.employmentIncome`**: The employment income used for calculating
+  income taxes on investment gains.
 - **`parameters.province`**: The Canadian province or territory, used for
   calculating sales taxes.
 - **`parameters.renter`**: Configuration for the renter scenario.
