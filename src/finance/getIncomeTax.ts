@@ -39,13 +39,6 @@ export interface TaxBreakdown {
   totalTaxAndPremiums: number;
 }
 
-export interface IncomeTaxOptions {
-  quebec?: {
-    ramq?: boolean;
-    livingAlone?: boolean;
-  };
-}
-
 const FEDERAL_LIMITS: Record<
   TaxYear,
   {
@@ -666,23 +659,23 @@ function getPEITaxReduction(
  * Calculation Engine Methodology:
  *
  * **1. Mandatory Payroll Deductions:**
- * - Calculates Tier 1 CPP/QPP base contribution (claimed as NRTC).
- * - Calculates Tier 1 CPP/QPP enhanced contribution (claimed as tax deduction).
- * - Calculates Tier 2 CPP2/QPP2 based on the Yearly Additional Maximum Pensionable Earnings (YAMPE) (tax deduction).
+ * - Calculates Tier 1 CPP/QPP base contribution (claimed as a Non-Refundable Tax Credit (NRTC)).
+ * - Calculates Tier 1 CPP/QPP enhanced contribution (claimed as a tax deduction).
+ * - Calculates Tier 2 CPP2/QPP2 based on the Yearly Additional Maximum Pensionable Earnings (YAMPE) (claimed as a tax deduction).
  * - Calculates EI (and QPIP for Quebec residents) up to their respective annual maximum insurable earnings.
  *
  * **2. Federal Tax & Non-Refundable Tax Credits (NRTCs):**
  * - Calculates gross federal tax using progressive federal tax brackets.
  * - Determines the Federal Basic Personal Amount (BPA), applying a linear phase-out for high earners.
  * - Calculates the Canada Employment Amount (CEA) against employment income up to the annual maximum.
- * - Aggregates the federal NRTC base (BPA + Base CPP/QPP + EI + QPIP + CEA) and converts it to a credit amount.
+ * - Aggregates the federal NRTC base (BPA + Base CPP/QPP + EI + QPIP + CEA) and converts it to a credit amount, accounting for the 15% top-up credit rate for amounts above the first bracket threshold.
  * - Applies the Federal Abatement exclusively for Quebec residents.
  *
  * **3. Provincial Tax & NRTCs:**
  * - Calculates gross provincial tax using the specific province's progressive tax brackets.
- * - **Quebec-Specific:** Applies the Deduction for Workers as an income reduction before tax calculation. Uses specific 14% rate for NRTCs. Note: This function does not take into account RAMQ premiums for Quebec residents.
- * - Retrieves the provincial BPA, executing a specific linear phase-out for Manitoba residents.
- * - Aggregates the provincial NRTC base (Provincial BPA + Base CPP/QPP + EI + QPIP if in Quebec).
+ * - **Quebec-Specific:** Applies the Deduction for Workers as an income reduction before tax calculation. Applies the Person Living Alone amount to the NRTC base (if applicable). Uses a decoupled NRTC rate.
+ * - Retrieves the provincial BPA, executing a specific linear phase-out for Manitoba residents, and dynamically mirroring the federal BPA phase-out for Yukon residents.
+ * - Aggregates the provincial NRTC base (Provincial BPA + Base CPP/QPP + EI + QPIP if in Quebec + CEA if in Yukon + Family Tax Benefit if in Manitoba).
  *
  * **4. Provincial-Specific Modifiers (If Applicable):**
  * - **B.C. Tax Reduction:** A non-refundable credit for B.C. residents with low-to-moderate taxable income (subject to phase-out).
@@ -690,9 +683,9 @@ function getPEITaxReduction(
  * - **Newfoundland and Labrador Tax Reduction:** A non-refundable credit for N.L. residents with low-to-moderate taxable income (subject to phase-out).
  * - **Nova Scotia Tax Reduction:** A non-refundable credit for N.S. residents with low-to-moderate taxable income (subject to phase-out).
  * - **Prince Edward Island Tax Reduction:** A non-refundable credit for P.E.I. residents with low-to-moderate taxable income (subject to phase-out).
- * - **Ontario Tax Reduction (OTR):** Reduces or eliminates basic Ontario tax for low-income earners.
- * - **Provincial Surtax:** Applies a two-tier cascading surtax on net provincial tax in Ontario.
- * - **Ontario Health Premium:** Calculated based on strict taxable income bands.
+ * - **Ontario Tax Reduction (OTR) & LIFT:** Reduces or eliminates basic Ontario tax for low-income earners, and applies the Low-income Individuals and Families Tax (LIFT) Credit.
+ * - **Ontario Surtax:** Applies a two-tier cascading surtax on net provincial tax in Ontario.
+ * - **Provincial Health Premiums:** Calculates the Ontario Health Premium based on strict taxable income bands, and the Quebec RAMQ premium based on income thresholds.
  *
  * @param employmentIncome - The individual's total gross annual taxable employment income (assumes T4 income).
  * @param province - The Canadian province or territory of residence.
@@ -702,9 +695,27 @@ function getPEITaxReduction(
  */
 export function getIncomeTax(
   employmentIncome: number,
-  province: Province,
-  year: TaxYear,
-  options: IncomeTaxOptions = {},
+  province:
+    | "Newfoundland and Labrador"
+    | "Prince Edward Island"
+    | "Nova Scotia"
+    | "New Brunswick"
+    | "Quebec"
+    | "Ontario"
+    | "Manitoba"
+    | "Saskatchewan"
+    | "Alberta"
+    | "British Columbia"
+    | "Yukon"
+    | "Northwest Territories"
+    | "Nunavut",
+  year: 2025,
+  options: {
+    quebec?: {
+      ramq?: boolean;
+      livingAlone?: boolean;
+    };
+  } = {},
 ): TaxBreakdown {
   const deductions = getPayrollDeductions(employmentIncome, province, year);
 
