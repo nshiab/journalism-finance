@@ -159,3 +159,94 @@ Deno.test("should run a monte carlo simulation of rent vs buy with 1,000 iterati
 
   assertEquals(true, true);
 });
+Deno.test("should run a monte carlo simulation of rent vs buy with 1,000 iterations and option couple", async () => {
+  const params = getParamsRentVsBuyMonteCarlo(1000, "Montreal", "Quebec", {
+    renterMonthlyInsurance: 70,
+    ownerMonthlyInsurance: 125,
+    sellingFixedFees: 2000,
+    condoFees: 250,
+  });
+
+  // console.log(params);
+
+  const simulationResults = simulateRentVsBuyMonteCarlo({
+    ...params,
+    couple: true,
+  }, {
+    verbose: true,
+    values: true,
+    rates: true,
+  });
+
+  // console.log(simulationResults.values.slice(0, 1));
+  // console.log(simulationResults.rates.slice(0, 1));
+  // console.log(simulationResults.winners.slice(0, 1));
+  // console.log(simulationResults.winnersBeforeSelling.slice(0, 1));
+
+  const winnerCounts: {
+    [key in "buyerFixed" | "buyerVariable" | "renter"]: number;
+  } = {
+    buyerFixed: 0,
+    buyerVariable: 0,
+    renter: 0,
+  };
+  for (const winner of simulationResults.winners) {
+    winnerCounts[winner.category] += 1;
+  }
+
+  const winnerPercentages = {
+    buyerFixed: 0,
+    buyerVariable: 0,
+    renter: 0,
+  };
+  const totalWinners = simulationResults.winners.length;
+  for (const category in winnerCounts) {
+    winnerPercentages[category as "buyerFixed" | "buyerVariable" | "renter"] =
+      Math.round(
+        (winnerCounts[category as "buyerFixed" | "buyerVariable" | "renter"] /
+          totalWinners) * 100,
+      );
+  }
+
+  console.log(
+    "Winner counts and percentages:",
+    winnerCounts,
+    winnerPercentages,
+  );
+
+  const winnerCountsBeforeSelling: {
+    [key in "buyerFixed" | "buyerVariable" | "renter"]: number;
+  } = {
+    buyerFixed: 0,
+    buyerVariable: 0,
+    renter: 0,
+  };
+  for (const winner of simulationResults.winnersBeforeSelling) {
+    winnerCountsBeforeSelling[winner.category] += 1;
+  }
+
+  const winnerPercentagesBeforeSelling = {
+    buyerFixed: 0,
+    buyerVariable: 0,
+    renter: 0,
+  };
+  const totalWinnersBeforeSelling = simulationResults.winnersBeforeSelling
+    .length;
+  for (const category in winnerCountsBeforeSelling) {
+    winnerPercentagesBeforeSelling[
+      category as "buyerFixed" | "buyerVariable" | "renter"
+    ] = Math.round(
+      (winnerCountsBeforeSelling[
+        category as "buyerFixed" | "buyerVariable" | "renter"
+      ] / totalWinnersBeforeSelling) * 100,
+    );
+  }
+
+  console.log(
+    "Winner counts and percentages before selling:",
+    winnerCountsBeforeSelling,
+    winnerPercentagesBeforeSelling,
+  );
+
+  assertEquals(true, true);
+});
