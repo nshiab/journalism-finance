@@ -50,6 +50,30 @@ const INCOMES = [
   500000,
 ];
 
+const RRSPS = [0, 5000, 10000, 20000, 50000];
+const CAPITAL_GAINS = [0, 5000, 10000, 25000, 50000, 100000];
+
+const SCENARIOS: { income: number; rrsp: number; capitalGains: number }[] = [];
+for (const income of INCOMES) {
+  // 1. Always guarantee the base scenario for our standard income array
+  SCENARIOS.push({ income, rrsp: 0, capitalGains: 0 });
+
+  // 2. Only run the full permutation matrix for key brackets to save time
+  const isKeyIncome = [50000, 80000, 100000, 150000, 200000].includes(income);
+
+  if (isKeyIncome) {
+    for (const rrsp of RRSPS) {
+      for (const capitalGains of CAPITAL_GAINS) {
+        if (rrsp === 0 && capitalGains === 0) continue; // Already handled
+        if (rrsp > income) continue; // Basic optimization
+        SCENARIOS.push({ income, rrsp, capitalGains });
+      }
+    }
+  }
+}
+
+console.log(`Total scenarios to test per province: ${SCENARIOS.length}`);
+
 async function fileExists(path: string) {
   try {
     await Deno.stat(path);
@@ -93,7 +117,12 @@ async function scrapeTurboTax(page: any) {
     }
 
     console.log(`TurboTax: Scraping ${name}...`);
-    const provinceResults: Record<number, number> = {};
+    const provinceResults: {
+      income: number;
+      rrsp: number;
+      capitalGains: number;
+      tax: number;
+    }[] = [];
 
     try {
       const provinceSelector = "#province";
@@ -105,10 +134,11 @@ async function scrapeTurboTax(page: any) {
       );
     }
 
-    for (const income of INCOMES) {
+    for (const scenario of SCENARIOS) {
       try {
-        const incomeSelector = "#income";
-        await page.fill(incomeSelector, income.toString());
+        await page.fill("#income", scenario.income.toString());
+        await page.fill("#rrsp", scenario.rrsp.toString());
+        await page.fill("#capgains", scenario.capitalGains.toString());
         await page.keyboard.press("Tab");
         await page.waitForTimeout(2000);
 
@@ -116,12 +146,24 @@ async function scrapeTurboTax(page: any) {
           "#collapsible-panel-1 > div > table > tbody > tr.border-top > td > strong";
         const taxText = await page.innerText(taxSelector).catch(() => "0");
         const match = taxText.match(/[\d,]+/);
-        provinceResults[income] = match
-          ? parseInt(match[0].replace(/,/g, ""), 10)
-          : 0;
-        console.log(`  ${income}: $${provinceResults[income]}`);
+        const tax = match ? parseInt(match[0].replace(/,/g, ""), 10) : 0;
+
+        provinceResults.push({
+          income: scenario.income,
+          rrsp: scenario.rrsp,
+          capitalGains: scenario.capitalGains,
+          tax,
+        });
+        console.log(
+          `  Income: ${scenario.income}, RRSP: ${scenario.rrsp}, CapGains: ${scenario.capitalGains} -> $${tax}`,
+        );
       } catch (e) {
-        provinceResults[income] = 0;
+        provinceResults.push({
+          income: scenario.income,
+          rrsp: scenario.rrsp,
+          capitalGains: scenario.capitalGains,
+          tax: 0,
+        });
       }
     }
 

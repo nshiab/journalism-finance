@@ -30,6 +30,7 @@ const FEDERAL_LIMITS: Record<
     maxCEA: number;
     quebecAbatementRate: number;
     topUpCreditRate: number;
+    capitalGainsInclusionRate: number;
   }
 > = {
   2025: {
@@ -40,6 +41,7 @@ const FEDERAL_LIMITS: Record<
     maxCEA: 1471,
     quebecAbatementRate: 0.165,
     topUpCreditRate: 0.15,
+    capitalGainsInclusionRate: 0.5,
   },
 };
 
@@ -102,6 +104,8 @@ const ONTARIO_LIMITS: Record<
     baseOTRAmount: number;
     surtaxThreshold1: number;
     surtaxThreshold2: number;
+    surtaxRate1: number;
+    surtaxRate2: number;
     liftMax: number;
     liftRate: number;
     liftPhaseOutStart: number;
@@ -125,6 +129,8 @@ const ONTARIO_LIMITS: Record<
     baseOTRAmount: 294,
     surtaxThreshold1: 5710,
     surtaxThreshold2: 7307,
+    surtaxRate1: 0.20,
+    surtaxRate2: 0.36,
     liftMax: 875,
     liftRate: 0.0505,
     liftPhaseOutStart: 32500,
@@ -464,13 +470,15 @@ function getOntarioSurtax(
   let marginalMultiplier = 1;
 
   if (basicOntarioTax > limits.surtaxThreshold1) {
-    surtaxAmount += 0.20 * (basicOntarioTax - limits.surtaxThreshold1);
-    marginalMultiplier += 0.20;
+    surtaxAmount += limits.surtaxRate1 *
+      (basicOntarioTax - limits.surtaxThreshold1);
+    marginalMultiplier += limits.surtaxRate1;
   }
 
   if (basicOntarioTax > limits.surtaxThreshold2) {
-    surtaxAmount += 0.36 * (basicOntarioTax - limits.surtaxThreshold2);
-    marginalMultiplier += 0.36;
+    surtaxAmount += limits.surtaxRate2 *
+      (basicOntarioTax - limits.surtaxThreshold2);
+    marginalMultiplier += limits.surtaxRate2;
   }
 
   return { surtaxAmount, marginalMultiplier };
@@ -665,8 +673,11 @@ interface TaxBreakdown {
   totalTaxAndPremiums: number;
 }
 
-function getTaxableCapitalGains(capitalGains: number): number {
-  return Math.max(0, capitalGains * 0.5);
+function getTaxableCapitalGains(capitalGains: number, year: TaxYear): number {
+  return Math.max(
+    0,
+    capitalGains * FEDERAL_LIMITS[year].capitalGainsInclusionRate,
+  );
 }
 
 /**
@@ -685,7 +696,10 @@ function calculateBaseTax(
 > {
   const deductions = getPayrollDeductions(employmentIncome, province, year);
 
-  const taxableCapitalGains = getTaxableCapitalGains(options.capitalGains || 0);
+  const taxableCapitalGains = getTaxableCapitalGains(
+    options.capitalGains || 0,
+    year,
+  );
 
   const rrspDeduction = options.rrsp || 0;
 
@@ -1024,6 +1038,19 @@ function calculateBaseTax(
  * @param province - The Canadian province or territory of residence.
  * @param year - The specific tax year.
  * @param options - Additional options for specific tax scenarios. Includes `quebec.ramq`, `quebec.livingAlone`, `capitalGains`, and `rrsp`.
+ *
+ * @example
+ * // Basic scenario: $100k employment income in Ontario
+ * getIncomeTax(100000, "Ontario", 2025);
+ *
+ * @example
+ * // With options: $80k employment income in Quebec, with $10k RRSP contribution and $5k Capital Gains, excluding RAMQ
+ * getIncomeTax(80000, "Quebec", 2025, {
+ *   rrsp: 10000,
+ *   capitalGains: 5000,
+ *   quebec: { ramq: false }
+ * });
+ *
  * @returns A fully itemized object containing marginal rates, gross taxes, applied negative-valued credits, mandatory premiums, capital gains specifics, and the verified total deduction sum.
  */
 export default function getIncomeTax(
@@ -1093,7 +1120,7 @@ export default function getIncomeTax(
     year,
     options,
   );
-  const taxableCapitalGains = getTaxableCapitalGains(rawCapitalGains);
+  const taxableCapitalGains = getTaxableCapitalGains(rawCapitalGains, year);
   const capitalGainsTax = Math.max(
     0,
     taxWithGains.totalTaxAndPremiums - taxWithoutGains.totalTaxAndPremiums,

@@ -1,31 +1,1046 @@
-{
-  "0": 0,
-  "5000": 171,
-  "10000": 551,
-  "15000": 930,
-  "20000": 1468,
-  "25000": 2596,
-  "30000": 4015,
-  "35000": 5435,
-  "40000": 6854,
-  "45000": 8273,
-  "50000": 9692,
-  "60000": 12654,
-  "70000": 16218,
-  "80000": 19569,
-  "90000": 22652,
-  "100000": 25702,
-  "110000": 28752,
-  "120000": 32032,
-  "130000": 35632,
-  "140000": 39232,
-  "150000": 42832,
-  "160000": 46586,
-  "170000": 50386,
-  "180000": 54220,
-  "190000": 58425,
-  "200000": 62656,
-  "300000": 107212,
-  "400000": 154572,
-  "500000": 202572
-}
+[
+  {
+    "income": 0,
+    "rrsp": 0,
+    "capitalGains": 0,
+    "tax": 0
+  },
+  {
+    "income": 5000,
+    "rrsp": 0,
+    "capitalGains": 0,
+    "tax": 171
+  },
+  {
+    "income": 10000,
+    "rrsp": 0,
+    "capitalGains": 0,
+    "tax": 551
+  },
+  {
+    "income": 15000,
+    "rrsp": 0,
+    "capitalGains": 0,
+    "tax": 930
+  },
+  {
+    "income": 20000,
+    "rrsp": 0,
+    "capitalGains": 0,
+    "tax": 1468
+  },
+  {
+    "income": 25000,
+    "rrsp": 0,
+    "capitalGains": 0,
+    "tax": 2596
+  },
+  {
+    "income": 30000,
+    "rrsp": 0,
+    "capitalGains": 0,
+    "tax": 4015
+  },
+  {
+    "income": 35000,
+    "rrsp": 0,
+    "capitalGains": 0,
+    "tax": 5435
+  },
+  {
+    "income": 40000,
+    "rrsp": 0,
+    "capitalGains": 0,
+    "tax": 6854
+  },
+  {
+    "income": 45000,
+    "rrsp": 0,
+    "capitalGains": 0,
+    "tax": 8273
+  },
+  {
+    "income": 50000,
+    "rrsp": 0,
+    "capitalGains": 0,
+    "tax": 9692
+  },
+  {
+    "income": 50000,
+    "rrsp": 0,
+    "capitalGains": 5000,
+    "tax": 10254
+  },
+  {
+    "income": 50000,
+    "rrsp": 0,
+    "capitalGains": 10000,
+    "tax": 10817
+  },
+  {
+    "income": 50000,
+    "rrsp": 0,
+    "capitalGains": 25000,
+    "tax": 12825
+  },
+  {
+    "income": 50000,
+    "rrsp": 0,
+    "capitalGains": 50000,
+    "tax": 16637
+  },
+  {
+    "income": 50000,
+    "rrsp": 0,
+    "capitalGains": 100000,
+    "tax": 24262
+  },
+  {
+    "income": 50000,
+    "rrsp": 5000,
+    "capitalGains": 0,
+    "tax": 8567
+  },
+  {
+    "income": 50000,
+    "rrsp": 5000,
+    "capitalGains": 5000,
+    "tax": 9129
+  },
+  {
+    "income": 50000,
+    "rrsp": 5000,
+    "capitalGains": 10000,
+    "tax": 9692
+  },
+  {
+    "income": 50000,
+    "rrsp": 5000,
+    "capitalGains": 25000,
+    "tax": 11379
+  },
+  {
+    "income": 50000,
+    "rrsp": 5000,
+    "capitalGains": 50000,
+    "tax": 15112
+  },
+  {
+    "income": 50000,
+    "rrsp": 5000,
+    "capitalGains": 100000,
+    "tax": 22737
+  },
+  {
+    "income": 50000,
+    "rrsp": 10000,
+    "capitalGains": 0,
+    "tax": 7442
+  },
+  {
+    "income": 50000,
+    "rrsp": 10000,
+    "capitalGains": 5000,
+    "tax": 8004
+  },
+  {
+    "income": 50000,
+    "rrsp": 10000,
+    "capitalGains": 10000,
+    "tax": 8567
+  },
+  {
+    "income": 50000,
+    "rrsp": 10000,
+    "capitalGains": 25000,
+    "tax": 10254
+  },
+  {
+    "income": 50000,
+    "rrsp": 10000,
+    "capitalGains": 50000,
+    "tax": 13587
+  },
+  {
+    "income": 50000,
+    "rrsp": 10000,
+    "capitalGains": 100000,
+    "tax": 21212
+  },
+  {
+    "income": 50000,
+    "rrsp": 20000,
+    "capitalGains": 0,
+    "tax": 5192
+  },
+  {
+    "income": 50000,
+    "rrsp": 20000,
+    "capitalGains": 5000,
+    "tax": 5754
+  },
+  {
+    "income": 50000,
+    "rrsp": 20000,
+    "capitalGains": 10000,
+    "tax": 6317
+  },
+  {
+    "income": 50000,
+    "rrsp": 20000,
+    "capitalGains": 25000,
+    "tax": 8004
+  },
+  {
+    "income": 50000,
+    "rrsp": 20000,
+    "capitalGains": 50000,
+    "tax": 10817
+  },
+  {
+    "income": 50000,
+    "rrsp": 20000,
+    "capitalGains": 100000,
+    "tax": 18162
+  },
+  {
+    "income": 50000,
+    "rrsp": 50000,
+    "capitalGains": 0,
+    "tax": 3587
+  },
+  {
+    "income": 50000,
+    "rrsp": 50000,
+    "capitalGains": 5000,
+    "tax": 3587
+  },
+  {
+    "income": 50000,
+    "rrsp": 50000,
+    "capitalGains": 10000,
+    "tax": 3587
+  },
+  {
+    "income": 50000,
+    "rrsp": 50000,
+    "capitalGains": 25000,
+    "tax": 3587
+  },
+  {
+    "income": 50000,
+    "rrsp": 50000,
+    "capitalGains": 50000,
+    "tax": 4140
+  },
+  {
+    "income": 50000,
+    "rrsp": 50000,
+    "capitalGains": 100000,
+    "tax": 9692
+  },
+  {
+    "income": 60000,
+    "rrsp": 0,
+    "capitalGains": 0,
+    "tax": 12654
+  },
+  {
+    "income": 70000,
+    "rrsp": 0,
+    "capitalGains": 0,
+    "tax": 16218
+  },
+  {
+    "income": 80000,
+    "rrsp": 0,
+    "capitalGains": 0,
+    "tax": 19569
+  },
+  {
+    "income": 80000,
+    "rrsp": 0,
+    "capitalGains": 5000,
+    "tax": 20331
+  },
+  {
+    "income": 80000,
+    "rrsp": 0,
+    "capitalGains": 10000,
+    "tax": 21094
+  },
+  {
+    "income": 80000,
+    "rrsp": 0,
+    "capitalGains": 25000,
+    "tax": 23381
+  },
+  {
+    "income": 80000,
+    "rrsp": 0,
+    "capitalGains": 50000,
+    "tax": 27194
+  },
+  {
+    "income": 80000,
+    "rrsp": 0,
+    "capitalGains": 100000,
+    "tax": 35601
+  },
+  {
+    "income": 80000,
+    "rrsp": 5000,
+    "capitalGains": 0,
+    "tax": 18044
+  },
+  {
+    "income": 80000,
+    "rrsp": 5000,
+    "capitalGains": 5000,
+    "tax": 18806
+  },
+  {
+    "income": 80000,
+    "rrsp": 5000,
+    "capitalGains": 10000,
+    "tax": 19569
+  },
+  {
+    "income": 80000,
+    "rrsp": 5000,
+    "capitalGains": 25000,
+    "tax": 21856
+  },
+  {
+    "income": 80000,
+    "rrsp": 5000,
+    "capitalGains": 50000,
+    "tax": 25669
+  },
+  {
+    "income": 80000,
+    "rrsp": 5000,
+    "capitalGains": 100000,
+    "tax": 33801
+  },
+  {
+    "income": 80000,
+    "rrsp": 10000,
+    "capitalGains": 0,
+    "tax": 16519
+  },
+  {
+    "income": 80000,
+    "rrsp": 10000,
+    "capitalGains": 5000,
+    "tax": 17281
+  },
+  {
+    "income": 80000,
+    "rrsp": 10000,
+    "capitalGains": 10000,
+    "tax": 18044
+  },
+  {
+    "income": 80000,
+    "rrsp": 10000,
+    "capitalGains": 25000,
+    "tax": 20331
+  },
+  {
+    "income": 80000,
+    "rrsp": 10000,
+    "capitalGains": 50000,
+    "tax": 24144
+  },
+  {
+    "income": 80000,
+    "rrsp": 10000,
+    "capitalGains": 100000,
+    "tax": 32001
+  },
+  {
+    "income": 80000,
+    "rrsp": 20000,
+    "capitalGains": 0,
+    "tax": 13489
+  },
+  {
+    "income": 80000,
+    "rrsp": 20000,
+    "capitalGains": 5000,
+    "tax": 14231
+  },
+  {
+    "income": 80000,
+    "rrsp": 20000,
+    "capitalGains": 10000,
+    "tax": 14994
+  },
+  {
+    "income": 80000,
+    "rrsp": 20000,
+    "capitalGains": 25000,
+    "tax": 17281
+  },
+  {
+    "income": 80000,
+    "rrsp": 20000,
+    "capitalGains": 50000,
+    "tax": 21094
+  },
+  {
+    "income": 80000,
+    "rrsp": 20000,
+    "capitalGains": 100000,
+    "tax": 28719
+  },
+  {
+    "income": 80000,
+    "rrsp": 50000,
+    "capitalGains": 0,
+    "tax": 6643
+  },
+  {
+    "income": 80000,
+    "rrsp": 50000,
+    "capitalGains": 5000,
+    "tax": 7206
+  },
+  {
+    "income": 80000,
+    "rrsp": 50000,
+    "capitalGains": 10000,
+    "tax": 7768
+  },
+  {
+    "income": 80000,
+    "rrsp": 50000,
+    "capitalGains": 25000,
+    "tax": 9456
+  },
+  {
+    "income": 80000,
+    "rrsp": 50000,
+    "capitalGains": 50000,
+    "tax": 12268
+  },
+  {
+    "income": 80000,
+    "rrsp": 50000,
+    "capitalGains": 100000,
+    "tax": 19569
+  },
+  {
+    "income": 90000,
+    "rrsp": 0,
+    "capitalGains": 0,
+    "tax": 22652
+  },
+  {
+    "income": 100000,
+    "rrsp": 0,
+    "capitalGains": 0,
+    "tax": 25702
+  },
+  {
+    "income": 100000,
+    "rrsp": 0,
+    "capitalGains": 5000,
+    "tax": 26465
+  },
+  {
+    "income": 100000,
+    "rrsp": 0,
+    "capitalGains": 10000,
+    "tax": 27227
+  },
+  {
+    "income": 100000,
+    "rrsp": 0,
+    "capitalGains": 25000,
+    "tax": 29515
+  },
+  {
+    "income": 100000,
+    "rrsp": 0,
+    "capitalGains": 50000,
+    "tax": 33832
+  },
+  {
+    "income": 100000,
+    "rrsp": 0,
+    "capitalGains": 100000,
+    "tax": 42832
+  },
+  {
+    "income": 100000,
+    "rrsp": 5000,
+    "capitalGains": 0,
+    "tax": 24177
+  },
+  {
+    "income": 100000,
+    "rrsp": 5000,
+    "capitalGains": 5000,
+    "tax": 24940
+  },
+  {
+    "income": 100000,
+    "rrsp": 5000,
+    "capitalGains": 10000,
+    "tax": 25702
+  },
+  {
+    "income": 100000,
+    "rrsp": 5000,
+    "capitalGains": 25000,
+    "tax": 27990
+  },
+  {
+    "income": 100000,
+    "rrsp": 5000,
+    "capitalGains": 50000,
+    "tax": 32032
+  },
+  {
+    "income": 100000,
+    "rrsp": 5000,
+    "capitalGains": 100000,
+    "tax": 41032
+  },
+  {
+    "income": 100000,
+    "rrsp": 10000,
+    "capitalGains": 0,
+    "tax": 22652
+  },
+  {
+    "income": 100000,
+    "rrsp": 10000,
+    "capitalGains": 5000,
+    "tax": 23415
+  },
+  {
+    "income": 100000,
+    "rrsp": 10000,
+    "capitalGains": 10000,
+    "tax": 24177
+  },
+  {
+    "income": 100000,
+    "rrsp": 10000,
+    "capitalGains": 25000,
+    "tax": 26465
+  },
+  {
+    "income": 100000,
+    "rrsp": 10000,
+    "capitalGains": 50000,
+    "tax": 30277
+  },
+  {
+    "income": 100000,
+    "rrsp": 10000,
+    "capitalGains": 100000,
+    "tax": 39232
+  },
+  {
+    "income": 100000,
+    "rrsp": 20000,
+    "capitalGains": 0,
+    "tax": 19602
+  },
+  {
+    "income": 100000,
+    "rrsp": 20000,
+    "capitalGains": 5000,
+    "tax": 20365
+  },
+  {
+    "income": 100000,
+    "rrsp": 20000,
+    "capitalGains": 10000,
+    "tax": 21127
+  },
+  {
+    "income": 100000,
+    "rrsp": 20000,
+    "capitalGains": 25000,
+    "tax": 23415
+  },
+  {
+    "income": 100000,
+    "rrsp": 20000,
+    "capitalGains": 50000,
+    "tax": 27227
+  },
+  {
+    "income": 100000,
+    "rrsp": 20000,
+    "capitalGains": 100000,
+    "tax": 35632
+  },
+  {
+    "income": 100000,
+    "rrsp": 50000,
+    "capitalGains": 0,
+    "tax": 11181
+  },
+  {
+    "income": 100000,
+    "rrsp": 50000,
+    "capitalGains": 5000,
+    "tax": 11743
+  },
+  {
+    "income": 100000,
+    "rrsp": 50000,
+    "capitalGains": 10000,
+    "tax": 12306
+  },
+  {
+    "income": 100000,
+    "rrsp": 50000,
+    "capitalGains": 25000,
+    "tax": 14265
+  },
+  {
+    "income": 100000,
+    "rrsp": 50000,
+    "capitalGains": 50000,
+    "tax": 18077
+  },
+  {
+    "income": 100000,
+    "rrsp": 50000,
+    "capitalGains": 100000,
+    "tax": 25702
+  },
+  {
+    "income": 110000,
+    "rrsp": 0,
+    "capitalGains": 0,
+    "tax": 28752
+  },
+  {
+    "income": 120000,
+    "rrsp": 0,
+    "capitalGains": 0,
+    "tax": 32032
+  },
+  {
+    "income": 130000,
+    "rrsp": 0,
+    "capitalGains": 0,
+    "tax": 35632
+  },
+  {
+    "income": 140000,
+    "rrsp": 0,
+    "capitalGains": 0,
+    "tax": 39232
+  },
+  {
+    "income": 150000,
+    "rrsp": 0,
+    "capitalGains": 0,
+    "tax": 42832
+  },
+  {
+    "income": 150000,
+    "rrsp": 0,
+    "capitalGains": 5000,
+    "tax": 43736
+  },
+  {
+    "income": 150000,
+    "rrsp": 0,
+    "capitalGains": 10000,
+    "tax": 44686
+  },
+  {
+    "income": 150000,
+    "rrsp": 0,
+    "capitalGains": 25000,
+    "tax": 47536
+  },
+  {
+    "income": 150000,
+    "rrsp": 0,
+    "capitalGains": 50000,
+    "tax": 52286
+  },
+  {
+    "income": 150000,
+    "rrsp": 0,
+    "capitalGains": 100000,
+    "tax": 62656
+  },
+  {
+    "income": 150000,
+    "rrsp": 5000,
+    "capitalGains": 0,
+    "tax": 41032
+  },
+  {
+    "income": 150000,
+    "rrsp": 5000,
+    "capitalGains": 5000,
+    "tax": 41932
+  },
+  {
+    "income": 150000,
+    "rrsp": 5000,
+    "capitalGains": 10000,
+    "tax": 42832
+  },
+  {
+    "income": 150000,
+    "rrsp": 5000,
+    "capitalGains": 25000,
+    "tax": 45636
+  },
+  {
+    "income": 150000,
+    "rrsp": 5000,
+    "capitalGains": 50000,
+    "tax": 50386
+  },
+  {
+    "income": 150000,
+    "rrsp": 5000,
+    "capitalGains": 100000,
+    "tax": 60540
+  },
+  {
+    "income": 150000,
+    "rrsp": 10000,
+    "capitalGains": 0,
+    "tax": 39232
+  },
+  {
+    "income": 150000,
+    "rrsp": 10000,
+    "capitalGains": 5000,
+    "tax": 40132
+  },
+  {
+    "income": 150000,
+    "rrsp": 10000,
+    "capitalGains": 10000,
+    "tax": 41032
+  },
+  {
+    "income": 150000,
+    "rrsp": 10000,
+    "capitalGains": 25000,
+    "tax": 43736
+  },
+  {
+    "income": 150000,
+    "rrsp": 10000,
+    "capitalGains": 50000,
+    "tax": 48486
+  },
+  {
+    "income": 150000,
+    "rrsp": 10000,
+    "capitalGains": 100000,
+    "tax": 58425
+  },
+  {
+    "income": 150000,
+    "rrsp": 20000,
+    "capitalGains": 0,
+    "tax": 35632
+  },
+  {
+    "income": 150000,
+    "rrsp": 20000,
+    "capitalGains": 5000,
+    "tax": 36532
+  },
+  {
+    "income": 150000,
+    "rrsp": 20000,
+    "capitalGains": 10000,
+    "tax": 37432
+  },
+  {
+    "income": 150000,
+    "rrsp": 20000,
+    "capitalGains": 25000,
+    "tax": 40132
+  },
+  {
+    "income": 150000,
+    "rrsp": 20000,
+    "capitalGains": 50000,
+    "tax": 44686
+  },
+  {
+    "income": 150000,
+    "rrsp": 20000,
+    "capitalGains": 100000,
+    "tax": 54220
+  },
+  {
+    "income": 150000,
+    "rrsp": 50000,
+    "capitalGains": 0,
+    "tax": 25702
+  },
+  {
+    "income": 150000,
+    "rrsp": 50000,
+    "capitalGains": 5000,
+    "tax": 26465
+  },
+  {
+    "income": 150000,
+    "rrsp": 50000,
+    "capitalGains": 10000,
+    "tax": 27227
+  },
+  {
+    "income": 150000,
+    "rrsp": 50000,
+    "capitalGains": 25000,
+    "tax": 29515
+  },
+  {
+    "income": 150000,
+    "rrsp": 50000,
+    "capitalGains": 50000,
+    "tax": 33832
+  },
+  {
+    "income": 150000,
+    "rrsp": 50000,
+    "capitalGains": 100000,
+    "tax": 42832
+  },
+  {
+    "income": 160000,
+    "rrsp": 0,
+    "capitalGains": 0,
+    "tax": 46586
+  },
+  {
+    "income": 170000,
+    "rrsp": 0,
+    "capitalGains": 0,
+    "tax": 50386
+  },
+  {
+    "income": 180000,
+    "rrsp": 0,
+    "capitalGains": 0,
+    "tax": 54220
+  },
+  {
+    "income": 190000,
+    "rrsp": 0,
+    "capitalGains": 0,
+    "tax": 58425
+  },
+  {
+    "income": 200000,
+    "rrsp": 0,
+    "capitalGains": 0,
+    "tax": 62656
+  },
+  {
+    "income": 200000,
+    "rrsp": 0,
+    "capitalGains": 5000,
+    "tax": 63713
+  },
+  {
+    "income": 200000,
+    "rrsp": 0,
+    "capitalGains": 10000,
+    "tax": 64771
+  },
+  {
+    "income": 200000,
+    "rrsp": 0,
+    "capitalGains": 25000,
+    "tax": 67944
+  },
+  {
+    "income": 200000,
+    "rrsp": 0,
+    "capitalGains": 50000,
+    "tax": 73232
+  },
+  {
+    "income": 200000,
+    "rrsp": 0,
+    "capitalGains": 100000,
+    "tax": 83878
+  },
+  {
+    "income": 200000,
+    "rrsp": 5000,
+    "capitalGains": 0,
+    "tax": 60540
+  },
+  {
+    "income": 200000,
+    "rrsp": 5000,
+    "capitalGains": 5000,
+    "tax": 61598
+  },
+  {
+    "income": 200000,
+    "rrsp": 5000,
+    "capitalGains": 10000,
+    "tax": 62656
+  },
+  {
+    "income": 200000,
+    "rrsp": 5000,
+    "capitalGains": 25000,
+    "tax": 65829
+  },
+  {
+    "income": 200000,
+    "rrsp": 5000,
+    "capitalGains": 50000,
+    "tax": 71117
+  },
+  {
+    "income": 200000,
+    "rrsp": 5000,
+    "capitalGains": 100000,
+    "tax": 81713
+  },
+  {
+    "income": 200000,
+    "rrsp": 10000,
+    "capitalGains": 0,
+    "tax": 58425
+  },
+  {
+    "income": 200000,
+    "rrsp": 10000,
+    "capitalGains": 5000,
+    "tax": 59483
+  },
+  {
+    "income": 200000,
+    "rrsp": 10000,
+    "capitalGains": 10000,
+    "tax": 60540
+  },
+  {
+    "income": 200000,
+    "rrsp": 10000,
+    "capitalGains": 25000,
+    "tax": 63713
+  },
+  {
+    "income": 200000,
+    "rrsp": 10000,
+    "capitalGains": 50000,
+    "tax": 69001
+  },
+  {
+    "income": 200000,
+    "rrsp": 10000,
+    "capitalGains": 100000,
+    "tax": 79578
+  },
+  {
+    "income": 200000,
+    "rrsp": 20000,
+    "capitalGains": 0,
+    "tax": 54220
+  },
+  {
+    "income": 200000,
+    "rrsp": 20000,
+    "capitalGains": 5000,
+    "tax": 55253
+  },
+  {
+    "income": 200000,
+    "rrsp": 20000,
+    "capitalGains": 10000,
+    "tax": 56310
+  },
+  {
+    "income": 200000,
+    "rrsp": 20000,
+    "capitalGains": 25000,
+    "tax": 59483
+  },
+  {
+    "income": 200000,
+    "rrsp": 20000,
+    "capitalGains": 50000,
+    "tax": 64771
+  },
+  {
+    "income": 200000,
+    "rrsp": 20000,
+    "capitalGains": 100000,
+    "tax": 75347
+  },
+  {
+    "income": 200000,
+    "rrsp": 50000,
+    "capitalGains": 0,
+    "tax": 42832
+  },
+  {
+    "income": 200000,
+    "rrsp": 50000,
+    "capitalGains": 5000,
+    "tax": 43736
+  },
+  {
+    "income": 200000,
+    "rrsp": 50000,
+    "capitalGains": 10000,
+    "tax": 44686
+  },
+  {
+    "income": 200000,
+    "rrsp": 50000,
+    "capitalGains": 25000,
+    "tax": 47536
+  },
+  {
+    "income": 200000,
+    "rrsp": 50000,
+    "capitalGains": 50000,
+    "tax": 52286
+  },
+  {
+    "income": 200000,
+    "rrsp": 50000,
+    "capitalGains": 100000,
+    "tax": 62656
+  },
+  {
+    "income": 300000,
+    "rrsp": 0,
+    "capitalGains": 0,
+    "tax": 107212
+  },
+  {
+    "income": 400000,
+    "rrsp": 0,
+    "capitalGains": 0,
+    "tax": 154572
+  },
+  {
+    "income": 500000,
+    "rrsp": 0,
+    "capitalGains": 0,
+    "tax": 202572
+  }
+]

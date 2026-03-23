@@ -22,30 +22,41 @@ const SOURCES = ["TurboTax"];
 for (const province of PROVINCES) {
   for (const source of SOURCES) {
     Deno.test(`getIncomeTax - ${province} vs ${source} 2025`, async () => {
-      const data = JSON.parse(
+      const data: {
+        income: number;
+        rrsp: number;
+        capitalGains: number;
+        tax: number;
+      }[] = JSON.parse(
         await Deno.readTextFile(
           `./test/data/taxIncomeExternalSource/${source}/2025/${province}.json`,
         ),
       );
 
-      for (const [incomeStr, expectedTotalValue] of Object.entries(data)) {
-        const income = Number(incomeStr);
+      for (const scenario of data) {
+        const income = scenario.income;
+        const expectedTotal = scenario.tax;
 
-        const expectedTotal = expectedTotalValue as number;
-        const result = getIncomeTax(income, province as any, 2025);
+        const result = getIncomeTax(income, province as any, 2025, {
+          rrsp: scenario.rrsp,
+          capitalGains: scenario.capitalGains,
+        });
 
         const diff = Math.abs(
           result.totalTaxAndPremiums - expectedTotal,
         );
         const percentageDiff = (diff / (expectedTotal || 1)) * 100;
 
-        console.log(
-          `${source} | ${province} Income: ${income} | Expected (2025): ${expectedTotal} | Got (2025): ${
-            Math.round(result.totalTaxAndPremiums)
-          } | Diff: ${diff.toFixed(0)} (${percentageDiff.toFixed(2)}%)`,
-        );
+        // console.log(
+        //   `${source} | ${province} Income: ${income} | RRSP: ${scenario.rrsp} | CapGains: ${scenario.capitalGains} | Expected (2025): ${expectedTotal} | Got (2025): ${
+        //     Math.round(result.totalTaxAndPremiums)
+        //   } | Diff: ${diff.toFixed(0)} (${percentageDiff.toFixed(2)}%)`,
+        // );
         // console.log(result);
-        // assertEquals(percentageDiff < 0.5, true);
+        assertEquals(
+          province === "Quebec" ? percentageDiff < 7 : percentageDiff < 0.5,
+          true,
+        );
       }
     });
   }
