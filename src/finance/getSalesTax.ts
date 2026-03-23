@@ -26,7 +26,7 @@ const SALES_TAX_RATES: Record<
     "New Brunswick": { gstRate: 0, pstRate: 0, hstRate: 0.15 },
     "Newfoundland and Labrador": { gstRate: 0, pstRate: 0, hstRate: 0.15 },
     "Northwest Territories": { gstRate: 0.05, pstRate: 0, hstRate: 0 },
-    "Nova Scotia": { gstRate: 0, pstRate: 0, hstRate: 0.15 },
+    "Nova Scotia": { gstRate: 0, pstRate: 0, hstRate: 0.14 },
     Nunavut: { gstRate: 0.05, pstRate: 0, hstRate: 0 },
     Ontario: { gstRate: 0, pstRate: 0, hstRate: 0.13 },
     "Prince Edward Island": { gstRate: 0, pstRate: 0, hstRate: 0.15 },
