@@ -20,25 +20,6 @@ interface TaxBracket {
   threshold: number;
 }
 
-export interface TaxBreakdown {
-  federalRate: number;
-  provincialRate: number;
-  grossFederalTax: number;
-  appliedFederalCredits: number;
-  federalAbatement: number;
-  grossProvincialTax: number;
-  appliedProvincialCredits: number;
-  provincialTaxReduction: number;
-  provincialSurtax: number;
-  healthPremium: number;
-  cppOrQppBase: number;
-  cppOrQppEnhanced: number;
-  cpp2OrQpp2Premium: number;
-  eiPremium: number;
-  qpipPremium: number;
-  totalTaxAndPremiums: number;
-}
-
 const FEDERAL_LIMITS: Record<
   TaxYear,
   {
@@ -653,76 +634,63 @@ function getPEITaxReduction(
 
   return Math.max(0, Math.min(netProvincialTax, reduction));
 }
+export interface IncomeTaxOptions {
+  quebec?: {
+    ramq?: boolean;
+    livingAlone?: boolean;
+  };
+  capitalGains?: number;
+}
+
+export interface TaxBreakdown {
+  federalRate: number;
+  provincialRate: number;
+  grossFederalTax: number;
+  appliedFederalCredits: number;
+  federalAbatement: number;
+  grossProvincialTax: number;
+  appliedProvincialCredits: number;
+  provincialTaxReduction: number;
+  provincialSurtax: number;
+  healthPremium: number;
+  cppOrQppBase: number;
+  cppOrQppEnhanced: number;
+  cpp2OrQpp2Premium: number;
+  eiPremium: number;
+  qpipPremium: number;
+  taxableCapitalGains: number;
+  capitalGainsTax: number;
+  capitalGainsRate: number;
+  totalTaxAndPremiums: number;
+}
+
+function getTaxableCapitalGains(capitalGains: number): number {
+  return Math.max(0, capitalGains * 0.5);
+}
+
 /**
- * Calculates a comprehensive breakdown of Canadian federal and provincial income taxes.
- *
- * Calculation Engine Methodology:
- *
- * **1. Mandatory Payroll Deductions:**
- * - Calculates Tier 1 CPP/QPP base contribution (claimed as a Non-Refundable Tax Credit (NRTC)).
- * - Calculates Tier 1 CPP/QPP enhanced contribution (claimed as a tax deduction).
- * - Calculates Tier 2 CPP2/QPP2 based on the Yearly Additional Maximum Pensionable Earnings (YAMPE) (claimed as a tax deduction).
- * - Calculates EI (and QPIP for Quebec residents) up to their respective annual maximum insurable earnings.
- *
- * **2. Federal Tax & Non-Refundable Tax Credits (NRTCs):**
- * - Calculates gross federal tax using progressive federal tax brackets.
- * - Determines the Federal Basic Personal Amount (BPA), applying a linear phase-out for high earners.
- * - Calculates the Canada Employment Amount (CEA) against employment income up to the annual maximum.
- * - Aggregates the federal NRTC base (BPA + Base CPP/QPP + EI + QPIP + CEA) and converts it to a credit amount, accounting for the 15% top-up credit rate for amounts above the first bracket threshold.
- * - Applies the Federal Abatement exclusively for Quebec residents.
- *
- * **3. Provincial Tax & NRTCs:**
- * - Calculates gross provincial tax using the specific province's progressive tax brackets.
- * - **Quebec-Specific:** Applies the Deduction for Workers as an income reduction before tax calculation. Applies the Person Living Alone amount to the NRTC base (if applicable). Uses a decoupled NRTC rate.
- * - Retrieves the provincial BPA, executing a specific linear phase-out for Manitoba residents, and dynamically mirroring the federal BPA phase-out for Yukon residents.
- * - Aggregates the provincial NRTC base (Provincial BPA + Base CPP/QPP + EI + QPIP if in Quebec + CEA if in Yukon + Family Tax Benefit if in Manitoba).
- *
- * **4. Provincial-Specific Modifiers (If Applicable):**
- * - **B.C. Tax Reduction:** A non-refundable credit for B.C. residents with low-to-moderate taxable income (subject to phase-out).
- * - **New Brunswick Tax Reduction:** A non-refundable credit for N.B. residents with low-to-moderate taxable income (subject to phase-out).
- * - **Newfoundland and Labrador Tax Reduction:** A non-refundable credit for N.L. residents with low-to-moderate taxable income (subject to phase-out).
- * - **Nova Scotia Tax Reduction:** A non-refundable credit for N.S. residents with low-to-moderate taxable income (subject to phase-out).
- * - **Prince Edward Island Tax Reduction:** A non-refundable credit for P.E.I. residents with low-to-moderate taxable income (subject to phase-out).
- * - **Ontario Tax Reduction (OTR) & LIFT:** Reduces or eliminates basic Ontario tax for low-income earners, and applies the Low-income Individuals and Families Tax (LIFT) Credit.
- * - **Ontario Surtax:** Applies a two-tier cascading surtax on net provincial tax in Ontario.
- * - **Provincial Health Premiums:** Calculates the Ontario Health Premium based on strict taxable income bands, and the Quebec RAMQ premium based on income thresholds.
- *
- * @param employmentIncome - The individual's total gross annual taxable employment income (assumes T4 income).
- * @param province - The Canadian province or territory of residence.
- * @param year - The specific tax year.
- * @param options - Additional options for specific tax scenarios. Includes `quebec.ramq` (default: true) and `quebec.livingAlone` (default: true).
- * @returns A fully itemized object containing marginal rates, gross taxes, applied negative-valued credits, mandatory premiums, and the verified total deduction sum.
+ * Core engine for computing Canadian income taxes based on a unified income figure.
+ * Does not isolate marginal tax differences (such as those needed for strictly computing capital gains rates).
+ * Use `getIncomeTax` instead for the full breakdown with capital gains wrappers.
  */
-export function getIncomeTax(
+function calculateBaseTax(
   employmentIncome: number,
-  province:
-    | "Newfoundland and Labrador"
-    | "Prince Edward Island"
-    | "Nova Scotia"
-    | "New Brunswick"
-    | "Quebec"
-    | "Ontario"
-    | "Manitoba"
-    | "Saskatchewan"
-    | "Alberta"
-    | "British Columbia"
-    | "Yukon"
-    | "Northwest Territories"
-    | "Nunavut",
-  year: 2025,
-  options: {
-    quebec?: {
-      ramq?: boolean;
-      livingAlone?: boolean;
-    };
-  } = {},
-): TaxBreakdown {
+  province: Province,
+  year: TaxYear,
+  options: IncomeTaxOptions = {},
+): Omit<
+  TaxBreakdown,
+  "taxableCapitalGains" | "capitalGainsTax" | "capitalGainsRate"
+> {
   const deductions = getPayrollDeductions(employmentIncome, province, year);
+
+  const taxableCapitalGains = getTaxableCapitalGains(options.capitalGains || 0);
 
   // CRITICAL STEP: Enhanced Tier 1 (CPP/QPP) and Tier 2 (CPP2/QPP2) are direct deductions from taxable income.
   const taxableIncome = Math.max(
     0,
-    employmentIncome - deductions.cppOrQppEnhanced - deductions.cpp2OrQpp2,
+    employmentIncome + taxableCapitalGains - deductions.cppOrQppEnhanced -
+      deductions.cpp2OrQpp2,
   );
 
   const federalBrackets = FEDERAL_BRACKETS[year];
@@ -1008,5 +976,91 @@ export function getIncomeTax(
     eiPremium: roundedEi,
     qpipPremium: roundedQpip,
     totalTaxAndPremiums: totalSum,
+  };
+}
+
+/**
+ * Calculates a comprehensive breakdown of Canadian federal and provincial income taxes, including capital gains.
+ *
+ * Calculation Engine Methodology:
+ *
+ * **1. Mandatory Payroll Deductions:**
+ * - Calculates Tier 1 CPP/QPP base contribution (claimed as a Non-Refundable Tax Credit (NRTC)).
+ * - Calculates Tier 1 CPP/QPP enhanced contribution (claimed as a tax deduction).
+ * - Calculates Tier 2 CPP2/QPP2 based on the Yearly Additional Maximum Pensionable Earnings (YAMPE) (claimed as a tax deduction).
+ * - Calculates EI (and QPIP for Quebec residents) up to their respective annual maximum insurable earnings.
+ *
+ * **2. Federal Tax & Non-Refundable Tax Credits (NRTCs):**
+ * - Calculates gross federal tax using progressive federal tax brackets.
+ * - Determines the Federal Basic Personal Amount (BPA), applying a linear phase-out for high earners.
+ * - Calculates the Canada Employment Amount (CEA) against employment income up to the annual maximum.
+ * - Aggregates the federal NRTC base (BPA + Base CPP/QPP + EI + QPIP + CEA) and converts it to a credit amount, accounting for the 15% top-up credit rate for amounts above the first bracket threshold.
+ * - Applies the Federal Abatement exclusively for Quebec residents.
+ *
+ * **3. Provincial Tax & NRTCs:**
+ * - Calculates gross provincial tax using the specific province's progressive tax brackets.
+ * - **Quebec-Specific:** Applies the Deduction for Workers as an income reduction before tax calculation. Applies the Person Living Alone amount to the NRTC base (if applicable). Uses a decoupled NRTC rate.
+ * - Retrieves the provincial BPA, executing a specific linear phase-out for Manitoba residents, and dynamically mirroring the federal BPA phase-out for Yukon residents.
+ * - Aggregates the provincial NRTC base (Provincial BPA + Base CPP/QPP + EI + QPIP if in Quebec + CEA if in Yukon + Family Tax Benefit if in Manitoba).
+ *
+ * **4. Provincial-Specific Modifiers (If Applicable):**
+ * - **B.C. Tax Reduction:** A non-refundable credit for B.C. residents with low-to-moderate taxable income (subject to phase-out).
+ * - **New Brunswick Tax Reduction:** A non-refundable credit for N.B. residents with low-to-moderate taxable income (subject to phase-out).
+ * - **Newfoundland and Labrador Tax Reduction:** A non-refundable credit for N.L. residents with low-to-moderate taxable income (subject to phase-out).
+ * - **Nova Scotia Tax Reduction:** A non-refundable credit for N.S. residents with low-to-moderate taxable income (subject to phase-out).
+ * - **Prince Edward Island Tax Reduction:** A non-refundable credit for P.E.I. residents with low-to-moderate taxable income (subject to phase-out).
+ * - **Ontario Tax Reduction (OTR) & LIFT:** Reduces or eliminates basic Ontario tax for low-income earners, and applies the Low-income Individuals and Families Tax (LIFT) Credit.
+ * - **Ontario Surtax:** Applies a two-tier cascading surtax on net provincial tax in Ontario.
+ * - **Provincial Health Premiums:** Calculates the Ontario Health Premium based on strict taxable income bands, and the Quebec RAMQ premium based on income thresholds.
+ *
+ * **5. Capital Gains:**
+ * - Applies a 50% inclusion rate to any provided capital gains.
+ * - Isolates the exact tax burden associated with those capital gains by computing the marginal difference between a "with gains" and "without gains" tax profile.
+ *
+ * @param employmentIncome - The individual's total gross annual taxable employment income (assumes T4 income).
+ * @param province - The Canadian province or territory of residence.
+ * @param year - The specific tax year.
+ * @param options - Additional options for specific tax scenarios. Includes `quebec.ramq`, `quebec.livingAlone`, and `capitalGains`.
+ * @returns A fully itemized object containing marginal rates, gross taxes, applied negative-valued credits, mandatory premiums, capital gains specifics, and the verified total deduction sum.
+ */
+export function getIncomeTax(
+  employmentIncome: number,
+  province: Province,
+  year: TaxYear,
+  options: IncomeTaxOptions = {},
+): TaxBreakdown {
+  const rawCapitalGains = options.capitalGains || 0;
+  const taxWithoutGains = calculateBaseTax(employmentIncome, province, year, {
+    ...options,
+    capitalGains: 0,
+  });
+
+  if (rawCapitalGains <= 0) {
+    return {
+      ...taxWithoutGains,
+      taxableCapitalGains: 0,
+      capitalGainsTax: 0,
+      capitalGainsRate: 0,
+    };
+  }
+
+  const taxWithGains = calculateBaseTax(
+    employmentIncome,
+    province,
+    year,
+    options,
+  );
+  const taxableCapitalGains = getTaxableCapitalGains(rawCapitalGains);
+  const capitalGainsTax = Math.max(
+    0,
+    taxWithGains.totalTaxAndPremiums - taxWithoutGains.totalTaxAndPremiums,
+  );
+  const capitalGainsRate = capitalGainsTax / rawCapitalGains;
+
+  return {
+    ...taxWithGains,
+    taxableCapitalGains,
+    capitalGainsTax,
+    capitalGainsRate,
   };
 }
