@@ -27,7 +27,7 @@ import mortgageInsurancePremium from "./mortgageInsurancePremium.ts";
  * @param parameters.startingYear - The year the simulation begins.
  * @param parameters.numberOfYears - The duration of the simulation in years.
  * @param parameters.tfsaContributions - Whether to prioritize TFSA contributions for investments (tax-free gains).
- * @param parameters.combinedTaxRate - The combined marginal tax rate used for calculating taxes on investment gains.
+ * @param parameters.employmentIncome - The employment income used for calculating income taxes on investment gains.
  * @param parameters.province - The province used to calculate sales tax on the selling fixed fees and commission when selling the home.
  * @param parameters.renter - Configuration for the renter scenario.
  *   @param parameters.renter.startingMonthlyRent - The initial monthly rent payment.
@@ -98,7 +98,7 @@ import mortgageInsurancePremium from "./mortgageInsurancePremium.ts";
  *   startingYear: 2024,
  *   numberOfYears: 10,
  *   tfsaContributions: true,
- *   combinedTaxRate: 0.4,
+ *   employmentIncome: 100000,
  *   province: "Ontario",
  *   renter: {
  *     startingMonthlyRent: 2000,
