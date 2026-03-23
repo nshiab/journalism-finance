@@ -1,5 +1,5 @@
 import { assertEquals } from "jsr:@std/assert";
-import { getIncomeTax } from "../../src/finance/getIncomeTax.ts";
+import getIncomeTax from "../../src/finance/getIncomeTax.ts";
 
 const PROVINCES = [
   "Alberta",

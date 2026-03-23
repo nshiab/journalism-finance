@@ -1,4 +1,4 @@
-export type Province =
+type Province =
   | "Newfoundland and Labrador"
   | "Prince Edward Island"
   | "Nova Scotia"
@@ -13,7 +13,7 @@ export type Province =
   | "Northwest Territories"
   | "Nunavut";
 
-export type TaxYear = 2025;
+type TaxYear = 2025;
 
 interface TaxBracket {
   rate: number;
@@ -634,15 +634,16 @@ function getPEITaxReduction(
 
   return Math.max(0, Math.min(netProvincialTax, reduction));
 }
-export interface IncomeTaxOptions {
+interface IncomeTaxOptions {
   quebec?: {
     ramq?: boolean;
     livingAlone?: boolean;
   };
   capitalGains?: number;
+  rrsp?: number;
 }
 
-export interface TaxBreakdown {
+interface TaxBreakdown {
   federalRate: number;
   provincialRate: number;
   grossFederalTax: number;
@@ -686,11 +687,13 @@ function calculateBaseTax(
 
   const taxableCapitalGains = getTaxableCapitalGains(options.capitalGains || 0);
 
-  // CRITICAL STEP: Enhanced Tier 1 (CPP/QPP) and Tier 2 (CPP2/QPP2) are direct deductions from taxable income.
+  const rrspDeduction = options.rrsp || 0;
+
+  // CRITICAL STEP: Enhanced Tier 1 (CPP/QPP), Tier 2 (CPP2/QPP2), and RRSP contributions are direct deductions from taxable income.
   const taxableIncome = Math.max(
     0,
     employmentIncome + taxableCapitalGains - deductions.cppOrQppEnhanced -
-      deductions.cpp2OrQpp2,
+      deductions.cpp2OrQpp2 - rrspDeduction,
   );
 
   const federalBrackets = FEDERAL_BRACKETS[year];
@@ -1020,15 +1023,55 @@ function calculateBaseTax(
  * @param employmentIncome - The individual's total gross annual taxable employment income (assumes T4 income).
  * @param province - The Canadian province or territory of residence.
  * @param year - The specific tax year.
- * @param options - Additional options for specific tax scenarios. Includes `quebec.ramq`, `quebec.livingAlone`, and `capitalGains`.
+ * @param options - Additional options for specific tax scenarios. Includes `quebec.ramq`, `quebec.livingAlone`, `capitalGains`, and `rrsp`.
  * @returns A fully itemized object containing marginal rates, gross taxes, applied negative-valued credits, mandatory premiums, capital gains specifics, and the verified total deduction sum.
  */
-export function getIncomeTax(
+export default function getIncomeTax(
   employmentIncome: number,
-  province: Province,
-  year: TaxYear,
-  options: IncomeTaxOptions = {},
-): TaxBreakdown {
+  province:
+    | "Newfoundland and Labrador"
+    | "Prince Edward Island"
+    | "Nova Scotia"
+    | "New Brunswick"
+    | "Quebec"
+    | "Ontario"
+    | "Manitoba"
+    | "Saskatchewan"
+    | "Alberta"
+    | "British Columbia"
+    | "Yukon"
+    | "Northwest Territories"
+    | "Nunavut",
+  year: 2025,
+  options: {
+    quebec?: {
+      ramq?: boolean;
+      livingAlone?: boolean;
+    };
+    capitalGains?: number;
+    rrsp?: number;
+  } = {},
+): {
+  federalRate: number;
+  provincialRate: number;
+  grossFederalTax: number;
+  appliedFederalCredits: number;
+  federalAbatement: number;
+  grossProvincialTax: number;
+  appliedProvincialCredits: number;
+  provincialTaxReduction: number;
+  provincialSurtax: number;
+  healthPremium: number;
+  cppOrQppBase: number;
+  cppOrQppEnhanced: number;
+  cpp2OrQpp2Premium: number;
+  eiPremium: number;
+  qpipPremium: number;
+  taxableCapitalGains: number;
+  capitalGainsTax: number;
+  capitalGainsRate: number;
+  totalTaxAndPremiums: number;
+} {
   const rawCapitalGains = options.capitalGains || 0;
   const taxWithoutGains = calculateBaseTax(employmentIncome, province, year, {
     ...options,
