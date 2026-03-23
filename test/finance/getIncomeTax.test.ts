@@ -44,8 +44,8 @@ for (const province of PROVINCES) {
             Math.round(result.totalTaxAndPremiums)
           } | Diff: ${diff.toFixed(0)} (${percentageDiff.toFixed(2)}%)`,
         );
-        // Just to check things
-        assertEquals(true, true);
+        // console.log(result);
+        // assertEquals(percentageDiff < 0.5, true);
       }
     });
   }

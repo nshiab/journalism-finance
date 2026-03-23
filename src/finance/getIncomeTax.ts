@@ -39,6 +39,12 @@ export interface TaxBreakdown {
   totalTaxAndPremiums: number;
 }
 
+export interface IncomeTaxOptions {
+  quebec?: {
+    ramq?: boolean;
+    livingAlone?: boolean;
+  };
+}
 
 const FEDERAL_LIMITS: Record<
   TaxYear,
@@ -63,7 +69,6 @@ const FEDERAL_LIMITS: Record<
   },
 };
 
-
 const PROVINCIAL_BPA: Record<TaxYear, Record<Province, number>> = {
   2025: {
     "Yukon": FEDERAL_LIMITS[2025].maxBPA,
@@ -81,7 +86,6 @@ const PROVINCIAL_BPA: Record<TaxYear, Record<Province, number>> = {
     "Newfoundland and Labrador": 11067,
   },
 };
-
 
 const PAYROLL_LIMITS: Record<
   TaxYear,
@@ -117,7 +121,6 @@ const PAYROLL_LIMITS: Record<
     qpipRate: 0.00494,
   },
 };
-
 
 const ONTARIO_LIMITS: Record<
   TaxYear,
@@ -168,7 +171,6 @@ const ONTARIO_LIMITS: Record<
   },
 };
 
-
 const QUEBEC_LIMITS: Record<
   TaxYear,
   {
@@ -177,7 +179,12 @@ const QUEBEC_LIMITS: Record<
     nrtcRate: number;
     ramqMaxPremium: number;
     ramqExemptionThreshold: number;
-    ramqPhaseInRate: number;
+    ramqTier1MaxIncome: number;
+    ramqTier1Rate: number;
+    ramqTier2Rate: number;
+    personLivingAloneAmount: number;
+    personLivingAloneThreshold: number;
+    personLivingAloneReductionRate: number;
   }
 > = {
   2025: {
@@ -185,11 +192,15 @@ const QUEBEC_LIMITS: Record<
     maxDeductionForWorkers: 1420,
     nrtcRate: 0.14,
     ramqMaxPremium: 755,
-    ramqExemptionThreshold: 19500,
-    ramqPhaseInRate: 0.035,
+    ramqExemptionThreshold: 19890,
+    ramqTier1MaxIncome: 5000,
+    ramqTier1Rate: 0.0784,
+    ramqTier2Rate: 0.1176,
+    personLivingAloneAmount: 2128,
+    personLivingAloneThreshold: 42090,
+    personLivingAloneReductionRate: 0.15,
   },
 };
-
 
 const BC_LIMITS: Record<
   TaxYear,
@@ -202,7 +213,6 @@ const BC_LIMITS: Record<
   },
 };
 
-
 const NB_LIMITS: Record<
   TaxYear,
   { baseAmount: number; threshold: number; reductionFactor: number }
@@ -213,7 +223,6 @@ const NB_LIMITS: Record<
     reductionFactor: 0.03,
   },
 };
-
 
 const NL_LIMITS: Record<
   TaxYear,
@@ -226,7 +235,6 @@ const NL_LIMITS: Record<
   },
 };
 
-
 const NS_LIMITS: Record<
   TaxYear,
   { baseAmount: number; threshold: number; reductionFactor: number }
@@ -238,7 +246,6 @@ const NS_LIMITS: Record<
   },
 };
 
-
 const PEI_LIMITS: Record<
   TaxYear,
   { baseAmount: number; threshold: number; reductionFactor: number }
@@ -249,7 +256,6 @@ const PEI_LIMITS: Record<
     reductionFactor: 0.05,
   },
 };
-
 
 const MB_LIMITS: Record<
   TaxYear,
@@ -267,7 +273,6 @@ const MB_LIMITS: Record<
     familyTaxBenefitReductionRate: 0.09,
   },
 };
-
 
 const FEDERAL_BRACKETS: Record<TaxYear, TaxBracket[]> = {
   2025: [
@@ -372,7 +377,6 @@ const PROVINCIAL_BRACKETS: Record<TaxYear, Record<Province, TaxBracket[]>> = {
     ],
   },
 };
-
 
 function calculateTax(
   income: number,
@@ -564,17 +568,25 @@ function getQuebecRAMQ(netIncome: number, year: TaxYear): number {
   const limits = QUEBEC_LIMITS[year];
   if (!limits) return 0;
 
+  // No premium if income is below the exemption threshold
   if (netIncome <= limits.ramqExemptionThreshold) {
     return 0;
   }
 
-  // The effective phase-in rate to reach the maximum smoothly
-  // Note: True Schedule K math uses complex tiered columns, but a ~3.5%
-  // blended phase-in rate is standard for single-individual estimators.
   const excessIncome = netIncome - limits.ramqExemptionThreshold;
-  const calculatedPremium = excessIncome * limits.ramqPhaseInRate;
+  let calculatedPremium = 0;
 
-  // Cap the premium at the legal maximum
+  // Tier 1: First $5,000 of excess income
+  const tier1Income = Math.min(excessIncome, limits.ramqTier1MaxIncome);
+  calculatedPremium += tier1Income * limits.ramqTier1Rate;
+
+  // Tier 2: Any excess income over $5,000
+  if (excessIncome > limits.ramqTier1MaxIncome) {
+    const tier2Income = excessIncome - limits.ramqTier1MaxIncome;
+    calculatedPremium += tier2Income * limits.ramqTier2Rate;
+  }
+
+  // Return the calculated premium, capped at the legal maximum
   return Math.round(Math.min(limits.ramqMaxPremium, calculatedPremium));
 }
 
@@ -685,12 +697,14 @@ function getPEITaxReduction(
  * @param employmentIncome - The individual's total gross annual taxable employment income (assumes T4 income).
  * @param province - The Canadian province or territory of residence.
  * @param year - The specific tax year.
+ * @param options - Additional options for specific tax scenarios. Includes `quebec.ramq` (default: true) and `quebec.livingAlone` (default: true).
  * @returns A fully itemized object containing marginal rates, gross taxes, applied negative-valued credits, mandatory premiums, and the verified total deduction sum.
  */
 export function getIncomeTax(
   employmentIncome: number,
   province: Province,
   year: TaxYear,
+  options: IncomeTaxOptions = {},
 ): TaxBreakdown {
   const deductions = getPayrollDeductions(employmentIncome, province, year);
 
@@ -784,8 +798,37 @@ export function getIncomeTax(
 
   let provincialNRTCBase = provincialBpaAmount + deductions.cppOrQppBase +
     deductions.ei;
-  if (province === "Quebec") provincialNRTCBase += deductions.qpip;
-  if (province === "Yukon") provincialNRTCBase += canadaEmploymentAmount;
+
+  if (province === "Yukon") {
+    provincialNRTCBase += canadaEmploymentAmount;
+  }
+
+  if (province === "Quebec") {
+    provincialNRTCBase += deductions.qpip;
+
+    const applyLivingAlone = options.quebec?.livingAlone !== false;
+
+    if (applyLivingAlone) {
+      // Apply the Quebec Amount for a Person Living Alone
+      const qcLimits = QUEBEC_LIMITS[year];
+
+      // Quebec calculates the phase-out against Net Income.
+      // provincialTaxableIncome is our closest accurate proxy here.
+      const excessIncome = Math.max(
+        0,
+        provincialTaxableIncome - qcLimits.personLivingAloneThreshold,
+      );
+      const livingAloneClawback = excessIncome *
+        qcLimits.personLivingAloneReductionRate;
+
+      const netLivingAloneAmount = Math.max(
+        0,
+        qcLimits.personLivingAloneAmount - livingAloneClawback,
+      );
+
+      provincialNRTCBase += netLivingAloneAmount;
+    }
+  }
 
   // Manitoba Family Tax Benefit
   if (province === "Manitoba") {
@@ -853,7 +896,10 @@ export function getIncomeTax(
   }
 
   if (province === "Quebec") {
-    healthPremium = getQuebecRAMQ(taxableIncome, year);
+    const computeRamq = options.quebec?.ramq !== false;
+    if (computeRamq) {
+      healthPremium = getQuebecRAMQ(taxableIncome, year);
+    }
   }
 
   if (province === "British Columbia") {
