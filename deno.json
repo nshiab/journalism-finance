@@ -1,6 +1,6 @@
 {
   "name": "@nshiab/journalism-finance",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "exports": {
     ".": "./src/index.ts",
     "./web": "./src/web.ts"
@@ -23,8 +23,8 @@
   },
   "nodeModulesDir": "auto",
   "imports": {
-    "@nshiab/journalism-format": "jsr:@nshiab/journalism-format@^1.1.2",
-    "@nshiab/journalism-statistics": "jsr:@nshiab/journalism-statistics@^1.2.2",
+    "@nshiab/journalism-format": "jsr:@nshiab/journalism-format@^1.1.3",
+    "@nshiab/journalism-statistics": "jsr:@nshiab/journalism-statistics@^1.2.3",
     "d3-array": "npm:d3-array@^3.2.4",
     "playwright": "npm:playwright@^1.58.2"
   },
