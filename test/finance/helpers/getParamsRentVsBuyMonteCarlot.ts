@@ -36,6 +36,7 @@ export default function getParamsRentVsBuyMonteCarlo(
   startingYear: number;
   numberOfYears: number;
   tfsaContributions: boolean;
+  annualInvestmentFeeRate: number;
   employmentIncome: number;
   province:
     | "Alberta"
@@ -237,6 +238,7 @@ export default function getParamsRentVsBuyMonteCarlo(
     startingYear: 2025,
     numberOfYears: 25,
     tfsaContributions: true,
+    annualInvestmentFeeRate: 0,
     employmentIncome: params.employmentIncome,
     province,
     renter: {

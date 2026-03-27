@@ -29,7 +29,8 @@ export default function toResults(
           | "condoFees"
           | "downPayment"
           | "purchaseFixedFees"
-          | "insurancePremium";
+          | "insurancePremium"
+          | "investmentFees";
         effectiveInterestRate?: number;
         postedInterestRate?: number;
         fixedRateAdjustment?: number;

@@ -19,10 +19,9 @@ export default function getParamsRentVsBuy(
   startingYear: number;
   numberOfYears: number;
   tfsaContributions: boolean;
+  annualInvestmentFeeRate: number;
   employmentIncome: number;
   renter: {
-    startingMonthlyRent: number;
-    endingMonthlyRent: number;
     securityDeposit: number;
     startingMonthlyInsurance: number;
   };
@@ -73,6 +72,7 @@ export default function getParamsRentVsBuy(
   startingYear: number;
   numberOfYears: number;
   tfsaContributions: boolean;
+  annualInvestmentFeeRate: number;
   employmentIncome: number;
   province:
     | "Alberta"
@@ -368,6 +368,7 @@ export default function getParamsRentVsBuy(
     startingYear: 2001,
     numberOfYears,
     tfsaContributions: true,
+    annualInvestmentFeeRate: 0,
     employmentIncome: 75_000,
     province,
     renter: {

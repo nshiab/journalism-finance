@@ -27,6 +27,7 @@ import mortgageInsurancePremium from "./mortgageInsurancePremium.ts";
  * @param parameters.startingYear - The year the simulation begins.
  * @param parameters.numberOfYears - The duration of the simulation in years.
  * @param parameters.tfsaContributions - Whether to prioritize TFSA contributions for investments (tax-free gains).
+ * @param parameters.annualInvestmentFeeRate - Annual investment fee rate (e.g. ETF MER or platform/advisor fee) expressed as a decimal (e.g. `0.0025` for 0.25%). Applied monthly to TFSA and stock portfolio balances using a multiplicative model — the fee is charged on the grown balance. The monthly dollar cost is also tracked as `investmentFees` under `monthlyExpenses` and `cumulativeExpenses` in the output.
  * @param parameters.couple - Whether to simulate investments and taxes for a couple computing TFSA contributions twice and splitting capital gains in 2. Assumes parameter employmentIncome represents the per-partner income. Defaults to `false`.
  * @param parameters.employmentIncome - The employment income used for calculating income taxes on investment gains.
  * @param parameters.province - The province used to calculate sales tax on the selling fixed fees and commission when selling the home.
@@ -68,7 +69,7 @@ import mortgageInsurancePremium from "./mortgageInsurancePremium.ts";
  *
  * @returns A detailed array of monthly results for each scenario (renter, buyerFixed, buyerVariable).
  * Each object in the array represents a specific data point for a given month, categorized by:
- * - `monthlyExpenses` or `cumulativeExpenses` (e.g., rent, mortgage payments)
+ * - `monthlyExpenses` or `cumulativeExpenses` (e.g., rent, mortgage payments, `investmentFees`)
  * - `monthlyGains` or `cumulativeGains` (e.g., investment gains)
  * - `assets` (e.g., home equity, TFSA)
  * - `summary` (monthly balance)
@@ -100,6 +101,7 @@ import mortgageInsurancePremium from "./mortgageInsurancePremium.ts";
  *   startingYear: 2024,
  *   numberOfYears: 10,
  *   tfsaContributions: true,
+ *   annualInvestmentFeeRate: 0.0025,
  *   employmentIncome: 100000,
  *   province: "Ontario",
  *   renter: {
@@ -130,6 +132,7 @@ export default function simulateRentVsBuy(
     startingYear: number;
     numberOfYears: number;
     tfsaContributions: boolean;
+    annualInvestmentFeeRate: number;
     couple?: boolean;
     employmentIncome: number;
     province:
@@ -207,7 +210,8 @@ export default function simulateRentVsBuy(
         | "condoFees"
         | "downPayment"
         | "purchaseFixedFees"
-        | "insurancePremium";
+        | "insurancePremium"
+        | "investmentFees";
       effectiveInterestRate?: number;
       postedInterestRate?: number;
       fixedRateAdjustment?: number;
@@ -280,7 +284,8 @@ export default function simulateRentVsBuy(
           | "condoFees"
           | "downPayment"
           | "purchaseFixedFees"
-          | "insurancePremium";
+          | "insurancePremium"
+          | "investmentFees";
         effectiveInterestRate?: number;
         postedInterestRate?: number;
         fixedRateAdjustment?: number;
@@ -454,6 +459,7 @@ export default function simulateRentVsBuy(
       maxMonthlyExpenses,
       parameters.tfsaContributions,
       parameters.couple,
+      parameters.annualInvestmentFeeRate,
     );
     computeGains(
       year,
@@ -464,6 +470,7 @@ export default function simulateRentVsBuy(
       maxMonthlyExpenses,
       parameters.tfsaContributions,
       parameters.couple,
+      parameters.annualInvestmentFeeRate,
     );
     computeGains(
       year,
@@ -474,6 +481,7 @@ export default function simulateRentVsBuy(
       maxMonthlyExpenses,
       parameters.tfsaContributions,
       parameters.couple,
+      parameters.annualInvestmentFeeRate,
     );
 
     // Now we simulate a sale of all assets

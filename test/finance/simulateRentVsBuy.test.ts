@@ -28,6 +28,7 @@ Deno.test("documentation example: simulateRentVsBuy should run without errors", 
     startingYear: 2024,
     numberOfYears: 10,
     tfsaContributions: true,
+    annualInvestmentFeeRate: 0,
     employmentIncome: 75_000,
     province: "Ontario",
     renter: {
@@ -80,6 +81,7 @@ Deno.test("simulateRentVsBuy: should apply floor rate to mortgage interest", () 
     startingYear: 2024,
     numberOfYears: 5,
     tfsaContributions: true,
+    annualInvestmentFeeRate: 0,
     employmentIncome: 75_000,
     province: "Ontario",
     renter: {

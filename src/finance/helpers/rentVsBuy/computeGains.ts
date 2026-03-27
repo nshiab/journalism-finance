@@ -7,25 +7,49 @@ export default function computeGains(
   year: number,
   persona: Persona,
   mortgagePayment: MortgagePayment | null,
-  marketReturnRate: number,
+  monthlyMarketReturnRate: number,
   totalMonthlyExpenses: number,
   maxMonthlyExpenses: number,
   tfsaContributions: boolean,
-  couple?: boolean,
+  couple: boolean | undefined,
+  annualInvestmentFeeRate: number,
 ) {
-  // We start by calculating the current month TFSA and stock gains
-  persona.monthlyGains.tfsaGains = round(
-    persona.assets.tfsa * marketReturnRate,
-    {
-      decimals: 2,
-    },
+  // We start by calculating the current month TFSA and stock gains.
+  // The effective monthly rate nets out the annual investment fee (e.g. ETF MER).
+  // Multiplicative combination ensures the fee is charged on the grown balance,
+  // not the starting balance (the cross-term r × f/12 is negligible in practice).
+  const effectiveMonthlyRate = (1 + monthlyMarketReturnRate) *
+      (1 - annualInvestmentFeeRate / 12) - 1;
+
+  // Compute gross and net gains per account, then derive fees as the difference.
+  // This avoids rounding discrepancies between the fee tracker and the gain values.
+  const tfsaGrossGain = round(
+    persona.assets.tfsa * monthlyMarketReturnRate,
+    { decimals: 2 },
   );
-  persona.monthlyGains.stocksGains = round(
-    persona.assets.stocks * marketReturnRate,
-    {
-      decimals: 2,
-    },
+  const tfsaNetGain = round(
+    persona.assets.tfsa * effectiveMonthlyRate,
+    { decimals: 2 },
   );
+  const stocksGrossGain = round(
+    persona.assets.stocks * monthlyMarketReturnRate,
+    { decimals: 2 },
+  );
+  const stocksNetGain = round(
+    persona.assets.stocks * effectiveMonthlyRate,
+    { decimals: 2 },
+  );
+
+  const monthlyInvestmentFees = (tfsaGrossGain - tfsaNetGain) +
+    (stocksGrossGain - stocksNetGain);
+  persona.monthlyExpenses.investmentFees = monthlyInvestmentFees;
+  persona.cumulativeExpenses.investmentFees = round(
+    persona.cumulativeExpenses.investmentFees + monthlyInvestmentFees,
+    { decimals: 2 },
+  );
+
+  persona.monthlyGains.tfsaGains = tfsaNetGain;
+  persona.monthlyGains.stocksGains = stocksNetGain;
 
   persona.cumulativeGains.tfsaGains = round(
     persona.cumulativeGains.tfsaGains +
