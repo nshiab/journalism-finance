@@ -37,8 +37,8 @@ import mortgageInsurancePremium from "./mortgageInsurancePremium.ts";
  * @param parameters.buyer - Configuration for the buyer scenarios.
  *   @param parameters.buyer.downPayment - The down payment amount.
  *   @param parameters.buyer.purchasePrice - The purchase price of the home.
- *   @param parameters.buyer.fixedRateDiscount - The discount applied to the posted fixed mortgage rate.
- *   @param parameters.buyer.variableRateMargin - The margin added to the variable mortgage rate.
+ *   @param parameters.buyer.fixedRateAdjustment - The adjustment applied to the posted fixed mortgage rate (added to the posted rate).
+ *   @param parameters.buyer.variableRateAdjustment - The adjustment applied to the variable mortgage rate (added to the posted rate).
  *   @param parameters.buyer.purchaseFixedFees - Fixed fees associated with the purchase (e.g., notary, land transfer tax).
  *   @param parameters.buyer.startingAnnualMaintenanceCost - The initial annual maintenance cost.
  *   @param parameters.buyer.startingAnnualPropertyTax - The initial annual property tax.
@@ -109,8 +109,8 @@ import mortgageInsurancePremium from "./mortgageInsurancePremium.ts";
  *   buyer: {
  *     downPayment: 100000,
  *     purchasePrice: 500000,
- *     fixedRateDiscount: 1.5,
- *     variableRateMargin: -0.5,
+ *     fixedRateAdjustment: -0.015,
+ *     variableRateAdjustment: -0.005,
  *     purchaseFixedFees: 5000,
  *     startingAnnualMaintenanceCost: 2000,
  *     startingAnnualPropertyTax: 3000,
@@ -152,8 +152,8 @@ export default function simulateRentVsBuy(
     buyer: {
       downPayment: number;
       purchasePrice: number;
-      fixedRateDiscount: number;
-      variableRateMargin: number;
+      fixedRateAdjustment: number;
+      variableRateAdjustment: number;
       purchaseFixedFees: number;
       startingAnnualMaintenanceCost: number;
       startingAnnualPropertyTax: number;
@@ -207,8 +207,8 @@ export default function simulateRentVsBuy(
         | "insurancePremium";
       effectiveInterestRate?: number;
       postedInterestRate?: number;
-      fixedRateDiscount?: number;
-      variableRateMargin?: number;
+      fixedRateAdjustment?: number;
+      variableRateAdjustmentment?: number;
     }
     | {
       group: "monthlyGains" | "cumulativeGains";
@@ -280,8 +280,8 @@ export default function simulateRentVsBuy(
           | "insurancePremium";
         effectiveInterestRate?: number;
         postedInterestRate?: number;
-        fixedRateDiscount?: number;
-        variableRateMargin?: number;
+        fixedRateAdjustment?: number;
+        variableRateAdjustment?: number;
       }
       | {
         group: "monthlyGains" | "cumulativeGains";
@@ -340,8 +340,8 @@ export default function simulateRentVsBuy(
     purchasePrice: 0,
     homeValue: 0,
     insurancePremium: 0,
-    fixedRateDiscount: 0,
-    variableRateMargin: 0,
+    fixedRateAdjustment: 0,
+    variableRateAdjustment: 0,
     purchaseFixedFees: 0,
     startingAnnualMaintenanceCost: 0,
     startingAnnualPropertyTax: 0,
@@ -361,8 +361,8 @@ export default function simulateRentVsBuy(
     purchasePrice: parameters.buyer.purchasePrice,
     insurancePremium,
     homeValue: parameters.buyer.purchasePrice,
-    fixedRateDiscount: parameters.buyer.fixedRateDiscount,
-    variableRateMargin: 0, // No variable rate margin for fixed mortgage
+    fixedRateAdjustment: parameters.buyer.fixedRateAdjustment,
+    variableRateAdjustment: 0, // No variable rate adjustment for fixed mortgage
     purchaseFixedFees: parameters.buyer.purchaseFixedFees,
     startingAnnualMaintenanceCost:
       parameters.buyer.startingAnnualMaintenanceCost,
@@ -379,8 +379,8 @@ export default function simulateRentVsBuy(
     purchasePrice: parameters.buyer.purchasePrice,
     homeValue: parameters.buyer.purchasePrice,
     insurancePremium,
-    fixedRateDiscount: 0, // No fixed rate discount for variable mortgage
-    variableRateMargin: parameters.buyer.variableRateMargin,
+    fixedRateAdjustment: 0, // No fixed rate adjustment for variable mortgage
+    variableRateAdjustment: parameters.buyer.variableRateAdjustment,
     purchaseFixedFees: parameters.buyer.purchaseFixedFees,
     startingAnnualMaintenanceCost:
       parameters.buyer.startingAnnualMaintenanceCost,
@@ -395,8 +395,8 @@ export default function simulateRentVsBuy(
     precomputeMortgagePayments(
       parameters.numberOfYears,
       parameters.buyer.purchasePrice - parameters.buyer.downPayment,
-      parameters.buyer.fixedRateDiscount,
-      parameters.buyer.variableRateMargin,
+      parameters.buyer.fixedRateAdjustment,
+      parameters.buyer.variableRateAdjustment,
       parameters.rates.fiveYearInterestRates,
       parameters.rates.variableInterestRates,
     );

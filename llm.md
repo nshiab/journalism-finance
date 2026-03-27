@@ -237,8 +237,8 @@ function getMortgagePenalty(
     remainingMonthsToTerm: number;
     mortgageBalance: number;
     postedInterestRate: number;
-    rateDiscount: number;
-    rateMargin: number;
+    rateAdjustmentFixed: number;
+    rateAdjustmentVariable: number;
     currentPostedRates: Record<number, number>;
     mortgageType: "fixed" | "variable";
   },
@@ -253,9 +253,10 @@ function getMortgagePenalty(
 - **`parameters.mortgageBalance`**: The current outstanding mortgage balance.
 - **`parameters.postedInterestRate`**: The original posted interest rate when
   the mortgage was signed.
-- **`parameters.rateDiscount`**: The discount received from the posted rate (as
-  a decimal, e.g., 0.01 for 1%).
-- **`parameters.rateMargin`**: Any additional margin added to the rate.
+- **`parameters.rateAdjustmentFixed`**: The adjustment applied to the fixed
+  posted interest rate (added to the posted rate).
+- **`parameters.rateAdjustmentVariable`**: The adjustment applied to the
+  variable posted interest rate (added to the posted rate).
 - **`parameters.currentPostedRates`**: A record mapping term lengths (in years)
   to current posted interest rates.
 - **`parameters.mortgageType`**: Either "fixed" or "variable".
@@ -276,8 +277,8 @@ const penalty = getMortgagePenalty({
   remainingMonthsToTerm: 24,
   mortgageBalance: 300000,
   postedInterestRate: 0.05,
-  rateDiscount: 0.0125,
-  rateMargin: 0,
+  rateAdjustmentFixed: -0.0125,
+  rateAdjustmentVariable: 0,
   currentPostedRates: { 1: 0.045, 2: 0.0475, 3: 0.05, 4: 0.0525, 5: 0.055 },
   mortgageType: "fixed",
 });
@@ -288,8 +289,8 @@ const penalty = getMortgagePenalty({
   remainingMonthsToTerm: 36,
   mortgageBalance: 250000,
   postedInterestRate: 0.06,
-  rateDiscount: 0.01,
-  rateMargin: 0.0025,
+  rateAdjustmentFixed: 0,
+  rateAdjustmentVariable: 0.0025,
   currentPostedRates: {}, // Not used for variable
   mortgageType: "variable",
 });
@@ -820,8 +821,8 @@ function simulateRentVsBuy(
     buyer: {
       downPayment: number;
       purchasePrice: number;
-      fixedRateDiscount: number;
-      variableRateMargin: number;
+      fixedRateAdjustment: number;
+      variableRateAdjustment: number;
       purchaseFixedFees: number;
       startingAnnualMaintenanceCost: number;
       startingAnnualPropertyTax: number;
@@ -875,8 +876,8 @@ function simulateRentVsBuy(
         | "insurancePremium";
       effectiveInterestRate?: number;
       postedInterestRate?: number;
-      fixedRateDiscount?: number;
-      variableRateMargin?: number;
+      fixedRateAdjustment?: number;
+      variableRateAdjustmentment?: number;
     }
     | {
       group: "monthlyGains" | "cumulativeGains";
@@ -941,10 +942,10 @@ function simulateRentVsBuy(
 - **`parameters.buyer`**: Configuration for the buyer scenarios.
 - **`parameters.buyer.downPayment`**: The down payment amount.
 - **`parameters.buyer.purchasePrice`**: The purchase price of the home.
-- **`parameters.buyer.fixedRateDiscount`**: The discount applied to the posted
-  fixed mortgage rate.
-- **`parameters.buyer.variableRateMargin`**: The margin added to the variable
-  mortgage rate.
+- **`parameters.buyer.fixedRateAdjustment`**: The adjustment applied to the
+  posted fixed mortgage rate (added to the posted rate).
+- **`parameters.buyer.variableRateAdjustment`**: The adjustment applied to the
+  variable mortgage rate (added to the posted rate).
 - **`parameters.buyer.purchaseFixedFees`**: Fixed fees associated with the
   purchase (e.g., notary, land transfer tax).
 - **`parameters.buyer.startingAnnualMaintenanceCost`**: The initial annual
@@ -1042,8 +1043,8 @@ const results = simulateRentVsBuy({
   buyer: {
     downPayment: 100000,
     purchasePrice: 500000,
-    fixedRateDiscount: 1.5,
-    variableRateMargin: -0.5,
+    fixedRateAdjustment: -0.015,
+    variableRateAdjustment: 0.005,
     purchaseFixedFees: 5000,
     startingAnnualMaintenanceCost: 2000,
     startingAnnualPropertyTax: 3000,
@@ -1107,8 +1108,8 @@ function simulateRentVsBuyMonteCarlo(
     buyer: {
       downPayment: number;
       purchasePrice: number;
-      fixedRateDiscount: number;
-      variableRateMargin: number;
+      fixedRateAdjustment: number;
+      variableRateAdjustment: number;
       purchaseFixedFees: number;
       startingAnnualMaintenanceCost: number;
       startingAnnualPropertyTax: number;
@@ -1233,10 +1234,10 @@ function simulateRentVsBuyMonteCarlo(
 - **`parameters.buyer.downPayment`**: The total down payment amount paid at the
   start.
 - **`parameters.buyer.purchasePrice`**: The initial purchase price of the home.
-- **`parameters.buyer.fixedRateDiscount`**: The discount applied to the posted
-  fixed mortgage rate (e.g., `1.5` for 1.5% off).
-- **`parameters.buyer.variableRateMargin`**: The margin added or subtracted from
-  the variable mortgage rate.
+- **`parameters.buyer.fixedRateAdjustment`**: The adjustment applied to the
+  posted fixed mortgage rate (added to the posted rate).
+- **`parameters.buyer.variableRateAdjustment`**: The adjustment applied to the
+  variable mortgage rate (added to the posted rate).
 - **`parameters.buyer.purchaseFixedFees`**: One-time costs at purchase (notary,
   land transfer tax, etc.).
 - **`parameters.buyer.startingAnnualMaintenanceCost`**: Initial annual cost for
@@ -1329,8 +1330,8 @@ const results = simulateRentVsBuyMonteCarlo({
   buyer: {
     downPayment: 50000,
     purchasePrice: 400000,
-    fixedRateDiscount: 1.0,
-    variableRateMargin: 0,
+    fixedRateAdjustment: -0.01,
+    variableRateAdjustment: 0,
     purchaseFixedFees: 3000,
     startingAnnualMaintenanceCost: 1500,
     startingAnnualPropertyTax: 2500,

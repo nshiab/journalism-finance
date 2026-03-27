@@ -10,8 +10,8 @@ Deno.test("should return 0 penalty when term is complete (remainingMonthsToTerm 
     remainingMonthsToTerm: 0,
     mortgageBalance: 300_000,
     postedInterestRate: 0.055,
-    rateDiscount: 0.005,
-    rateMargin: 0,
+    rateAdjustmentFixed: -0.005,
+    rateAdjustmentVariable: 0,
     currentPostedRates: { 1: 0.045, 2: 0.0475, 3: 0.05, 5: 0.0525 },
     mortgageType: "fixed",
   });
@@ -25,8 +25,8 @@ Deno.test("should throw an error when no current posted rate is provided for the
         remainingMonthsToTerm: 3 * 12,
         mortgageBalance: 300_000,
         postedInterestRate: 0.055,
-        rateDiscount: 0.005,
-        rateMargin: 0,
+        rateAdjustmentFixed: -0.005,
+        rateAdjustmentVariable: 0,
         currentPostedRates: { 1: 0.045, 2: 0.0475, 5: 0.0525 },
         mortgageType: "fixed",
       }),
@@ -41,8 +41,8 @@ Deno.test("should calculate three months interest penalty when it's greater than
     remainingMonthsToTerm: 2 * 12,
     mortgageBalance: 300_000,
     postedInterestRate: 0.04,
-    rateDiscount: 0.005,
-    rateMargin: 0,
+    rateAdjustmentFixed: -0.005,
+    rateAdjustmentVariable: 0,
     currentPostedRates: { 1: 0.05, 2: 0.055, 3: 0.0575, 5: 0.06 },
     mortgageType: "fixed",
   });
@@ -55,8 +55,8 @@ Deno.test("should calculate IRD penalty when it's greater than three months inte
     remainingMonthsToTerm: 3 * 12,
     mortgageBalance: 400_000,
     postedInterestRate: 0.06,
-    rateDiscount: 0.01,
-    rateMargin: 0,
+    rateAdjustmentFixed: -0.01,
+    rateAdjustmentVariable: 0,
     currentPostedRates: { 1: 0.04, 2: 0.0425, 3: 0.045, 5: 0.0475 },
     mortgageType: "fixed",
   });
@@ -69,8 +69,8 @@ Deno.test("should round remaining years to nearest term for rate lookup", () => 
     remainingMonthsToTerm: 2.4 * 12,
     mortgageBalance: 250_000,
     postedInterestRate: 0.055,
-    rateDiscount: 0.0075,
-    rateMargin: 0,
+    rateAdjustmentFixed: -0.0075,
+    rateAdjustmentVariable: 0,
     currentPostedRates: { 1: 0.045, 2: 0.0475, 3: 0.05, 5: 0.0525 },
     mortgageType: "fixed",
   });
@@ -82,8 +82,8 @@ Deno.test("should use 1 year rate when remaining years rounds to 0", () => {
     remainingMonthsToTerm: 0.4 * 12,
     mortgageBalance: 200_000,
     postedInterestRate: 0.05,
-    rateDiscount: 0.005,
-    rateMargin: 0,
+    rateAdjustmentFixed: -0.005,
+    rateAdjustmentVariable: 0,
     currentPostedRates: { 1: 0.04, 2: 0.045, 3: 0.0475, 5: 0.05 },
     mortgageType: "fixed",
   });
@@ -95,8 +95,8 @@ Deno.test("should handle case where IRD is negative (rates increased)", () => {
     remainingMonthsToTerm: 4 * 12,
     mortgageBalance: 350_000,
     postedInterestRate: 0.035,
-    rateDiscount: 0.0025,
-    rateMargin: 0,
+    rateAdjustmentFixed: -0.0025,
+    rateAdjustmentVariable: 0,
     currentPostedRates: { 1: 0.055, 2: 0.0575, 3: 0.06, 4: 0.0625, 5: 0.065 },
     mortgageType: "fixed",
   });
@@ -108,8 +108,8 @@ Deno.test("should calculate penalty with no rate discount (equal penalties)", ()
     remainingMonthsToTerm: 5 * 12,
     mortgageBalance: 500_000,
     postedInterestRate: 0.05,
-    rateDiscount: 0,
-    rateMargin: 0,
+    rateAdjustmentFixed: -0,
+    rateAdjustmentVariable: 0,
     currentPostedRates: { 1: 0.04, 2: 0.0425, 3: 0.045, 5: 0.0475 },
     mortgageType: "fixed",
   });
@@ -121,8 +121,8 @@ Deno.test("should calculate penalty with no rate discount (IRD higher)", () => {
     remainingMonthsToTerm: 4 * 12,
     mortgageBalance: 600_000,
     postedInterestRate: 0.06,
-    rateDiscount: 0,
-    rateMargin: 0,
+    rateAdjustmentFixed: -0,
+    rateAdjustmentVariable: 0,
     currentPostedRates: { 1: 0.035, 2: 0.0375, 3: 0.04, 4: 0.0425, 5: 0.045 },
     mortgageType: "fixed",
   });
@@ -134,8 +134,8 @@ Deno.test("should calculate penalty for small mortgage balance", () => {
     remainingMonthsToTerm: 1 * 12,
     mortgageBalance: 50_000,
     postedInterestRate: 0.06,
-    rateDiscount: 0.01,
-    rateMargin: 0,
+    rateAdjustmentFixed: -0.01,
+    rateAdjustmentVariable: 0,
     currentPostedRates: { 1: 0.05, 2: 0.0525, 3: 0.055, 5: 0.0575 },
     mortgageType: "fixed",
   });
@@ -146,8 +146,8 @@ Deno.test("should calculate penalty for large mortgage balance", () => {
     remainingMonthsToTerm: 3 * 12,
     mortgageBalance: 1_000_000,
     postedInterestRate: 0.055,
-    rateDiscount: 0.008,
-    rateMargin: 0,
+    rateAdjustmentFixed: -0.008,
+    rateAdjustmentVariable: 0,
     currentPostedRates: { 1: 0.04, 2: 0.0425, 3: 0.045, 5: 0.0475 },
     mortgageType: "fixed",
   });
@@ -160,8 +160,8 @@ Deno.test("should calculate three months interest penalty for variable mortgage"
     remainingMonthsToTerm: 2 * 12,
     mortgageBalance: 300_000,
     postedInterestRate: 0.06,
-    rateDiscount: 0.01,
-    rateMargin: 0,
+    rateAdjustmentFixed: -0.01,
+    rateAdjustmentVariable: 0,
     currentPostedRates: {}, // Not used for variable
     mortgageType: "variable",
   });
@@ -169,13 +169,13 @@ Deno.test("should calculate three months interest penalty for variable mortgage"
   assertEquals(penalty, 3750);
 });
 
-Deno.test("should include rateMargin in variable mortgage penalty", () => {
+Deno.test("should include rateAdjustmentVariable in variable mortgage penalty", () => {
   const penalty = getMortgagePenalty({
     remainingMonthsToTerm: 1 * 12,
     mortgageBalance: 200_000,
     postedInterestRate: 0.05,
-    rateDiscount: 0.005,
-    rateMargin: 0.0025,
+    rateAdjustmentFixed: -0.005,
+    rateAdjustmentVariable: 0.0025,
     currentPostedRates: {},
     mortgageType: "variable",
   });

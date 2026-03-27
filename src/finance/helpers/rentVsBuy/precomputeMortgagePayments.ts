@@ -5,8 +5,8 @@ import variableMortgagePayments from "../../variableMortgagePayments.ts";
 export default function precomputeMortgagePayments(
   numberOfYears: number,
   startingMortgageAmount: number,
-  fixedRateDiscount: number,
-  variableRateMargin: number,
+  fixedRateAdjustment: number,
+  variableRateAdjustment: number,
   fixedInterestRates: number[],
   variableInterestRates: number[],
 ) {
@@ -26,16 +26,21 @@ export default function precomputeMortgagePayments(
     capitalPaid: number;
     effectiveInterestRate: number;
     postedInterestRate: number;
-    fixedRateDiscount: number;
-    variableRateMargin: number;
+    fixedRateAdjustment: number;
+    variableRateAdjustment: number;
   }[] = [];
 
   for (let month = 0; month < numberOfYears * 12; month += TERM_MONTHS) {
     const effectiveInterestRate = round(
-      (fixedInterestRates[month] - fixedRateDiscount) *
+      (fixedInterestRates[month] + fixedRateAdjustment) *
         100,
       { decimals: 2 },
     );
+    if (effectiveInterestRate < 0) {
+      throw new Error(
+        `Effective interest rate cannot be negative. Please check the fixed interest rates and adjustments for month ${month}.`,
+      );
+    }
     const mortgageAmount =
       allFixedMortgagePayments[allFixedMortgagePayments.length - 1]
         ? allFixedMortgagePayments[allFixedMortgagePayments.length - 1].balance
@@ -55,8 +60,8 @@ export default function precomputeMortgagePayments(
           decimals: 4,
         }),
         postedInterestRate: fixedInterestRates[month],
-        fixedRateDiscount: fixedRateDiscount,
-        variableRateMargin: 0, // No rate margin for fixed-rate mortgages
+        fixedRateAdjustment: fixedRateAdjustment,
+        variableRateAdjustment: 0, // No rate adjustment for fixed-rate mortgages
       })),
     );
   }
@@ -72,8 +77,8 @@ export default function precomputeMortgagePayments(
     capitalPaid: number;
     effectiveInterestRate: number;
     postedInterestRate: number;
-    fixedRateDiscount: number;
-    variableRateMargin: number;
+    fixedRateAdjustment: number;
+    variableRateAdjustment: number;
   }[] = [];
 
   if (variableInterestRates.length < numberOfYears * 12) {
@@ -89,7 +94,12 @@ export default function precomputeMortgagePayments(
     const monthlyEffectiveRates = variableInterestRates.slice(
       month,
       month + TERM_MONTHS,
-    ).map((d) => round((d + variableRateMargin) * 100, { decimals: 2 }));
+    ).map((d) => round((d + variableRateAdjustment) * 100, { decimals: 2 }));
+    if (monthlyEffectiveRates.some((rate) => rate < 0)) {
+      throw new Error(
+        `Effective interest rates cannot be negative. Please check the variable interest rates and adjustments for month ${month}.`,
+      );
+    }
     const payments = variableMortgagePayments(
       mortgageAmount,
       monthlyEffectiveRates,
@@ -104,8 +114,8 @@ export default function precomputeMortgagePayments(
         ...payment,
         effectiveInterestRate: round(payment.rate / 100, { decimals: 4 }),
         postedInterestRate: variableInterestRates[month],
-        fixedRateDiscount: 0, // No rate discount for variable-rate mortgages
-        variableRateMargin: variableRateMargin,
+        fixedRateAdjustment: 0, // No rate adjustment for variable-rate mortgages
+        variableRateAdjustment: variableRateAdjustment,
       })),
     );
   }

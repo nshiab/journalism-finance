@@ -32,8 +32,8 @@ export default function toResults(
           | "insurancePremium";
         effectiveInterestRate?: number;
         postedInterestRate?: number;
-        fixedRateDiscount?: number;
-        variableRateMargin?: number;
+        fixedRateAdjustment?: number;
+        variableRateAdjustment?: number;
       }
       | {
         group: "monthlyGains" | "cumulativeGains";
@@ -135,8 +135,8 @@ export default function toResults(
             variable,
             effectiveInterestRate: mortgagePayment.effectiveInterestRate,
             postedInterestRate: mortgagePayment.postedInterestRate,
-            fixedRateDiscount: mortgagePayment.fixedRateDiscount,
-            variableRateMargin: mortgagePayment.variableRateMargin,
+            fixedRateAdjustment: mortgagePayment.fixedRateAdjustment,
+            variableRateAdjustment: mortgagePayment.variableRateAdjustment,
           });
         } else {
           results.push({

@@ -31,8 +31,8 @@ export default function getParamsRentVsBuy(
     endingPurchasePrice: number;
     downPayment: number;
     purchaseFixedFees: number;
-    fixedRateDiscount: number;
-    variableRateMargin: number;
+    fixedRateAdjustment: number;
+    variableRateAdjustment: number;
     startingAnnualMaintenanceCost: number;
     endingAnnualMaintenanceCost: number;
     startingMonthlyCondoFees: number;
@@ -99,8 +99,8 @@ export default function getParamsRentVsBuy(
     endingPurchasePrice: number;
     downPayment: number;
     purchaseFixedFees: number;
-    fixedRateDiscount: number;
-    variableRateMargin: number;
+    fixedRateAdjustment: number;
+    variableRateAdjustment: number;
     startingAnnualMaintenanceCost: number;
     endingAnnualMaintenanceCost: number;
     startingMonthlyCondoFees: number;
@@ -381,8 +381,8 @@ export default function getParamsRentVsBuy(
       endingPurchasePrice: endingHomeValue,
       downPayment: Math.round(purchasePrice * 0.10),
       purchaseFixedFees: Math.round(purchasePrice * 0.02),
-      fixedRateDiscount: 0.01,
-      variableRateMargin: 0.0015,
+      fixedRateAdjustment: -0.01,
+      variableRateAdjustment: 0.0015,
       startingAnnualMaintenanceCost,
       endingAnnualMaintenanceCost,
       startingMonthlyCondoFees,

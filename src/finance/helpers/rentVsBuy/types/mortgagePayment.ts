@@ -9,6 +9,6 @@ export type MortgagePayment = {
   capitalPaid: number;
   effectiveInterestRate: number;
   postedInterestRate: number;
-  fixedRateDiscount: number;
-  variableRateMargin: number;
+  fixedRateAdjustment: number;
+  variableRateAdjustment: number;
 };

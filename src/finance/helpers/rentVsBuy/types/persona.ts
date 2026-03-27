@@ -6,8 +6,8 @@ export type Persona = {
     downPayment: number;
     purchasePrice: number;
     homeValue: number;
-    fixedRateDiscount: number;
-    variableRateMargin: number;
+    fixedRateAdjustment: number;
+    variableRateAdjustment: number;
     purchaseFixedFees: number;
     monthlyMaintenanceCost: number;
     monthlyPropertyTax: number;

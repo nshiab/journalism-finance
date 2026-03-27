@@ -18,8 +18,8 @@ Deno.test("documentation example: simulateRentVsBuyMonteCarlo should run without
     buyer: {
       downPayment: 50000,
       purchasePrice: 400000,
-      fixedRateDiscount: 1.0,
-      variableRateMargin: 0,
+      fixedRateAdjustment: -1.0,
+      variableRateAdjustment: 0,
       purchaseFixedFees: 3000,
       startingAnnualMaintenanceCost: 1500,
       startingAnnualPropertyTax: 2500,

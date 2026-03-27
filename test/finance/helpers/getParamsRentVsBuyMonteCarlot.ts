@@ -60,8 +60,8 @@ export default function getParamsRentVsBuyMonteCarlo(
     purchasePrice: number;
     downPayment: number;
     purchaseFixedFees: number;
-    fixedRateDiscount: number;
-    variableRateMargin: number;
+    fixedRateAdjustment: number;
+    variableRateAdjustment: number;
     startingAnnualMaintenanceCost: number;
     startingMonthlyCondoFees: number;
     startingAnnualPropertyTax: number;
@@ -171,7 +171,7 @@ export default function getParamsRentVsBuyMonteCarlo(
   // RATES
   // Yahoo Finance S&P/TSX
   const marketReturnRate = allRates.filter((d) =>
-    d.geo === "Stock market" && d.variable === "S&P/TSX"
+    d.geo === "Stock market" && d.variable === "Balanced"
   );
   // CPI Canada
   const canadaRenterInsuranceIncrease = allRates.filter((d) =>
@@ -247,8 +247,8 @@ export default function getParamsRentVsBuyMonteCarlo(
       purchasePrice: params.buyer.endingPurchasePrice,
       downPayment: Math.round(params.buyer.endingPurchasePrice * 0.1),
       purchaseFixedFees: Math.round(params.buyer.endingPurchasePrice * 0.02),
-      fixedRateDiscount: 0.01,
-      variableRateMargin: 0.0015,
+      fixedRateAdjustment: -0.01,
+      variableRateAdjustment: 0,
       startingAnnualMaintenanceCost: params.buyer.endingAnnualMaintenanceCost,
       startingMonthlyCondoFees: endingValues.condoFees,
       startingAnnualPropertyTax: params.buyer.endingAnnualPropertyTax,

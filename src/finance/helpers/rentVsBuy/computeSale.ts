@@ -78,8 +78,8 @@ export default function computeSale(
         remainingMonthsToTerm,
         mortgageBalance: mortgagePayment.balance,
         postedInterestRate: mortgagePayment.postedInterestRate,
-        rateDiscount: mortgagePayment.fixedRateDiscount,
-        rateMargin: mortgagePayment.variableRateMargin,
+        rateAdjustmentFixed: mortgagePayment.fixedRateAdjustment,
+        rateAdjustmentVariable: mortgagePayment.variableRateAdjustment,
         currentPostedRates,
         mortgageType,
       });

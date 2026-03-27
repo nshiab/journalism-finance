@@ -10,8 +10,8 @@ import { round } from "@nshiab/journalism-format";
  * @param parameters.remainingMonthsToTerm - Number of months left in the current mortgage term.
  * @param parameters.mortgageBalance - The current outstanding mortgage balance.
  * @param parameters.postedInterestRate - The original posted interest rate when the mortgage was signed.
- * @param parameters.rateDiscount - The discount received from the posted rate (as a decimal, e.g., 0.01 for 1%).
- * @param parameters.rateMargin - Any additional margin added to the rate.
+ * @param parameters.rateAdjustmentFixed - The adjustment applied to the fixed posted interest rate (added to the posted rate).
+ * @param parameters.rateAdjustmentVariable - The adjustment applied to the variable posted interest rate (added to the posted rate).
  * @param parameters.currentPostedRates - A record mapping term lengths (in years) to current posted interest rates.
  * @param parameters.mortgageType - Either "fixed" or "variable".
  * @returns The calculated mortgage penalty rounded to 2 decimal places.
@@ -23,8 +23,8 @@ import { round } from "@nshiab/journalism-format";
  *   remainingMonthsToTerm: 24,
  *   mortgageBalance: 300000,
  *   postedInterestRate: 0.05,
- *   rateDiscount: 0.0125,
- *   rateMargin: 0,
+ *   rateAdjustmentFixed: -0.0125,
+ *   rateAdjustmentVariable: 0,
  *   currentPostedRates: { 1: 0.045, 2: 0.0475, 3: 0.05, 4: 0.0525, 5: 0.055 },
  *   mortgageType: "fixed",
  * });
@@ -36,8 +36,8 @@ import { round } from "@nshiab/journalism-format";
  *   remainingMonthsToTerm: 36,
  *   mortgageBalance: 250000,
  *   postedInterestRate: 0.06,
- *   rateDiscount: 0.01,
- *   rateMargin: 0.0025,
+ *   rateAdjustmentFixed: 0,
+ *   rateAdjustmentVariable: 0.0025,
  *   currentPostedRates: {}, // Not used for variable
  *   mortgageType: "variable",
  * });
@@ -48,8 +48,8 @@ export default function getMortgagePenalty(
     remainingMonthsToTerm: number;
     mortgageBalance: number;
     postedInterestRate: number;
-    rateDiscount: number;
-    rateMargin: number;
+    rateAdjustmentFixed: number;
+    rateAdjustmentVariable: number;
     currentPostedRates: Record<number, number>;
     mortgageType: "fixed" | "variable";
   },
@@ -58,8 +58,8 @@ export default function getMortgagePenalty(
     remainingMonthsToTerm,
     mortgageBalance,
     postedInterestRate,
-    rateDiscount,
-    rateMargin,
+    rateAdjustmentFixed,
+    rateAdjustmentVariable,
     currentPostedRates,
     mortgageType,
   } = parameters;
@@ -69,7 +69,20 @@ export default function getMortgagePenalty(
     return 0;
   }
 
-  const effectiveRate = postedInterestRate - rateDiscount + rateMargin;
+  if (rateAdjustmentFixed !== 0 && rateAdjustmentVariable !== 0) {
+    throw new Error(
+      "Both fixed and variable rate adjustments cannot be non-zero at the same time.",
+    );
+  }
+
+  const effectiveRate = postedInterestRate + rateAdjustmentFixed +
+    rateAdjustmentVariable;
+
+  if (effectiveRate < 0) {
+    throw new Error(
+      "Effective interest rate cannot be negative. Please check the posted interest rate and adjustments.",
+    );
+  }
 
   if (mortgageType === "variable") {
     // Three months interest penalty
@@ -100,7 +113,7 @@ export default function getMortgagePenalty(
     // IRD (Interest Rate Differential) penalty
     const irdRate = Math.max(
       0,
-      effectiveRate - (comparisonRate - rateDiscount),
+      effectiveRate - (comparisonRate + rateAdjustmentFixed),
     );
     const fixedMortgagePenalty = round(
       mortgageBalance * irdRate * remainingYearsToTerm,

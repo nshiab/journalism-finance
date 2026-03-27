@@ -33,8 +33,8 @@ import {
  * @param parameters.buyer - Configuration for the buyer scenarios.
  *   @param parameters.buyer.downPayment - The total down payment amount paid at the start.
  *   @param parameters.buyer.purchasePrice - The initial purchase price of the home.
- *   @param parameters.buyer.fixedRateDiscount - The discount applied to the posted fixed mortgage rate (e.g., `1.5` for 1.5% off).
- *   @param parameters.buyer.variableRateMargin - The margin added or subtracted from the variable mortgage rate.
+ *   @param parameters.buyer.fixedRateAdjustment - The adjustment applied to the posted fixed mortgage rate (added to the posted rate).
+ *   @param parameters.buyer.variableRateAdjustment - The adjustment applied to the variable mortgage rate (added to the posted rate).
  *   @param parameters.buyer.purchaseFixedFees - One-time costs at purchase (notary, land transfer tax, etc.).
  *   @param parameters.buyer.startingAnnualMaintenanceCost - Initial annual cost for home maintenance.
  *   @param parameters.buyer.startingAnnualPropertyTax - Initial annual property tax amount.
@@ -93,8 +93,8 @@ import {
  *   buyer: {
  *     downPayment: 50000,
  *     purchasePrice: 400000,
- *     fixedRateDiscount: 1.0,
- *     variableRateMargin: 0,
+ *     fixedRateAdjustment: -0.01,
+ *     variableRateAdjustment: 0,
  *     purchaseFixedFees: 3000,
  *     startingAnnualMaintenanceCost: 1500,
  *     startingAnnualPropertyTax: 2500,
@@ -155,8 +155,8 @@ export default function simulateRentVsBuyMonteCarlo(
     buyer: {
       downPayment: number;
       purchasePrice: number;
-      fixedRateDiscount: number;
-      variableRateMargin: number;
+      fixedRateAdjustment: number;
+      variableRateAdjustment: number;
       purchaseFixedFees: number;
       startingAnnualMaintenanceCost: number;
       startingAnnualPropertyTax: number;
@@ -384,8 +384,8 @@ export default function simulateRentVsBuyMonteCarlo(
       buyer: {
         downPayment: parameters.buyer.downPayment,
         purchasePrice: parameters.buyer.purchasePrice,
-        fixedRateDiscount: parameters.buyer.fixedRateDiscount,
-        variableRateMargin: parameters.buyer.variableRateMargin,
+        fixedRateAdjustment: parameters.buyer.fixedRateAdjustment,
+        variableRateAdjustment: parameters.buyer.variableRateAdjustment,
         purchaseFixedFees: parameters.buyer.purchaseFixedFees,
         startingAnnualMaintenanceCost:
           parameters.buyer.startingAnnualMaintenanceCost,
