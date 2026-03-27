@@ -16,6 +16,7 @@ export default function getPersona(parameters: {
   startingMonthlyCondoFees: number;
   sellingFixedFees: number;
   sellingCommissionRate: number;
+  floorRate: number;
 }): Persona {
   return {
     params: {
@@ -36,6 +37,7 @@ export default function getPersona(parameters: {
       sellingFixedFees: parameters.sellingFixedFees,
       sellingCommissionRate: parameters.sellingCommissionRate,
       insurancePremium: parameters.insurancePremium,
+      floorRate: parameters.floorRate,
     },
     monthlyExpenses: {
       mortgageCapital: 0,

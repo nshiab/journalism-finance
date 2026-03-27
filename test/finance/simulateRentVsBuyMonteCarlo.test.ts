@@ -27,6 +27,7 @@ Deno.test("documentation example: simulateRentVsBuyMonteCarlo should run without
       startingMonthlyInsurance: 80,
       sellingFixedFees: 1500,
       sellingCommissionRate: 0.05,
+      floorRate: 0,
     },
     gbmParameters: {
       market: { startValue: 0.07, mu: 0.07, sigma: 0.15 },

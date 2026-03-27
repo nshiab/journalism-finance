@@ -68,6 +68,7 @@ export default function getParamsRentVsBuyMonteCarlo(
     startingMonthlyInsurance: number;
     sellingFixedFees: number;
     sellingCommissionRate: number;
+    floorRate: number;
   };
   gbmParameters: {
     market: {
@@ -255,6 +256,7 @@ export default function getParamsRentVsBuyMonteCarlo(
       startingMonthlyInsurance: endingValues.ownerMonthlyInsurance,
       sellingFixedFees: endingValues.sellingFixedFees,
       sellingCommissionRate: 0.04,
+      floorRate: 0,
     },
     gbmParameters: {
       market: {

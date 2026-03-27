@@ -9,6 +9,7 @@ export default function precomputeMortgagePayments(
   variableRateAdjustment: number,
   fixedInterestRates: number[],
   variableInterestRates: number[],
+  floorRate: number,
 ) {
   const TERM_YEARS = 5;
   const TERM_MONTHS = TERM_YEARS * 12;
@@ -32,15 +33,10 @@ export default function precomputeMortgagePayments(
 
   for (let month = 0; month < numberOfYears * 12; month += TERM_MONTHS) {
     const effectiveInterestRate = round(
-      (fixedInterestRates[month] + fixedRateAdjustment) *
+      Math.max(floorRate, fixedInterestRates[month] + fixedRateAdjustment) *
         100,
       { decimals: 2 },
     );
-    if (effectiveInterestRate < 0) {
-      throw new Error(
-        `Effective interest rate cannot be negative. Please check the fixed interest rates and adjustments for month ${month}.`,
-      );
-    }
     const mortgageAmount =
       allFixedMortgagePayments[allFixedMortgagePayments.length - 1]
         ? allFixedMortgagePayments[allFixedMortgagePayments.length - 1].balance
@@ -94,12 +90,11 @@ export default function precomputeMortgagePayments(
     const monthlyEffectiveRates = variableInterestRates.slice(
       month,
       month + TERM_MONTHS,
-    ).map((d) => round((d + variableRateAdjustment) * 100, { decimals: 2 }));
-    if (monthlyEffectiveRates.some((rate) => rate < 0)) {
-      throw new Error(
-        `Effective interest rates cannot be negative. Please check the variable interest rates and adjustments for month ${month}.`,
-      );
-    }
+    ).map((d) =>
+      round(Math.max(floorRate, d + variableRateAdjustment) * 100, {
+        decimals: 2,
+      })
+    );
     const payments = variableMortgagePayments(
       mortgageAmount,
       monthlyEffectiveRates,

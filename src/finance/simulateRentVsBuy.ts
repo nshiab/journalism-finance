@@ -46,6 +46,7 @@ import mortgageInsurancePremium from "./mortgageInsurancePremium.ts";
  *   @param parameters.buyer.startingMonthlyInsurance - The initial monthly homeowner's insurance.
  *   @param parameters.buyer.sellingFixedFees - Fixed fees associated with selling the home (before sales tax).
  *   @param parameters.buyer.sellingCommissionRate - The real estate commission rate for selling the home (e.g., 0.05 for 5%).
+ *   @param parameters.buyer.floorRate - The minimum interest rate (posted + adjustment) for mortgages.
  * @param parameters.rates - Annualized rates and their values over the simulation period. Each array should have a length of `numberOfYears * 12`. These can be historical or projected rates.
  *   @param parameters.rates.marketReturnRate - Monthly market return rates.
  *   @param parameters.rates.rentIncrease - Monthly rent increase rates.
@@ -118,6 +119,7 @@ import mortgageInsurancePremium from "./mortgageInsurancePremium.ts";
  *     startingMonthlyInsurance: 100,
  *     sellingFixedFees: 2000,
  *     sellingCommissionRate: 0.05,
+ *     floorRate: 0,
  *   },
  *   rates
  * }, { finalBalanceOnly: true });
@@ -161,6 +163,7 @@ export default function simulateRentVsBuy(
       startingMonthlyInsurance: number;
       sellingFixedFees: number;
       sellingCommissionRate: number;
+      floorRate: number;
     };
     rates: {
       marketReturnRate: number[];
@@ -348,6 +351,7 @@ export default function simulateRentVsBuy(
     startingMonthlyCondoFees: 0,
     sellingFixedFees: 0,
     sellingCommissionRate: 0,
+    floorRate: 0,
   });
   const insurancePremium = mortgageInsurancePremium(
     parameters.buyer.purchasePrice,
@@ -370,6 +374,7 @@ export default function simulateRentVsBuy(
     startingMonthlyCondoFees: parameters.buyer.startingMonthlyCondoFees,
     sellingFixedFees: parameters.buyer.sellingFixedFees,
     sellingCommissionRate: parameters.buyer.sellingCommissionRate,
+    floorRate: parameters.buyer.floorRate,
   });
   const buyerVariable = getPersona({
     startingMonthlyRent: 0,
@@ -388,6 +393,7 @@ export default function simulateRentVsBuy(
     startingMonthlyCondoFees: parameters.buyer.startingMonthlyCondoFees,
     sellingFixedFees: parameters.buyer.sellingFixedFees,
     sellingCommissionRate: parameters.buyer.sellingCommissionRate,
+    floorRate: parameters.buyer.floorRate,
   });
 
   // We precompute the mortgage payments for the buyer for the entire period
@@ -399,6 +405,7 @@ export default function simulateRentVsBuy(
       parameters.buyer.variableRateAdjustment,
       parameters.rates.fiveYearInterestRates,
       parameters.rates.variableInterestRates,
+      parameters.buyer.floorRate,
     );
 
   const numberOfMonths = parameters.numberOfYears * 12;

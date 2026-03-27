@@ -15,6 +15,7 @@ export type Persona = {
     sellingFixedFees: number;
     sellingCommissionRate: number;
     insurancePremium: number;
+    floorRate: number;
   };
   monthlyExpenses: {
     mortgageCapital: number;

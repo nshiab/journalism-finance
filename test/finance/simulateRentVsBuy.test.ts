@@ -47,11 +47,77 @@ Deno.test("documentation example: simulateRentVsBuy should run without errors", 
       startingMonthlyInsurance: 100,
       sellingFixedFees: 2000,
       sellingCommissionRate: 0.05,
+      floorRate: 0,
     },
     rates,
   }, { finalBalanceOnly: true });
 
   assert(results.length > 0);
+});
+
+Deno.test("simulateRentVsBuy: should apply floor rate to mortgage interest", () => {
+  const rates = {
+    marketReturnRate: new Array(60).fill(0.005),
+    rentIncrease: new Array(60).fill(0.002),
+    ownerInsuranceIncrease: new Array(60).fill(0.002),
+    renterInsuranceIncrease: new Array(60).fill(0.002),
+    maintenanceIncrease: new Array(60).fill(0.002),
+    propertyTaxIncrease: new Array(60).fill(0.002),
+    condoFeeIncrease: new Array(60).fill(0.002),
+    fiveYearInterestRates: new Array(60).fill(0.005), // 0.5%
+    fourYearInterestRates: new Array(60).fill(0.005),
+    threeYearInterestRates: new Array(60).fill(0.005),
+    twoYearInterestRates: new Array(60).fill(0.005),
+    oneYearInterestRates: new Array(60).fill(0.005),
+    variableInterestRates: new Array(60).fill(0.005),
+    appreciationIncrease: new Array(60).fill(0.003),
+    sellingFixedFeesIncrease: new Array(60).fill(0.002),
+  };
+
+  const floorRate = 0.01; // 1%
+
+  const results = simulateRentVsBuy({
+    startingYear: 2024,
+    numberOfYears: 5,
+    tfsaContributions: true,
+    employmentIncome: 75_000,
+    province: "Ontario",
+    renter: {
+      startingMonthlyRent: 2000,
+      securityDeposit: 2000,
+      startingMonthlyInsurance: 30,
+    },
+    buyer: {
+      downPayment: 100000,
+      purchasePrice: 500000,
+      fixedRateAdjustment: -1.0, // This would normally bring 0.005 to -0.995
+      variableRateAdjustment: -1.0,
+      purchaseFixedFees: 5000,
+      startingAnnualMaintenanceCost: 2000,
+      startingAnnualPropertyTax: 3000,
+      startingMonthlyCondoFees: 300,
+      startingMonthlyInsurance: 100,
+      sellingFixedFees: 2000,
+      sellingCommissionRate: 0.05,
+      floorRate,
+    },
+    rates,
+  });
+
+  // Filter to find effective interest rates for fixed and variable scenarios
+  const effectiveRates = results
+    // @ts-ignore: testing internal property
+    .filter((d) =>
+      d.variable === "mortgageCapital" ||
+      (d as any).variable === "mortgageInterest"
+    )
+    .map((d) => (d as any).effectiveInterestRate)
+    .filter((rate) => rate !== undefined);
+
+  assert(effectiveRates.length > 0);
+  effectiveRates.forEach((rate) => {
+    assertEquals(rate, floorRate);
+  });
 });
 
 Deno.test("should compute the total expenses and savings of a renter and buyer in Montreal", async (t) => {

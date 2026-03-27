@@ -75,14 +75,11 @@ export default function getMortgagePenalty(
     );
   }
 
-  const effectiveRate = postedInterestRate + rateAdjustmentFixed +
-    rateAdjustmentVariable;
-
-  if (effectiveRate < 0) {
-    throw new Error(
-      "Effective interest rate cannot be negative. Please check the posted interest rate and adjustments.",
-    );
-  }
+  const effectiveRate = Math.max(
+    0,
+    postedInterestRate + rateAdjustmentFixed +
+      rateAdjustmentVariable,
+  );
 
   if (mortgageType === "variable") {
     // Three months interest penalty

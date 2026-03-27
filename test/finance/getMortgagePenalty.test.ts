@@ -174,12 +174,12 @@ Deno.test("should include rateAdjustmentVariable in variable mortgage penalty", 
     remainingMonthsToTerm: 1 * 12,
     mortgageBalance: 200_000,
     postedInterestRate: 0.05,
-    rateAdjustmentFixed: -0.005,
+    rateAdjustmentFixed: 0,
     rateAdjustmentVariable: 0.0025,
     currentPostedRates: {},
     mortgageType: "variable",
   });
-  // Effective rate = 0.05 - 0.005 + 0.0025 = 0.0475
-  // (200,000 * 0.0475 * 3) / 12 = 2375
-  assertEquals(penalty, 2375);
+  // Effective rate = 0.05 + 0.0025 = 0.0525
+  // (200,000 * 0.0525 * 3) / 12 = 2625
+  assertEquals(penalty, 2625);
 });

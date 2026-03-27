@@ -42,6 +42,7 @@ import {
  *   @param parameters.buyer.startingMonthlyInsurance - Initial monthly homeowner's insurance cost.
  *   @param parameters.buyer.sellingFixedFees - One-time fixed costs when selling the property (before sales tax).
  *   @param parameters.buyer.sellingCommissionRate - The commission rate paid to real estate agents upon sale (e.g., `0.05` for 5%).
+ *   @param parameters.buyer.floorRate - The minimum interest rate (posted + adjustment) for mortgages.
  * @param parameters.gbmParameters - Parameters for the Geometric Brownian Motion models.
  *   Each sub-object (market, rent, etc.) requires:
  *   - `startValue`: The initial annual rate (e.g., 0.05 for 5%).
@@ -102,6 +103,7 @@ import {
  *     startingMonthlyInsurance: 80,
  *     sellingFixedFees: 1500,
  *     sellingCommissionRate: 0.05,
+ *     floorRate: 0,
  *   },
  *   gbmParameters: {
  *     market: { startValue: 0.07, mu: 0.07, sigma: 0.15 },
@@ -164,6 +166,7 @@ export default function simulateRentVsBuyMonteCarlo(
       startingMonthlyInsurance: number;
       sellingFixedFees: number;
       sellingCommissionRate: number;
+      floorRate: number;
     };
     gbmParameters: {
       market: { startValue: number; mu: number; sigma: number };
@@ -394,6 +397,7 @@ export default function simulateRentVsBuyMonteCarlo(
         startingMonthlyInsurance: parameters.buyer.startingMonthlyInsurance,
         sellingFixedFees: parameters.buyer.sellingFixedFees,
         sellingCommissionRate: parameters.buyer.sellingCommissionRate,
+        floorRate: parameters.buyer.floorRate,
       },
       rates: {
         marketReturnRate: prepRatesGbm(

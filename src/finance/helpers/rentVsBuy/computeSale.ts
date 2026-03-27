@@ -74,13 +74,24 @@ export default function computeSale(
       );
       const remainingMonthsToTerm = TERM_MONTHS - (monthIndex % TERM_MONTHS) -
         1;
+
+      // Pre-apply floor rate so the effective rate and IRD comparison both
+      // respect persona.params.floorRate (matching precomputeMortgagePayments).
+      const floorRate = persona.params.floorRate;
+      const flooredCurrentPostedRates: Record<number, number> = Object
+        .fromEntries(
+          Object.entries(currentPostedRates).map(([term, rate]) => [
+            Number(term),
+            Math.max(floorRate, rate + mortgagePayment.fixedRateAdjustment),
+          ]),
+        );
       const mortgagePenalty = getMortgagePenalty({
         remainingMonthsToTerm,
         mortgageBalance: mortgagePayment.balance,
-        postedInterestRate: mortgagePayment.postedInterestRate,
-        rateAdjustmentFixed: mortgagePayment.fixedRateAdjustment,
-        rateAdjustmentVariable: mortgagePayment.variableRateAdjustment,
-        currentPostedRates,
+        postedInterestRate: mortgagePayment.effectiveInterestRate,
+        rateAdjustmentFixed: 0,
+        rateAdjustmentVariable: 0,
+        currentPostedRates: flooredCurrentPostedRates,
         mortgageType,
       });
       persona.saleCosts.mortgagePenalty = mortgagePenalty;
