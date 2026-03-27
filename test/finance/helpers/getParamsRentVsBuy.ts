@@ -147,7 +147,7 @@ export default function getParamsRentVsBuy(
 
   // Renter
   const startingMonthlyRent = allRates.find((d) =>
-    d.geo === city && d.variable === "Two-bedroom rent" && d.year === 2000 &&
+    d.geo === city && d.variable === "Two-bedroom rent" && d.year === 2001 &&
     d.month === 1
   )?.value;
   // console.log(
@@ -156,7 +156,7 @@ export default function getParamsRentVsBuy(
   // );
 
   const endingMonthlyRent = allRates.find((d) =>
-    d.geo === city && d.variable === "Two-bedroom rent" && d.year === 2024 &&
+    d.geo === city && d.variable === "Two-bedroom rent" && d.year === 2025 &&
     d.month === 12
   )?.value!;
   // console.log(
@@ -192,12 +192,12 @@ export default function getParamsRentVsBuy(
     endingValues.renterMonthlyInsurance,
     allRates.find((d) =>
       d.geo === "Canada" && d.variable === "CPI Tenants insurance" &&
-      d.year === 2024 &&
+      d.year === 2025 &&
       d.month === 12
     )!.indexedValue,
     allRates.find((d) =>
       d.geo === "Canada" && d.variable === "CPI Tenants insurance" &&
-      d.year === 2000 &&
+      d.year === 2001 &&
       d.month === 1
     )!.indexedValue,
     { decimals: 0 },
@@ -205,7 +205,7 @@ export default function getParamsRentVsBuy(
 
   // Homeowner
   const purchasePrice = allRates.find((d) =>
-    d.geo === city && d.variable === "Apartment price" && d.year === 2000 &&
+    d.geo === city && d.variable === "Apartment price" && d.year === 2001 &&
     d.month === 1
   )?.value;
 
@@ -213,13 +213,13 @@ export default function getParamsRentVsBuy(
     throw new Error(`No purchase price data for city: ${city}`);
   }
   const endingHomeValue = allRates.find((d) =>
-    d.geo === city && d.variable === "Apartment price" && d.year === 2024 &&
+    d.geo === city && d.variable === "Apartment price" && d.year === 2025 &&
     d.month === 12
   )?.value;
   // console.log("endingHomeValue:", endingHomeValue);
 
   if (endingHomeValue === undefined) {
-    throw new Error(`No purchase price data for city: ${city} in 2024`);
+    throw new Error(`No purchase price data for city: ${city} in 2025 `);
   }
 
   let taxRate;
@@ -282,11 +282,11 @@ export default function getParamsRentVsBuy(
     endingAnnualPropertyTax,
     allRates.find((d) =>
       d.geo === province && d.variable === "CPI Property taxes & others" &&
-      d.year === 2024 && d.month === 12
+      d.year === 2025 && d.month === 12
     )!.indexedValue,
     allRates.find((d) =>
       d.geo === province && d.variable === "CPI Property taxes & others" &&
-      d.year === 2000 && d.month === 1
+      d.year === 2001 && d.month === 1
     )!.indexedValue,
     { decimals: 0 },
   );
@@ -297,11 +297,11 @@ export default function getParamsRentVsBuy(
     endingValues.ownerMonthlyInsurance,
     allRates.find((d) =>
       d.geo === province && d.variable === "CPI Homeowners insurance" &&
-      d.year === 2024 && d.month === 12
+      d.year === 2025 && d.month === 12
     )!.indexedValue,
     allRates.find((d) =>
       d.geo === province && d.variable === "CPI Homeowners insurance" &&
-      d.year === 2000 && d.month === 1
+      d.year === 2001 && d.month === 1
     )!.indexedValue,
     { decimals: 0 },
   );
@@ -309,11 +309,11 @@ export default function getParamsRentVsBuy(
   const startingSellingFixedFees = adjustToInflation(
     endingValues.sellingFixedFees,
     allRates.find((d) =>
-      d.geo === province && d.variable === "CPI All-items" && d.year === 2024 &&
+      d.geo === province && d.variable === "CPI All-items" && d.year === 2025 &&
       d.month === 12
     )!.indexedValue,
     allRates.find((d) =>
-      d.geo === province && d.variable === "CPI All-items" && d.year === 2000 &&
+      d.geo === province && d.variable === "CPI All-items" && d.year === 2001 &&
       d.month === 1
     )!.indexedValue,
     { decimals: 0 },
@@ -324,12 +324,12 @@ export default function getParamsRentVsBuy(
     endingValues.condoFees,
     allRates.find((d) =>
       d.geo === province && d.variable === "CPI Homeowners maintenance" &&
-      d.year === 2024 &&
+      d.year === 2025 &&
       d.month === 12
     )!.indexedValue,
     allRates.find((d) =>
       d.geo === province && d.variable === "CPI Homeowners maintenance" &&
-      d.year === 2000 &&
+      d.year === 2001 &&
       d.month === 1
     )!.indexedValue,
     { decimals: 0 },
@@ -348,12 +348,12 @@ export default function getParamsRentVsBuy(
     endingAnnualMaintenanceCost,
     allRates.find((d) =>
       d.geo === province && d.variable === "CPI Homeowners maintenance" &&
-      d.year === 2024 &&
+      d.year === 2025 &&
       d.month === 12
     )!.indexedValue,
     allRates.find((d) =>
       d.geo === province && d.variable === "CPI Homeowners maintenance" &&
-      d.year === 2000 &&
+      d.year === 2001 &&
       d.month === 1
     )!.indexedValue,
     { decimals: 0 },
@@ -365,7 +365,7 @@ export default function getParamsRentVsBuy(
   // console.log("startingAnnualMaintenanceCost:", startingAnnualMaintenanceCost);
 
   const baseParams = {
-    startingYear: 2000,
+    startingYear: 2001,
     numberOfYears,
     tfsaContributions: true,
     employmentIncome: 75_000,
@@ -400,7 +400,7 @@ export default function getParamsRentVsBuy(
     // RATES
     // Yahoo Finance S&P/TSX
     const marketReturnRate = allRates.filter((d) =>
-      d.geo === "Stock market" && d.variable === "S&P/TSX"
+      d.geo === "Stock market" && d.variable === "Balanced"
     );
     // CPI Canada
     const canadaRenterInsuranceIncrease = allRates.filter((d) =>
