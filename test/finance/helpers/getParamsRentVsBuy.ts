@@ -8,6 +8,10 @@ import allRates from "../../data/allRates.json" with { type: "json" };
 export default function getParamsRentVsBuy(
   city: string,
   province: string,
+  percentages: {
+    downPayment: number;
+    purchaseFixedFees: number;
+  },
   endingValues: {
     renterMonthlyInsurance: number;
     ownerMonthlyInsurance: number;
@@ -22,6 +26,8 @@ export default function getParamsRentVsBuy(
   annualInvestmentFeeRate: number;
   employmentIncome: number;
   renter: {
+    startingMonthlyRent: number;
+    endingMonthlyRent: number;
     securityDeposit: number;
     startingMonthlyInsurance: number;
   };
@@ -40,6 +46,7 @@ export default function getParamsRentVsBuy(
     startingMonthlyInsurance: number;
     sellingFixedFees: number;
     sellingCommissionRate: number;
+    floorRate: number;
   };
 };
 /**
@@ -61,6 +68,10 @@ export default function getParamsRentVsBuy(
     | "Quebec"
     | "Saskatchewan"
     | "Yukon",
+  percentages: {
+    downPayment: number;
+    purchaseFixedFees: number;
+  },
   endingValues: {
     renterMonthlyInsurance: number;
     ownerMonthlyInsurance: number;
@@ -109,6 +120,7 @@ export default function getParamsRentVsBuy(
     startingMonthlyInsurance: number;
     sellingFixedFees: number;
     sellingCommissionRate: number;
+    floorRate: number;
   };
   rates: {
     marketReturnRate: number[];
@@ -132,6 +144,10 @@ export default function getParamsRentVsBuy(
 export default function getParamsRentVsBuy(
   city: string,
   province: string,
+  percentages: {
+    downPayment: number;
+    purchaseFixedFees: number;
+  },
   endingValues: {
     renterMonthlyInsurance: number;
     ownerMonthlyInsurance: number;
@@ -368,7 +384,7 @@ export default function getParamsRentVsBuy(
     startingYear: 2001,
     numberOfYears,
     tfsaContributions: true,
-    annualInvestmentFeeRate: 0,
+    annualInvestmentFeeRate: 0.0025,
     employmentIncome: 75_000,
     province,
     renter: {
@@ -380,8 +396,10 @@ export default function getParamsRentVsBuy(
     buyer: {
       purchasePrice,
       endingPurchasePrice: endingHomeValue,
-      downPayment: Math.round(purchasePrice * 0.10),
-      purchaseFixedFees: Math.round(purchasePrice * 0.02),
+      downPayment: Math.round(purchasePrice * percentages.downPayment),
+      purchaseFixedFees: Math.round(
+        purchasePrice * percentages.purchaseFixedFees,
+      ),
       fixedRateAdjustment: -0.01,
       variableRateAdjustment: 0.0015,
       startingAnnualMaintenanceCost,
@@ -392,6 +410,7 @@ export default function getParamsRentVsBuy(
       startingMonthlyInsurance: ownerStartingMonthlyInsurance,
       sellingFixedFees: startingSellingFixedFees,
       sellingCommissionRate: 0.04,
+      floorRate: 0.01,
     },
   };
 

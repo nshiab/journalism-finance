@@ -75,6 +75,9 @@ Deno.test("documentation example: simulateRentVsBuyMonteCarlo should run without
 
 Deno.test("should run a monte carlo simulation of rent vs buy with 1,000 iterations", async () => {
   const params = getParamsRentVsBuyMonteCarlo(1000, "Montreal", "Quebec", {
+    downPayment: 0.10,
+    purchaseFixedFees: 0.02,
+  }, {
     renterMonthlyInsurance: 70,
     ownerMonthlyInsurance: 125,
     sellingFixedFees: 2000,
@@ -163,6 +166,9 @@ Deno.test("should run a monte carlo simulation of rent vs buy with 1,000 iterati
 });
 Deno.test("should run a monte carlo simulation of rent vs buy with 1,000 iterations and option couple", async () => {
   const params = getParamsRentVsBuyMonteCarlo(1000, "Montreal", "Quebec", {
+    downPayment: 0.10,
+    purchaseFixedFees: 0.02,
+  }, {
     renterMonthlyInsurance: 70,
     ownerMonthlyInsurance: 125,
     sellingFixedFees: 2000,

@@ -124,6 +124,9 @@ Deno.test("simulateRentVsBuy: should apply floor rate to mortgage interest", () 
 
 Deno.test("should compute the total expenses and savings of a renter and buyer in Montreal", async (t) => {
   const params = getParams("Montreal", "Quebec", {
+    downPayment: 0.10,
+    purchaseFixedFees: 0.02,
+  }, {
     renterMonthlyInsurance: 70,
     ownerMonthlyInsurance: 125,
     sellingFixedFees: 2000,
@@ -134,7 +137,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
 
   console.log(params);
 
-  //   const results = simulateRentVsBuy(params);
+  const results = simulateRentVsBuy(params);
 
   //   const mortgageRatesFixedBuyer = results.filter((d) =>
   //     [2000, 2005, 2010, 2015, 2020].includes(d.year) && d.month === 0 &&

@@ -25,6 +25,10 @@ export default function getParamsRentVsBuyMonteCarlo(
     | "Quebec"
     | "Saskatchewan"
     | "Yukon",
+  percentages: {
+    downPayment: number;
+    purchaseFixedFees: number;
+  },
   endingValues: {
     renterMonthlyInsurance: number;
     ownerMonthlyInsurance: number;
@@ -168,7 +172,13 @@ export default function getParamsRentVsBuyMonteCarlo(
 } {
   console.log("\ncity:", city);
 
-  const params = getParamsRentVsBuy(city, province, endingValues, true);
+  const params = getParamsRentVsBuy(
+    city,
+    province,
+    percentages,
+    endingValues,
+    true,
+  );
 
   // RATES
   // Yahoo Finance S&P/TSX
@@ -237,8 +247,8 @@ export default function getParamsRentVsBuyMonteCarlo(
     iterations,
     startingYear: 2025,
     numberOfYears: 25,
-    tfsaContributions: true,
-    annualInvestmentFeeRate: 0,
+    tfsaContributions: params.tfsaContributions,
+    annualInvestmentFeeRate: params.annualInvestmentFeeRate,
     employmentIncome: params.employmentIncome,
     province,
     renter: {
@@ -248,17 +258,21 @@ export default function getParamsRentVsBuyMonteCarlo(
     },
     buyer: {
       purchasePrice: params.buyer.endingPurchasePrice,
-      downPayment: Math.round(params.buyer.endingPurchasePrice * 0.1),
-      purchaseFixedFees: Math.round(params.buyer.endingPurchasePrice * 0.02),
-      fixedRateAdjustment: -0.01,
-      variableRateAdjustment: 0,
+      downPayment: Math.round(
+        params.buyer.endingPurchasePrice * percentages.downPayment,
+      ),
+      purchaseFixedFees: Math.round(
+        params.buyer.endingPurchasePrice * percentages.purchaseFixedFees,
+      ),
+      fixedRateAdjustment: params.buyer.fixedRateAdjustment,
+      variableRateAdjustment: params.buyer.variableRateAdjustment,
       startingAnnualMaintenanceCost: params.buyer.endingAnnualMaintenanceCost,
       startingMonthlyCondoFees: endingValues.condoFees,
       startingAnnualPropertyTax: params.buyer.endingAnnualPropertyTax,
       startingMonthlyInsurance: endingValues.ownerMonthlyInsurance,
       sellingFixedFees: endingValues.sellingFixedFees,
-      sellingCommissionRate: 0.04,
-      floorRate: 0,
+      sellingCommissionRate: params.buyer.sellingCommissionRate,
+      floorRate: params.buyer.floorRate,
     },
     gbmParameters: {
       market: {
