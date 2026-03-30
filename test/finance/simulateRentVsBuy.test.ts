@@ -2005,580 +2005,669 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
     );
   });
 
-  //   const saleCostsLastMonthTotalPerCategory = saleCostsLastMonth.reduce(
-  //     (acc, d) => {
-  //       const key = d.category;
-  //       acc[key] = round((acc[key] || 0) + d.amount, { decimals: 2 });
-  //       return acc;
-  //     },
-  //     {} as Record<string, number>,
-  //   );
+  const saleCostsLastMonthTotalPerCategory = saleCostsLastMonth.reduce(
+    (acc, d) => {
+      const key = d.category;
+      acc[key] = round((acc[key] || 0) + d.amount, { decimals: 2 });
+      return acc;
+    },
+    {} as Record<string, number>,
+  );
+  // console.log(saleCostsLastMonthTotalPerCategory);
 
-  //   await t.step("sale costs last month total per category", async () => {
-  //     assertEquals(saleCostsLastMonthTotalPerCategory, {
-  //       renter: 23156,
-  //       buyerFixed: 21253.61,
-  //       buyerVariable: 22594.61,
-  //     });
-  //   });
+  await t.step("sale costs last month total per category", async () => {
+    assertEquals(saleCostsLastMonthTotalPerCategory, {
+      renter: 53722,
+      buyerFixed: 25053.97,
+      buyerVariable: 24578.15,
+    });
+  });
 
-  //   const saleNetGains = results.filter((d) => d.group === "saleNetGains");
+  const saleNetGains = results.filter((d) => d.group === "saleNetGains");
 
-  //   const saleNetGainsLastMonth = saleNetGains.filter((d) =>
-  //     d.monthIndex === (numberOfYears * 12) - 1 && d.group === "saleNetGains"
-  //   );
+  const saleNetGainsLastMonth = saleNetGains.filter((d) =>
+    d.monthIndex === (numberOfYears * 12) - 1 && d.group === "saleNetGains"
+  );
 
-  //   // console.log(saleNetGainsLastMonth.map((d) => ({
-  //   //   ...d,
-  //   //   date: d.date.toISOString(),
-  //   // })));
+  // console.log(saleNetGainsLastMonth.map((d) => ({
+  //   ...d,
+  //   date: d.date.toISOString(),
+  // })));
 
-  //   await t.step("sale net gains last month", async () => {
-  //     assertEquals(
-  //       saleNetGainsLastMonth.map((d) => ({
-  //         ...d,
-  //         date: d.date.toISOString(),
-  //       })),
-  //       [
-  //         {
-  //           year: 2024,
-  //           month: 11,
-  //           monthIndex: 299,
-  //           date: "2024-12-01T00:00:00.000Z",
-  //           amount: 159811.55,
-  //           category: "renter",
-  //           group: "saleNetGains",
-  //           variable: "stockSellingGains",
-  //         },
-  //         {
-  //           year: 2024,
-  //           month: 11,
-  //           monthIndex: 299,
-  //           date: "2024-12-01T00:00:00.000Z",
-  //           amount: 137898.72,
-  //           category: "renter",
-  //           group: "saleNetGains",
-  //           variable: "tfsaSellingGains",
-  //         },
-  //         {
-  //           year: 2024,
-  //           month: 11,
-  //           monthIndex: 299,
-  //           date: "2024-12-01T00:00:00.000Z",
-  //           amount: 506,
-  //           category: "renter",
-  //           group: "saleNetGains",
-  //           variable: "securityDeposit",
-  //         },
-  //         {
-  //           year: 2024,
-  //           month: 11,
-  //           monthIndex: 299,
-  //           date: "2024-12-01T00:00:00.000Z",
-  //           amount: 390931.76,
-  //           category: "buyerFixed",
-  //           group: "saleNetGains",
-  //           variable: "homeSellingGains",
-  //         },
-  //         {
-  //           year: 2024,
-  //           month: 11,
-  //           monthIndex: 299,
-  //           date: "2024-12-01T00:00:00.000Z",
-  //           amount: 11156.82,
-  //           category: "buyerVariable",
-  //           group: "saleNetGains",
-  //           variable: "stockSellingGains",
-  //         },
-  //         {
-  //           year: 2024,
-  //           month: 11,
-  //           monthIndex: 299,
-  //           date: "2024-12-01T00:00:00.000Z",
-  //           amount: 20786.04,
-  //           category: "buyerVariable",
-  //           group: "saleNetGains",
-  //           variable: "tfsaSellingGains",
-  //         },
-  //         {
-  //           year: 2024,
-  //           month: 11,
-  //           monthIndex: 299,
-  //           date: "2024-12-01T00:00:00.000Z",
-  //           amount: 390931.76,
-  //           category: "buyerVariable",
-  //           group: "saleNetGains",
-  //           variable: "homeSellingGains",
-  //         },
-  //       ],
-  //     );
-  //   });
+  await t.step("sale net gains last month", async () => {
+    assertEquals(
+      saleNetGainsLastMonth.map((d) => ({
+        ...d,
+        date: d.date.toISOString(),
+      })),
+      [
+        {
+          year: 2025,
+          month: 11,
+          monthIndex: 299,
+          date: "2025-12-01T00:00:00.000Z",
+          amount: 253661.92,
+          category: "renter",
+          group: "saleNetGains",
+          variable: "stockSellingGains",
+        },
+        {
+          year: 2025,
+          month: 11,
+          monthIndex: 299,
+          date: "2025-12-01T00:00:00.000Z",
+          amount: 191316.34,
+          category: "renter",
+          group: "saleNetGains",
+          variable: "tfsaSellingGains",
+        },
+        {
+          year: 2025,
+          month: 11,
+          monthIndex: 299,
+          date: "2025-12-01T00:00:00.000Z",
+          amount: 509,
+          category: "renter",
+          group: "saleNetGains",
+          variable: "securityDeposit",
+        },
+        {
+          year: 2025,
+          month: 11,
+          monthIndex: 299,
+          date: "2025-12-01T00:00:00.000Z",
+          amount: 18860.39,
+          category: "buyerFixed",
+          group: "saleNetGains",
+          variable: "stockSellingGains",
+        },
+        {
+          year: 2025,
+          month: 11,
+          monthIndex: 299,
+          date: "2025-12-01T00:00:00.000Z",
+          amount: 403716.03,
+          category: "buyerFixed",
+          group: "saleNetGains",
+          variable: "homeSellingGains",
+        },
+        {
+          year: 2025,
+          month: 11,
+          monthIndex: 299,
+          date: "2025-12-01T00:00:00.000Z",
+          amount: 8720.79,
+          category: "buyerVariable",
+          group: "saleNetGains",
+          variable: "stockSellingGains",
+        },
+        {
+          year: 2025,
+          month: 11,
+          monthIndex: 299,
+          date: "2025-12-01T00:00:00.000Z",
+          amount: 43912.4,
+          category: "buyerVariable",
+          group: "saleNetGains",
+          variable: "tfsaSellingGains",
+        },
+        {
+          year: 2025,
+          month: 11,
+          monthIndex: 299,
+          date: "2025-12-01T00:00:00.000Z",
+          amount: 402370.85,
+          category: "buyerVariable",
+          group: "saleNetGains",
+          variable: "homeSellingGains",
+        },
+      ],
+    );
+  });
 
-  //   const saleNetGainsLastMonthTotalPerCategory = saleNetGainsLastMonth.reduce(
-  //     (acc, d) => {
-  //       const key = d.category;
-  //       acc[key] = round((acc[key] || 0) + d.amount, { decimals: 2 });
-  //       return acc;
-  //     },
-  //     {} as Record<string, number>,
-  //   );
+  const saleNetGainsLastMonthTotalPerCategory = saleNetGainsLastMonth.reduce(
+    (acc, d) => {
+      const key = d.category;
+      acc[key] = round((acc[key] || 0) + d.amount, { decimals: 2 });
+      return acc;
+    },
+    {} as Record<string, number>,
+  );
 
-  //   await t.step("sale net gains last month total per category", async () => {
-  //     assertEquals(saleNetGainsLastMonthTotalPerCategory, {
-  //       renter: 298216.27,
-  //       buyerFixed: 390931.76,
-  //       buyerVariable: 422874.62,
-  //     });
-  //   });
+  // console.log(saleNetGainsLastMonthTotalPerCategory);
 
-  //   // We check the home value on the last month
-  //   const homeValues = results.filter((d) =>
-  //     "homeValue" in d && d.monthIndex === (numberOfYears * 12) - 1
-  //   ).map((d) => ({ ...d, date: d.date.toISOString() }));
+  await t.step("sale net gains last month total per category", async () => {
+    assertEquals(saleNetGainsLastMonthTotalPerCategory, {
+      renter: 445487.26,
+      buyerFixed: 422576.42,
+      buyerVariable: 455004.04,
+    });
+  });
 
-  //   // console.log(homeValues);
+  // We check the home value on the last month
+  const homeValues = results.filter((d) =>
+    "homeValue" in d && d.monthIndex === (numberOfYears * 12) - 1
+  ).map((d) => ({ ...d, date: d.date.toISOString() }));
 
-  //   await t.step("home values last month", async () => {
-  //     assertEquals(
-  //       homeValues,
-  //       [
-  //         {
-  //           year: 2024,
-  //           month: 11,
-  //           monthIndex: 299,
-  //           date: "2024-12-01T00:00:00.000Z",
-  //           amount: 3847.5,
-  //           category: "buyerFixed",
-  //           group: "monthlyGains",
-  //           variable: "homeEquityGains",
-  //           homeValue: 412185.37,
-  //         },
-  //         {
-  //           year: 2024,
-  //           month: 11,
-  //           monthIndex: 299,
-  //           date: "2024-12-01T00:00:00.000Z",
-  //           amount: 3474.74,
-  //           category: "buyerVariable",
-  //           group: "monthlyGains",
-  //           variable: "homeEquityGains",
-  //           homeValue: 412185.37,
-  //         },
-  //       ],
-  //     );
-  //   });
+  // console.log(homeValues);
 
-  //   const overallBalanceAfterSelling = results.filter((d) =>
-  //     d.group === "summaryCumulative" && d.variable === "balanceAfterSelling"
-  //   );
+  await t.step("home values last month", async () => {
+    assertEquals(
+      homeValues,
+      [
+        {
+          year: 2025,
+          month: 11,
+          monthIndex: 299,
+          date: "2025-12-01T00:00:00.000Z",
+          amount: -990.78,
+          category: "buyerFixed",
+          group: "monthlyGains",
+          variable: "homeEquityGains",
+          homeValue: 425585,
+        },
+        {
+          year: 2025,
+          month: 11,
+          monthIndex: 299,
+          date: "2025-12-01T00:00:00.000Z",
+          amount: -1084.87,
+          category: "buyerVariable",
+          group: "monthlyGains",
+          variable: "homeEquityGains",
+          homeValue: 425585,
+        },
+      ],
+    );
+  });
 
-  //   const overallBalanceAfterSellingLastMonth = overallBalanceAfterSelling.filter(
-  //     (d) =>
-  //       d.monthIndex === (numberOfYears * 12) - 1 &&
-  //       d.group === "summaryCumulative" &&
-  //       d.variable === "balanceAfterSelling",
-  //   );
+  const overallBalanceAfterSelling = results.filter((d) =>
+    d.group === "summaryCumulative" && d.variable === "balanceAfterSelling"
+  );
 
-  //   await t.step("overall balance after selling last month", async () => {
-  //     assertEquals(
-  //       overallBalanceAfterSellingLastMonth.map((d) => ({
-  //         ...d,
-  //         date: d.date.toISOString(),
-  //       })),
-  //       [
-  //         {
-  //           year: 2024,
-  //           month: 11,
-  //           monthIndex: 299,
-  //           date: "2024-12-01T00:00:00.000Z",
-  //           amount: 101899.39,
-  //           category: "renter",
-  //           group: "summaryCumulative",
-  //           variable: "balanceAfterSelling",
-  //         },
-  //         {
-  //           year: 2024,
-  //           month: 11,
-  //           monthIndex: 299,
-  //           date: "2024-12-01T00:00:00.000Z",
-  //           amount: 45944.62,
-  //           category: "buyerFixed",
-  //           group: "summaryCumulative",
-  //           variable: "balanceAfterSelling",
-  //         },
-  //         {
-  //           year: 2024,
-  //           month: 11,
-  //           monthIndex: 299,
-  //           date: "2024-12-01T00:00:00.000Z",
-  //           amount: 94755.54,
-  //           category: "buyerVariable",
-  //           group: "summaryCumulative",
-  //           variable: "balanceAfterSelling",
-  //         },
-  //       ],
-  //     );
-  //   });
+  const overallBalanceAfterSellingLastMonth = overallBalanceAfterSelling.filter(
+    (d) =>
+      d.monthIndex === (numberOfYears * 12) - 1 &&
+      d.group === "summaryCumulative" &&
+      d.variable === "balanceAfterSelling",
+  );
 
-  //   const resultsFinalBalanceOnly = simulateRentVsBuy(params, {
-  //     finalBalanceOnly: true,
-  //   });
-  //   // console.log(resultsFinalBalanceOnly.map((d) => ({
-  //   //   ...d,
-  //   //   date: d.date.toISOString(),
-  //   // })));
-  //   await t.step("the final balance only option should work", async () => {
-  //     assertEquals(
-  //       resultsFinalBalanceOnly.map((d) => ({
-  //         ...d,
-  //         date: d.date.toISOString(),
-  //       })),
-  //       [
-  //         {
-  //           year: 2024,
-  //           month: 11,
-  //           monthIndex: 299,
-  //           date: "2024-12-01T00:00:00.000Z",
-  //           amount: 101899.39,
-  //           category: "renter",
-  //           group: "summaryCumulative",
-  //           variable: "balanceAfterSelling",
-  //         },
-  //         {
-  //           year: 2024,
-  //           month: 11,
-  //           monthIndex: 299,
-  //           date: "2024-12-01T00:00:00.000Z",
-  //           amount: 124549.39,
-  //           category: "renter",
-  //           group: "summaryCumulative",
-  //           variable: "balance",
-  //         },
-  //         {
-  //           year: 2024,
-  //           month: 11,
-  //           monthIndex: 299,
-  //           date: "2024-12-01T00:00:00.000Z",
-  //           amount: 45944.62,
-  //           category: "buyerFixed",
-  //           group: "summaryCumulative",
-  //           variable: "balanceAfterSelling",
-  //         },
-  //         {
-  //           year: 2024,
-  //           month: 11,
-  //           monthIndex: 299,
-  //           date: "2024-12-01T00:00:00.000Z",
-  //           amount: 67198.23,
-  //           category: "buyerFixed",
-  //           group: "summaryCumulative",
-  //           variable: "balance",
-  //         },
-  //         {
-  //           year: 2024,
-  //           month: 11,
-  //           monthIndex: 299,
-  //           date: "2024-12-01T00:00:00.000Z",
-  //           amount: 94755.54,
-  //           category: "buyerVariable",
-  //           group: "summaryCumulative",
-  //           variable: "balanceAfterSelling",
-  //         },
-  //         {
-  //           year: 2024,
-  //           month: 11,
-  //           monthIndex: 299,
-  //           date: "2024-12-01T00:00:00.000Z",
-  //           amount: 117350.15,
-  //           category: "buyerVariable",
-  //           group: "summaryCumulative",
-  //           variable: "balance",
-  //         },
-  //       ],
-  //     );
-  //   });
+  // console.log(overallBalanceAfterSellingLastMonth.map((d) => ({
+  //   ...d,
+  //   date: d.date.toISOString(),
+  // })));
 
-  //   assertEquals(true, true);
-  // });
+  await t.step("overall balance after selling last month", async () => {
+    assertEquals(
+      overallBalanceAfterSellingLastMonth.map((d) => ({
+        ...d,
+        date: d.date.toISOString(),
+      })),
+      [
+        {
+          year: 2025,
+          month: 11,
+          monthIndex: 299,
+          date: "2025-12-01T00:00:00.000Z",
+          amount: 246847.22,
+          category: "renter",
+          group: "summaryCumulative",
+          variable: "balanceAfterSelling",
+        },
+        {
+          year: 2025,
+          month: 11,
+          monthIndex: 299,
+          date: "2025-12-01T00:00:00.000Z",
+          amount: 81350.69,
+          category: "buyerFixed",
+          group: "summaryCumulative",
+          variable: "balanceAfterSelling",
+        },
+        {
+          year: 2025,
+          month: 11,
+          monthIndex: 299,
+          date: "2025-12-01T00:00:00.000Z",
+          amount: 131221.91,
+          category: "buyerVariable",
+          group: "summaryCumulative",
+          variable: "balanceAfterSelling",
+        },
+      ],
+    );
+  });
 
-  // Deno.test("should compute the total expenses and savings of a renter and buyer in Montreal with the couple option", async (t) => {
-  //   const params = getParams("Montreal", "Quebec", {
-  //     renterMonthlyInsurance: 70,
-  //     ownerMonthlyInsurance: 125,
-  //     sellingFixedFees: 2000,
-  //     condoFees: 250,
-  //   });
-  //   // Just to trigger massive savings
-  //   params.renter.startingMonthlyRent = 100;
+  const resultsFinalBalanceOnly = simulateRentVsBuy(params, {
+    finalBalanceOnly: true,
+  });
 
-  //   params.renter.securityDeposit = params.renter.startingMonthlyRent;
+  // console.log(resultsFinalBalanceOnly.map((d) => ({
+  //   ...d,
+  //   date: d.date.toISOString(),
+  // })));
 
-  //   const resultsDefault = simulateRentVsBuy(params);
-  //   const resultsCouple = simulateRentVsBuy({ ...params, couple: true });
+  await t.step("the final balance only option should work", async () => {
+    assertEquals(
+      resultsFinalBalanceOnly.map((d) => ({
+        ...d,
+        date: d.date.toISOString(),
+      })),
+      [
+        {
+          year: 2025,
+          month: 11,
+          monthIndex: 299,
+          date: "2025-12-01T00:00:00.000Z",
+          amount: 246847.22,
+          category: "renter",
+          group: "summaryCumulative",
+          variable: "balanceAfterSelling",
+        },
+        {
+          year: 2025,
+          month: 11,
+          monthIndex: 299,
+          date: "2025-12-01T00:00:00.000Z",
+          amount: 300060.22,
+          category: "renter",
+          group: "summaryCumulative",
+          variable: "balance",
+        },
+        {
+          year: 2025,
+          month: 11,
+          monthIndex: 299,
+          date: "2025-12-01T00:00:00.000Z",
+          amount: 81350.69,
+          category: "buyerFixed",
+          group: "summaryCumulative",
+          variable: "balanceAfterSelling",
+        },
+        {
+          year: 2025,
+          month: 11,
+          monthIndex: 299,
+          date: "2025-12-01T00:00:00.000Z",
+          amount: 106404.66,
+          category: "buyerFixed",
+          group: "summaryCumulative",
+          variable: "balance",
+        },
+        {
+          year: 2025,
+          month: 11,
+          monthIndex: 299,
+          date: "2025-12-01T00:00:00.000Z",
+          amount: 131221.91,
+          category: "buyerVariable",
+          group: "summaryCumulative",
+          variable: "balanceAfterSelling",
+        },
+        {
+          year: 2025,
+          month: 11,
+          monthIndex: 299,
+          date: "2025-12-01T00:00:00.000Z",
+          amount: 154454.88,
+          category: "buyerVariable",
+          group: "summaryCumulative",
+          variable: "balance",
+        },
+      ],
+    );
+  });
+});
 
-  //   const tfsaContributionsLastMonthDefault = resultsDefault.filter((d) =>
-  //     d.monthIndex === (numberOfYears * 12) - 1 &&
-  //     d.group === "cumulativeGains" &&
-  //     d.variable === "tfsaContribution"
-  //   );
-  //   const tfsaContributionsLastMonthCouple = resultsCouple.filter((d) =>
-  //     d.monthIndex === (numberOfYears * 12) - 1 &&
-  //     d.group === "cumulativeGains" &&
-  //     d.variable === "tfsaContribution"
-  //   );
+Deno.test("should compute the total expenses and savings of a renter and buyer in Montreal with the couple option", async (t) => {
+  const params = getParams("Montreal", "Quebec", {
+    downPayment: 0.10,
+    purchaseFixedFees: 0.02,
+  }, {
+    renterMonthlyInsurance: 70,
+    ownerMonthlyInsurance: 125,
+    sellingFixedFees: 2000,
+    condoFees: 250,
+  }, false);
+  // Just to trigger massive savings
+  params.renter.startingMonthlyRent = 100;
 
-  //   const stocksLastMonthDefault = resultsDefault.filter((d) =>
-  //     d.monthIndex === (numberOfYears * 12) - 1 && d.group === "assets" &&
-  //     d.variable === "stocks"
-  //   );
-  //   const stocksLastMonthCouple = resultsCouple.filter((d) =>
-  //     d.monthIndex === (numberOfYears * 12) - 1 && d.group === "assets" &&
-  //     d.variable === "stocks"
-  //   );
+  params.renter.securityDeposit = params.renter.startingMonthlyRent;
 
-  //   const stocksGainsLastMonthDefault = resultsDefault.filter((d) =>
-  //     d.monthIndex === (numberOfYears * 12) - 1 &&
-  //     d.group === "cumulativeGains" &&
-  //     d.variable === "stocksGains"
-  //   );
-  //   const stocksGainsLastMonthCouple = resultsCouple.filter((d) =>
-  //     d.monthIndex === (numberOfYears * 12) - 1 &&
-  //     d.group === "cumulativeGains" &&
-  //     d.variable === "stocksGains"
-  //   );
+  const resultsDefault = simulateRentVsBuy(params);
+  const resultsCouple = simulateRentVsBuy({ ...params, couple: true });
 
-  //   const saleCostsLastMonthDefault = resultsDefault.filter((d) =>
-  //     d.monthIndex === (numberOfYears * 12) - 1 && d.group === "saleCosts" &&
-  //     d.variable === "stockTaxes"
-  //   );
-  //   const saleCostsLastMonthCouple = resultsCouple.filter((d) =>
-  //     d.monthIndex === (numberOfYears * 12) - 1 && d.group === "saleCosts" &&
-  //     d.variable === "stockTaxes"
-  //   );
+  const tfsaContributionsLastMonthDefault = resultsDefault.filter((d) =>
+    d.monthIndex === (numberOfYears * 12) - 1 &&
+    d.group === "cumulativeGains" &&
+    d.variable === "tfsaContribution"
+  );
+  const tfsaContributionsLastMonthCouple = resultsCouple.filter((d) =>
+    d.monthIndex === (numberOfYears * 12) - 1 &&
+    d.group === "cumulativeGains" &&
+    d.variable === "tfsaContribution"
+  );
 
-  //   const comparison = {
-  //     tfsaContributionsLastMonthDefault: tfsaContributionsLastMonthDefault.map((
-  //       d,
-  //     ) => ({
-  //       ...d,
-  //       date: d.date.toISOString(),
-  //     })),
-  //     tfsaContributionsLastMonthCouple: tfsaContributionsLastMonthCouple.map((
-  //       d,
-  //     ) => ({
-  //       ...d,
-  //       date: d.date.toISOString(),
-  //     })),
-  //     stocksLastMonthDefault: stocksLastMonthDefault.map((d) => ({
-  //       ...d,
-  //       date: d.date.toISOString(),
-  //     })),
-  //     stocksLastMonthCouple: stocksLastMonthCouple.map((d) => ({
-  //       ...d,
-  //       date: d.date.toISOString(),
-  //     })),
-  //     stocksGainsLastMonthDefault: stocksGainsLastMonthDefault.map((d) => ({
-  //       ...d,
-  //       date: d.date.toISOString(),
-  //     })),
-  //     stocksGainsLastMonthCouple: stocksGainsLastMonthCouple.map((d) => ({
-  //       ...d,
-  //       date: d.date.toISOString(),
-  //     })),
-  //     saleCostsLastMonthDefault: saleCostsLastMonthDefault.map((d) => ({
-  //       ...d,
-  //       date: d.date.toISOString(),
-  //     })),
-  //     saleCostsLastMonthCouple: saleCostsLastMonthCouple.map((d) => ({
-  //       ...d,
-  //       date: d.date.toISOString(),
-  //     })),
-  //   };
+  const stocksLastMonthDefault = resultsDefault.filter((d) =>
+    d.monthIndex === (numberOfYears * 12) - 1 && d.group === "assets" &&
+    d.variable === "stocks"
+  );
+  const stocksLastMonthCouple = resultsCouple.filter((d) =>
+    d.monthIndex === (numberOfYears * 12) - 1 && d.group === "assets" &&
+    d.variable === "stocks"
+  );
 
-  //   await t.step(
-  //     "comparing default and couple",
-  //     async () => {
-  //       assertEquals(
-  //         comparison,
-  //         {
-  //           tfsaContributionsLastMonthDefault: [
-  //             {
-  //               year: 2024,
-  //               month: 11,
-  //               monthIndex: 299,
-  //               date: "2024-12-01T00:00:00.000Z",
-  //               amount: 95000,
-  //               category: "renter",
-  //               group: "cumulativeGains",
-  //               variable: "tfsaContribution",
-  //             },
-  //             {
-  //               year: 2024,
-  //               month: 11,
-  //               monthIndex: 299,
-  //               date: "2024-12-01T00:00:00.000Z",
-  //               amount: 11795.54,
-  //               category: "buyerVariable",
-  //               group: "cumulativeGains",
-  //               variable: "tfsaContribution",
-  //             },
-  //           ],
-  //           tfsaContributionsLastMonthCouple: [
-  //             {
-  //               year: 2024,
-  //               month: 11,
-  //               monthIndex: 299,
-  //               date: "2024-12-01T00:00:00.000Z",
-  //               amount: 176632.88,
-  //               category: "renter",
-  //               group: "cumulativeGains",
-  //               variable: "tfsaContribution",
-  //             },
-  //             {
-  //               year: 2024,
-  //               month: 11,
-  //               monthIndex: 299,
-  //               date: "2024-12-01T00:00:00.000Z",
-  //               amount: 11795.54,
-  //               category: "buyerVariable",
-  //               group: "cumulativeGains",
-  //               variable: "tfsaContribution",
-  //             },
-  //           ],
-  //           stocksLastMonthDefault: [
-  //             {
-  //               year: 2024,
-  //               month: 11,
-  //               monthIndex: 299,
-  //               date: "2024-12-01T00:00:00.000Z",
-  //               amount: 444007.2,
-  //               category: "renter",
-  //               group: "assets",
-  //               variable: "stocks",
-  //             },
-  //             {
-  //               year: 2024,
-  //               month: 11,
-  //               monthIndex: 299,
-  //               date: "2024-12-01T00:00:00.000Z",
-  //               amount: 12497.82,
-  //               category: "buyerVariable",
-  //               group: "assets",
-  //               variable: "stocks",
-  //             },
-  //           ],
-  //           stocksLastMonthCouple: [
-  //             {
-  //               year: 2024,
-  //               month: 11,
-  //               monthIndex: 299,
-  //               date: "2024-12-01T00:00:00.000Z",
-  //               amount: 310977.43,
-  //               category: "renter",
-  //               group: "assets",
-  //               variable: "stocks",
-  //             },
-  //             {
-  //               year: 2024,
-  //               month: 11,
-  //               monthIndex: 299,
-  //               date: "2024-12-01T00:00:00.000Z",
-  //               amount: 12497.82,
-  //               category: "buyerVariable",
-  //               group: "assets",
-  //               variable: "stocks",
-  //             },
-  //           ],
-  //           stocksGainsLastMonthDefault: [
-  //             {
-  //               year: 2024,
-  //               month: 11,
-  //               monthIndex: 299,
-  //               date: "2024-12-01T00:00:00.000Z",
-  //               amount: 247625.01,
-  //               category: "renter",
-  //               group: "cumulativeGains",
-  //               variable: "stocksGains",
-  //             },
-  //             {
-  //               year: 2024,
-  //               month: 11,
-  //               monthIndex: 299,
-  //               date: "2024-12-01T00:00:00.000Z",
-  //               amount: 7425.3,
-  //               category: "buyerVariable",
-  //               group: "cumulativeGains",
-  //               variable: "stocksGains",
-  //             },
-  //           ],
-  //           stocksGainsLastMonthCouple: [
-  //             {
-  //               year: 2024,
-  //               month: 11,
-  //               monthIndex: 299,
-  //               date: "2024-12-01T00:00:00.000Z",
-  //               amount: 196228.12,
-  //               category: "renter",
-  //               group: "cumulativeGains",
-  //               variable: "stocksGains",
-  //             },
-  //             {
-  //               year: 2024,
-  //               month: 11,
-  //               monthIndex: 299,
-  //               date: "2024-12-01T00:00:00.000Z",
-  //               amount: 7425.3,
-  //               category: "buyerVariable",
-  //               group: "cumulativeGains",
-  //               variable: "stocksGains",
-  //             },
-  //           ],
-  //           saleCostsLastMonthDefault: [
-  //             {
-  //               year: 2024,
-  //               month: 11,
-  //               monthIndex: 299,
-  //               date: "2024-12-01T00:00:00.000Z",
-  //               amount: 54771,
-  //               category: "renter",
-  //               group: "saleCosts",
-  //               variable: "stockTaxes",
-  //             },
-  //             {
-  //               year: 2024,
-  //               month: 11,
-  //               monthIndex: 299,
-  //               date: "2024-12-01T00:00:00.000Z",
-  //               amount: 1341,
-  //               category: "buyerVariable",
-  //               group: "saleCosts",
-  //               variable: "stockTaxes",
-  //             },
-  //           ],
-  //           saleCostsLastMonthCouple: [
-  //             {
-  //               year: 2024,
-  //               month: 11,
-  //               monthIndex: 299,
-  //               date: "2024-12-01T00:00:00.000Z",
-  //               amount: 37746,
-  //               category: "renter",
-  //               group: "saleCosts",
-  //               variable: "stockTaxes",
-  //             },
-  //             {
-  //               year: 2024,
-  //               month: 11,
-  //               monthIndex: 299,
-  //               date: "2024-12-01T00:00:00.000Z",
-  //               amount: 1340,
-  //               category: "buyerVariable",
-  //               group: "saleCosts",
-  //               variable: "stockTaxes",
-  //             },
-  //           ],
-  //         },
-  //       );
-  //     },
-  //   );
+  const stocksGainsLastMonthDefault = resultsDefault.filter((d) =>
+    d.monthIndex === (numberOfYears * 12) - 1 &&
+    d.group === "cumulativeGains" &&
+    d.variable === "stocksGains"
+  );
+  const stocksGainsLastMonthCouple = resultsCouple.filter((d) =>
+    d.monthIndex === (numberOfYears * 12) - 1 &&
+    d.group === "cumulativeGains" &&
+    d.variable === "stocksGains"
+  );
+
+  const saleCostsLastMonthDefault = resultsDefault.filter((d) =>
+    d.monthIndex === (numberOfYears * 12) - 1 && d.group === "saleCosts" &&
+    d.variable === "stockTaxes"
+  );
+  const saleCostsLastMonthCouple = resultsCouple.filter((d) =>
+    d.monthIndex === (numberOfYears * 12) - 1 && d.group === "saleCosts" &&
+    d.variable === "stockTaxes"
+  );
+
+  const comparison = {
+    tfsaContributionsLastMonthDefault: tfsaContributionsLastMonthDefault.map((
+      d,
+    ) => ({
+      ...d,
+      date: d.date.toISOString(),
+    })),
+    tfsaContributionsLastMonthCouple: tfsaContributionsLastMonthCouple.map((
+      d,
+    ) => ({
+      ...d,
+      date: d.date.toISOString(),
+    })),
+    stocksLastMonthDefault: stocksLastMonthDefault.map((d) => ({
+      ...d,
+      date: d.date.toISOString(),
+    })),
+    stocksLastMonthCouple: stocksLastMonthCouple.map((d) => ({
+      ...d,
+      date: d.date.toISOString(),
+    })),
+    stocksGainsLastMonthDefault: stocksGainsLastMonthDefault.map((d) => ({
+      ...d,
+      date: d.date.toISOString(),
+    })),
+    stocksGainsLastMonthCouple: stocksGainsLastMonthCouple.map((d) => ({
+      ...d,
+      date: d.date.toISOString(),
+    })),
+    saleCostsLastMonthDefault: saleCostsLastMonthDefault.map((d) => ({
+      ...d,
+      date: d.date.toISOString(),
+    })),
+    saleCostsLastMonthCouple: saleCostsLastMonthCouple.map((d) => ({
+      ...d,
+      date: d.date.toISOString(),
+    })),
+  };
+
+  // console.log(comparison);
+
+  await t.step(
+    "comparing default and couple",
+    async () => {
+      assertEquals(
+        comparison,
+        {
+          tfsaContributionsLastMonthDefault: [
+            {
+              year: 2025,
+              month: 11,
+              monthIndex: 299,
+              date: "2025-12-01T00:00:00.000Z",
+              amount: 102000,
+              category: "renter",
+              group: "cumulativeGains",
+              variable: "tfsaContribution",
+            },
+            {
+              year: 2025,
+              month: 11,
+              monthIndex: 299,
+              date: "2025-12-01T00:00:00.000Z",
+              amount: 19319.46,
+              category: "buyerVariable",
+              group: "cumulativeGains",
+              variable: "tfsaContribution",
+            },
+          ],
+          tfsaContributionsLastMonthCouple: [
+            {
+              year: 2025,
+              month: 11,
+              monthIndex: 299,
+              date: "2025-12-01T00:00:00.000Z",
+              amount: 184912.05,
+              category: "renter",
+              group: "cumulativeGains",
+              variable: "tfsaContribution",
+            },
+            {
+              year: 2025,
+              month: 11,
+              monthIndex: 299,
+              date: "2025-12-01T00:00:00.000Z",
+              amount: 19319.46,
+              category: "buyerVariable",
+              group: "cumulativeGains",
+              variable: "tfsaContribution",
+            },
+          ],
+          stocksLastMonthDefault: [
+            {
+              year: 2025,
+              month: 11,
+              monthIndex: 299,
+              date: "2025-12-01T00:00:00.000Z",
+              amount: 687590.91,
+              category: "renter",
+              group: "assets",
+              variable: "stocks",
+            },
+            {
+              year: 2025,
+              month: 11,
+              monthIndex: 299,
+              date: "2025-12-01T00:00:00.000Z",
+              amount: 22045.39,
+              category: "buyerFixed",
+              group: "assets",
+              variable: "stocks",
+            },
+            {
+              year: 2025,
+              month: 11,
+              monthIndex: 299,
+              date: "2025-12-01T00:00:00.000Z",
+              amount: 10084.79,
+              category: "buyerVariable",
+              group: "assets",
+              variable: "stocks",
+            },
+          ],
+          stocksLastMonthCouple: [
+            {
+              year: 2025,
+              month: 11,
+              monthIndex: 299,
+              date: "2025-12-01T00:00:00.000Z",
+              amount: 503282.45,
+              category: "renter",
+              group: "assets",
+              variable: "stocks",
+            },
+            {
+              year: 2025,
+              month: 11,
+              monthIndex: 299,
+              date: "2025-12-01T00:00:00.000Z",
+              amount: 22045.39,
+              category: "buyerFixed",
+              group: "assets",
+              variable: "stocks",
+            },
+            {
+              year: 2025,
+              month: 11,
+              monthIndex: 299,
+              date: "2025-12-01T00:00:00.000Z",
+              amount: 10084.79,
+              category: "buyerVariable",
+              group: "assets",
+              variable: "stocks",
+            },
+          ],
+          stocksGainsLastMonthDefault: [
+            {
+              year: 2025,
+              month: 11,
+              monthIndex: 299,
+              date: "2025-12-01T00:00:00.000Z",
+              amount: 497825.6,
+              category: "renter",
+              group: "cumulativeGains",
+              variable: "stocksGains",
+              investmentFees: 15031.73,
+            },
+            {
+              year: 2025,
+              month: 11,
+              monthIndex: 299,
+              date: "2025-12-01T00:00:00.000Z",
+              amount: 17633.09,
+              category: "buyerFixed",
+              group: "cumulativeGains",
+              variable: "stocksGains",
+              investmentFees: 547.38,
+            },
+            {
+              year: 2025,
+              month: 11,
+              monthIndex: 299,
+              date: "2025-12-01T00:00:00.000Z",
+              amount: 7548.35,
+              category: "buyerVariable",
+              group: "cumulativeGains",
+              variable: "stocksGains",
+              investmentFees: 227.02,
+            },
+          ],
+          stocksGainsLastMonthCouple: [
+            {
+              year: 2025,
+              month: 11,
+              monthIndex: 299,
+              date: "2025-12-01T00:00:00.000Z",
+              amount: 396429.19,
+              category: "renter",
+              group: "cumulativeGains",
+              variable: "stocksGains",
+              investmentFees: 12274.48,
+            },
+            {
+              year: 2025,
+              month: 11,
+              monthIndex: 299,
+              date: "2025-12-01T00:00:00.000Z",
+              amount: 17633.09,
+              category: "buyerFixed",
+              group: "cumulativeGains",
+              variable: "stocksGains",
+              investmentFees: 547.38,
+            },
+            {
+              year: 2025,
+              month: 11,
+              monthIndex: 299,
+              date: "2025-12-01T00:00:00.000Z",
+              amount: 7548.35,
+              category: "buyerVariable",
+              group: "cumulativeGains",
+              variable: "stocksGains",
+              investmentFees: 227.02,
+            },
+          ],
+          saleCostsLastMonthDefault: [
+            {
+              year: 2025,
+              month: 11,
+              monthIndex: 299,
+              date: "2025-12-01T00:00:00.000Z",
+              amount: 119745,
+              category: "renter",
+              group: "saleCosts",
+              variable: "stockTaxes",
+            },
+            {
+              year: 2025,
+              month: 11,
+              monthIndex: 299,
+              date: "2025-12-01T00:00:00.000Z",
+              amount: 3185,
+              category: "buyerFixed",
+              group: "saleCosts",
+              variable: "stockTaxes",
+            },
+            {
+              year: 2025,
+              month: 11,
+              monthIndex: 299,
+              date: "2025-12-01T00:00:00.000Z",
+              amount: 1364,
+              category: "buyerVariable",
+              group: "saleCosts",
+              variable: "stockTaxes",
+            },
+          ],
+          saleCostsLastMonthCouple: [
+            {
+              year: 2025,
+              month: 11,
+              monthIndex: 299,
+              date: "2025-12-01T00:00:00.000Z",
+              amount: 84982,
+              category: "renter",
+              group: "saleCosts",
+              variable: "stockTaxes",
+            },
+            {
+              year: 2025,
+              month: 11,
+              monthIndex: 299,
+              date: "2025-12-01T00:00:00.000Z",
+              amount: 3184,
+              category: "buyerFixed",
+              group: "saleCosts",
+              variable: "stockTaxes",
+            },
+            {
+              year: 2025,
+              month: 11,
+              monthIndex: 299,
+              date: "2025-12-01T00:00:00.000Z",
+              amount: 1362,
+              category: "buyerVariable",
+              group: "saleCosts",
+              variable: "stockTaxes",
+            },
+          ],
+        },
+      );
+    },
+  );
 });
