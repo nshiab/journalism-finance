@@ -264,7 +264,7 @@ export default function getParamsRentVsBuy(
     taxRate = 0.02728200;
   } else if (city === "Hamilton") {
     taxRate = 0.01424000;
-  } else if (city === "Quebec") {
+  } else if (city === "Quebec city") {
     taxRate = 0.00998720;
   } else if (city === "London") {
     taxRate = 0.01573126;
