@@ -29,7 +29,8 @@ export type Persona = {
     downPayment: number;
     purchaseFixedFees: number;
     insurancePremium: number;
-    investmentFees: number;
+    tfsaFees: number;
+    stocksFees: number;
   };
   cumulativeExpenses: {
     rent: number;
@@ -43,7 +44,8 @@ export type Persona = {
     downPayment: number;
     purchaseFixedFees: number;
     insurancePremium: number;
-    investmentFees: number;
+    tfsaFees: number;
+    stocksFees: number;
   };
   monthlyGains: {
     tfsaGains: number;

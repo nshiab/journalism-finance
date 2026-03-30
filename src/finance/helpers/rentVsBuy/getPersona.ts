@@ -51,7 +51,8 @@ export default function getPersona(parameters: {
       downPayment: 0,
       purchaseFixedFees: 0,
       insurancePremium: 0,
-      investmentFees: 0,
+      tfsaFees: 0,
+      stocksFees: 0,
     },
     cumulativeExpenses: {
       rent: 0,
@@ -65,7 +66,8 @@ export default function getPersona(parameters: {
       downPayment: 0,
       purchaseFixedFees: 0,
       insurancePremium: 0,
-      investmentFees: 0,
+      tfsaFees: 0,
+      stocksFees: 0,
     },
     monthlyGains: {
       tfsaGains: 0,

@@ -9,8 +9,15 @@ export default function computeBalances(
 ) {
   if (!finalBalanceOnly || monthIndex === numberOfMonths - 1) {
     // Monthly balance
-    const totalMonthlyExpenses = Object.values(persona.monthlyExpenses).reduce(
-      (sum, value) => sum + value,
+    const totalMonthlyExpenses = (Object.keys(persona.monthlyExpenses) as Array<
+      keyof typeof persona.monthlyExpenses
+    >).reduce(
+      (sum, key) => {
+        if (key === "tfsaFees" || key === "stocksFees") {
+          return sum;
+        }
+        return sum + persona.monthlyExpenses[key];
+      },
       0,
     );
     const totalMonthlyGains = Object.values(persona.monthlyGains).reduce(
@@ -22,9 +29,17 @@ export default function computeBalances(
     });
 
     // Cumulative balance
-    const totalCumulativeExpenses = Object.values(
+    const totalCumulativeExpenses = (Object.keys(
       persona.cumulativeExpenses,
-    ).reduce((sum, value) => sum + value, 0);
+    ) as Array<keyof typeof persona.cumulativeExpenses>).reduce(
+      (sum, key) => {
+        if (key === "tfsaFees" || key === "stocksFees") {
+          return sum;
+        }
+        return sum + persona.cumulativeExpenses[key];
+      },
+      0,
+    );
     const totalCumulativeGains = Object.values(persona.cumulativeGains).reduce(
       (sum, value) => sum + value,
       0,

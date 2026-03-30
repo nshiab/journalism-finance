@@ -9,6 +9,7 @@ Deno.test("documentation example: simulateRentVsBuyMonteCarlo should run without
     numberOfYears: 25,
     tfsaContributions: true,
     annualInvestmentFeeRate: 0,
+    couple: false,
     employmentIncome: 75000,
     province: "Ontario",
     renter: {
@@ -82,7 +83,7 @@ Deno.test("should run a monte carlo simulation of rent vs buy with 1,000 iterati
     ownerMonthlyInsurance: 125,
     sellingFixedFees: 2000,
     condoFees: 250,
-  });
+  }, false);
 
   // console.log(params);
 
@@ -173,7 +174,7 @@ Deno.test("should run a monte carlo simulation of rent vs buy with 1,000 iterati
     ownerMonthlyInsurance: 125,
     sellingFixedFees: 2000,
     condoFees: 250,
-  });
+  }, false);
 
   // console.log(params);
 

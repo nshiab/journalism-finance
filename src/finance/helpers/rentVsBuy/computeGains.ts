@@ -40,13 +40,19 @@ export default function computeGains(
     { decimals: 2 },
   );
 
-  const monthlyInvestmentFees = (tfsaGrossGain - tfsaNetGain) +
-    (stocksGrossGain - stocksNetGain);
-  persona.monthlyExpenses.investmentFees = round(monthlyInvestmentFees, {
+  persona.monthlyExpenses.tfsaFees = round(tfsaGrossGain - tfsaNetGain, {
     decimals: 2,
   });
-  persona.cumulativeExpenses.investmentFees = round(
-    persona.cumulativeExpenses.investmentFees + monthlyInvestmentFees,
+  persona.monthlyExpenses.stocksFees = round(
+    stocksGrossGain - stocksNetGain,
+    { decimals: 2 },
+  );
+  persona.cumulativeExpenses.tfsaFees = round(
+    persona.cumulativeExpenses.tfsaFees + persona.monthlyExpenses.tfsaFees,
+    { decimals: 2 },
+  );
+  persona.cumulativeExpenses.stocksFees = round(
+    persona.cumulativeExpenses.stocksFees + persona.monthlyExpenses.stocksFees,
     { decimals: 2 },
   );
 

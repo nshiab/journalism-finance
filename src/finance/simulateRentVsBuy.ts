@@ -28,7 +28,7 @@ import mortgageInsurancePremium from "./mortgageInsurancePremium.ts";
  * @param parameters.numberOfYears - The duration of the simulation in years.
  * @param parameters.tfsaContributions - Whether to prioritize TFSA contributions for investments (tax-free gains).
  * @param parameters.annualInvestmentFeeRate - Annual investment fee rate (e.g. ETF MER or platform/advisor fee) expressed as a decimal (e.g. `0.0025` for 0.25%). Applied monthly to TFSA and stock portfolio balances using a multiplicative model — the fee is charged on the grown balance. The monthly dollar cost is also tracked as `investmentFees` under `monthlyExpenses` and `cumulativeExpenses` in the output.
- * @param parameters.couple - Whether to simulate investments and taxes for a couple computing TFSA contributions twice and splitting capital gains in 2. Assumes parameter employmentIncome represents the per-partner income. Defaults to `false`.
+ * @param parameters.couple - Whether to simulate investments and taxes for a couple doubling TFSA contribution room and splitting capital gains in 2. Assumes parameter employmentIncome represents the per-partner income.
  * @param parameters.employmentIncome - The employment income used for calculating income taxes on investment gains.
  * @param parameters.province - The province used to calculate sales tax on the selling fixed fees and commission when selling the home.
  * @param parameters.renter - Configuration for the renter scenario.
@@ -102,6 +102,7 @@ import mortgageInsurancePremium from "./mortgageInsurancePremium.ts";
  *   numberOfYears: 10,
  *   tfsaContributions: true,
  *   annualInvestmentFeeRate: 0.0025,
+ *   couple: false,
  *   employmentIncome: 100000,
  *   province: "Ontario",
  *   renter: {
@@ -133,7 +134,7 @@ export default function simulateRentVsBuy(
     numberOfYears: number;
     tfsaContributions: boolean;
     annualInvestmentFeeRate: number;
-    couple?: boolean;
+    couple: boolean;
     employmentIncome: number;
     province:
       | "Alberta"
@@ -210,12 +211,12 @@ export default function simulateRentVsBuy(
         | "condoFees"
         | "downPayment"
         | "purchaseFixedFees"
-        | "insurancePremium"
-        | "investmentFees";
+        | "insurancePremium";
       effectiveInterestRate?: number;
       postedInterestRate?: number;
       fixedRateAdjustment?: number;
       variableRateAdjustment?: number;
+      investmentFees?: number;
     }
     | {
       group: "monthlyGains" | "cumulativeGains";
@@ -226,6 +227,7 @@ export default function simulateRentVsBuy(
         | "newStocks"
         | "homeEquityGains";
       homeValue?: number;
+      investmentFees?: number;
     }
     | {
       group: "assets";
@@ -284,12 +286,12 @@ export default function simulateRentVsBuy(
           | "condoFees"
           | "downPayment"
           | "purchaseFixedFees"
-          | "insurancePremium"
-          | "investmentFees";
+          | "insurancePremium";
         effectiveInterestRate?: number;
         postedInterestRate?: number;
         fixedRateAdjustment?: number;
         variableRateAdjustment?: number;
+        investmentFees?: number;
       }
       | {
         group: "monthlyGains" | "cumulativeGains";
@@ -300,6 +302,7 @@ export default function simulateRentVsBuy(
           | "newStocks"
           | "homeEquityGains";
         homeValue?: number;
+        investmentFees?: number;
       }
       | {
         group: "assets";
@@ -309,10 +312,7 @@ export default function simulateRentVsBuy(
           | "securityDeposit"
           | "homeEquity";
       }
-      | {
-        group: "summary";
-        variable: "balance";
-      }
+      | { group: "summary"; variable: "balance" }
       | {
         group: "summaryCumulative";
         variable:

@@ -24,7 +24,7 @@ import {
  * @param parameters.numberOfYears - The duration of each simulation in years.
  * @param parameters.tfsaContributions - Whether to prioritize TFSA contributions for investments (tax-free gains).
  * @param parameters.annualInvestmentFeeRate - Annual investment fee rate (e.g. ETF MER or platform/advisor fee) expressed as a decimal (e.g. `0.0025` for 0.25%). Applied monthly to TFSA and stock portfolio balances using a multiplicative model — the fee is charged on the grown balance. The monthly dollar cost is also tracked as `investmentFees` under `monthlyExpenses` and `cumulativeExpenses` in the output.
- * @param parameters.couple - Whether to simulate investments and taxes for a couple computing TFSA contributions twice and splitting capital gains in 2. Assumes parameter employmentIncome represents the per-partner income. Defaults to `false`.
+ * @param parameters.couple - Whether to simulate investments and taxes for a couple doubling TFSA contribution room and splitting capital gains in 2. Assumes parameter employmentIncome represents the per-partner income.
  * @param parameters.employmentIncome - The employment income used for calculating income taxes on investment gains.
  * @param parameters.province - The Canadian province or territory, used for calculating sales taxes.
  * @param parameters.renter - Configuration for the renter scenario.
@@ -86,6 +86,7 @@ import {
  *   numberOfYears: 25,
  *   tfsaContributions: true,
  *   annualInvestmentFeeRate: 0.0025,
+ *   couple: false,
  *   combinedTaxRate: 0.4,
  *   province: "Ontario",
  *   renter: {
@@ -136,7 +137,7 @@ export default function simulateRentVsBuyMonteCarlo(
     numberOfYears: number;
     tfsaContributions: boolean;
     annualInvestmentFeeRate: number;
-    couple?: boolean;
+    couple: boolean;
     employmentIncome: number;
     province:
       | "Alberta"

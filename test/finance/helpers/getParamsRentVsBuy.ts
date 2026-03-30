@@ -18,12 +18,14 @@ export default function getParamsRentVsBuy(
     sellingFixedFees: number;
     condoFees: number;
   },
+  couple: boolean,
   noRates: true,
 ): {
   startingYear: number;
   numberOfYears: number;
   tfsaContributions: boolean;
   annualInvestmentFeeRate: number;
+  couple: boolean;
   employmentIncome: number;
   renter: {
     startingMonthlyRent: number;
@@ -78,12 +80,14 @@ export default function getParamsRentVsBuy(
     sellingFixedFees: number;
     condoFees: number;
   },
+  couple: boolean,
   noRates?: false,
 ): {
   startingYear: number;
   numberOfYears: number;
   tfsaContributions: boolean;
   annualInvestmentFeeRate: number;
+  couple: boolean;
   employmentIncome: number;
   province:
     | "Alberta"
@@ -154,6 +158,7 @@ export default function getParamsRentVsBuy(
     sellingFixedFees: number;
     condoFees: number;
   },
+  couple: boolean,
   noRates?: boolean,
 ) {
   // console.log("\ncity:", city);
@@ -385,6 +390,7 @@ export default function getParamsRentVsBuy(
     numberOfYears,
     tfsaContributions: true,
     annualInvestmentFeeRate: 0.0025,
+    couple,
     employmentIncome: 75_000,
     province,
     renter: {
