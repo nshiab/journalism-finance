@@ -797,7 +797,8 @@ function simulateRentVsBuy(
     startingYear: number;
     numberOfYears: number;
     tfsaContributions: boolean;
-    couple?: boolean;
+    annualInvestmentFeeRate: number;
+    couple: boolean;
     employmentIncome: number;
     province:
       | "Alberta"
@@ -830,6 +831,7 @@ function simulateRentVsBuy(
       startingMonthlyInsurance: number;
       sellingFixedFees: number;
       sellingCommissionRate: number;
+      floorRate: number;
     };
     rates: {
       marketReturnRate: number[];
@@ -878,6 +880,7 @@ function simulateRentVsBuy(
       postedInterestRate?: number;
       fixedRateAdjustment?: number;
       variableRateAdjustment?: number;
+      investmentFees?: number;
     }
     | {
       group: "monthlyGains" | "cumulativeGains";
@@ -888,6 +891,7 @@ function simulateRentVsBuy(
         | "newStocks"
         | "homeEquityGains";
       homeValue?: number;
+      investmentFees?: number;
     }
     | {
       group: "assets";
@@ -926,10 +930,15 @@ function simulateRentVsBuy(
 - **`parameters.numberOfYears`**: The duration of the simulation in years.
 - **`parameters.tfsaContributions`**: Whether to prioritize TFSA contributions
   for investments (tax-free gains).
+- **`parameters.annualInvestmentFeeRate`**: Annual investment fee rate (e.g. ETF
+  MER or platform/advisor fee) expressed as a decimal (e.g. `0.0025` for 0.25%).
+  Applied monthly to TFSA and stock portfolio balances using a multiplicative
+  model — the fee is charged on the grown balance. The monthly dollar cost is
+  also tracked as `investmentFees` under `monthlyExpenses` and
+  `cumulativeExpenses` in the output.
 - **`parameters.couple`**: Whether to simulate investments and taxes for a
-  couple computing TFSA contributions twice and splitting capital gains in 2.
-  Assumes parameter employmentIncome represents the per-partner income. Defaults
-  to `false`.
+  couple doubling TFSA contribution room and splitting capital gains in 2.
+  Assumes parameter employmentIncome represents the per-partner income.
 - **`parameters.employmentIncome`**: The employment income used for calculating
   income taxes on investment gains.
 - **`parameters.province`**: The province used to calculate sales tax on the
@@ -960,6 +969,8 @@ function simulateRentVsBuy(
   the home (before sales tax).
 - **`parameters.buyer.sellingCommissionRate`**: The real estate commission rate
   for selling the home (e.g., 0.05 for 5%).
+- **`parameters.buyer.floorRate`**: The minimum interest rate (posted +
+  adjustment) for mortgages.
 - **`parameters.rates`**: Annualized rates and their values over the simulation
   period. Each array should have a length of `numberOfYears * 12`. These can be
   historical or projected rates.
@@ -1000,7 +1011,8 @@ A detailed array of monthly results for each scenario (renter, buyerFixed,
 buyerVariable). Each object in the array represents a specific data point for a
 given month, categorized by:
 
-- `monthlyExpenses` or `cumulativeExpenses` (e.g., rent, mortgage payments)
+- `monthlyExpenses` or `cumulativeExpenses` (e.g., rent, mortgage payments,
+  `investmentFees`)
 - `monthlyGains` or `cumulativeGains` (e.g., investment gains)
 - `assets` (e.g., home equity, TFSA)
 - `summary` (monthly balance)
@@ -1033,6 +1045,8 @@ const results = simulateRentVsBuy({
   startingYear: 2024,
   numberOfYears: 10,
   tfsaContributions: true,
+  annualInvestmentFeeRate: 0.0025,
+  couple: false,
   employmentIncome: 100000,
   province: "Ontario",
   renter: {
@@ -1044,7 +1058,7 @@ const results = simulateRentVsBuy({
     downPayment: 100000,
     purchasePrice: 500000,
     fixedRateAdjustment: -0.015,
-    variableRateAdjustment: 0.005,
+    variableRateAdjustment: -0.005,
     purchaseFixedFees: 5000,
     startingAnnualMaintenanceCost: 2000,
     startingAnnualPropertyTax: 3000,
@@ -1052,6 +1066,7 @@ const results = simulateRentVsBuy({
     startingMonthlyInsurance: 100,
     sellingFixedFees: 2000,
     sellingCommissionRate: 0.05,
+    floorRate: 0,
   },
   rates,
 }, { finalBalanceOnly: true });
@@ -1084,7 +1099,8 @@ function simulateRentVsBuyMonteCarlo(
     startingYear: number;
     numberOfYears: number;
     tfsaContributions: boolean;
-    couple?: boolean;
+    annualInvestmentFeeRate: number;
+    couple: boolean;
     employmentIncome: number;
     province:
       | "Alberta"
@@ -1117,6 +1133,7 @@ function simulateRentVsBuyMonteCarlo(
       startingMonthlyInsurance: number;
       sellingFixedFees: number;
       sellingCommissionRate: number;
+      floorRate: number;
     };
     gbmParameters: {
       market: { startValue: number; mu: number; sigma: number };
@@ -1216,10 +1233,15 @@ function simulateRentVsBuyMonteCarlo(
 - **`parameters.numberOfYears`**: The duration of each simulation in years.
 - **`parameters.tfsaContributions`**: Whether to prioritize TFSA contributions
   for investments (tax-free gains).
+- **`parameters.annualInvestmentFeeRate`**: Annual investment fee rate (e.g. ETF
+  MER or platform/advisor fee) expressed as a decimal (e.g. `0.0025` for 0.25%).
+  Applied monthly to TFSA and stock portfolio balances using a multiplicative
+  model — the fee is charged on the grown balance. The monthly dollar cost is
+  also tracked as `investmentFees` under `monthlyExpenses` and
+  `cumulativeExpenses` in the output.
 - **`parameters.couple`**: Whether to simulate investments and taxes for a
-  couple computing TFSA contributions twice and splitting capital gains in 2.
-  Assumes parameter employmentIncome represents the per-partner income. Defaults
-  to `false`.
+  couple doubling TFSA contribution room and splitting capital gains in 2.
+  Assumes parameter employmentIncome represents the per-partner income.
 - **`parameters.employmentIncome`**: The employment income used for calculating
   income taxes on investment gains.
 - **`parameters.province`**: The Canadian province or territory, used for
@@ -1252,6 +1274,8 @@ function simulateRentVsBuyMonteCarlo(
   property (before sales tax).
 - **`parameters.buyer.sellingCommissionRate`**: The commission rate paid to real
   estate agents upon sale (e.g., `0.05` for 5%).
+- **`parameters.buyer.floorRate`**: The minimum interest rate (posted +
+  adjustment) for mortgages.
 - **`parameters.gbmParameters`**: Parameters for the Geometric Brownian Motion
   models. Each sub-object (market, rent, etc.) requires: - `startValue`: The
   initial annual rate (e.g., 0.05 for 5%). - `mu`: The drift or expected annual
@@ -1286,8 +1310,7 @@ function simulateRentVsBuyMonteCarlo(
   console, including the current iteration and estimated time remaining. Useful
   for long-running simulations.
 - **`options.verboseStep`**: The frequency of progress logging. For example,
-  setting this to `50` will log progress every 50 iterations. Defaults to `1` if
-  `verbose` is true.
+  setting this to `50` will log progress every 50 iterations. Defaults to `1`.
 - **`options.values`**: If `true`, the function will capture and return detailed
   monthly financial data (such as asset balances and net gains) for every
   iteration of the simulation. Be cautious with high iteration counts as this
@@ -1320,7 +1343,9 @@ const results = simulateRentVsBuyMonteCarlo({
   startingYear: 2024,
   numberOfYears: 25,
   tfsaContributions: true,
-  combinedTaxRate: 0.4,
+  annualInvestmentFeeRate: 0.0025,
+  couple: false,
+  employmentIncome: 80000,
   province: "Ontario",
   renter: {
     startingMonthlyRent: 1500,
@@ -1339,6 +1364,7 @@ const results = simulateRentVsBuyMonteCarlo({
     startingMonthlyInsurance: 80,
     sellingFixedFees: 1500,
     sellingCommissionRate: 0.05,
+    floorRate: 0,
   },
   gbmParameters: {
     market: { startValue: 0.07, mu: 0.07, sigma: 0.15 },
