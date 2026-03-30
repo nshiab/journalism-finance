@@ -400,8 +400,8 @@ export default function getParamsRentVsBuy(
       purchaseFixedFees: Math.round(
         purchasePrice * percentages.purchaseFixedFees,
       ),
-      fixedRateAdjustment: -0.01,
-      variableRateAdjustment: 0.0015,
+      fixedRateAdjustment: -0.0191,
+      variableRateAdjustment: -0.0035,
       startingAnnualMaintenanceCost,
       endingAnnualMaintenanceCost,
       startingMonthlyCondoFees,

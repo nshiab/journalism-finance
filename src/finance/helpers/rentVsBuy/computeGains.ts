@@ -42,7 +42,9 @@ export default function computeGains(
 
   const monthlyInvestmentFees = (tfsaGrossGain - tfsaNetGain) +
     (stocksGrossGain - stocksNetGain);
-  persona.monthlyExpenses.investmentFees = monthlyInvestmentFees;
+  persona.monthlyExpenses.investmentFees = round(monthlyInvestmentFees, {
+    decimals: 2,
+  });
   persona.cumulativeExpenses.investmentFees = round(
     persona.cumulativeExpenses.investmentFees + monthlyInvestmentFees,
     { decimals: 2 },

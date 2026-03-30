@@ -215,7 +215,7 @@ export default function simulateRentVsBuy(
       effectiveInterestRate?: number;
       postedInterestRate?: number;
       fixedRateAdjustment?: number;
-      variableRateAdjustmentment?: number;
+      variableRateAdjustment?: number;
     }
     | {
       group: "monthlyGains" | "cumulativeGains";
