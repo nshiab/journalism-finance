@@ -1,6 +1,6 @@
 import { assert, assertEquals } from "jsr:@std/assert";
 import simulateRentVsBuyMonteCarlo from "../../src/finance/simulateRentVsBuyMonteCarlo.ts";
-import getParamsRentVsBuyMonteCarlo from "./helpers/getParamsRentVsBuyMonteCarlot.ts";
+import getParamsRentVsBuyMonteCarlo from "./helpers/getParamsRentVsBuyMonteCarlo.ts";
 
 Deno.test("documentation example: simulateRentVsBuyMonteCarlo should run without errors", () => {
   const results = simulateRentVsBuyMonteCarlo({
@@ -163,8 +163,17 @@ Deno.test("should run a monte carlo simulation of rent vs buy with 1,000 iterati
     winnerPercentagesBeforeSelling,
   );
 
-  assertEquals(true, true);
+  assertEquals(simulationResults.winners.length, 1000);
+  assertEquals(simulationResults.winnersBeforeSelling.length, 1000);
+
+  // Verify that the sum of percentages is close to 100%
+  const sumPercentages = Object.values(winnerPercentages).reduce(
+    (a, b) => a + b,
+    0,
+  );
+  assert(Math.abs(sumPercentages - 100) <= 2);
 });
+
 Deno.test("should run a monte carlo simulation of rent vs buy with 1,000 iterations and option couple", async () => {
   const params = getParamsRentVsBuyMonteCarlo(1000, "Montreal", "Quebec", {
     downPayment: 0.10,
@@ -257,5 +266,13 @@ Deno.test("should run a monte carlo simulation of rent vs buy with 1,000 iterati
     winnerPercentagesBeforeSelling,
   );
 
-  assertEquals(true, true);
+  assertEquals(simulationResults.winners.length, 1000);
+  assertEquals(simulationResults.winnersBeforeSelling.length, 1000);
+
+  // Verify that the sum of percentages is close to 100%
+  const sumPercentagesCouple = Object.values(winnerPercentages).reduce(
+    (a, b) => a + b,
+    0,
+  );
+  assert(Math.abs(sumPercentagesCouple - 100) <= 2);
 });

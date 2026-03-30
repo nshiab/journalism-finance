@@ -105,10 +105,10 @@ export default function precomputeMortgagePayments(
       },
     );
     allVariableMortgagePayments.push(
-      ...payments.map((payment) => ({
+      ...payments.map((payment, i) => ({
         ...payment,
         effectiveInterestRate: round(payment.rate / 100, { decimals: 4 }),
-        postedInterestRate: variableInterestRates[month],
+        postedInterestRate: variableInterestRates[month + i],
         fixedRateAdjustment: 0, // No rate adjustment for variable-rate mortgages
         variableRateAdjustment: variableRateAdjustment,
       })),

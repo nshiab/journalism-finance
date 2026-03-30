@@ -68,7 +68,7 @@ import {
  *
  * @param options - Additional simulation options.
  *   @param options.verbose - If `true`, logs the simulation's progress to the console, including the current iteration and estimated time remaining. Useful for long-running simulations.
- *   @param options.verboseStep - The frequency of progress logging. For example, setting this to `50` will log progress every 50 iterations. Defaults to `1` if `verbose` is true.
+ *   @param options.verboseStep - The frequency of progress logging. For example, setting this to `50` will log progress every 50 iterations. Defaults to `1`.
  *   @param options.values - If `true`, the function will capture and return detailed monthly financial data (such as asset balances and net gains) for every iteration of the simulation. Be cautious with high iteration counts as this can consume significant memory.
  *   @param options.rates - If `true`, the function will capture and return the exact stochastic interest and appreciation rates generated for every iteration. Useful for auditing the simulation's statistical properties.
  *
@@ -87,7 +87,7 @@ import {
  *   tfsaContributions: true,
  *   annualInvestmentFeeRate: 0.0025,
  *   couple: false,
- *   combinedTaxRate: 0.4,
+ *   employmentIncome: 80000,
  *   province: "Ontario",
  *   renter: {
  *     startingMonthlyRent: 1500,
@@ -371,8 +371,9 @@ export default function simulateRentVsBuyMonteCarlo(
   }
 
   const start = options.verbose ? Date.now() : null;
+  const verboseStep = options.verboseStep || 1;
   for (let i = 0; i < parameters.iterations; i++) {
-    if (options.verbose && i % (options.verboseStep || 1000) === 0) {
+    if (options.verbose && i % verboseStep === 0) {
       console.log(`Simulation ${i} / ${parameters.iterations}`);
     }
 

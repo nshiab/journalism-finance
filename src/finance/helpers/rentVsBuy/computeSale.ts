@@ -37,6 +37,7 @@ export default function computeSale(
     const stockGains = persona.assets.stocks -
       persona.cumulativeGains.newStocks;
 
+    // Note: Stock capital gains taxes are calculated using 2025 rates for all simulation years.
     let stockTaxes = getIncomeTax(employmentIncome, province, 2025, {
       capitalGains: couple ? stockGains / 2 : stockGains,
       quebec: {
@@ -52,7 +53,7 @@ export default function computeSale(
 
     // Then we calculate the home selling costs
     if (mortgagePayment && currentPostedRates && mortgageType) {
-      // Sales tax included
+      // Sales tax included. Note: Sales taxes are calculated using 2025 rates for all simulation years.
       persona.saleCosts.homeSellingCommission = round(
         (persona.params.homeValue * persona.params.sellingCommissionRate) +
           getSalesTax(
@@ -62,7 +63,7 @@ export default function computeSale(
           ).totalTax,
         { decimals: 2 },
       );
-      // Sales tax included
+      // Sales tax included. Note: Sales taxes are calculated using 2025 rates for all simulation years.
       persona.saleCosts.homeSellingFixedFees = round(
         persona.params.sellingFixedFees +
           getSalesTax(
