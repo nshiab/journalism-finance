@@ -2748,3 +2748,53 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
     },
   );
 });
+
+Deno.test("simulateRentVsBuy: annualInvestmentFeeRate should reduce capital gains taxes on stocks", () => {
+  const params = getParams("Montreal", "Quebec", {
+    downPayment: 0.10,
+    purchaseFixedFees: 0.02,
+  }, {
+    renterMonthlyInsurance: 70,
+    ownerMonthlyInsurance: 125,
+    sellingFixedFees: 2000,
+    condoFees: 250,
+  }, false);
+
+  const lastMonthIndex = params.numberOfYears * 12 - 1;
+
+  const resultsNoFee = simulateRentVsBuy({
+    ...params,
+    annualInvestmentFeeRate: 0,
+  });
+  const resultsWithFee = simulateRentVsBuy({
+    ...params,
+    annualInvestmentFeeRate: 0.02,
+  });
+
+  // Fees reduce the stock balance month-over-month, so capital gains (and thus
+  // capital gains taxes) must be strictly lower when fees are charged.
+  const stockTaxesNoFee = resultsNoFee
+    .filter((d) =>
+      d.group === "saleCosts" && d.variable === "stockTaxes" &&
+      d.monthIndex === lastMonthIndex
+    )
+    .map((d) => d.amount);
+  const stockTaxesWithFee = resultsWithFee
+    .filter((d) =>
+      d.group === "saleCosts" && d.variable === "stockTaxes" &&
+      d.monthIndex === lastMonthIndex
+    )
+    .map((d) => d.amount);
+
+  assert(stockTaxesNoFee.length > 0, "expected stockTaxes rows with no fee");
+  assert(stockTaxesWithFee.length > 0, "expected stockTaxes rows with fee");
+
+  for (let i = 0; i < stockTaxesNoFee.length; i++) {
+    assert(
+      stockTaxesWithFee[i] < stockTaxesNoFee[i],
+      `stockTaxes[${i}]: expected ${stockTaxesWithFee[i]} < ${
+        stockTaxesNoFee[i]
+      }`,
+    );
+  }
+});
