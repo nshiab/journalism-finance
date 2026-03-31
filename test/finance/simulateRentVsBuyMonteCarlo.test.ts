@@ -89,6 +89,7 @@ Deno.test("should run a monte carlo simulation of rent vs buy with 1,000 iterati
 
   const simulationResults = simulateRentVsBuyMonteCarlo(params, {
     verbose: true,
+    verboseStep: 100,
     values: true,
     rates: true,
   });
@@ -192,6 +193,7 @@ Deno.test("should run a monte carlo simulation of rent vs buy with 1,000 iterati
     couple: true,
   }, {
     verbose: true,
+    verboseStep: 100,
     values: true,
     rates: true,
   });
@@ -275,4 +277,52 @@ Deno.test("should run a monte carlo simulation of rent vs buy with 1,000 iterati
     0,
   );
   assert(Math.abs(sumPercentagesCouple - 100) <= 2);
+});
+
+Deno.test("should return monthly quantiles when option monthlyQuantiles is true", async () => {
+  const params = getParamsRentVsBuyMonteCarlo(1000, "Montreal", "Quebec", {
+    downPayment: 0.10,
+    purchaseFixedFees: 0.02,
+  }, {
+    renterMonthlyInsurance: 70,
+    ownerMonthlyInsurance: 125,
+    sellingFixedFees: 2000,
+    condoFees: 250,
+  }, false);
+
+  const results = simulateRentVsBuyMonteCarlo(params, {
+    verbose: true,
+    verboseStep: 100,
+    monthlyQuantiles: true,
+  });
+
+  // winners behavior unchanged
+  assertEquals(results.winners.length, 1000);
+  assertEquals(results.winnersBeforeSelling.length, 1000);
+
+  // console.log(results.monthlyQuantiles.slice(0, 3));
+
+  // monthlyQuantiles is populated
+  assert(results.monthlyQuantiles.length > 0);
+
+  // each record has q10 <= q50 <= q90
+  for (const row of results.monthlyQuantiles) {
+    assert(
+      row.q10 <= row.q50,
+      `q10 <= q50 failed for ${row.category}/${row.group}/${row.variable} month ${row.monthIndex}`,
+    );
+    assert(
+      row.q50 <= row.q90,
+      `q50 <= q90 failed for ${row.category}/${row.group}/${row.variable} month ${row.monthIndex}`,
+    );
+  }
+
+  // renter rent variable spans all 300 months (25 years) per group
+  const renterRent = results.monthlyQuantiles.filter(
+    (d) =>
+      d.category === "renter" &&
+      d.group === "monthlyExpenses" &&
+      d.variable === "rent",
+  );
+  assertEquals(renterRent.length, 300);
 });
