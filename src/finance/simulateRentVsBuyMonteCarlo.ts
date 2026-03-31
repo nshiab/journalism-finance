@@ -23,13 +23,13 @@ import {
  * @param parameters.startingYear - The year the simulation begins.
  * @param parameters.numberOfYears - The duration of each simulation in years.
  * @param parameters.tfsaContributions - Whether to prioritize TFSA contributions for investments (tax-free gains).
- * @param parameters.annualInvestmentFeeRate - Annual investment fee rate (e.g. ETF MER or platform/advisor fee) expressed as a decimal (e.g. `0.0025` for 0.25%). Applied monthly to TFSA and stock portfolio balances using a multiplicative model — the fee is charged on the grown balance. The monthly dollar cost is also tracked as `investmentFees` under `monthlyExpenses` and `cumulativeExpenses` in the output.
+ * @param parameters.annualInvestmentFeeRate - Annual investment fee rate (e.g. ETF MER or platform/advisor fee) expressed as a decimal (e.g. `0.0025` for 0.25%). Applied monthly to TFSA and stock portfolio balances using a multiplicative model — the fee is charged on the grown balance. The monthly dollar cost is also tracked as `tfsaFees` and `stocksFees` under `monthlyExpenses` and `cumulativeExpenses` in the output.
  * @param parameters.couple - Whether to simulate investments and taxes for a couple doubling TFSA contribution room and splitting capital gains in 2. Assumes parameter employmentIncome represents the per-partner income.
  * @param parameters.employmentIncome - The employment income used for calculating income taxes on investment gains.
  * @param parameters.province - The Canadian province or territory, used for calculating sales taxes.
  * @param parameters.renter - Configuration for the renter scenario.
  *   @param parameters.renter.startingMonthlyRent - The initial monthly rent payment.
- *   @param parameters.renter.securityDeposit - The initial security deposit (e.g., last month's rent).
+ *   @param parameters.renter.securityDeposit - The initial security deposit or last month's rent (scenario-dependent).
  *   @param parameters.renter.startingMonthlyInsurance - The initial monthly renter's (tenant) insurance cost.
  * @param parameters.buyer - Configuration for the buyer scenarios.
  *   @param parameters.buyer.downPayment - The total down payment amount paid at the start.
@@ -44,27 +44,33 @@ import {
  *   @param parameters.buyer.sellingFixedFees - One-time fixed costs when selling the property (before sales tax).
  *   @param parameters.buyer.sellingCommissionRate - The commission rate paid to real estate agents upon sale (e.g., `0.05` for 5%).
  *   @param parameters.buyer.floorRate - The minimum interest rate (posted + adjustment) for mortgages.
- * @param parameters.gbmParameters - Parameters for the Geometric Brownian Motion models.
- *   Each sub-object (market, rent, etc.) requires:
+ * @param parameters.stochasticParameters - Parameters for the stochastic models.
+ *   For growth rates (market, rent, etc.), uses **Geometric Brownian Motion (GBM)**:
  *   - `startValue`: The initial annual rate (e.g., 0.05 for 5%).
  *   - `mu`: The drift or expected annual growth rate.
  *   - `sigma`: The annual volatility.
- * @param parameters.gbmParameters.market - Market return rates for savings.
- * @param parameters.gbmParameters.rent - Rent increase rates.
- * @param parameters.gbmParameters.ownerInsurance - Homeowner's insurance increase rates.
- * @param parameters.gbmParameters.renterInsurance - Renter's insurance increase rates.
- * @param parameters.gbmParameters.maintenance - Maintenance cost increase rates.
- * @param parameters.gbmParameters.propertyTax - Property tax increase rates.
- * @param parameters.gbmParameters.condoFee - Condo fee increase rates.
- * @param parameters.gbmParameters.appreciation - Home value appreciation rates.
- * @param parameters.gbmParameters.sellingFixedFees - Selling fixed fees increase rates.
- * @param parameters.gbmParameters.fiveYearInterestRates - Parameters for the CIR model for 5-year fixed rates.
- *   Requires `a` (speed of mean reversion), `b` (long-term mean), `sigma` (volatility), and `startValue`.
- * @param parameters.gbmParameters.fourYearInterestRates - Parameters for the CIR model for 4-year fixed rates.
- * @param parameters.gbmParameters.threeYearInterestRates - Parameters for the CIR model for 3-year fixed rates.
- * @param parameters.gbmParameters.twoYearInterestRates - Parameters for the CIR model for 2-year fixed rates.
- * @param parameters.gbmParameters.oneYearInterestRates - Parameters for the CIR model for 1-year fixed rates.
- * @param parameters.gbmParameters.variableInterestRates - Parameters for the CIR model for variable rates.
+ *
+ *   For interest rates (fiveYear, variable, etc.), uses **Cox-Ingersoll-Ross (CIR)**:
+ *   - `startValue`: The initial annual interest rate.
+ *   - `a`: Speed of mean reversion.
+ *   - `b`: Long-term mean.
+ *   - `sigma`: Annual volatility.
+ *
+ * @param parameters.stochasticParameters.market - Market return rates for savings (GBM).
+ * @param parameters.stochasticParameters.rent - Rent increase rates (GBM).
+ * @param parameters.stochasticParameters.ownerInsurance - Homeowner's insurance increase rates (GBM).
+ * @param parameters.stochasticParameters.renterInsurance - Renter's insurance increase rates (GBM).
+ * @param parameters.stochasticParameters.maintenance - Maintenance cost increase rates (GBM).
+ * @param parameters.stochasticParameters.propertyTax - Property tax increase rates (GBM).
+ * @param parameters.stochasticParameters.condoFee - Condo fee increase rates (GBM).
+ * @param parameters.stochasticParameters.appreciation - Home value appreciation rates (GBM).
+ * @param parameters.stochasticParameters.sellingFixedFees - Selling fixed fees increase rates (GBM).
+ * @param parameters.stochasticParameters.fiveYearInterestRates - 5-year fixed interest rates (CIR).
+ * @param parameters.stochasticParameters.fourYearInterestRates - 4-year fixed interest rates (CIR).
+ * @param parameters.stochasticParameters.threeYearInterestRates - 3-year fixed interest rates (CIR).
+ * @param parameters.stochasticParameters.twoYearInterestRates - 2-year fixed interest rates (CIR).
+ * @param parameters.stochasticParameters.oneYearInterestRates - 1-year fixed interest rates (CIR).
+ * @param parameters.stochasticParameters.variableInterestRates - Variable interest rates (CIR).
  *
  * @param options - Additional simulation options.
  *   @param options.verbose - If `true`, logs the simulation's progress to the console, including the current iteration and estimated time remaining. Useful for long-running simulations.
@@ -108,7 +114,7 @@ import {
  *     sellingCommissionRate: 0.05,
  *     floorRate: 0,
  *   },
- *   gbmParameters: {
+ *   stochasticParameters: {
  *     market: { startValue: 0.07, mu: 0.07, sigma: 0.15 },
  *     rent: { startValue: 0.03, mu: 0.03, sigma: 0.02 },
  *     ownerInsurance: { startValue: 0.03, mu: 0.03, sigma: 0.05 },
@@ -172,7 +178,7 @@ export default function simulateRentVsBuyMonteCarlo(
       sellingCommissionRate: number;
       floorRate: number;
     };
-    gbmParameters: {
+    stochasticParameters: {
       market: { startValue: number; mu: number; sigma: number };
       rent: { startValue: number; mu: number; sigma: number };
       ownerInsurance: { startValue: number; mu: number; sigma: number };
@@ -409,77 +415,77 @@ export default function simulateRentVsBuyMonteCarlo(
         marketReturnRate: prepRatesGbm(
           i,
           "S&P/TSX",
-          parameters.gbmParameters.market,
+          parameters.stochasticParameters.market,
         ),
         rentIncrease: prepRatesGbm(
           i,
           "rent",
-          parameters.gbmParameters.rent,
+          parameters.stochasticParameters.rent,
         ),
         renterInsuranceIncrease: prepRatesGbm(
           i,
           "renter insurance",
-          parameters.gbmParameters.renterInsurance,
+          parameters.stochasticParameters.renterInsurance,
         ),
         ownerInsuranceIncrease: prepRatesGbm(
           i,
           "owner insurance",
-          parameters.gbmParameters.ownerInsurance,
+          parameters.stochasticParameters.ownerInsurance,
         ),
         maintenanceIncrease: prepRatesGbm(
           i,
           "maintenance costs",
-          parameters.gbmParameters.maintenance,
+          parameters.stochasticParameters.maintenance,
         ),
         propertyTaxIncrease: prepRatesGbm(
           i,
           "property taxes",
-          parameters.gbmParameters.propertyTax,
+          parameters.stochasticParameters.propertyTax,
         ),
         condoFeeIncrease: prepRatesGbm(
           i,
           "condo fees",
-          parameters.gbmParameters.condoFee,
+          parameters.stochasticParameters.condoFee,
         ),
         appreciationIncrease: prepRatesGbm(
           i,
           "property appreciation",
-          parameters.gbmParameters.appreciation,
+          parameters.stochasticParameters.appreciation,
         ),
         sellingFixedFeesIncrease: prepRatesGbm(
           i,
           "selling fixed fees",
-          parameters.gbmParameters.sellingFixedFees,
+          parameters.stochasticParameters.sellingFixedFees,
         ),
         fiveYearInterestRates: prepRatesCir(
           i,
           "five year interest rates",
-          parameters.gbmParameters.fiveYearInterestRates,
+          parameters.stochasticParameters.fiveYearInterestRates,
         ),
         fourYearInterestRates: prepRatesCir(
           i,
           "four year interest rates",
-          parameters.gbmParameters.fourYearInterestRates,
+          parameters.stochasticParameters.fourYearInterestRates,
         ),
         threeYearInterestRates: prepRatesCir(
           i,
           "three year interest rates",
-          parameters.gbmParameters.threeYearInterestRates,
+          parameters.stochasticParameters.threeYearInterestRates,
         ),
         twoYearInterestRates: prepRatesCir(
           i,
           "two year interest rates",
-          parameters.gbmParameters.twoYearInterestRates,
+          parameters.stochasticParameters.twoYearInterestRates,
         ),
         oneYearInterestRates: prepRatesCir(
           i,
           "one year interest rates",
-          parameters.gbmParameters.oneYearInterestRates,
+          parameters.stochasticParameters.oneYearInterestRates,
         ),
         variableInterestRates: prepRatesCir(
           i,
           "variable interest rates",
-          parameters.gbmParameters.variableInterestRates,
+          parameters.stochasticParameters.variableInterestRates,
         ),
       },
     }, { finalBalanceOnly: true });

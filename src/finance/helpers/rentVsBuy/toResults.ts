@@ -29,12 +29,13 @@ export default function toResults(
           | "condoFees"
           | "downPayment"
           | "purchaseFixedFees"
-          | "insurancePremium";
+          | "insurancePremium"
+          | "tfsaFees"
+          | "stocksFees";
         effectiveInterestRate?: number;
         postedInterestRate?: number;
         fixedRateAdjustment?: number;
         variableRateAdjustment?: number;
-        investmentFees?: number;
       }
       | {
         group: "monthlyGains" | "cumulativeGains";
@@ -45,7 +46,6 @@ export default function toResults(
           | "newStocks"
           | "homeEquityGains";
         homeValue?: number;
-        investmentFees?: number;
       }
       | {
         group: "assets";
@@ -122,8 +122,7 @@ export default function toResults(
       >
     ) {
       if (
-        persona.monthlyExpenses[variable] !== 0 && variable !== "tfsaFees" &&
-        variable !== "stocksFees"
+        persona.monthlyExpenses[variable] !== 0
       ) {
         if (
           (variable === "mortgageCapital" ||
@@ -165,8 +164,7 @@ export default function toResults(
       >
     ) {
       if (
-        persona.cumulativeExpenses[variable] !== 0 && variable !== "tfsaFees" &&
-        variable !== "stocksFees"
+        persona.cumulativeExpenses[variable] !== 0
       ) {
         results.push({
           year,
@@ -206,7 +204,7 @@ export default function toResults(
             homeValue: persona.params.homeValue,
           });
         } else {
-          const result: typeof results[number] = {
+          results.push({
             year,
             month,
             monthIndex,
@@ -215,13 +213,7 @@ export default function toResults(
             category,
             group: "monthlyGains",
             variable,
-          };
-          if (variable === "tfsaGains") {
-            result.investmentFees = persona.monthlyExpenses.tfsaFees;
-          } else if (variable === "stocksGains") {
-            result.investmentFees = persona.monthlyExpenses.stocksFees;
-          }
-          results.push(result);
+          });
         }
       }
     }
@@ -233,7 +225,7 @@ export default function toResults(
       >
     ) {
       if (persona.cumulativeGains[variable] !== 0) {
-        const result: typeof results[number] = {
+        results.push({
           year,
           month,
           monthIndex,
@@ -242,13 +234,7 @@ export default function toResults(
           category,
           group: "cumulativeGains",
           variable,
-        };
-        if (variable === "tfsaGains") {
-          result.investmentFees = persona.cumulativeExpenses.tfsaFees;
-        } else if (variable === "stocksGains") {
-          result.investmentFees = persona.cumulativeExpenses.stocksFees;
-        }
-        results.push(result);
+        });
       }
     }
 

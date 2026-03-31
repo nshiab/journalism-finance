@@ -71,11 +71,11 @@ export default function computeGains(
   );
 
   persona.assets.tfsa = round(
-    persona.assets.tfsa + persona.monthlyGains.tfsaGains,
+    persona.assets.tfsa + tfsaNetGain,
     { decimals: 2 },
   );
   persona.assets.stocks = round(
-    persona.assets.stocks + persona.monthlyGains.stocksGains,
+    persona.assets.stocks + stocksNetGain,
     { decimals: 2 },
   );
 

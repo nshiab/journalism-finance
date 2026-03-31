@@ -27,7 +27,7 @@ import mortgageInsurancePremium from "./mortgageInsurancePremium.ts";
  * @param parameters.startingYear - The year the simulation begins.
  * @param parameters.numberOfYears - The duration of the simulation in years.
  * @param parameters.tfsaContributions - Whether to prioritize TFSA contributions for investments (tax-free gains).
- * @param parameters.annualInvestmentFeeRate - Annual investment fee rate (e.g. ETF MER or platform/advisor fee) expressed as a decimal (e.g. `0.0025` for 0.25%). Applied monthly to TFSA and stock portfolio balances using a multiplicative model — the fee is charged on the grown balance. The monthly dollar cost is also tracked as `investmentFees` under `monthlyExpenses` and `cumulativeExpenses` in the output.
+ * @param parameters.annualInvestmentFeeRate - Annual investment fee rate (e.g. ETF MER or platform/advisor fee) expressed as a decimal (e.g. `0.0025` for 0.25%). Applied monthly to TFSA and stock portfolio balances using a multiplicative model — the fee is charged on the grown balance. The monthly dollar cost is also tracked as `tfsaFees` and `stocksFees` under `monthlyExpenses` and `cumulativeExpenses` in the output.
  * @param parameters.couple - Whether to simulate investments and taxes for a couple doubling TFSA contribution room and splitting capital gains in 2. Assumes parameter employmentIncome represents the per-partner income.
  * @param parameters.employmentIncome - The employment income used for calculating income taxes on investment gains.
  * @param parameters.province - The province used to calculate sales tax on the selling fixed fees and commission when selling the home.
@@ -65,17 +65,25 @@ import mortgageInsurancePremium from "./mortgageInsurancePremium.ts";
  *   @param parameters.rates.appreciationIncrease - Monthly home appreciation rates.
  *   @param parameters.rates.sellingFixedFeesIncrease - Monthly increase rates for selling fixed fees.
  * @param options - Additional simulation options.
- *   @param options.finalBalanceOnly - If `true`, the returned results will only include the final balance (before and after selling) for each scenario. Defaults to `false`.
+ *   @param options.finalBalanceOnly - If `true`, the returned results will only include the final state for each scenario. The results will contain exactly two entries per scenario: `balance` and `balanceAfterSelling`, both under the `summaryCumulative` group for the final month of the simulation. Defaults to `false`.
  *
  * @returns A detailed array of monthly results for each scenario (renter, buyerFixed, buyerVariable).
  * Each object in the array represents a specific data point for a given month, categorized by:
- * - `monthlyExpenses` or `cumulativeExpenses` (e.g., rent, mortgage payments, `investmentFees`)
- * - `monthlyGains` or `cumulativeGains` (e.g., investment gains)
- * - `assets` (e.g., home equity, TFSA)
- * - `summary` (monthly balance)
- * - `summaryCumulative` (cumulative balance, final balance after selling)
- * - `saleCosts` (costs incurred upon selling)
- * - `saleNetGains` (gains realized upon selling)
+ * - `monthlyExpenses` or `cumulativeExpenses`:
+ *   - `rent`, `insurance`, `securityDeposit` (for Renter)
+ *   - `mortgageCapital`, `mortgageInterests`, `maintenance`, `propertyTax`, `condoFees`, `downPayment`, `purchaseFixedFees`, `insurancePremium` (for Buyers)
+ *   - `tfsaFees`, `stocksFees` (for all scenarios)
+ * - `monthlyGains` or `cumulativeGains`:
+ *   - `tfsaGains`, `tfsaContribution`, `stocksGains`, `newStocks` (for all scenarios)
+ *   - `homeEquityGains` (for Buyers)
+ * - `assets`:
+ *   - `tfsa`, `stocks` (for all scenarios)
+ *   - `securityDeposit` (for Renter)
+ *   - `homeEquity` (for Buyers)
+ * - `summary`: `balance` (monthly net worth)
+ * - `summaryCumulative`: `balance` (cumulative net worth), `balanceAfterSelling` (net worth after hypothetical property sale and associated taxes/fees)
+ * - `saleCosts`: `stockTaxes`, `homeSellingCommission`, `homeSellingFixedFees`, `mortgagePenalty`, `mortgageBalance` (hypothetical costs incurred upon selling)
+ * - `saleNetGains`: `stockSellingGains`, `tfsaSellingGains`, `homeSellingGains`, `securityDeposit` (hypothetical gains realized upon selling)
  *
  * @example
  * ```ts
@@ -211,12 +219,13 @@ export default function simulateRentVsBuy(
         | "condoFees"
         | "downPayment"
         | "purchaseFixedFees"
-        | "insurancePremium";
+        | "insurancePremium"
+        | "tfsaFees"
+        | "stocksFees";
       effectiveInterestRate?: number;
       postedInterestRate?: number;
       fixedRateAdjustment?: number;
       variableRateAdjustment?: number;
-      investmentFees?: number;
     }
     | {
       group: "monthlyGains" | "cumulativeGains";
@@ -227,7 +236,6 @@ export default function simulateRentVsBuy(
         | "newStocks"
         | "homeEquityGains";
       homeValue?: number;
-      investmentFees?: number;
     }
     | {
       group: "assets";
@@ -286,12 +294,13 @@ export default function simulateRentVsBuy(
           | "condoFees"
           | "downPayment"
           | "purchaseFixedFees"
-          | "insurancePremium";
+          | "insurancePremium"
+          | "tfsaFees"
+          | "stocksFees";
         effectiveInterestRate?: number;
         postedInterestRate?: number;
         fixedRateAdjustment?: number;
         variableRateAdjustment?: number;
-        investmentFees?: number;
       }
       | {
         group: "monthlyGains" | "cumulativeGains";
@@ -302,7 +311,6 @@ export default function simulateRentVsBuy(
           | "newStocks"
           | "homeEquityGains";
         homeValue?: number;
-        investmentFees?: number;
       }
       | {
         group: "assets";

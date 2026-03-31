@@ -77,7 +77,7 @@ export default function getParamsRentVsBuyMonteCarlo(
     sellingCommissionRate: number;
     floorRate: number;
   };
-  gbmParameters: {
+  stochasticParameters: {
     market: {
       mu: number;
       sigma: number;
@@ -278,7 +278,7 @@ export default function getParamsRentVsBuyMonteCarlo(
       sellingCommissionRate: params.buyer.sellingCommissionRate,
       floorRate: params.buyer.floorRate,
     },
-    gbmParameters: {
+    stochasticParameters: {
       market: {
         // Actual values
         startValue: marketReturnRate.at(-1)!.value,

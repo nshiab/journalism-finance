@@ -31,7 +31,7 @@ Deno.test("documentation example: simulateRentVsBuyMonteCarlo should run without
       sellingCommissionRate: 0.05,
       floorRate: 0,
     },
-    gbmParameters: {
+    stochasticParameters: {
       market: { startValue: 0.07, mu: 0.07, sigma: 0.15 },
       rent: { startValue: 0.03, mu: 0.03, sigma: 0.02 },
       ownerInsurance: { startValue: 0.03, mu: 0.03, sigma: 0.05 },
