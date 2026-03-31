@@ -414,7 +414,7 @@ export default function simulateRentVsBuyMonteCarlo(
       rates: {
         marketReturnRate: prepRatesGbm(
           i,
-          "S&P/TSX",
+          "market returns",
           parameters.stochasticParameters.market,
         ),
         rentIncrease: prepRatesGbm(
