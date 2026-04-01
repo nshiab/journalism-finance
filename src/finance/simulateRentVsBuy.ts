@@ -7,6 +7,7 @@ import incrementParameters from "./helpers/rentVsBuy/incrementParameters.ts";
 import precomputeMortgagePayments from "./helpers/rentVsBuy/precomputeMortgagePayments.ts";
 import toResults from "./helpers/rentVsBuy/toResults.ts";
 import mortgageInsurancePremium from "./mortgageInsurancePremium.ts";
+import getSalesTax from "./getSalesTax.ts";
 
 /**
  * Simulates and compares the financial outcomes of renting versus buying a home over a specified number of years.
@@ -66,6 +67,7 @@ import mortgageInsurancePremium from "./mortgageInsurancePremium.ts";
  *   @param parameters.rates.sellingFixedFeesIncrease - Monthly increase rates for selling fixed fees.
  * @param options - Additional simulation options.
  *   @param options.finalBalanceOnly - If `true`, the returned results will only include the final state for each scenario. The results will contain exactly two entries per scenario: `balance` and `balanceAfterSelling`, both under the `summaryCumulative` group for the final month of the simulation. Defaults to `false`.
+ *   @param options.onRecord - Internal callback used by `simulateRentVsBuyMonteCarlo` when `monthlyQuantiles` is enabled. When provided, numeric values are streamed directly to the accumulator instead of being wrapped in result objects, avoiding the per-record heap allocation cost. At the final month, the two `summaryCumulative` records are still pushed to the results array for winner extraction.
  *
  * @returns A detailed array of monthly results for each scenario (renter, buyerFixed, buyerVariable).
  * Each object in the array represents a specific data point for a given month, categorized by:
@@ -195,7 +197,16 @@ export default function simulateRentVsBuy(
       sellingFixedFeesIncrease: number[];
     };
   },
-  options: { finalBalanceOnly?: boolean } = {},
+  options: {
+    finalBalanceOnly?: boolean;
+    onRecord?: (
+      category: string,
+      group: string,
+      variable: string,
+      monthIndex: number,
+      amount: number,
+    ) => void;
+  } = {},
 ): (
   & {
     year: number;
@@ -423,6 +434,36 @@ export default function simulateRentVsBuy(
 
   const numberOfMonths = parameters.numberOfYears * 12;
 
+  // Pre-compute the sales tax multiplier for home selling costs (constant for
+  // a given province + year, used inside computeSale every month).
+  // Use a large divisor (10000) to avoid toFixed(4) precision loss on rates
+  // like Quebec's PST of 0.09975 — getSalesTax(1) would truncate it to 0.0998.
+  const salesTaxMultiplier =
+    getSalesTax(10000, parameters.province, 2025).totalTax / 10000;
+
+  // Pre-allocate objects that are mutated each month to avoid per-iteration heap allocations.
+  const currentPostedRates: Record<number, number> = {
+    1: 0,
+    2: 0,
+    3: 0,
+    4: 0,
+    5: 0,
+  };
+  const flooredRatesFixed: Record<number, number> = {
+    1: 0,
+    2: 0,
+    3: 0,
+    4: 0,
+    5: 0,
+  };
+  const flooredRatesVariable: Record<number, number> = {
+    1: 0,
+    2: 0,
+    3: 0,
+    4: 0,
+    5: 0,
+  };
+
   for (
     let monthIndex = 0;
     monthIndex < numberOfMonths;
@@ -493,13 +534,45 @@ export default function simulateRentVsBuy(
     );
 
     // Now we simulate a sale of all assets
-    const currentPostedRates = {
-      1: parameters.rates.oneYearInterestRates[monthIndex],
-      2: parameters.rates.twoYearInterestRates[monthIndex],
-      3: parameters.rates.threeYearInterestRates[monthIndex],
-      4: parameters.rates.fourYearInterestRates[monthIndex],
-      5: parameters.rates.fiveYearInterestRates[monthIndex],
-    };
+    // Mutate pre-allocated objects to avoid per-iteration heap allocations.
+    currentPostedRates[1] = parameters.rates.oneYearInterestRates[monthIndex];
+    currentPostedRates[2] = parameters.rates.twoYearInterestRates[monthIndex];
+    currentPostedRates[3] = parameters.rates.threeYearInterestRates[monthIndex];
+    currentPostedRates[4] = parameters.rates.fourYearInterestRates[monthIndex];
+    currentPostedRates[5] = parameters.rates.fiveYearInterestRates[monthIndex];
+
+    // Pre-apply floor rate for fixed buyer.
+    const fixedAdj = parameters.buyer.fixedRateAdjustment;
+    const fixedFloor = parameters.buyer.floorRate;
+    flooredRatesFixed[1] = Math.max(
+      fixedFloor,
+      currentPostedRates[1] + fixedAdj,
+    );
+    flooredRatesFixed[2] = Math.max(
+      fixedFloor,
+      currentPostedRates[2] + fixedAdj,
+    );
+    flooredRatesFixed[3] = Math.max(
+      fixedFloor,
+      currentPostedRates[3] + fixedAdj,
+    );
+    flooredRatesFixed[4] = Math.max(
+      fixedFloor,
+      currentPostedRates[4] + fixedAdj,
+    );
+    flooredRatesFixed[5] = Math.max(
+      fixedFloor,
+      currentPostedRates[5] + fixedAdj,
+    );
+
+    // Variable buyer has no fixed-rate adjustment.
+    const variableFloor = parameters.buyer.floorRate;
+    flooredRatesVariable[1] = Math.max(variableFloor, currentPostedRates[1]);
+    flooredRatesVariable[2] = Math.max(variableFloor, currentPostedRates[2]);
+    flooredRatesVariable[3] = Math.max(variableFloor, currentPostedRates[3]);
+    flooredRatesVariable[4] = Math.max(variableFloor, currentPostedRates[4]);
+    flooredRatesVariable[5] = Math.max(variableFloor, currentPostedRates[5]);
+
     computeSale(
       monthIndex,
       renter,
@@ -511,30 +584,33 @@ export default function simulateRentVsBuy(
       numberOfMonths,
       parameters.province,
       parameters.couple,
+      salesTaxMultiplier,
     );
     computeSale(
       monthIndex,
       buyerFixed,
       parameters.employmentIncome,
       allFixedMortgagePayments[monthIndex],
-      currentPostedRates,
+      flooredRatesFixed,
       "fixed",
       options.finalBalanceOnly ?? false,
       numberOfMonths,
       parameters.province,
       parameters.couple,
+      salesTaxMultiplier,
     );
     computeSale(
       monthIndex,
       buyerVariable,
       parameters.employmentIncome,
       allVariableMortgagePayments[monthIndex],
-      currentPostedRates,
+      flooredRatesVariable,
       "variable",
       options.finalBalanceOnly ?? false,
       numberOfMonths,
       parameters.province,
       parameters.couple,
+      salesTaxMultiplier,
     );
 
     // We compute the balances
@@ -568,6 +644,7 @@ export default function simulateRentVsBuy(
       numberOfMonths,
       options.finalBalanceOnly ?? false,
       null,
+      options.onRecord,
     );
     toResults(
       year,
@@ -579,6 +656,7 @@ export default function simulateRentVsBuy(
       numberOfMonths,
       options.finalBalanceOnly ?? false,
       allFixedMortgagePayments[monthIndex],
+      options.onRecord,
     );
     toResults(
       year,
@@ -590,6 +668,7 @@ export default function simulateRentVsBuy(
       numberOfMonths,
       options.finalBalanceOnly ?? false,
       allVariableMortgagePayments[monthIndex],
+      options.onRecord,
     );
 
     // We increment the parameters for next month

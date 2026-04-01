@@ -1,5 +1,7 @@
-import { round } from "@nshiab/journalism-format";
 import type { Persona } from "./types/persona.ts";
+
+// Fast 2-decimal rounding via pure arithmetic (avoids toFixed string allocations).
+const r2 = (x: number) => Math.round(x * 100) / 100;
 
 export default function incrementParameters(
   monthIndex: number,
@@ -25,51 +27,41 @@ export default function incrementParameters(
   // We increment the variables for following month
   // Renter
   if (persona.params.monthlyRent > 0) {
-    persona.params.monthlyInsurance += round(
+    persona.params.monthlyInsurance += r2(
       persona.params.monthlyInsurance *
         rates.renterInsuranceIncrease[monthIndex],
-      { decimals: 2 },
     );
-    persona.params.monthlyRent += round(
+    persona.params.monthlyRent += r2(
       persona.params.monthlyRent *
         rates.rentIncrease[monthIndex],
-      { decimals: 2 },
     );
   }
 
   // Buyer
   if (persona.params.homeValue > 0) {
-    persona.params.homeValue = round(
+    persona.params.homeValue = r2(
       (1 + rates.appreciationIncrease[monthIndex]) * persona.params.homeValue,
-      {
-        decimals: 2,
-      },
     );
 
-    persona.params.monthlyInsurance += round(
+    persona.params.monthlyInsurance += r2(
       persona.params.monthlyInsurance *
         rates.ownerInsuranceIncrease[monthIndex],
-      { decimals: 2 },
     );
-    persona.params.monthlyPropertyTax += round(
+    persona.params.monthlyPropertyTax += r2(
       persona.params.monthlyPropertyTax *
         rates.propertyTaxIncrease[monthIndex],
-      { decimals: 2 },
     );
-    persona.params.monthlyCondoFees += round(
+    persona.params.monthlyCondoFees += r2(
       persona.params.monthlyCondoFees *
         rates.condoFeeIncrease[monthIndex],
-      { decimals: 2 },
     );
-    persona.params.sellingFixedFees = round(
+    persona.params.sellingFixedFees = r2(
       persona.params.sellingFixedFees + persona.params.sellingFixedFees *
           rates.sellingFixedFeesIncrease[monthIndex],
-      { decimals: 2 },
     );
-    persona.params.monthlyMaintenanceCost += round(
+    persona.params.monthlyMaintenanceCost += r2(
       persona.params.monthlyMaintenanceCost *
         rates.maintenanceIncrease[monthIndex],
-      { decimals: 2 },
     );
   }
 }

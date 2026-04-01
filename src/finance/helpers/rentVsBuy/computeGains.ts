@@ -1,7 +1,9 @@
-import { round } from "@nshiab/journalism-format";
 import getTfsaContribution from "./getTfsaContribution.ts";
 import type { Persona } from "./types/persona.ts";
 import type { MortgagePayment } from "./types/mortgagePayment.ts";
+
+// Fast 2-decimal rounding via pure arithmetic (avoids toFixed string allocations).
+const r2 = (x: number) => Math.round(x * 100) / 100;
 
 export default function computeGains(
   year: number,
@@ -23,81 +25,63 @@ export default function computeGains(
 
   // Compute gross and net gains per account, then derive fees as the difference.
   // This avoids rounding discrepancies between the fee tracker and the gain values.
-  const tfsaGrossGain = round(
+  const tfsaGrossGain = r2(
     persona.assets.tfsa * monthlyMarketReturnRate,
-    { decimals: 2 },
   );
-  const tfsaNetGain = round(
+  const tfsaNetGain = r2(
     persona.assets.tfsa * effectiveMonthlyRate,
-    { decimals: 2 },
   );
-  const stocksGrossGain = round(
+  const stocksGrossGain = r2(
     persona.assets.stocks * monthlyMarketReturnRate,
-    { decimals: 2 },
   );
-  const stocksNetGain = round(
+  const stocksNetGain = r2(
     persona.assets.stocks * effectiveMonthlyRate,
-    { decimals: 2 },
   );
 
-  persona.monthlyExpenses.tfsaFees = round(tfsaGrossGain - tfsaNetGain, {
-    decimals: 2,
-  });
-  persona.monthlyExpenses.stocksFees = round(
+  persona.monthlyExpenses.tfsaFees = r2(tfsaGrossGain - tfsaNetGain);
+  persona.monthlyExpenses.stocksFees = r2(
     stocksGrossGain - stocksNetGain,
-    { decimals: 2 },
   );
-  persona.cumulativeExpenses.tfsaFees = round(
+  persona.cumulativeExpenses.tfsaFees = r2(
     persona.cumulativeExpenses.tfsaFees + persona.monthlyExpenses.tfsaFees,
-    { decimals: 2 },
   );
-  persona.cumulativeExpenses.stocksFees = round(
+  persona.cumulativeExpenses.stocksFees = r2(
     persona.cumulativeExpenses.stocksFees + persona.monthlyExpenses.stocksFees,
-    { decimals: 2 },
   );
 
   persona.monthlyGains.tfsaGains = tfsaNetGain;
   persona.monthlyGains.stocksGains = stocksNetGain;
 
-  persona.cumulativeGains.tfsaGains = round(
+  persona.cumulativeGains.tfsaGains = r2(
     persona.cumulativeGains.tfsaGains +
       persona.monthlyGains.tfsaGains,
-    { decimals: 2 },
   );
-  persona.cumulativeGains.stocksGains = round(
+  persona.cumulativeGains.stocksGains = r2(
     persona.cumulativeGains.stocksGains +
       persona.monthlyGains.stocksGains,
-    { decimals: 2 },
   );
 
-  persona.assets.tfsa = round(
+  persona.assets.tfsa = r2(
     persona.assets.tfsa + tfsaNetGain,
-    { decimals: 2 },
   );
-  persona.assets.stocks = round(
+  persona.assets.stocks = r2(
     persona.assets.stocks + stocksNetGain,
-    { decimals: 2 },
   );
 
   // We calculate home equity gains
   if (mortgagePayment) {
     const previousHomeEquity = persona.assets.homeEquity;
-    persona.assets.homeEquity = round(
+    persona.assets.homeEquity = r2(
       persona.params.homeValue -
         mortgagePayment.balance,
-      {
-        decimals: 2,
-      },
     );
-    persona.monthlyGains.homeEquityGains = round(
+    persona.monthlyGains.homeEquityGains = r2(
       persona.assets.homeEquity -
         previousHomeEquity,
-      { decimals: 2 },
     );
-    persona.cumulativeGains.homeEquityGains = round(
+    persona.cumulativeGains.homeEquityGains = r2(
       persona.cumulativeGains.homeEquityGains +
         persona.monthlyGains.homeEquityGains,
-      { decimals: 2 },
     );
   }
 
@@ -120,32 +104,27 @@ export default function computeGains(
     const tfsaContribution = Math.min(tfsaRoom, monthlySavings);
 
     persona.monthlyGains.tfsaContribution = tfsaContribution;
-    persona.cumulativeGains.tfsaContribution = round(
+    persona.cumulativeGains.tfsaContribution = r2(
       persona.cumulativeGains.tfsaContribution + tfsaContribution,
-      { decimals: 2 },
     );
-    persona.assets.tfsa = round(
+    persona.assets.tfsa = r2(
       persona.assets.tfsa + tfsaContribution,
-      { decimals: 2 },
     );
   } else {
     persona.monthlyGains.tfsaContribution = 0;
   }
 
   // Any remaining savings go into stocks
-  monthlySavings = round(
+  monthlySavings = r2(
     monthlySavings - persona.monthlyGains.tfsaContribution,
-    { decimals: 2 },
   );
   if (monthlySavings > 0) {
     persona.monthlyGains.newStocks = monthlySavings;
-    persona.cumulativeGains.newStocks = round(
+    persona.cumulativeGains.newStocks = r2(
       persona.cumulativeGains.newStocks + monthlySavings,
-      { decimals: 2 },
     );
-    persona.assets.stocks = round(
+    persona.assets.stocks = r2(
       persona.assets.stocks + monthlySavings,
-      { decimals: 2 },
     );
   } else {
     persona.monthlyGains.newStocks = 0;

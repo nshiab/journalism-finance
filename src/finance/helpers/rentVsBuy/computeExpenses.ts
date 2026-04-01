@@ -1,6 +1,8 @@
-import { round } from "@nshiab/journalism-format";
 import type { Persona } from "./types/persona.ts";
 import type { MortgagePayment } from "./types/mortgagePayment.ts";
+
+// Fast 2-decimal rounding via pure arithmetic (avoids toFixed string allocations).
+const r2 = (x: number) => Math.round(x * 100) / 100;
 
 export default function computeExpenses(
   monthIndex: number,
@@ -16,33 +18,27 @@ export default function computeExpenses(
     persona.monthlyExpenses.condoFees = persona.params.monthlyCondoFees;
     persona.monthlyExpenses.insurance = persona.params.monthlyInsurance;
 
-    persona.cumulativeExpenses.mortgageCapital = round(
+    persona.cumulativeExpenses.mortgageCapital = r2(
       persona.cumulativeExpenses.mortgageCapital +
         persona.monthlyExpenses.mortgageCapital,
-      { decimals: 2 },
     );
-    persona.cumulativeExpenses.mortgageInterests = round(
+    persona.cumulativeExpenses.mortgageInterests = r2(
       persona.cumulativeExpenses.mortgageInterests +
         persona.monthlyExpenses.mortgageInterests,
-      { decimals: 2 },
     );
-    persona.cumulativeExpenses.insurance = round(
+    persona.cumulativeExpenses.insurance = r2(
       persona.cumulativeExpenses.insurance + persona.monthlyExpenses.insurance,
-      { decimals: 2 },
     );
-    persona.cumulativeExpenses.maintenance = round(
+    persona.cumulativeExpenses.maintenance = r2(
       persona.cumulativeExpenses.maintenance +
         persona.monthlyExpenses.maintenance,
-      { decimals: 2 },
     );
-    persona.cumulativeExpenses.propertyTax = round(
+    persona.cumulativeExpenses.propertyTax = r2(
       persona.cumulativeExpenses.propertyTax +
         persona.monthlyExpenses.propertyTax,
-      { decimals: 2 },
     );
-    persona.cumulativeExpenses.condoFees = round(
+    persona.cumulativeExpenses.condoFees = r2(
       persona.cumulativeExpenses.condoFees + persona.monthlyExpenses.condoFees,
-      { decimals: 2 },
     );
 
     // Non recurring expenses
@@ -53,20 +49,17 @@ export default function computeExpenses(
       persona.monthlyExpenses.insurancePremium =
         persona.params.insurancePremium;
 
-      persona.cumulativeExpenses.downPayment = round(
+      persona.cumulativeExpenses.downPayment = r2(
         persona.cumulativeExpenses.downPayment +
           persona.monthlyExpenses.downPayment,
-        { decimals: 2 },
       );
-      persona.cumulativeExpenses.purchaseFixedFees = round(
+      persona.cumulativeExpenses.purchaseFixedFees = r2(
         persona.cumulativeExpenses.purchaseFixedFees +
           persona.monthlyExpenses.purchaseFixedFees,
-        { decimals: 2 },
       );
-      persona.cumulativeExpenses.insurancePremium = round(
+      persona.cumulativeExpenses.insurancePremium = r2(
         persona.cumulativeExpenses.insurancePremium +
           persona.monthlyExpenses.insurancePremium,
-        { decimals: 2 },
       );
     } else {
       persona.monthlyExpenses.downPayment = 0;
@@ -78,23 +71,20 @@ export default function computeExpenses(
     persona.monthlyExpenses.rent = persona.params.monthlyRent;
     persona.monthlyExpenses.insurance = persona.params.monthlyInsurance;
 
-    persona.cumulativeExpenses.rent = round(
+    persona.cumulativeExpenses.rent = r2(
       persona.cumulativeExpenses.rent + persona.monthlyExpenses.rent,
-      { decimals: 2 },
     );
-    persona.cumulativeExpenses.insurance = round(
+    persona.cumulativeExpenses.insurance = r2(
       persona.cumulativeExpenses.insurance + persona.monthlyExpenses.insurance,
-      { decimals: 2 },
     );
 
     // Non recurring expenses
     if (monthIndex === 0) {
       persona.monthlyExpenses.securityDeposit = persona.params.securityDeposit;
 
-      persona.cumulativeExpenses.securityDeposit = round(
+      persona.cumulativeExpenses.securityDeposit = r2(
         persona.cumulativeExpenses.securityDeposit +
           persona.monthlyExpenses.securityDeposit,
-        { decimals: 2 },
       );
 
       // Security deposit is also an asset for the renter
@@ -104,7 +94,7 @@ export default function computeExpenses(
     }
   }
 
-  const totalMonthlyExpenses = round(
+  const totalMonthlyExpenses = r2(
     persona.monthlyExpenses.rent +
       persona.monthlyExpenses.insurance +
       persona.monthlyExpenses.securityDeposit +
@@ -116,7 +106,6 @@ export default function computeExpenses(
       persona.monthlyExpenses.downPayment +
       persona.monthlyExpenses.purchaseFixedFees +
       persona.monthlyExpenses.insurancePremium,
-    { decimals: 2 },
   );
 
   return {

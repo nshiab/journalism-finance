@@ -88,8 +88,65 @@ export default function toResults(
   numberOfMonths: number,
   finalBalanceOnly: boolean,
   mortgagePayment: MortgagePayment | null,
+  onRecord?: (
+    category: string,
+    group: string,
+    variable: string,
+    monthIndex: number,
+    amount: number,
+  ) => void,
 ) {
   const date = new Date(Date.UTC(year, month, 1));
+
+  if (onRecord) {
+    // Fast path: stream numeric values directly to the accumulator without
+    // allocating result objects. Used by simulateRentVsBuyMonteCarlo when
+    // monthlyQuantiles is enabled.
+    for (
+      const [group, fields] of [
+        ["monthlyExpenses", persona.monthlyExpenses],
+        ["cumulativeExpenses", persona.cumulativeExpenses],
+        ["monthlyGains", persona.monthlyGains],
+        ["cumulativeGains", persona.cumulativeGains],
+        ["assets", persona.assets],
+        ["summary", persona.summary],
+        ["summaryCumulative", persona.summaryCumulative],
+        ["saleCosts", persona.saleCosts],
+        ["saleNetGains", persona.saleNetGains],
+      ] as [string, Record<string, number>][]
+    ) {
+      for (const [variable, amount] of Object.entries(fields)) {
+        if (amount !== 0) {
+          onRecord(category, group, variable, monthIndex, amount);
+        }
+      }
+    }
+    // Still push the 2 summaryCumulative records at the final month so the
+    // caller can extract winners without a separate scan.
+    if (monthIndex === numberOfMonths - 1) {
+      results.push({
+        year,
+        month,
+        monthIndex,
+        date,
+        amount: persona.summaryCumulative.balanceAfterSelling,
+        category,
+        group: "summaryCumulative",
+        variable: "balanceAfterSelling",
+      });
+      results.push({
+        year,
+        month,
+        monthIndex,
+        date,
+        amount: persona.summaryCumulative.balance,
+        category,
+        group: "summaryCumulative",
+        variable: "balance",
+      });
+    }
+    return;
+  }
 
   if (finalBalanceOnly) {
     if (monthIndex === numberOfMonths - 1) {

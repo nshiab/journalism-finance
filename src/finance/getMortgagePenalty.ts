@@ -1,5 +1,7 @@
 import { round } from "@nshiab/journalism-format";
 
+const R2 = { decimals: 2 };
+
 /**
  * Calculates the mortgage prepayment penalty.
  *
@@ -85,7 +87,7 @@ export default function getMortgagePenalty(
     // Three months interest penalty
     const threeMonthsPenalty = round(
       (mortgageBalance * effectiveRate * 3) / 12,
-      { decimals: 2 },
+      R2,
     );
 
     return threeMonthsPenalty;
@@ -104,7 +106,7 @@ export default function getMortgagePenalty(
     // Three months interest penalty
     const threeMonthsPenalty = round(
       (mortgageBalance * effectiveRate * 3) / 12,
-      { decimals: 2 },
+      R2,
     );
 
     // IRD (Interest Rate Differential) penalty
@@ -114,7 +116,7 @@ export default function getMortgagePenalty(
     );
     const fixedMortgagePenalty = round(
       mortgageBalance * irdRate * remainingYearsToTerm,
-      { decimals: 2 },
+      R2,
     );
 
     // Return the greater of three months interest or IRD penalty
