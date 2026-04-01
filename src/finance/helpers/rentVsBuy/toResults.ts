@@ -1,6 +1,72 @@
 import type { MortgagePayment } from "./types/mortgagePayment.ts";
 import type { Persona } from "./types/persona.ts";
 
+const MONTHLY_EXPENSES_KEYS = [
+  "mortgageCapital",
+  "mortgageInterests",
+  "rent",
+  "insurance",
+  "securityDeposit",
+  "maintenance",
+  "propertyTax",
+  "condoFees",
+  "downPayment",
+  "purchaseFixedFees",
+  "insurancePremium",
+  "tfsaFees",
+  "stocksFees",
+] as const;
+const CUMULATIVE_EXPENSES_KEYS = [
+  "rent",
+  "insurance",
+  "securityDeposit",
+  "mortgageCapital",
+  "mortgageInterests",
+  "maintenance",
+  "propertyTax",
+  "condoFees",
+  "downPayment",
+  "purchaseFixedFees",
+  "insurancePremium",
+  "tfsaFees",
+  "stocksFees",
+] as const;
+const MONTHLY_GAINS_KEYS = [
+  "tfsaGains",
+  "tfsaContribution",
+  "stocksGains",
+  "newStocks",
+  "homeEquityGains",
+] as const;
+const CUMULATIVE_GAINS_KEYS = [
+  "tfsaGains",
+  "tfsaContribution",
+  "stocksGains",
+  "newStocks",
+  "homeEquityGains",
+] as const;
+const ASSETS_KEYS = [
+  "tfsa",
+  "stocks",
+  "securityDeposit",
+  "homeEquity",
+] as const;
+const SUMMARY_KEYS = ["balance"] as const;
+const SUMMARY_CUMULATIVE_KEYS = ["balance", "balanceAfterSelling"] as const;
+const SALE_COSTS_KEYS = [
+  "stockTaxes",
+  "homeSellingCommission",
+  "homeSellingFixedFees",
+  "mortgagePenalty",
+  "mortgageBalance",
+] as const;
+const SALE_NET_GAINS_KEYS = [
+  "stockSellingGains",
+  "tfsaSellingGains",
+  "homeSellingGains",
+  "securityDeposit",
+] as const;
+
 export default function toResults(
   year: number,
   month: number,
@@ -96,34 +162,70 @@ export default function toResults(
     amount: number,
   ) => void,
 ) {
-  const date = new Date(Date.UTC(year, month, 1));
-
   if (onRecord) {
     // Fast path: stream numeric values directly to the accumulator without
     // allocating result objects. Used by simulateRentVsBuyMonteCarlo when
     // monthlyQuantiles is enabled.
-    for (
-      const [group, fields] of [
-        ["monthlyExpenses", persona.monthlyExpenses],
-        ["cumulativeExpenses", persona.cumulativeExpenses],
-        ["monthlyGains", persona.monthlyGains],
-        ["cumulativeGains", persona.cumulativeGains],
-        ["assets", persona.assets],
-        ["summary", persona.summary],
-        ["summaryCumulative", persona.summaryCumulative],
-        ["saleCosts", persona.saleCosts],
-        ["saleNetGains", persona.saleNetGains],
-      ] as [string, Record<string, number>][]
-    ) {
-      for (const [variable, amount] of Object.entries(fields)) {
-        if (amount !== 0) {
-          onRecord(category, group, variable, monthIndex, amount);
-        }
+
+    for (const variable of MONTHLY_EXPENSES_KEYS) {
+      const amount = persona.monthlyExpenses[variable];
+      if (amount !== 0) {
+        onRecord(category, "monthlyExpenses", variable, monthIndex, amount);
       }
     }
+    for (const variable of CUMULATIVE_EXPENSES_KEYS) {
+      const amount = persona.cumulativeExpenses[variable];
+      if (amount !== 0) {
+        onRecord(category, "cumulativeExpenses", variable, monthIndex, amount);
+      }
+    }
+    for (const variable of MONTHLY_GAINS_KEYS) {
+      const amount = persona.monthlyGains[variable];
+      if (amount !== 0) {
+        onRecord(category, "monthlyGains", variable, monthIndex, amount);
+      }
+    }
+    for (const variable of CUMULATIVE_GAINS_KEYS) {
+      const amount = persona.cumulativeGains[variable];
+      if (amount !== 0) {
+        onRecord(category, "cumulativeGains", variable, monthIndex, amount);
+      }
+    }
+    for (const variable of ASSETS_KEYS) {
+      const amount = persona.assets[variable];
+      if (amount !== 0) {
+        onRecord(category, "assets", variable, monthIndex, amount);
+      }
+    }
+    for (const variable of SUMMARY_KEYS) {
+      const amount = persona.summary[variable];
+      if (amount !== 0) {
+        onRecord(category, "summary", variable, monthIndex, amount);
+      }
+    }
+    for (const variable of SUMMARY_CUMULATIVE_KEYS) {
+      const amount = persona.summaryCumulative[variable];
+      if (amount !== 0) {
+        onRecord(category, "summaryCumulative", variable, monthIndex, amount);
+      }
+    }
+    for (const variable of SALE_COSTS_KEYS) {
+      const amount = persona.saleCosts[variable];
+      if (amount !== 0) {
+        onRecord(category, "saleCosts", variable, monthIndex, amount);
+      }
+    }
+    for (const variable of SALE_NET_GAINS_KEYS) {
+      const amount = persona.saleNetGains[variable];
+      if (amount !== 0) {
+        onRecord(category, "saleNetGains", variable, monthIndex, amount);
+      }
+    }
+
     // Still push the 2 summaryCumulative records at the final month so the
     // caller can extract winners without a separate scan.
     if (monthIndex === numberOfMonths - 1) {
+      const date = new Date(Date.UTC(year, month, 1));
       results.push({
         year,
         month,
@@ -150,6 +252,7 @@ export default function toResults(
 
   if (finalBalanceOnly) {
     if (monthIndex === numberOfMonths - 1) {
+      const date = new Date(Date.UTC(year, month, 1));
       results.push({
         year,
         month,
@@ -172,11 +275,10 @@ export default function toResults(
       });
     }
   } else {
+    const date = new Date(Date.UTC(year, month, 1));
     // Process monthlyExpenses
     for (
-      const variable of Object.keys(persona.monthlyExpenses) as Array<
-        keyof typeof persona.monthlyExpenses
-      >
+      const variable of MONTHLY_EXPENSES_KEYS
     ) {
       if (
         persona.monthlyExpenses[variable] !== 0
@@ -216,9 +318,7 @@ export default function toResults(
 
     // Process cumulativeExpenses
     for (
-      const variable of Object.keys(persona.cumulativeExpenses) as Array<
-        keyof typeof persona.cumulativeExpenses
-      >
+      const variable of CUMULATIVE_EXPENSES_KEYS
     ) {
       if (
         persona.cumulativeExpenses[variable] !== 0
@@ -238,9 +338,7 @@ export default function toResults(
 
     // Process monthlyGains
     for (
-      const variable of Object.keys(persona.monthlyGains) as Array<
-        keyof typeof persona.monthlyGains
-      >
+      const variable of MONTHLY_GAINS_KEYS
     ) {
       if (persona.monthlyGains[variable] !== 0) {
         if (
@@ -277,9 +375,7 @@ export default function toResults(
 
     // Process cumulativeGains
     for (
-      const variable of Object.keys(persona.cumulativeGains) as Array<
-        keyof typeof persona.cumulativeGains
-      >
+      const variable of CUMULATIVE_GAINS_KEYS
     ) {
       if (persona.cumulativeGains[variable] !== 0) {
         results.push({
@@ -297,9 +393,7 @@ export default function toResults(
 
     // Process assets
     for (
-      const variable of Object.keys(persona.assets) as Array<
-        keyof typeof persona.assets
-      >
+      const variable of ASSETS_KEYS
     ) {
       if (persona.assets[variable] !== 0) {
         results.push({
@@ -317,9 +411,7 @@ export default function toResults(
 
     // Process summary
     for (
-      const variable of Object.keys(persona.summary) as Array<
-        keyof typeof persona.summary
-      >
+      const variable of SUMMARY_KEYS
     ) {
       if (persona.summary[variable] !== 0) {
         results.push({
@@ -337,9 +429,7 @@ export default function toResults(
 
     // Process summaryCumulative
     for (
-      const variable of Object.keys(persona.summaryCumulative) as Array<
-        keyof typeof persona.summaryCumulative
-      >
+      const variable of SUMMARY_CUMULATIVE_KEYS
     ) {
       if (persona.summaryCumulative[variable] !== 0) {
         results.push({
@@ -357,9 +447,7 @@ export default function toResults(
 
     // Process saleCosts
     for (
-      const variable of Object.keys(persona.saleCosts) as Array<
-        keyof typeof persona.saleCosts
-      >
+      const variable of SALE_COSTS_KEYS
     ) {
       if (persona.saleCosts[variable] !== 0) {
         results.push({
@@ -377,9 +465,7 @@ export default function toResults(
 
     // Process saleNetGains
     for (
-      const variable of Object.keys(persona.saleNetGains) as Array<
-        keyof typeof persona.saleNetGains
-      >
+      const variable of SALE_NET_GAINS_KEYS
     ) {
       if (persona.saleNetGains[variable] !== 0) {
         results.push({

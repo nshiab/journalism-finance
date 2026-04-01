@@ -472,6 +472,12 @@ export default function simulateRentVsBuy(
     const year = parameters.startingYear + Math.floor(monthIndex / 12);
     const month = monthIndex % 12;
 
+    const currentFixedMortgagePayment = allFixedMortgagePayments[monthIndex];
+    const currentVariableMortgagePayment =
+      allVariableMortgagePayments[monthIndex];
+    const currentMarketReturnRate =
+      parameters.rates.marketReturnRate[monthIndex];
+
     // We compute the expenses
     const {
       totalMonthlyExpenses: renterTotalMonthlyExpenses,
@@ -481,14 +487,14 @@ export default function simulateRentVsBuy(
     } = computeExpenses(
       monthIndex,
       buyerFixed,
-      allFixedMortgagePayments[monthIndex],
+      currentFixedMortgagePayment,
     );
     const {
       totalMonthlyExpenses: buyerVariableTotalMonthlyExpenses,
     } = computeExpenses(
       monthIndex,
       buyerVariable,
-      allVariableMortgagePayments[monthIndex],
+      currentVariableMortgagePayment,
     );
 
     // We compute the monthly savings
@@ -503,7 +509,7 @@ export default function simulateRentVsBuy(
       year,
       renter,
       null,
-      parameters.rates.marketReturnRate[monthIndex],
+      currentMarketReturnRate,
       renterTotalMonthlyExpenses,
       maxMonthlyExpenses,
       parameters.tfsaContributions,
@@ -513,8 +519,8 @@ export default function simulateRentVsBuy(
     computeGains(
       year,
       buyerFixed,
-      allFixedMortgagePayments[monthIndex],
-      parameters.rates.marketReturnRate[monthIndex],
+      currentFixedMortgagePayment,
+      currentMarketReturnRate,
       buyerFixedTotalMonthlyExpenses,
       maxMonthlyExpenses,
       parameters.tfsaContributions,
@@ -524,8 +530,8 @@ export default function simulateRentVsBuy(
     computeGains(
       year,
       buyerVariable,
-      allVariableMortgagePayments[monthIndex],
-      parameters.rates.marketReturnRate[monthIndex],
+      currentVariableMortgagePayment,
+      currentMarketReturnRate,
       buyerVariableTotalMonthlyExpenses,
       maxMonthlyExpenses,
       parameters.tfsaContributions,
@@ -590,7 +596,7 @@ export default function simulateRentVsBuy(
       monthIndex,
       buyerFixed,
       parameters.employmentIncome,
-      allFixedMortgagePayments[monthIndex],
+      currentFixedMortgagePayment,
       flooredRatesFixed,
       "fixed",
       options.finalBalanceOnly ?? false,
@@ -603,7 +609,7 @@ export default function simulateRentVsBuy(
       monthIndex,
       buyerVariable,
       parameters.employmentIncome,
-      allVariableMortgagePayments[monthIndex],
+      currentVariableMortgagePayment,
       flooredRatesVariable,
       "variable",
       options.finalBalanceOnly ?? false,
@@ -655,7 +661,7 @@ export default function simulateRentVsBuy(
       monthIndex,
       numberOfMonths,
       options.finalBalanceOnly ?? false,
-      allFixedMortgagePayments[monthIndex],
+      currentFixedMortgagePayment,
       options.onRecord,
     );
     toResults(
@@ -667,7 +673,7 @@ export default function simulateRentVsBuy(
       monthIndex,
       numberOfMonths,
       options.finalBalanceOnly ?? false,
-      allVariableMortgagePayments[monthIndex],
+      currentVariableMortgagePayment,
       options.onRecord,
     );
 

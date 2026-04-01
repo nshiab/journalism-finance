@@ -49,17 +49,27 @@ export default function precomputeMortgagePayments(
       AMORTIZATION_YEARS - (month / 12),
       { decimals: 2 },
     );
-    allFixedMortgagePayments.push(
-      ...payments.map((payment) => ({
-        ...payment,
-        effectiveInterestRate: round(effectiveInterestRate / 100, {
-          decimals: 4,
-        }),
-        postedInterestRate: fixedInterestRates[month],
+
+    const effInterestRate = round(effectiveInterestRate / 100, { decimals: 4 });
+    const postedIntRate = fixedInterestRates[month];
+
+    for (let i = 0; i < payments.length; i++) {
+      const payment = payments[i];
+      allFixedMortgagePayments.push({
+        paymentId: payment.paymentId,
+        payment: payment.payment,
+        interest: payment.interest,
+        capital: payment.capital,
+        balance: payment.balance,
+        amountPaid: payment.amountPaid,
+        interestPaid: payment.interestPaid,
+        capitalPaid: payment.capitalPaid,
+        effectiveInterestRate: effInterestRate,
+        postedInterestRate: postedIntRate,
         fixedRateAdjustment: fixedRateAdjustment,
         variableRateAdjustment: 0, // No rate adjustment for fixed-rate mortgages
-      })),
-    );
+      });
+    }
   }
 
   const allVariableMortgagePayments: {
@@ -87,14 +97,16 @@ export default function precomputeMortgagePayments(
         ? allVariableMortgagePayments[allVariableMortgagePayments.length - 1]
           .balance
         : startingMortgageAmount;
-    const monthlyEffectiveRates = variableInterestRates.slice(
-      month,
-      month + TERM_MONTHS,
-    ).map((d) =>
-      round(Math.max(floorRate, d + variableRateAdjustment) * 100, {
-        decimals: 2,
-      })
-    );
+    const monthlyEffectiveRates = new Array(TERM_MONTHS);
+    for (let i = 0; i < TERM_MONTHS; i++) {
+      monthlyEffectiveRates[i] = round(
+        Math.max(
+          floorRate,
+          variableInterestRates[month + i] + variableRateAdjustment,
+        ) * 100,
+        { decimals: 2 },
+      );
+    }
     const payments = variableMortgagePayments(
       mortgageAmount,
       monthlyEffectiveRates,
@@ -104,15 +116,24 @@ export default function precomputeMortgagePayments(
         decimals: 2,
       },
     );
-    allVariableMortgagePayments.push(
-      ...payments.map((payment, i) => ({
-        ...payment,
+
+    for (let i = 0; i < payments.length; i++) {
+      const payment = payments[i];
+      allVariableMortgagePayments.push({
+        paymentId: payment.paymentId,
+        payment: payment.payment,
+        interest: payment.interest,
+        capital: payment.capital,
+        balance: payment.balance,
+        amountPaid: payment.amountPaid,
+        interestPaid: payment.interestPaid,
+        capitalPaid: payment.capitalPaid,
         effectiveInterestRate: round(payment.rate / 100, { decimals: 4 }),
         postedInterestRate: variableInterestRates[month + i],
         fixedRateAdjustment: 0, // No rate adjustment for variable-rate mortgages
         variableRateAdjustment: variableRateAdjustment,
-      })),
-    );
+      });
+    }
   }
 
   return { allFixedMortgagePayments, allVariableMortgagePayments };

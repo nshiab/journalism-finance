@@ -1,6 +1,5 @@
 import { prettyDuration } from "@nshiab/journalism-format";
 import simulateRentVsBuy from "./simulateRentVsBuy.ts";
-import { quantile } from "d3-array";
 import {
   generateCirPath,
   generateGbmPath,
@@ -683,13 +682,50 @@ export default function simulateRentVsBuyMonteCarlo(
 
   if (buckets) {
     const startQuantiles = options.verbose ? Date.now() : null;
+    const len = parameters.iterations;
+    const buffer = new Float64Array(len);
+
+    const p10Index = 0.1 * (len - 1);
+    const p10Lower = Math.floor(p10Index);
+    const p10Upper = Math.ceil(p10Index);
+    const p10Weight = p10Index - p10Lower;
+
+    const p50Index = 0.5 * (len - 1);
+    const p50Lower = Math.floor(p50Index);
+    const p50Upper = Math.ceil(p50Index);
+    const p50Weight = p50Index - p50Lower;
+
+    const p90Index = 0.9 * (len - 1);
+    const p90Lower = Math.floor(p90Index);
+    const p90Upper = Math.ceil(p90Index);
+    const p90Weight = p90Index - p90Lower;
+
     for (const [key, slots] of buckets) {
       const [category, group, variable] = key.split("|");
       for (let monthIndex = 0; monthIndex < nbMonths; monthIndex++) {
         // Float64Array.sort() with no comparator sorts numerically (native code).
-        const sorted = slots[monthIndex].slice().sort();
+        buffer.set(slots[monthIndex]);
+        buffer.sort();
+
         const year = parameters.startingYear + Math.floor(monthIndex / 12);
         const month = monthIndex % 12;
+
+        const q10Raw = len > 0
+          ? (p10Lower === p10Upper
+            ? buffer[p10Lower]
+            : buffer[p10Lower] * (1 - p10Weight) + buffer[p10Upper] * p10Weight)
+          : 0;
+        const q50Raw = len > 0
+          ? (p50Lower === p50Upper
+            ? buffer[p50Lower]
+            : buffer[p50Lower] * (1 - p50Weight) + buffer[p50Upper] * p50Weight)
+          : 0;
+        const q90Raw = len > 0
+          ? (p90Lower === p90Upper
+            ? buffer[p90Lower]
+            : buffer[p90Lower] * (1 - p90Weight) + buffer[p90Upper] * p90Weight)
+          : 0;
+
         monthlyQuantilesResult.push({
           category: category as "renter" | "buyerFixed" | "buyerVariable",
           group: group as
@@ -738,9 +774,9 @@ export default function simulateRentVsBuyMonteCarlo(
           year,
           month,
           date: dates[monthIndex],
-          q10: Math.round((quantile(sorted, 0.1) ?? 0) * 100) / 100,
-          q50: Math.round((quantile(sorted, 0.5) ?? 0) * 100) / 100,
-          q90: Math.round((quantile(sorted, 0.9) ?? 0) * 100) / 100,
+          q10: Math.round(q10Raw * 100) / 100,
+          q50: Math.round(q50Raw * 100) / 100,
+          q90: Math.round(q90Raw * 100) / 100,
         });
       }
     }
