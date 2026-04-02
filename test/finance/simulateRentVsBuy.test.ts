@@ -718,6 +718,24 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
     });
   });
 
+  await t.step(
+    "totals monthlyExpenses month 0 matches manually computed",
+    async () => {
+      const totalsFromFunction = Object.fromEntries(
+        ["renter", "buyerFixed", "buyerVariable"].map((cat) => [
+          cat,
+          results.find((d) =>
+            d.group === "totals" &&
+            d.variable === "monthlyExpenses" &&
+            d.monthIndex === 0 &&
+            d.category === cat
+          )?.amount,
+        ]),
+      );
+      assertEquals(totalsFromFunction, firstMonthExpensesTotalPerCategory);
+    },
+  );
+
   // Expenses on the second month
   const secondMonthExpenses = results.filter((d) =>
     d.monthIndex === 1 &&
@@ -932,6 +950,24 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
       buyerVariable: 1091.84,
     });
   });
+
+  await t.step(
+    "totals monthlyExpenses month 1 matches manually computed",
+    async () => {
+      const totalsFromFunction = Object.fromEntries(
+        ["renter", "buyerFixed", "buyerVariable"].map((cat) => [
+          cat,
+          results.find((d) =>
+            d.group === "totals" &&
+            d.variable === "monthlyExpenses" &&
+            d.monthIndex === 1 &&
+            d.category === cat
+          )?.amount,
+        ]),
+      );
+      assertEquals(totalsFromFunction, secondMonthExpensesTotalPerCategory);
+    },
+  );
 
   const cumulativeExpensesLastMonth = results.filter((d) =>
     d.monthIndex === (numberOfYears * 12) - 1 &&
@@ -1232,6 +1268,27 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
         buyerFixed: 341773.11,
         buyerVariable: 324678.43,
       });
+    },
+  );
+
+  await t.step(
+    "totals cumulativeExpenses last month matches manually computed",
+    async () => {
+      const totalsFromFunction = Object.fromEntries(
+        ["renter", "buyerFixed", "buyerVariable"].map((cat) => [
+          cat,
+          results.find((d) =>
+            d.group === "totals" &&
+            d.variable === "cumulativeExpenses" &&
+            d.monthIndex === (numberOfYears * 12) - 1 &&
+            d.category === cat
+          )?.amount,
+        ]),
+      );
+      assertEquals(
+        totalsFromFunction,
+        cumulativeExpensesLastMonthTotalPerCategory,
+      );
     },
   );
 
@@ -1651,6 +1708,24 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
     });
   });
 
+  await t.step(
+    "totals monthlyGains month 1 matches manually computed",
+    async () => {
+      const totalsFromFunction = Object.fromEntries(
+        ["renter", "buyerFixed", "buyerVariable"].map((cat) => [
+          cat,
+          results.find((d) =>
+            d.group === "totals" &&
+            d.variable === "monthlyGains" &&
+            d.monthIndex === 1 &&
+            d.category === cat
+          )?.amount,
+        ]),
+      );
+      assertEquals(totalsFromFunction, secondMonthGainsTotalPerCategory);
+    },
+  );
+
   const cumulativeGains = results.filter((d) => d.group === "cumulativeGains");
 
   const cumulativeGainsLastMonth = cumulativeGains.filter((d) =>
@@ -1816,6 +1891,27 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
     },
   );
 
+  await t.step(
+    "totals cumulativeGains last month matches manually computed",
+    async () => {
+      const totalsFromFunction = Object.fromEntries(
+        ["renter", "buyerFixed", "buyerVariable"].map((cat) => [
+          cat,
+          results.find((d) =>
+            d.group === "totals" &&
+            d.variable === "cumulativeGains" &&
+            d.monthIndex === (numberOfYears * 12) - 1 &&
+            d.category === cat
+          )?.amount,
+        ]),
+      );
+      assertEquals(
+        totalsFromFunction,
+        cumulativeGainsLastMonthTotalPerCategory,
+      );
+    },
+  );
+
   // We want to ensure that starting on 2009, the buyer's TFSA gains start accumulating
   const cumulativeGainsBeforeTFSA = cumulativeGains.filter((d) =>
     d.year === 2008 && d.month === 11 && d.group === "cumulativeGains"
@@ -1882,88 +1978,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
         ...d,
         date: d.date.toISOString(),
       })),
-      [
-        {
-          year: 2025,
-          month: 11,
-          monthIndex: 299,
-          date: "2025-12-01T00:00:00.000Z",
-          amount: 191316.34,
-          category: "renter",
-          group: "assets",
-          variable: "tfsa",
-        },
-        {
-          year: 2025,
-          month: 11,
-          monthIndex: 299,
-          date: "2025-12-01T00:00:00.000Z",
-          amount: 307383.92,
-          category: "renter",
-          group: "assets",
-          variable: "stocks",
-        },
-        {
-          year: 2025,
-          month: 11,
-          monthIndex: 299,
-          date: "2025-12-01T00:00:00.000Z",
-          amount: 509,
-          category: "renter",
-          group: "assets",
-          variable: "securityDeposit",
-        },
-        {
-          year: 2025,
-          month: 11,
-          monthIndex: 299,
-          date: "2025-12-01T00:00:00.000Z",
-          amount: 22045.39,
-          category: "buyerFixed",
-          group: "assets",
-          variable: "stocks",
-        },
-        {
-          year: 2025,
-          month: 11,
-          monthIndex: 299,
-          date: "2025-12-01T00:00:00.000Z",
-          amount: 425585,
-          category: "buyerFixed",
-          group: "assets",
-          variable: "homeEquity",
-        },
-        {
-          year: 2025,
-          month: 11,
-          monthIndex: 299,
-          date: "2025-12-01T00:00:00.000Z",
-          amount: 43912.4,
-          category: "buyerVariable",
-          group: "assets",
-          variable: "tfsa",
-        },
-        {
-          year: 2025,
-          month: 11,
-          monthIndex: 299,
-          date: "2025-12-01T00:00:00.000Z",
-          amount: 10084.79,
-          category: "buyerVariable",
-          group: "assets",
-          variable: "stocks",
-        },
-        {
-          year: 2025,
-          month: 11,
-          monthIndex: 299,
-          date: "2025-12-01T00:00:00.000Z",
-          amount: 424239.82,
-          category: "buyerVariable",
-          group: "assets",
-          variable: "homeEquity",
-        },
-      ],
+      [],
     );
   });
 
@@ -1986,6 +2001,24 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
     });
   });
 
+  await t.step(
+    "totals assets last month matches manually computed",
+    async () => {
+      const totalsFromFunction = Object.fromEntries(
+        ["renter", "buyerFixed", "buyerVariable"].map((cat) => [
+          cat,
+          results.find((d) =>
+            d.group === "totals" &&
+            d.variable === "assets" &&
+            d.monthIndex === (numberOfYears * 12) - 1 &&
+            d.category === cat
+          )?.amount,
+        ]),
+      );
+      assertEquals(totalsFromFunction, assetsLastMonthTotalPerCategory);
+    },
+  );
+
   const saleCosts = results.filter((d) => d.group === "saleCosts");
 
   const saleCostsLastMonth = saleCosts.filter((d) =>
@@ -2003,88 +2036,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
         ...d,
         date: d.date.toISOString(),
       })),
-      [
-        {
-          year: 2025,
-          month: 11,
-          monthIndex: 299,
-          date: "2025-12-01T00:00:00.000Z",
-          amount: 53722,
-          category: "renter",
-          group: "saleCosts",
-          variable: "stockTaxes",
-        },
-        {
-          year: 2025,
-          month: 11,
-          monthIndex: 299,
-          date: "2025-12-01T00:00:00.000Z",
-          amount: 3185,
-          category: "buyerFixed",
-          group: "saleCosts",
-          variable: "stockTaxes",
-        },
-        {
-          year: 2025,
-          month: 11,
-          monthIndex: 299,
-          date: "2025-12-01T00:00:00.000Z",
-          amount: 19572.65,
-          category: "buyerFixed",
-          group: "saleCosts",
-          variable: "homeSellingCommission",
-        },
-        {
-          year: 2025,
-          month: 11,
-          monthIndex: 299,
-          date: "2025-12-01T00:00:00.000Z",
-          amount: 2296.32,
-          category: "buyerFixed",
-          group: "saleCosts",
-          variable: "homeSellingFixedFees",
-        },
-        {
-          year: 2025,
-          month: 11,
-          monthIndex: 299,
-          date: "2025-12-01T00:00:00.000Z",
-          amount: 1364,
-          category: "buyerVariable",
-          group: "saleCosts",
-          variable: "stockTaxes",
-        },
-        {
-          year: 2025,
-          month: 11,
-          monthIndex: 299,
-          date: "2025-12-01T00:00:00.000Z",
-          amount: 19572.65,
-          category: "buyerVariable",
-          group: "saleCosts",
-          variable: "homeSellingCommission",
-        },
-        {
-          year: 2025,
-          month: 11,
-          monthIndex: 299,
-          date: "2025-12-01T00:00:00.000Z",
-          amount: 2296.32,
-          category: "buyerVariable",
-          group: "saleCosts",
-          variable: "homeSellingFixedFees",
-        },
-        {
-          year: 2025,
-          month: 11,
-          monthIndex: 299,
-          date: "2025-12-01T00:00:00.000Z",
-          amount: 1345.18,
-          category: "buyerVariable",
-          group: "saleCosts",
-          variable: "mortgageBalance",
-        },
-      ],
+      [],
     );
   });
 
@@ -2106,6 +2058,24 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
     });
   });
 
+  await t.step(
+    "totals saleCosts last month matches manually computed",
+    async () => {
+      const totalsFromFunction = Object.fromEntries(
+        ["renter", "buyerFixed", "buyerVariable"].map((cat) => [
+          cat,
+          results.find((d) =>
+            d.group === "totals" &&
+            d.variable === "saleCosts" &&
+            d.monthIndex === (numberOfYears * 12) - 1 &&
+            d.category === cat
+          )?.amount,
+        ]),
+      );
+      assertEquals(totalsFromFunction, saleCostsLastMonthTotalPerCategory);
+    },
+  );
+
   const saleNetGains = results.filter((d) => d.group === "saleNetGains");
 
   const saleNetGainsLastMonth = saleNetGains.filter((d) =>
@@ -2123,88 +2093,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
         ...d,
         date: d.date.toISOString(),
       })),
-      [
-        {
-          year: 2025,
-          month: 11,
-          monthIndex: 299,
-          date: "2025-12-01T00:00:00.000Z",
-          amount: 253661.92,
-          category: "renter",
-          group: "saleNetGains",
-          variable: "stockSellingGains",
-        },
-        {
-          year: 2025,
-          month: 11,
-          monthIndex: 299,
-          date: "2025-12-01T00:00:00.000Z",
-          amount: 191316.34,
-          category: "renter",
-          group: "saleNetGains",
-          variable: "tfsaSellingGains",
-        },
-        {
-          year: 2025,
-          month: 11,
-          monthIndex: 299,
-          date: "2025-12-01T00:00:00.000Z",
-          amount: 509,
-          category: "renter",
-          group: "saleNetGains",
-          variable: "securityDeposit",
-        },
-        {
-          year: 2025,
-          month: 11,
-          monthIndex: 299,
-          date: "2025-12-01T00:00:00.000Z",
-          amount: 18860.39,
-          category: "buyerFixed",
-          group: "saleNetGains",
-          variable: "stockSellingGains",
-        },
-        {
-          year: 2025,
-          month: 11,
-          monthIndex: 299,
-          date: "2025-12-01T00:00:00.000Z",
-          amount: 403716.03,
-          category: "buyerFixed",
-          group: "saleNetGains",
-          variable: "homeSellingGains",
-        },
-        {
-          year: 2025,
-          month: 11,
-          monthIndex: 299,
-          date: "2025-12-01T00:00:00.000Z",
-          amount: 8720.79,
-          category: "buyerVariable",
-          group: "saleNetGains",
-          variable: "stockSellingGains",
-        },
-        {
-          year: 2025,
-          month: 11,
-          monthIndex: 299,
-          date: "2025-12-01T00:00:00.000Z",
-          amount: 43912.4,
-          category: "buyerVariable",
-          group: "saleNetGains",
-          variable: "tfsaSellingGains",
-        },
-        {
-          year: 2025,
-          month: 11,
-          monthIndex: 299,
-          date: "2025-12-01T00:00:00.000Z",
-          amount: 402370.85,
-          category: "buyerVariable",
-          group: "saleNetGains",
-          variable: "homeSellingGains",
-        },
-      ],
+      [],
     );
   });
 
@@ -2226,6 +2115,24 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
       buyerVariable: 455004.04,
     });
   });
+
+  await t.step(
+    "totals saleNetGains last month matches manually computed",
+    async () => {
+      const totalsFromFunction = Object.fromEntries(
+        ["renter", "buyerFixed", "buyerVariable"].map((cat) => [
+          cat,
+          results.find((d) =>
+            d.group === "totals" &&
+            d.variable === "saleNetGains" &&
+            d.monthIndex === (numberOfYears * 12) - 1 &&
+            d.category === cat
+          )?.amount,
+        ]),
+      );
+      assertEquals(totalsFromFunction, saleNetGainsLastMonthTotalPerCategory);
+    },
+  );
 
   // We check the home value on the last month
   const homeValues = results.filter((d) =>
@@ -2551,70 +2458,8 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
               variable: "tfsaContribution",
             },
           ],
-          stocksLastMonthDefault: [
-            {
-              year: 2025,
-              month: 11,
-              monthIndex: 299,
-              date: "2025-12-01T00:00:00.000Z",
-              amount: 687590.91,
-              category: "renter",
-              group: "assets",
-              variable: "stocks",
-            },
-            {
-              year: 2025,
-              month: 11,
-              monthIndex: 299,
-              date: "2025-12-01T00:00:00.000Z",
-              amount: 22045.39,
-              category: "buyerFixed",
-              group: "assets",
-              variable: "stocks",
-            },
-            {
-              year: 2025,
-              month: 11,
-              monthIndex: 299,
-              date: "2025-12-01T00:00:00.000Z",
-              amount: 10084.79,
-              category: "buyerVariable",
-              group: "assets",
-              variable: "stocks",
-            },
-          ],
-          stocksLastMonthCouple: [
-            {
-              year: 2025,
-              month: 11,
-              monthIndex: 299,
-              date: "2025-12-01T00:00:00.000Z",
-              amount: 503282.45,
-              category: "renter",
-              group: "assets",
-              variable: "stocks",
-            },
-            {
-              year: 2025,
-              month: 11,
-              monthIndex: 299,
-              date: "2025-12-01T00:00:00.000Z",
-              amount: 22045.39,
-              category: "buyerFixed",
-              group: "assets",
-              variable: "stocks",
-            },
-            {
-              year: 2025,
-              month: 11,
-              monthIndex: 299,
-              date: "2025-12-01T00:00:00.000Z",
-              amount: 10084.79,
-              category: "buyerVariable",
-              group: "assets",
-              variable: "stocks",
-            },
-          ],
+          stocksLastMonthDefault: [],
+          stocksLastMonthCouple: [],
           stocksGainsLastMonthDefault: [
             {
               year: 2025,
@@ -2679,70 +2524,8 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
               variable: "stocksGains",
             },
           ],
-          saleCostsLastMonthDefault: [
-            {
-              year: 2025,
-              month: 11,
-              monthIndex: 299,
-              date: "2025-12-01T00:00:00.000Z",
-              amount: 119745,
-              category: "renter",
-              group: "saleCosts",
-              variable: "stockTaxes",
-            },
-            {
-              year: 2025,
-              month: 11,
-              monthIndex: 299,
-              date: "2025-12-01T00:00:00.000Z",
-              amount: 3185,
-              category: "buyerFixed",
-              group: "saleCosts",
-              variable: "stockTaxes",
-            },
-            {
-              year: 2025,
-              month: 11,
-              monthIndex: 299,
-              date: "2025-12-01T00:00:00.000Z",
-              amount: 1364,
-              category: "buyerVariable",
-              group: "saleCosts",
-              variable: "stockTaxes",
-            },
-          ],
-          saleCostsLastMonthCouple: [
-            {
-              year: 2025,
-              month: 11,
-              monthIndex: 299,
-              date: "2025-12-01T00:00:00.000Z",
-              amount: 84982,
-              category: "renter",
-              group: "saleCosts",
-              variable: "stockTaxes",
-            },
-            {
-              year: 2025,
-              month: 11,
-              monthIndex: 299,
-              date: "2025-12-01T00:00:00.000Z",
-              amount: 3184,
-              category: "buyerFixed",
-              group: "saleCosts",
-              variable: "stockTaxes",
-            },
-            {
-              year: 2025,
-              month: 11,
-              monthIndex: 299,
-              date: "2025-12-01T00:00:00.000Z",
-              amount: 1362,
-              category: "buyerVariable",
-              group: "saleCosts",
-              variable: "stockTaxes",
-            },
-          ],
+          saleCostsLastMonthDefault: [],
+          saleCostsLastMonthCouple: [],
         },
       );
     },

@@ -86,6 +86,7 @@ import getSalesTax from "./getSalesTax.ts";
  * - `summaryCumulative`: `balance` (cumulative net worth), `balanceAfterSelling` (net worth after hypothetical property sale and associated taxes/fees)
  * - `saleCosts`: `stockTaxes`, `homeSellingCommission`, `homeSellingFixedFees`, `mortgagePenalty`, `mortgageBalance` (hypothetical costs incurred upon selling)
  * - `saleNetGains`: `stockSellingGains`, `tfsaSellingGains`, `homeSellingGains`, `securityDeposit` (hypothetical gains realized upon selling)
+ * - `totals`: `monthlyExpenses`, `cumulativeExpenses`, `monthlyGains`, `cumulativeGains`, `assets`, `saleCosts`, `saleNetGains` (sum of all variables in each respective group; always emitted even when zero)
  *
  * @example
  * ```ts
@@ -280,6 +281,17 @@ export default function simulateRentVsBuy(
         | "homeSellingGains"
         | "securityDeposit";
     }
+    | {
+      group: "totals";
+      variable:
+        | "monthlyExpenses"
+        | "cumulativeExpenses"
+        | "monthlyGains"
+        | "cumulativeGains"
+        | "assets"
+        | "saleCosts"
+        | "saleNetGains";
+    }
   )
 )[] {
   const results: (
@@ -354,6 +366,17 @@ export default function simulateRentVsBuy(
           | "tfsaSellingGains"
           | "homeSellingGains"
           | "securityDeposit";
+      }
+      | {
+        group: "totals";
+        variable:
+          | "monthlyExpenses"
+          | "cumulativeExpenses"
+          | "monthlyGains"
+          | "cumulativeGains"
+          | "assets"
+          | "saleCosts"
+          | "saleNetGains";
       }
     )
   )[] = [];

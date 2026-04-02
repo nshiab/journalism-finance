@@ -326,3 +326,74 @@ Deno.test("should return monthly quantiles when option monthlyQuantiles is true"
   );
   assertEquals(renterRent.length, 300);
 });
+
+Deno.test(
+  "monthlyQuantiles should include totals group for all categories, variables, and months",
+  async () => {
+    const params = getParamsRentVsBuyMonteCarlo(10, "Montreal", "Quebec", {
+      downPayment: 0.10,
+      purchaseFixedFees: 0.02,
+    }, {
+      renterMonthlyInsurance: 70,
+      ownerMonthlyInsurance: 125,
+      sellingFixedFees: 2000,
+      condoFees: 250,
+    }, false);
+
+    const results = simulateRentVsBuyMonteCarlo(params, {
+      monthlyQuantiles: true,
+    });
+
+    const categories = ["renter", "buyerFixed", "buyerVariable"] as const;
+    const totalsVariables = [
+      "monthlyExpenses",
+      "cumulativeExpenses",
+      "monthlyGains",
+      "cumulativeGains",
+      "assets",
+      "saleCosts",
+      "saleNetGains",
+    ] as const;
+    const numberOfMonths = params.numberOfYears * 12;
+
+    for (const category of categories) {
+      for (const variable of totalsVariables) {
+        const rows = results.monthlyQuantiles.filter(
+          (d) =>
+            d.group === "totals" &&
+            d.variable === variable &&
+            d.category === category,
+        );
+
+        // Every month must be present
+        assertEquals(
+          rows.length,
+          numberOfMonths,
+          `Expected ${numberOfMonths} months for ${category}/totals/${variable}, got ${rows.length}`,
+        );
+
+        // Month indices must be contiguous 0..N-1
+        const monthIndices = rows.map((d) => d.monthIndex).sort((a, b) =>
+          a - b
+        );
+        assertEquals(
+          monthIndices,
+          Array.from({ length: numberOfMonths }, (_, i) => i),
+          `Month indices not contiguous for ${category}/totals/${variable}`,
+        );
+
+        // Quantile ordering must hold on every row
+        for (const row of rows) {
+          assert(
+            row.q10 <= row.q50,
+            `q10 <= q50 failed for ${category}/totals/${variable} month ${row.monthIndex}`,
+          );
+          assert(
+            row.q50 <= row.q90,
+            `q50 <= q90 failed for ${category}/totals/${variable} month ${row.monthIndex}`,
+          );
+        }
+      }
+    }
+  },
+);

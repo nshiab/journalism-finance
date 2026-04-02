@@ -286,7 +286,8 @@ export default function simulateRentVsBuyMonteCarlo(
       | "summary"
       | "summaryCumulative"
       | "saleCosts"
-      | "saleNetGains";
+      | "saleNetGains"
+      | "totals";
     variable:
       | "rent"
       | "insurance"
@@ -318,7 +319,14 @@ export default function simulateRentVsBuyMonteCarlo(
       | "mortgageBalance"
       | "stockSellingGains"
       | "tfsaSellingGains"
-      | "homeSellingGains";
+      | "homeSellingGains"
+      | "monthlyExpenses"
+      | "cumulativeExpenses"
+      | "monthlyGains"
+      | "cumulativeGains"
+      | "assets"
+      | "saleCosts"
+      | "saleNetGains";
     monthIndex: number;
     year: number;
     month: number;
@@ -638,7 +646,8 @@ export default function simulateRentVsBuyMonteCarlo(
       | "summary"
       | "summaryCumulative"
       | "saleCosts"
-      | "saleNetGains";
+      | "saleNetGains"
+      | "totals";
     variable:
       | "rent"
       | "insurance"
@@ -670,7 +679,14 @@ export default function simulateRentVsBuyMonteCarlo(
       | "mortgageBalance"
       | "stockSellingGains"
       | "tfsaSellingGains"
-      | "homeSellingGains";
+      | "homeSellingGains"
+      | "monthlyExpenses"
+      | "cumulativeExpenses"
+      | "monthlyGains"
+      | "cumulativeGains"
+      | "assets"
+      | "saleCosts"
+      | "saleNetGains";
     monthIndex: number;
     year: number;
     month: number;
@@ -737,7 +753,8 @@ export default function simulateRentVsBuyMonteCarlo(
             | "summary"
             | "summaryCumulative"
             | "saleCosts"
-            | "saleNetGains",
+            | "saleNetGains"
+            | "totals",
           variable: variable as
             | "rent"
             | "insurance"
@@ -769,7 +786,14 @@ export default function simulateRentVsBuyMonteCarlo(
             | "mortgageBalance"
             | "stockSellingGains"
             | "tfsaSellingGains"
-            | "homeSellingGains",
+            | "homeSellingGains"
+            | "monthlyExpenses"
+            | "cumulativeExpenses"
+            | "monthlyGains"
+            | "cumulativeGains"
+            | "assets"
+            | "saleCosts"
+            | "saleNetGains",
           monthIndex,
           year,
           month,
