@@ -292,6 +292,33 @@ Deno.test("should return monthly quantiles when option monthlyQuantiles is true"
   assertEquals(results.winners.length, 1000);
   assertEquals(results.winnersBeforeSelling.length, 1000);
 
+  const winnerCounts = { buyerFixed: 0, buyerVariable: 0, renter: 0 };
+  const winnerCountsBeforeSelling = {
+    buyerFixed: 0,
+    buyerVariable: 0,
+    renter: 0,
+  };
+  for (const w of results.winners) winnerCounts[w.category] += 1;
+  for (const w of results.winnersBeforeSelling) {
+    winnerCountsBeforeSelling[w.category] += 1;
+  }
+  const total = results.winners.length;
+  const pct = (n: number) => Math.round((n / total) * 100);
+  console.log("Winner counts and percentages:", winnerCounts, {
+    buyerFixed: pct(winnerCounts.buyerFixed),
+    buyerVariable: pct(winnerCounts.buyerVariable),
+    renter: pct(winnerCounts.renter),
+  });
+  console.log(
+    "Winner counts and percentages before selling:",
+    winnerCountsBeforeSelling,
+    {
+      buyerFixed: pct(winnerCountsBeforeSelling.buyerFixed),
+      buyerVariable: pct(winnerCountsBeforeSelling.buyerVariable),
+      renter: pct(winnerCountsBeforeSelling.renter),
+    },
+  );
+
   // console.log(results.monthlyQuantiles.slice(0, 3));
 
   // monthlyQuantiles is populated
@@ -320,6 +347,85 @@ Deno.test("should return monthly quantiles when option monthlyQuantiles is true"
 });
 
 Deno.test(
+  "Making sure all scenarios have wins",
+  async () => {
+    const params = getParamsRentVsBuyMonteCarlo(100, "Montreal", "Quebec", {
+      downPayment: 0.10,
+      purchaseFixedFees: 0.02,
+    }, {
+      renterMonthlyInsurance: 70,
+      ownerMonthlyInsurance: 125,
+      sellingFixedFees: 2000,
+      condoFees: 250,
+    }, false);
+
+    function logWinners(
+      label: string,
+      results: ReturnType<typeof simulateRentVsBuyMonteCarlo>,
+    ) {
+      const counts = { buyerFixed: 0, buyerVariable: 0, renter: 0 };
+      const countsBeforeSelling = {
+        buyerFixed: 0,
+        buyerVariable: 0,
+        renter: 0,
+      };
+      for (const w of results.winners) counts[w.category] += 1;
+      for (const w of results.winnersBeforeSelling) {
+        countsBeforeSelling[w.category] += 1;
+      }
+      const total = results.winners.length;
+      const pct = (n: number) => Math.round((n / total) * 100);
+      console.log(`${label} - Winner counts and percentages:`, counts, {
+        buyerFixed: pct(counts.buyerFixed),
+        buyerVariable: pct(counts.buyerVariable),
+        renter: pct(counts.renter),
+      });
+      console.log(
+        `${label} - Winner counts and percentages before selling:`,
+        countsBeforeSelling,
+        {
+          buyerFixed: pct(countsBeforeSelling.buyerFixed),
+          buyerVariable: pct(countsBeforeSelling.buyerVariable),
+          renter: pct(countsBeforeSelling.renter),
+        },
+      );
+    }
+
+    // Default path (finalBalanceOnly, stride=9)
+    const defaultResults = simulateRentVsBuyMonteCarlo(params, {});
+    logWinners("default", defaultResults);
+    for (
+      const category of ["renter", "buyerFixed", "buyerVariable"] as const
+    ) {
+      const wins = defaultResults.winners.filter((w) =>
+        w.category === category
+      ).length;
+      assert(
+        wins > 0,
+        `${category} should win at least once without monthlyQuantiles, got 0 out of ${defaultResults.winners.length}`,
+      );
+    }
+
+    // monthlyQuantiles path (onRecord active, stride=2)
+    const quantileResults = simulateRentVsBuyMonteCarlo(params, {
+      monthlyQuantiles: true,
+    });
+    logWinners("monthlyQuantiles", quantileResults);
+    for (
+      const category of ["renter", "buyerFixed", "buyerVariable"] as const
+    ) {
+      const wins = quantileResults.winners.filter((w) =>
+        w.category === category
+      ).length;
+      assert(
+        wins > 0,
+        `${category} should win at least once with monthlyQuantiles, got 0 out of ${quantileResults.winners.length}`,
+      );
+    }
+  },
+);
+
+Deno.test(
   "monthlyQuantiles should include totals group for all categories, variables, and months",
   async () => {
     const params = getParamsRentVsBuyMonteCarlo(10, "Montreal", "Quebec", {
@@ -335,6 +441,29 @@ Deno.test(
     const results = simulateRentVsBuyMonteCarlo(params, {
       monthlyQuantiles: true,
     });
+
+    const counts = { buyerFixed: 0, buyerVariable: 0, renter: 0 };
+    const countsBeforeSelling = { buyerFixed: 0, buyerVariable: 0, renter: 0 };
+    for (const w of results.winners) counts[w.category] += 1;
+    for (const w of results.winnersBeforeSelling) {
+      countsBeforeSelling[w.category] += 1;
+    }
+    const total = results.winners.length;
+    const pct = (n: number) => Math.round((n / total) * 100);
+    console.log("Winner counts and percentages:", counts, {
+      buyerFixed: pct(counts.buyerFixed),
+      buyerVariable: pct(counts.buyerVariable),
+      renter: pct(counts.renter),
+    });
+    console.log(
+      "Winner counts and percentages before selling:",
+      countsBeforeSelling,
+      {
+        buyerFixed: pct(countsBeforeSelling.buyerFixed),
+        buyerVariable: pct(countsBeforeSelling.buyerVariable),
+        renter: pct(countsBeforeSelling.renter),
+      },
+    );
 
     const categories = ["renter", "buyerFixed", "buyerVariable"] as const;
     const totalsVariables = [

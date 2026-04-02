@@ -642,13 +642,17 @@ export default function simulateRentVsBuyMonteCarlo(
       },
     }, { finalBalanceOnly: !options.monthlyQuantiles, onRecord });
 
-    // With finalBalanceOnly the results array always has exactly 6 entries in a
-    // fixed order: [renter/afterSelling, renter/balance, buyerFixed/afterSelling,
-    // buyerFixed/balance, buyerVariable/afterSelling, buyerVariable/balance].
+    // The results array always contains a fixed number of entries per category,
+    // pushed in order: renter, buyerFixed, buyerVariable.
+    // - When onRecord is active (monthlyQuantiles=true): 2 entries per category
+    //   [balanceAfterSelling, balance] → stride = 2
+    // - When finalBalanceOnly=true (monthlyQuantiles=false): 9 entries per category
+    //   [balanceAfterSelling, balance, + 7 totals] → stride = 9
     // Avoid .filter() by accessing known indices directly.
+    const stride = onRecord ? 2 : 9;
     const r0 = iterationResults[0]; // renter balanceAfterSelling
-    const r2 = iterationResults[2]; // buyerFixed balanceAfterSelling
-    const r4 = iterationResults[4]; // buyerVariable balanceAfterSelling
+    const r2 = iterationResults[stride]; // buyerFixed balanceAfterSelling
+    const r4 = iterationResults[stride * 2]; // buyerVariable balanceAfterSelling
     if (r0.amount >= r2.amount && r0.amount >= r4.amount) {
       winners.push(r0 as typeof winners[0]);
     } else if (r2.amount >= r4.amount) {
@@ -658,8 +662,8 @@ export default function simulateRentVsBuyMonteCarlo(
     }
 
     const r1 = iterationResults[1]; // renter balance
-    const r3 = iterationResults[3]; // buyerFixed balance
-    const r5 = iterationResults[5]; // buyerVariable balance
+    const r3 = iterationResults[stride + 1]; // buyerFixed balance
+    const r5 = iterationResults[stride * 2 + 1]; // buyerVariable balance
     if (r1.amount >= r3.amount && r1.amount >= r5.amount) {
       winnersBeforeSelling.push(r1 as typeof winnersBeforeSelling[0]);
     } else if (r3.amount >= r5.amount) {
