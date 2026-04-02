@@ -27,25 +27,22 @@ import {
  * @param parameters.employmentIncome - The employment income used for calculating income taxes on investment gains.
  * @param parameters.province - The Canadian province or territory, used for calculating sales taxes.
  * @param parameters.renter - Configuration for the renter scenario.
- *   @param parameters.renter.startingMonthlyRent - The initial monthly rent payment.
  *   @param parameters.renter.securityDeposit - The initial security deposit or last month's rent (scenario-dependent).
- *   @param parameters.renter.startingMonthlyInsurance - The initial monthly renter's (tenant) insurance cost.
  * @param parameters.buyer - Configuration for the buyer scenarios.
  *   @param parameters.buyer.downPayment - The total down payment amount paid at the start.
- *   @param parameters.buyer.purchasePrice - The initial purchase price of the home.
  *   @param parameters.buyer.fixedRateAdjustment - The adjustment applied to the posted fixed mortgage rate (added to the posted rate).
  *   @param parameters.buyer.variableRateAdjustment - The adjustment applied to the variable mortgage rate (added to the posted rate).
  *   @param parameters.buyer.purchaseFixedFees - One-time costs at purchase (notary, land transfer tax, etc.).
- *   @param parameters.buyer.startingAnnualMaintenanceCost - Initial annual cost for home maintenance.
- *   @param parameters.buyer.startingAnnualPropertyTax - Initial annual property tax amount.
- *   @param parameters.buyer.startingMonthlyCondoFees - Initial monthly condo fees (if applicable).
- *   @param parameters.buyer.startingMonthlyInsurance - Initial monthly homeowner's insurance cost.
- *   @param parameters.buyer.sellingFixedFees - One-time fixed costs when selling the property (before sales tax).
  *   @param parameters.buyer.sellingCommissionRate - The commission rate paid to real estate agents upon sale (e.g., `0.05` for 5%).
  *   @param parameters.buyer.floorRate - The minimum interest rate (posted + adjustment) for mortgages.
  * @param parameters.stochasticParameters - Parameters for the stochastic models.
- *   For growth rates (market, rent, etc.), uses **Geometric Brownian Motion (GBM)**:
- *   - `startValue`: The initial annual rate (e.g., 0.05 for 5%).
+ *   For the market return rate, uses **Geometric Brownian Motion (GBM)** with a rate seed:
+ *   - `startValue`: The initial annual rate (e.g., 0.07 for 7%).
+ *   - `mu`: The drift or expected annual growth rate.
+ *   - `sigma`: The annual volatility.
+ *
+ *   For expense-related GBM parameters (rent, insurance, maintenance, etc.), uses **Geometric Brownian Motion (GBM)** with a dollar seed:
+ *   - `initialAmount`: The starting dollar value (e.g., `1500` for $1,500/month rent). This also supplies the initial value to `simulateRentVsBuy`, eliminating the need to repeat it in `renter`/`buyer`.
  *   - `mu`: The drift or expected annual growth rate.
  *   - `sigma`: The annual volatility.
  *
@@ -97,34 +94,26 @@ import {
  *   employmentIncome: 80000,
  *   province: "Ontario",
  *   renter: {
- *     startingMonthlyRent: 1500,
  *     securityDeposit: 1500,
- *     startingMonthlyInsurance: 25,
  *   },
  *   buyer: {
  *     downPayment: 50000,
- *     purchasePrice: 400000,
  *     fixedRateAdjustment: -0.01,
  *     variableRateAdjustment: 0,
  *     purchaseFixedFees: 3000,
- *     startingAnnualMaintenanceCost: 1500,
- *     startingAnnualPropertyTax: 2500,
- *     startingMonthlyCondoFees: 0,
- *     startingMonthlyInsurance: 80,
- *     sellingFixedFees: 1500,
  *     sellingCommissionRate: 0.05,
  *     floorRate: 0,
  *   },
  *   stochasticParameters: {
  *     market: { startValue: 0.07, mu: 0.07, sigma: 0.15 },
- *     rent: { startValue: 0.03, mu: 0.03, sigma: 0.02 },
- *     ownerInsurance: { startValue: 0.03, mu: 0.03, sigma: 0.05 },
- *     renterInsurance: { startValue: 0.03, mu: 0.03, sigma: 0.05 },
- *     maintenance: { startValue: 0.02, mu: 0.02, sigma: 0.05 },
- *     propertyTax: { startValue: 0.02, mu: 0.02, sigma: 0.02 },
- *     condoFee: { startValue: 0.03, mu: 0.03, sigma: 0.05 },
- *     appreciation: { startValue: 0.04, mu: 0.04, sigma: 0.10 },
- *     sellingFixedFees: { startValue: 0.02, mu: 0.02, sigma: 0.05 },
+ *     rent: { initialAmount: 1500, mu: 0.03, sigma: 0.02 },
+ *     ownerInsurance: { initialAmount: 80, mu: 0.03, sigma: 0.05 },
+ *     renterInsurance: { initialAmount: 25, mu: 0.03, sigma: 0.05 },
+ *     maintenance: { initialAmount: 1500, mu: 0.02, sigma: 0.05 },
+ *     propertyTax: { initialAmount: 2500, mu: 0.02, sigma: 0.02 },
+ *     condoFee: { initialAmount: 0, mu: 0.03, sigma: 0.05 },
+ *     appreciation: { initialAmount: 400000, mu: 0.04, sigma: 0.10 },
+ *     sellingFixedFees: { initialAmount: 1500, mu: 0.02, sigma: 0.05 },
  *     fiveYearInterestRates: { startValue: 0.05, a: 0.2, b: 0.05, sigma: 0.02 },
  *     fourYearInterestRates: { startValue: 0.048, a: 0.2, b: 0.048, sigma: 0.02 },
  *     threeYearInterestRates: { startValue: 0.045, a: 0.2, b: 0.045, sigma: 0.02 },
@@ -161,39 +150,31 @@ export default function simulateRentVsBuyMonteCarlo(
       | "Saskatchewan"
       | "Yukon";
     renter: {
-      startingMonthlyRent: number;
       securityDeposit: number;
-      startingMonthlyInsurance: number;
     };
     buyer: {
       downPayment: number;
-      purchasePrice: number;
       fixedRateAdjustment: number;
       variableRateAdjustment: number;
       purchaseFixedFees: number;
-      startingAnnualMaintenanceCost: number;
-      startingAnnualPropertyTax: number;
-      startingMonthlyCondoFees: number;
-      startingMonthlyInsurance: number;
-      sellingFixedFees: number;
       sellingCommissionRate: number;
       floorRate: number;
     };
     stochasticParameters: {
       market: { startValue: number; mu: number; sigma: number };
-      rent: { startValue: number; mu: number; sigma: number };
-      ownerInsurance: { startValue: number; mu: number; sigma: number };
+      rent: { initialAmount: number; mu: number; sigma: number };
+      ownerInsurance: { initialAmount: number; mu: number; sigma: number };
       renterInsurance: {
-        startValue: number;
+        initialAmount: number;
         mu: number;
         sigma: number;
       };
-      maintenance: { startValue: number; mu: number; sigma: number };
-      propertyTax: { startValue: number; mu: number; sigma: number };
-      condoFee: { startValue: number; mu: number; sigma: number };
-      appreciation: { startValue: number; mu: number; sigma: number };
+      maintenance: { initialAmount: number; mu: number; sigma: number };
+      propertyTax: { initialAmount: number; mu: number; sigma: number };
+      condoFee: { initialAmount: number; mu: number; sigma: number };
+      appreciation: { initialAmount: number; mu: number; sigma: number };
       sellingFixedFees: {
-        startValue: number;
+        initialAmount: number;
         mu: number;
         sigma: number;
       };
@@ -417,11 +398,15 @@ export default function simulateRentVsBuyMonteCarlo(
   function prepRatesGbm(
     iteration: number,
     variable: string,
-    params: { startValue: number; mu: number; sigma: number },
+    params: { initialValue: number; mu: number; sigma: number },
   ): number[] {
+    // If the initial value is 0 there is nothing to grow; return zero rates.
+    if (params.initialValue === 0) {
+      return new Array<number>(nbMonths).fill(0);
+    }
     // We generate a bit more than the number of months...
     const path = generateGbmPath(
-      params.startValue,
+      params.initialValue,
       params.mu,
       params.sigma,
       parameters.numberOfYears + 0.9,
@@ -509,22 +494,28 @@ export default function simulateRentVsBuyMonteCarlo(
       employmentIncome: parameters.employmentIncome,
       province: parameters.province,
       renter: {
-        startingMonthlyRent: parameters.renter.startingMonthlyRent,
+        startingMonthlyRent: parameters.stochasticParameters.rent.initialAmount,
         securityDeposit: parameters.renter.securityDeposit,
-        startingMonthlyInsurance: parameters.renter.startingMonthlyInsurance,
+        startingMonthlyInsurance:
+          parameters.stochasticParameters.renterInsurance.initialAmount,
       },
       buyer: {
         downPayment: parameters.buyer.downPayment,
-        purchasePrice: parameters.buyer.purchasePrice,
+        purchasePrice:
+          parameters.stochasticParameters.appreciation.initialAmount,
         fixedRateAdjustment: parameters.buyer.fixedRateAdjustment,
         variableRateAdjustment: parameters.buyer.variableRateAdjustment,
         purchaseFixedFees: parameters.buyer.purchaseFixedFees,
         startingAnnualMaintenanceCost:
-          parameters.buyer.startingAnnualMaintenanceCost,
-        startingAnnualPropertyTax: parameters.buyer.startingAnnualPropertyTax,
-        startingMonthlyCondoFees: parameters.buyer.startingMonthlyCondoFees,
-        startingMonthlyInsurance: parameters.buyer.startingMonthlyInsurance,
-        sellingFixedFees: parameters.buyer.sellingFixedFees,
+          parameters.stochasticParameters.maintenance.initialAmount,
+        startingAnnualPropertyTax:
+          parameters.stochasticParameters.propertyTax.initialAmount,
+        startingMonthlyCondoFees:
+          parameters.stochasticParameters.condoFee.initialAmount,
+        startingMonthlyInsurance:
+          parameters.stochasticParameters.ownerInsurance.initialAmount,
+        sellingFixedFees:
+          parameters.stochasticParameters.sellingFixedFees.initialAmount,
         sellingCommissionRate: parameters.buyer.sellingCommissionRate,
         floorRate: parameters.buyer.floorRate,
       },
@@ -533,47 +524,90 @@ export default function simulateRentVsBuyMonteCarlo(
         marketReturnRate: prepRatesGbm(
           i,
           "market returns",
-          parameters.stochasticParameters.market,
+          {
+            initialValue: parameters.stochasticParameters.market.startValue,
+            mu: parameters.stochasticParameters.market.mu,
+            sigma: parameters.stochasticParameters.market.sigma,
+          },
         ),
         rentIncrease: prepRatesGbm(
           i,
           "rent",
-          parameters.stochasticParameters.rent,
+          {
+            initialValue: parameters.stochasticParameters.rent.initialAmount,
+            mu: parameters.stochasticParameters.rent.mu,
+            sigma: parameters.stochasticParameters.rent.sigma,
+          },
         ),
         renterInsuranceIncrease: prepRatesGbm(
           i,
           "renter insurance",
-          parameters.stochasticParameters.renterInsurance,
+          {
+            initialValue:
+              parameters.stochasticParameters.renterInsurance.initialAmount,
+            mu: parameters.stochasticParameters.renterInsurance.mu,
+            sigma: parameters.stochasticParameters.renterInsurance.sigma,
+          },
         ),
         ownerInsuranceIncrease: prepRatesGbm(
           i,
           "owner insurance",
-          parameters.stochasticParameters.ownerInsurance,
+          {
+            initialValue:
+              parameters.stochasticParameters.ownerInsurance.initialAmount,
+            mu: parameters.stochasticParameters.ownerInsurance.mu,
+            sigma: parameters.stochasticParameters.ownerInsurance.sigma,
+          },
         ),
         maintenanceIncrease: prepRatesGbm(
           i,
           "maintenance costs",
-          parameters.stochasticParameters.maintenance,
+          {
+            initialValue:
+              parameters.stochasticParameters.maintenance.initialAmount,
+            mu: parameters.stochasticParameters.maintenance.mu,
+            sigma: parameters.stochasticParameters.maintenance.sigma,
+          },
         ),
         propertyTaxIncrease: prepRatesGbm(
           i,
           "property taxes",
-          parameters.stochasticParameters.propertyTax,
+          {
+            initialValue:
+              parameters.stochasticParameters.propertyTax.initialAmount,
+            mu: parameters.stochasticParameters.propertyTax.mu,
+            sigma: parameters.stochasticParameters.propertyTax.sigma,
+          },
         ),
         condoFeeIncrease: prepRatesGbm(
           i,
           "condo fees",
-          parameters.stochasticParameters.condoFee,
+          {
+            initialValue:
+              parameters.stochasticParameters.condoFee.initialAmount,
+            mu: parameters.stochasticParameters.condoFee.mu,
+            sigma: parameters.stochasticParameters.condoFee.sigma,
+          },
         ),
         appreciationIncrease: prepRatesGbm(
           i,
           "property appreciation",
-          parameters.stochasticParameters.appreciation,
+          {
+            initialValue:
+              parameters.stochasticParameters.appreciation.initialAmount,
+            mu: parameters.stochasticParameters.appreciation.mu,
+            sigma: parameters.stochasticParameters.appreciation.sigma,
+          },
         ),
         sellingFixedFeesIncrease: prepRatesGbm(
           i,
           "selling fixed fees",
-          parameters.stochasticParameters.sellingFixedFees,
+          {
+            initialValue:
+              parameters.stochasticParameters.sellingFixedFees.initialAmount,
+            mu: parameters.stochasticParameters.sellingFixedFees.mu,
+            sigma: parameters.stochasticParameters.sellingFixedFees.sigma,
+          },
         ),
         fiveYearInterestRates: prepRatesCir(
           i,
