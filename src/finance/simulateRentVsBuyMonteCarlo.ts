@@ -36,18 +36,14 @@ import {
  *   @param parameters.buyer.sellingCommissionRate - The commission rate paid to real estate agents upon sale (e.g., `0.05` for 5%).
  *   @param parameters.buyer.floorRate - The minimum interest rate (posted + adjustment) for mortgages.
  * @param parameters.stochasticParameters - Parameters for the stochastic models.
- *   For the market return rate, uses **Geometric Brownian Motion (GBM)** with a rate seed:
- *   - `startValue`: The initial annual rate (e.g., 0.07 for 7%).
+ *   For all parameters (market return rate, dollar amounts, interest rates), use:
+ *   - `initialValue`: The starting value (e.g., `0.07` for 7% market return, `1500` for $1,500 monthly rent, or `0.05` for a 5% interest rate).
+ *
+ *   For **Geometric Brownian Motion (GBM)** models (market, rent, expenses, appreciation):
  *   - `mu`: The drift or expected annual growth rate.
  *   - `sigma`: The annual volatility.
  *
- *   For expense-related GBM parameters (rent, insurance, maintenance, etc.), uses **Geometric Brownian Motion (GBM)** with a dollar seed:
- *   - `initialAmount`: The starting dollar value (e.g., `1500` for $1,500/month rent). This also supplies the initial value to `simulateRentVsBuy`, eliminating the need to repeat it in `renter`/`buyer`.
- *   - `mu`: The drift or expected annual growth rate.
- *   - `sigma`: The annual volatility.
- *
- *   For interest rates (fiveYear, variable, etc.), uses **Cox-Ingersoll-Ross (CIR)**:
- *   - `startValue`: The initial annual interest rate.
+ *   For **Cox-Ingersoll-Ross (CIR)** models (interest rates):
  *   - `a`: Speed of mean reversion.
  *   - `b`: Long-term mean.
  *   - `sigma`: Annual volatility.
@@ -105,21 +101,21 @@ import {
  *     floorRate: 0,
  *   },
  *   stochasticParameters: {
- *     market: { startValue: 0.07, mu: 0.07, sigma: 0.15 },
- *     rent: { initialAmount: 1500, mu: 0.03, sigma: 0.02 },
- *     ownerInsurance: { initialAmount: 80, mu: 0.03, sigma: 0.05 },
- *     renterInsurance: { initialAmount: 25, mu: 0.03, sigma: 0.05 },
- *     maintenance: { initialAmount: 1500, mu: 0.02, sigma: 0.05 },
- *     propertyTax: { initialAmount: 2500, mu: 0.02, sigma: 0.02 },
- *     condoFee: { initialAmount: 0, mu: 0.03, sigma: 0.05 },
- *     appreciation: { initialAmount: 400000, mu: 0.04, sigma: 0.10 },
- *     sellingFixedFees: { initialAmount: 1500, mu: 0.02, sigma: 0.05 },
- *     fiveYearInterestRates: { startValue: 0.05, a: 0.2, b: 0.05, sigma: 0.02 },
- *     fourYearInterestRates: { startValue: 0.048, a: 0.2, b: 0.048, sigma: 0.02 },
- *     threeYearInterestRates: { startValue: 0.045, a: 0.2, b: 0.045, sigma: 0.02 },
- *     twoYearInterestRates: { startValue: 0.042, a: 0.2, b: 0.042, sigma: 0.02 },
- *     oneYearInterestRates: { startValue: 0.04, a: 0.2, b: 0.04, sigma: 0.02 },
- *     variableInterestRates: { startValue: 0.06, a: 0.3, b: 0.055, sigma: 0.03 },
+ *     market: { initialValue: 0.07, mu: 0.07, sigma: 0.15 },
+ *     rent: { initialValue: 1500, mu: 0.03, sigma: 0.02 },
+ *     ownerInsurance: { initialValue: 80, mu: 0.03, sigma: 0.05 },
+ *     renterInsurance: { initialValue: 25, mu: 0.03, sigma: 0.05 },
+ *     maintenance: { initialValue: 1500, mu: 0.02, sigma: 0.05 },
+ *     propertyTax: { initialValue: 2500, mu: 0.02, sigma: 0.02 },
+ *     condoFee: { initialValue: 0, mu: 0.03, sigma: 0.05 },
+ *     appreciation: { initialValue: 400000, mu: 0.04, sigma: 0.10 },
+ *     sellingFixedFees: { initialValue: 1500, mu: 0.02, sigma: 0.05 },
+ *     fiveYearInterestRates: { initialValue: 0.05, a: 0.2, b: 0.05, sigma: 0.02 },
+ *     fourYearInterestRates: { initialValue: 0.048, a: 0.2, b: 0.048, sigma: 0.02 },
+ *     threeYearInterestRates: { initialValue: 0.045, a: 0.2, b: 0.045, sigma: 0.02 },
+ *     twoYearInterestRates: { initialValue: 0.042, a: 0.2, b: 0.042, sigma: 0.02 },
+ *     oneYearInterestRates: { initialValue: 0.04, a: 0.2, b: 0.04, sigma: 0.02 },
+ *     variableInterestRates: { initialValue: 0.06, a: 0.3, b: 0.055, sigma: 0.03 },
  *   }
  * }, { verbose: true, verboseStep: 100 });
  *
@@ -161,20 +157,20 @@ export default function simulateRentVsBuyMonteCarlo(
       floorRate: number;
     };
     stochasticParameters: {
-      market: { startValue: number; mu: number; sigma: number };
-      rent: { initialAmount: number; mu: number; sigma: number };
-      ownerInsurance: { initialAmount: number; mu: number; sigma: number };
+      market: { initialValue: number; mu: number; sigma: number };
+      rent: { initialValue: number; mu: number; sigma: number };
+      ownerInsurance: { initialValue: number; mu: number; sigma: number };
       renterInsurance: {
-        initialAmount: number;
+        initialValue: number;
         mu: number;
         sigma: number;
       };
-      maintenance: { initialAmount: number; mu: number; sigma: number };
-      propertyTax: { initialAmount: number; mu: number; sigma: number };
-      condoFee: { initialAmount: number; mu: number; sigma: number };
-      appreciation: { initialAmount: number; mu: number; sigma: number };
+      maintenance: { initialValue: number; mu: number; sigma: number };
+      propertyTax: { initialValue: number; mu: number; sigma: number };
+      condoFee: { initialValue: number; mu: number; sigma: number };
+      appreciation: { initialValue: number; mu: number; sigma: number };
       sellingFixedFees: {
-        initialAmount: number;
+        initialValue: number;
         mu: number;
         sigma: number;
       };
@@ -182,37 +178,37 @@ export default function simulateRentVsBuyMonteCarlo(
         a: number;
         b: number;
         sigma: number;
-        startValue: number;
+        initialValue: number;
       };
       fourYearInterestRates: {
         a: number;
         b: number;
         sigma: number;
-        startValue: number;
+        initialValue: number;
       };
       threeYearInterestRates: {
         a: number;
         b: number;
         sigma: number;
-        startValue: number;
+        initialValue: number;
       };
       twoYearInterestRates: {
         a: number;
         b: number;
         sigma: number;
-        startValue: number;
+        initialValue: number;
       };
       oneYearInterestRates: {
         a: number;
         b: number;
         sigma: number;
-        startValue: number;
+        initialValue: number;
       };
       variableInterestRates: {
         a: number;
         b: number;
         sigma: number;
-        startValue: number;
+        initialValue: number;
       };
     };
   },
@@ -442,11 +438,11 @@ export default function simulateRentVsBuyMonteCarlo(
   function prepRatesCir(
     iteration: number,
     variable: string,
-    params: { startValue: number; a: number; b: number; sigma: number },
+    params: { initialValue: number; a: number; b: number; sigma: number },
   ): number[] {
     // We generate a bit more than the number of months...
     const path = generateCirPath(
-      params.startValue,
+      params.initialValue,
       params.a,
       params.b,
       params.sigma,
@@ -494,28 +490,28 @@ export default function simulateRentVsBuyMonteCarlo(
       employmentIncome: parameters.employmentIncome,
       province: parameters.province,
       renter: {
-        startingMonthlyRent: parameters.stochasticParameters.rent.initialAmount,
+        startingMonthlyRent: parameters.stochasticParameters.rent.initialValue,
         securityDeposit: parameters.renter.securityDeposit,
         startingMonthlyInsurance:
-          parameters.stochasticParameters.renterInsurance.initialAmount,
+          parameters.stochasticParameters.renterInsurance.initialValue,
       },
       buyer: {
         downPayment: parameters.buyer.downPayment,
         purchasePrice:
-          parameters.stochasticParameters.appreciation.initialAmount,
+          parameters.stochasticParameters.appreciation.initialValue,
         fixedRateAdjustment: parameters.buyer.fixedRateAdjustment,
         variableRateAdjustment: parameters.buyer.variableRateAdjustment,
         purchaseFixedFees: parameters.buyer.purchaseFixedFees,
         startingAnnualMaintenanceCost:
-          parameters.stochasticParameters.maintenance.initialAmount,
+          parameters.stochasticParameters.maintenance.initialValue,
         startingAnnualPropertyTax:
-          parameters.stochasticParameters.propertyTax.initialAmount,
+          parameters.stochasticParameters.propertyTax.initialValue,
         startingMonthlyCondoFees:
-          parameters.stochasticParameters.condoFee.initialAmount,
+          parameters.stochasticParameters.condoFee.initialValue,
         startingMonthlyInsurance:
-          parameters.stochasticParameters.ownerInsurance.initialAmount,
+          parameters.stochasticParameters.ownerInsurance.initialValue,
         sellingFixedFees:
-          parameters.stochasticParameters.sellingFixedFees.initialAmount,
+          parameters.stochasticParameters.sellingFixedFees.initialValue,
         sellingCommissionRate: parameters.buyer.sellingCommissionRate,
         floorRate: parameters.buyer.floorRate,
       },
@@ -525,7 +521,7 @@ export default function simulateRentVsBuyMonteCarlo(
           i,
           "market returns",
           {
-            initialValue: parameters.stochasticParameters.market.startValue,
+            initialValue: parameters.stochasticParameters.market.initialValue,
             mu: parameters.stochasticParameters.market.mu,
             sigma: parameters.stochasticParameters.market.sigma,
           },
@@ -534,7 +530,7 @@ export default function simulateRentVsBuyMonteCarlo(
           i,
           "rent",
           {
-            initialValue: parameters.stochasticParameters.rent.initialAmount,
+            initialValue: parameters.stochasticParameters.rent.initialValue,
             mu: parameters.stochasticParameters.rent.mu,
             sigma: parameters.stochasticParameters.rent.sigma,
           },
@@ -544,7 +540,7 @@ export default function simulateRentVsBuyMonteCarlo(
           "renter insurance",
           {
             initialValue:
-              parameters.stochasticParameters.renterInsurance.initialAmount,
+              parameters.stochasticParameters.renterInsurance.initialValue,
             mu: parameters.stochasticParameters.renterInsurance.mu,
             sigma: parameters.stochasticParameters.renterInsurance.sigma,
           },
@@ -554,7 +550,7 @@ export default function simulateRentVsBuyMonteCarlo(
           "owner insurance",
           {
             initialValue:
-              parameters.stochasticParameters.ownerInsurance.initialAmount,
+              parameters.stochasticParameters.ownerInsurance.initialValue,
             mu: parameters.stochasticParameters.ownerInsurance.mu,
             sigma: parameters.stochasticParameters.ownerInsurance.sigma,
           },
@@ -564,7 +560,7 @@ export default function simulateRentVsBuyMonteCarlo(
           "maintenance costs",
           {
             initialValue:
-              parameters.stochasticParameters.maintenance.initialAmount,
+              parameters.stochasticParameters.maintenance.initialValue,
             mu: parameters.stochasticParameters.maintenance.mu,
             sigma: parameters.stochasticParameters.maintenance.sigma,
           },
@@ -574,7 +570,7 @@ export default function simulateRentVsBuyMonteCarlo(
           "property taxes",
           {
             initialValue:
-              parameters.stochasticParameters.propertyTax.initialAmount,
+              parameters.stochasticParameters.propertyTax.initialValue,
             mu: parameters.stochasticParameters.propertyTax.mu,
             sigma: parameters.stochasticParameters.propertyTax.sigma,
           },
@@ -583,8 +579,7 @@ export default function simulateRentVsBuyMonteCarlo(
           i,
           "condo fees",
           {
-            initialValue:
-              parameters.stochasticParameters.condoFee.initialAmount,
+            initialValue: parameters.stochasticParameters.condoFee.initialValue,
             mu: parameters.stochasticParameters.condoFee.mu,
             sigma: parameters.stochasticParameters.condoFee.sigma,
           },
@@ -594,7 +589,7 @@ export default function simulateRentVsBuyMonteCarlo(
           "property appreciation",
           {
             initialValue:
-              parameters.stochasticParameters.appreciation.initialAmount,
+              parameters.stochasticParameters.appreciation.initialValue,
             mu: parameters.stochasticParameters.appreciation.mu,
             sigma: parameters.stochasticParameters.appreciation.sigma,
           },
@@ -604,7 +599,7 @@ export default function simulateRentVsBuyMonteCarlo(
           "selling fixed fees",
           {
             initialValue:
-              parameters.stochasticParameters.sellingFixedFees.initialAmount,
+              parameters.stochasticParameters.sellingFixedFees.initialValue,
             mu: parameters.stochasticParameters.sellingFixedFees.mu,
             sigma: parameters.stochasticParameters.sellingFixedFees.sigma,
           },

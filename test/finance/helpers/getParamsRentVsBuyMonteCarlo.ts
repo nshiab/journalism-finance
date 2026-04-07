@@ -74,93 +74,93 @@ export default function getParamsRentVsBuyMonteCarlo(
       mu: number;
       sigma: number;
       // Actual values
-      startValue: number;
+      initialValue: number;
     };
     rent: {
       mu: number;
       sigma: number;
       // Using CMHC data for initial amount but CPI for growth rate
-      initialAmount: number;
+      initialValue: number;
     };
     ownerInsurance: {
       mu: number;
       sigma: number;
       // Ending value
-      initialAmount: number;
+      initialValue: number;
     };
     renterInsurance: {
       mu: number;
       sigma: number;
       // Ending value
-      initialAmount: number;
+      initialValue: number;
     };
     fiveYearInterestRates: {
       a: number;
       b: number;
       sigma: number;
       // Actual values
-      startValue: number;
+      initialValue: number;
     };
     fourYearInterestRates: {
       a: number;
       b: number;
       sigma: number;
       // Actual values
-      startValue: number;
+      initialValue: number;
     };
     threeYearInterestRates: {
       a: number;
       b: number;
       sigma: number;
       // Actual values
-      startValue: number;
+      initialValue: number;
     };
     twoYearInterestRates: {
       a: number;
       b: number;
       sigma: number;
       // Actual values
-      startValue: number;
+      initialValue: number;
     };
     oneYearInterestRates: {
       a: number;
       b: number;
       sigma: number;
       // Actual values
-      startValue: number;
+      initialValue: number;
     };
     variableInterestRates: {
       a: number;
       b: number;
       sigma: number;
       // Actual values
-      startValue: number;
+      initialValue: number;
     };
     maintenance: {
       mu: number;
       sigma: number;
       // Ending value
-      initialAmount: number;
+      initialValue: number;
     };
     propertyTax: {
       mu: number;
       sigma: number;
       // Ending value
-      initialAmount: number;
+      initialValue: number;
     };
     // We use the homeowners maintenance CPI as a proxy for condo fee increases
-    condoFee: { mu: number; sigma: number; initialAmount: number };
+    condoFee: { mu: number; sigma: number; initialValue: number };
     appreciation: {
       mu: number;
       sigma: number;
       // Ending value
-      initialAmount: number;
+      initialValue: number;
     };
     sellingFixedFees: {
       mu: number;
       sigma: number;
       // Ending value
-      initialAmount: number;
+      initialValue: number;
     };
   };
 } {
@@ -265,7 +265,7 @@ export default function getParamsRentVsBuyMonteCarlo(
     stochasticParameters: {
       market: {
         // Actual values
-        startValue: marketReturnRate.at(-1)!.value,
+        initialValue: marketReturnRate.at(-1)!.value,
         ...getGbmParameters(
           marketReturnRate.map((d) => d.value),
           12,
@@ -273,7 +273,7 @@ export default function getParamsRentVsBuyMonteCarlo(
       },
       rent: {
         // Using CMHC data for initial amount but CPI for growth rate
-        initialAmount: rentIncreaseCMCH.at(-1)!.value,
+        initialValue: rentIncreaseCMCH.at(-1)!.value,
         ...getGbmParameters(
           rentIncreaseCPI.map((d) =>
             d.indexedValue * rentIncreaseCMCH.at(-1)!.value
@@ -282,7 +282,7 @@ export default function getParamsRentVsBuyMonteCarlo(
         ),
       },
       ownerInsurance: {
-        initialAmount: endingValues.ownerMonthlyInsurance,
+        initialValue: endingValues.ownerMonthlyInsurance,
         ...getGbmParameters(
           ownerInsuranceIncrease.map((d) =>
             d.indexedValue * params.buyer.startingMonthlyInsurance
@@ -291,7 +291,7 @@ export default function getParamsRentVsBuyMonteCarlo(
         ),
       },
       renterInsurance: {
-        initialAmount: endingValues.renterMonthlyInsurance,
+        initialValue: endingValues.renterMonthlyInsurance,
         ...getGbmParameters(
           canadaRenterInsuranceIncrease.map((d) =>
             d.indexedValue * params.renter.startingMonthlyInsurance
@@ -301,7 +301,7 @@ export default function getParamsRentVsBuyMonteCarlo(
       },
       fiveYearInterestRates: {
         // Actual values
-        startValue: fiveYearInterestRates.at(-1)!.value,
+        initialValue: fiveYearInterestRates.at(-1)!.value,
         ...getCirParameters(
           fiveYearInterestRates.map((d) => d.value),
           12,
@@ -309,7 +309,7 @@ export default function getParamsRentVsBuyMonteCarlo(
       },
       fourYearInterestRates: {
         // Actual values
-        startValue: fourYearInterestRates.at(-1)!.value,
+        initialValue: fourYearInterestRates.at(-1)!.value,
         ...getCirParameters(
           fourYearInterestRates.map((d) => d.value),
           12,
@@ -317,7 +317,7 @@ export default function getParamsRentVsBuyMonteCarlo(
       },
       threeYearInterestRates: {
         // Actual values
-        startValue: threeYearInterestRates.at(-1)!.value,
+        initialValue: threeYearInterestRates.at(-1)!.value,
         ...getCirParameters(
           threeYearInterestRates.map((d) => d.value),
           12,
@@ -325,7 +325,7 @@ export default function getParamsRentVsBuyMonteCarlo(
       },
       twoYearInterestRates: {
         // Actual values
-        startValue: twoYearInterestRates.at(-1)!.value,
+        initialValue: twoYearInterestRates.at(-1)!.value,
         ...getCirParameters(
           twoYearInterestRates.map((d) => d.value),
           12,
@@ -333,7 +333,7 @@ export default function getParamsRentVsBuyMonteCarlo(
       },
       oneYearInterestRates: {
         // Actual values
-        startValue: oneYearInterestRates.at(-1)!.value,
+        initialValue: oneYearInterestRates.at(-1)!.value,
         ...getCirParameters(
           oneYearInterestRates.map((d) => d.value),
           12,
@@ -341,14 +341,14 @@ export default function getParamsRentVsBuyMonteCarlo(
       },
       variableInterestRates: {
         // Actual values
-        startValue: variableInterestRates.at(-1)!.value,
+        initialValue: variableInterestRates.at(-1)!.value,
         ...getCirParameters(
           variableInterestRates.map((d) => d.value),
           12,
         ),
       },
       maintenance: {
-        initialAmount: params.buyer.endingAnnualMaintenanceCost,
+        initialValue: params.buyer.endingAnnualMaintenanceCost,
         ...getGbmParameters(
           maintenanceIncrease.map((d) =>
             d.indexedValue * params.buyer.startingAnnualMaintenanceCost
@@ -357,7 +357,7 @@ export default function getParamsRentVsBuyMonteCarlo(
         ),
       },
       propertyTax: {
-        initialAmount: params.buyer.endingAnnualPropertyTax,
+        initialValue: params.buyer.endingAnnualPropertyTax,
         ...getGbmParameters(
           propertyTaxIncrease.map((d) =>
             d.indexedValue * params.buyer.startingAnnualPropertyTax
@@ -367,7 +367,7 @@ export default function getParamsRentVsBuyMonteCarlo(
       },
       // We use the homeowners maintenance CPI as a proxy for condo fee increases
       condoFee: {
-        initialAmount: endingValues.condoFees,
+        initialValue: endingValues.condoFees,
         ...getGbmParameters(
           maintenanceIncrease.map((d) =>
             d.indexedValue * params.buyer.startingMonthlyCondoFees
@@ -376,14 +376,14 @@ export default function getParamsRentVsBuyMonteCarlo(
         ),
       },
       appreciation: {
-        initialAmount: appreciationIncrease.at(-1)!.value,
+        initialValue: appreciationIncrease.at(-1)!.value,
         ...getGbmParameters(
           appreciationIncrease.map((d) => d.value),
           12,
         ),
       },
       sellingFixedFees: {
-        initialAmount: endingValues.sellingFixedFees,
+        initialValue: endingValues.sellingFixedFees,
         ...getGbmParameters(
           sellingFixedFeesIncrease.map((d) =>
             d.indexedValue * params.buyer.sellingFixedFees
