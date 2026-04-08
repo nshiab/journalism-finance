@@ -292,6 +292,9 @@ Deno.test("should return monthly quantiles when option monthlyQuantiles is true"
     condoFees: 250,
   }, false);
 
+  // Just for the tests
+  params.renter.securityDeposit = 1000;
+
   const results = simulateRentVsBuyMonteCarlo(params, {
     verbose: true,
     verboseStep: 100,
@@ -354,6 +357,68 @@ Deno.test("should return monthly quantiles when option monthlyQuantiles is true"
       d.variable === "rent",
   );
   assertEquals(renterRent.length, 300);
+
+  // Check that all expected variables are present in the output
+  const expectedVariables = [
+    "rent",
+    "insurance",
+    "securityDeposit",
+    "mortgageCapital",
+    "mortgageInterests",
+    "maintenance",
+    "propertyTax",
+    "condoFees",
+    "downPayment",
+    "purchaseFixedFees",
+    "insurancePremium",
+    "tfsaFees",
+    "stocksFees",
+    "tfsaGains",
+    "tfsaContribution",
+    "stocksGains",
+    "newStocks",
+    "homeEquityGains",
+    "tfsa",
+    "stocks",
+    "homeEquity",
+    "balance",
+    "balanceAfterSelling",
+    "stockTaxes",
+    "homeSellingCommission",
+    "homeSellingFixedFees",
+    "mortgagePenalty",
+    "mortgageBalance",
+    "stockSellingGains",
+    "tfsaSellingGains",
+    "homeSellingGains",
+    "monthlyExpenses",
+    "cumulativeExpenses",
+    "monthlyGains",
+    "cumulativeGains",
+    "assets",
+    "saleCosts",
+    "saleNetGains",
+  ];
+  const actualVariables = new Set(
+    results.monthlyQuantiles.map((d) => d.variable),
+  );
+  for (const v of expectedVariables) {
+    assert(
+      actualVariables.has(v as any),
+      `Variable ${v} is missing from results.monthlyQuantiles`,
+    );
+  }
+  for (const v of actualVariables) {
+    assert(
+      expectedVariables.includes(v as any),
+      `Variable ${v} was found in results but is not in the expectedVariables list`,
+    );
+  }
+  assertEquals(
+    actualVariables.size,
+    expectedVariables.length,
+    `Actual variable count (${actualVariables.size}) doesn't match expected (${expectedVariables.length})`,
+  );
 });
 
 Deno.test(
