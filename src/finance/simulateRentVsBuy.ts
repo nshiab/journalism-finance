@@ -487,7 +487,6 @@ export default function simulateRentVsBuy(
     monthIndex++
   ) {
     const year = parameters.startingYear + Math.floor(monthIndex / 12);
-    const month = monthIndex % 12;
 
     const currentFixedMortgagePayment = allFixedMortgagePayments[monthIndex];
     const currentVariableMortgagePayment =
