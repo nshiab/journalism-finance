@@ -240,13 +240,13 @@ export default function simulateRentVsBuyMonteCarlo(
     iteration: string;
     variable: string;
     value: number;
-    month: number;
+    monthIndex: number;
   }[];
   rates: {
     iteration: string;
     variable: string;
     value: number;
-    month: number;
+    monthIndex: number;
   }[];
   winners: {
     monthIndex: number;
@@ -396,13 +396,13 @@ export default function simulateRentVsBuyMonteCarlo(
     iteration: string;
     variable: string;
     value: number;
-    month: number;
+    monthIndex: number;
   }[] = [];
   const rates: {
     iteration: string;
     variable: string;
     value: number;
-    month: number;
+    monthIndex: number;
   }[] = [];
 
   const nbMonths = parameters.numberOfYears * 12;
@@ -577,7 +577,12 @@ export default function simulateRentVsBuyMonteCarlo(
     if (options.values) {
       const iterStr = iteration.toString();
       for (let i = 0; i < nbMonths; i++) {
-        values.push({ iteration: iterStr, variable, value: path[i], month: i });
+        values.push({
+          iteration: iterStr,
+          variable,
+          value: path[i],
+          monthIndex: i,
+        });
       }
     }
 
@@ -593,7 +598,7 @@ export default function simulateRentVsBuyMonteCarlo(
           iteration: iterStr,
           variable,
           value: randomRates[i],
-          month: i,
+          monthIndex: i,
         });
       }
     }
@@ -618,7 +623,12 @@ export default function simulateRentVsBuyMonteCarlo(
     if (options.values) {
       const iterStr = iteration.toString();
       for (let i = 0; i < nbMonths; i++) {
-        values.push({ iteration: iterStr, variable, value: path[i], month: i });
+        values.push({
+          iteration: iterStr,
+          variable,
+          value: path[i],
+          monthIndex: i,
+        });
       }
     }
 
@@ -632,7 +642,7 @@ export default function simulateRentVsBuyMonteCarlo(
           iteration: iterStr,
           variable,
           value: randomRates[i],
-          month: i,
+          monthIndex: i,
         });
       }
     }

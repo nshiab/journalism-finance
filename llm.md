@@ -267,8 +267,8 @@ The calculated mortgage penalty rounded to 2 decimal places.
 
 ### Throws
 
-- **`null`**: Error if no current posted rate is found for the remaining term
-  length.
+- **`undefined`**: Error if no current posted rate is found for the remaining
+  term length.
 
 ### Examples
 
@@ -463,7 +463,7 @@ required in such cases.
 
 ### Throws
 
-- **`Error`**: If the down payment is less than 5% of the purchase price, as
+- **`undefined`**: If the down payment is less than 5% of the purchase price, as
   this is generally the minimum required down payment for insured mortgages in
   Canada.
 
@@ -722,8 +722,8 @@ contains:
 
 ### Throws
 
-- **`Error`**: If the `amortizationPeriod` is less than the `term`, as this is
-  an invalid mortgage configuration.
+- **`undefined`**: If the `amortizationPeriod` is less than the `term`, as this
+  is an invalid mortgage configuration.
 
 ### Examples
 
@@ -851,13 +851,19 @@ function simulateRentVsBuy(
       sellingFixedFeesIncrease: number[];
     };
   },
-  options?: { finalBalanceOnly?: boolean },
+  options?: {
+    finalBalanceOnly?: boolean;
+    onRecord?: (
+      category: string,
+      group: string,
+      variable: string,
+      monthIndex: number,
+      amount: number,
+    ) => void;
+  },
 ): (
   & {
-    year: number;
-    month: number;
     monthIndex: number;
-    date: Date;
     amount: number;
     category: "renter" | "buyerFixed" | "buyerVariable";
   }
@@ -918,6 +924,17 @@ function simulateRentVsBuy(
         | "tfsaSellingGains"
         | "homeSellingGains"
         | "securityDeposit";
+    }
+    | {
+      group: "totals";
+      variable:
+        | "monthlyExpenses"
+        | "cumulativeExpenses"
+        | "monthlyGains"
+        | "cumulativeGains"
+        | "assets"
+        | "saleCosts"
+        | "saleNetGains";
     }
   )
 )[];
@@ -1006,6 +1023,12 @@ function simulateRentVsBuy(
   two entries per scenario: `balance` and `balanceAfterSelling`, both under the
   `summaryCumulative` group for the final month of the simulation. Defaults to
   `false`.
+- **`options.onRecord`**: Internal callback used by
+  `simulateRentVsBuyMonteCarlo` when `monthlyQuantiles` is enabled. When
+  provided, numeric values are streamed directly to the accumulator instead of
+  being wrapped in result objects, avoiding the per-record heap allocation cost.
+  At the final month, the two `summaryCumulative` records are still pushed to
+  the results array for winner extraction.
 
 ### Returns
 
@@ -1035,6 +1058,9 @@ given month, categorized by:
   selling)
 - `saleNetGains`: `stockSellingGains`, `tfsaSellingGains`, `homeSellingGains`,
   `securityDeposit` (hypothetical gains realized upon selling)
+- `totals`: `monthlyExpenses`, `cumulativeExpenses`, `monthlyGains`,
+  `cumulativeGains`, `assets`, `saleCosts`, `saleNetGains` (sum of all variables
+  in each respective group; always emitted even when zero)
 
 ### Examples
 
@@ -1132,70 +1158,60 @@ function simulateRentVsBuyMonteCarlo(
       | "Quebec"
       | "Saskatchewan"
       | "Yukon";
-    renter: {
-      startingMonthlyRent: number;
-      securityDeposit: number;
-      startingMonthlyInsurance: number;
-    };
+    renter: { securityDeposit: number };
     buyer: {
       downPayment: number;
-      purchasePrice: number;
       fixedRateAdjustment: number;
       variableRateAdjustment: number;
       purchaseFixedFees: number;
-      startingAnnualMaintenanceCost: number;
-      startingAnnualPropertyTax: number;
-      startingMonthlyCondoFees: number;
-      startingMonthlyInsurance: number;
-      sellingFixedFees: number;
       sellingCommissionRate: number;
       floorRate: number;
     };
     stochasticParameters: {
-      market: { startValue: number; mu: number; sigma: number };
-      rent: { startValue: number; mu: number; sigma: number };
-      ownerInsurance: { startValue: number; mu: number; sigma: number };
-      renterInsurance: { startValue: number; mu: number; sigma: number };
-      maintenance: { startValue: number; mu: number; sigma: number };
-      propertyTax: { startValue: number; mu: number; sigma: number };
-      condoFee: { startValue: number; mu: number; sigma: number };
-      appreciation: { startValue: number; mu: number; sigma: number };
-      sellingFixedFees: { startValue: number; mu: number; sigma: number };
+      market: { initialValue: number; mu: number; sigma: number };
+      rent: { initialValue: number; mu: number; sigma: number };
+      ownerInsurance: { initialValue: number; mu: number; sigma: number };
+      renterInsurance: { initialValue: number; mu: number; sigma: number };
+      maintenance: { initialValue: number; mu: number; sigma: number };
+      propertyTax: { initialValue: number; mu: number; sigma: number };
+      condoFee: { initialValue: number; mu: number; sigma: number };
+      appreciation: { initialValue: number; mu: number; sigma: number };
+      sellingFixedFees: { initialValue: number; mu: number; sigma: number };
       fiveYearInterestRates: {
         a: number;
         b: number;
         sigma: number;
-        startValue: number;
+        initialValue: number;
       };
       fourYearInterestRates: {
         a: number;
         b: number;
         sigma: number;
-        startValue: number;
+        initialValue: number;
       };
       threeYearInterestRates: {
         a: number;
         b: number;
         sigma: number;
-        startValue: number;
+        initialValue: number;
       };
       twoYearInterestRates: {
         a: number;
         b: number;
         sigma: number;
-        startValue: number;
+        initialValue: number;
       };
       oneYearInterestRates: {
         a: number;
         b: number;
         sigma: number;
-        startValue: number;
+        initialValue: number;
       };
       variableInterestRates: {
         a: number;
         b: number;
         sigma: number;
-        startValue: number;
+        initialValue: number;
       };
     };
   },
@@ -1204,39 +1220,150 @@ function simulateRentVsBuyMonteCarlo(
     verboseStep?: number;
     values?: boolean;
     rates?: boolean;
+    monthlyQuantiles?: Array<"q10" | "q50" | "q90" | "min" | "max">;
+    monthlyIterations?: boolean;
   },
 ): {
   values: {
     iteration: string;
     variable: string;
     value: number;
-    month: number;
+    monthIndex: number;
   }[];
   rates: {
     iteration: string;
     variable: string;
     value: number;
-    month: number;
+    monthIndex: number;
   }[];
   winners: {
-    year: number;
-    month: number;
     monthIndex: number;
-    date: Date;
     amount: number;
     category: "renter" | "buyerFixed" | "buyerVariable";
     group: "summaryCumulative";
     variable: "balanceAfterSelling";
   }[];
   winnersBeforeSelling: {
-    year: number;
-    month: number;
     monthIndex: number;
-    date: Date;
     amount: number;
     category: "renter" | "buyerFixed" | "buyerVariable";
     group: "summaryCumulative";
     variable: "balance";
+  }[];
+  monthlyQuantiles: {
+    category: "renter" | "buyerFixed" | "buyerVariable";
+    group:
+      | "monthlyExpenses"
+      | "cumulativeExpenses"
+      | "monthlyGains"
+      | "cumulativeGains"
+      | "assets"
+      | "summary"
+      | "summaryCumulative"
+      | "saleCosts"
+      | "saleNetGains"
+      | "totals";
+    variable:
+      | "rent"
+      | "insurance"
+      | "securityDeposit"
+      | "mortgageCapital"
+      | "mortgageInterests"
+      | "maintenance"
+      | "propertyTax"
+      | "condoFees"
+      | "downPayment"
+      | "purchaseFixedFees"
+      | "insurancePremium"
+      | "tfsaFees"
+      | "stocksFees"
+      | "tfsaGains"
+      | "tfsaContribution"
+      | "stocksGains"
+      | "newStocks"
+      | "homeEquityGains"
+      | "tfsa"
+      | "stocks"
+      | "homeEquity"
+      | "balance"
+      | "balanceAfterSelling"
+      | "stockTaxes"
+      | "homeSellingCommission"
+      | "homeSellingFixedFees"
+      | "mortgagePenalty"
+      | "mortgageBalance"
+      | "stockSellingGains"
+      | "tfsaSellingGains"
+      | "homeSellingGains"
+      | "monthlyExpenses"
+      | "cumulativeExpenses"
+      | "monthlyGains"
+      | "cumulativeGains"
+      | "assets"
+      | "saleCosts"
+      | "saleNetGains";
+    monthIndex: number;
+    q10?: number;
+    q50?: number;
+    q90?: number;
+    min?: number;
+    max?: number;
+  }[];
+  monthlyIterations: {
+    iteration: number;
+    category: "renter" | "buyerFixed" | "buyerVariable";
+    group:
+      | "monthlyExpenses"
+      | "cumulativeExpenses"
+      | "monthlyGains"
+      | "cumulativeGains"
+      | "assets"
+      | "summary"
+      | "summaryCumulative"
+      | "saleCosts"
+      | "saleNetGains"
+      | "totals";
+    variable:
+      | "rent"
+      | "insurance"
+      | "securityDeposit"
+      | "mortgageCapital"
+      | "mortgageInterests"
+      | "maintenance"
+      | "propertyTax"
+      | "condoFees"
+      | "downPayment"
+      | "purchaseFixedFees"
+      | "insurancePremium"
+      | "tfsaFees"
+      | "stocksFees"
+      | "tfsaGains"
+      | "tfsaContribution"
+      | "stocksGains"
+      | "newStocks"
+      | "homeEquityGains"
+      | "tfsa"
+      | "stocks"
+      | "homeEquity"
+      | "balance"
+      | "balanceAfterSelling"
+      | "stockTaxes"
+      | "homeSellingCommission"
+      | "homeSellingFixedFees"
+      | "mortgagePenalty"
+      | "mortgageBalance"
+      | "stockSellingGains"
+      | "tfsaSellingGains"
+      | "homeSellingGains"
+      | "monthlyExpenses"
+      | "cumulativeExpenses"
+      | "monthlyGains"
+      | "cumulativeGains"
+      | "assets"
+      | "saleCosts"
+      | "saleNetGains";
+    monthIndex: number;
+    amount: number;
   }[];
 };
 ```
@@ -1263,42 +1390,30 @@ function simulateRentVsBuyMonteCarlo(
 - **`parameters.province`**: The Canadian province or territory, used for
   calculating sales taxes.
 - **`parameters.renter`**: Configuration for the renter scenario.
-- **`parameters.renter.startingMonthlyRent`**: The initial monthly rent payment.
 - **`parameters.renter.securityDeposit`**: The initial security deposit or last
   month's rent (scenario-dependent).
-- **`parameters.renter.startingMonthlyInsurance`**: The initial monthly renter's
-  (tenant) insurance cost.
 - **`parameters.buyer`**: Configuration for the buyer scenarios.
 - **`parameters.buyer.downPayment`**: The total down payment amount paid at the
   start.
-- **`parameters.buyer.purchasePrice`**: The initial purchase price of the home.
 - **`parameters.buyer.fixedRateAdjustment`**: The adjustment applied to the
   posted fixed mortgage rate (added to the posted rate).
 - **`parameters.buyer.variableRateAdjustment`**: The adjustment applied to the
   variable mortgage rate (added to the posted rate).
 - **`parameters.buyer.purchaseFixedFees`**: One-time costs at purchase (notary,
   land transfer tax, etc.).
-- **`parameters.buyer.startingAnnualMaintenanceCost`**: Initial annual cost for
-  home maintenance.
-- **`parameters.buyer.startingAnnualPropertyTax`**: Initial annual property tax
-  amount.
-- **`parameters.buyer.startingMonthlyCondoFees`**: Initial monthly condo fees
-  (if applicable).
-- **`parameters.buyer.startingMonthlyInsurance`**: Initial monthly homeowner's
-  insurance cost.
-- **`parameters.buyer.sellingFixedFees`**: One-time fixed costs when selling the
-  property (before sales tax).
 - **`parameters.buyer.sellingCommissionRate`**: The commission rate paid to real
   estate agents upon sale (e.g., `0.05` for 5%).
 - **`parameters.buyer.floorRate`**: The minimum interest rate (posted +
   adjustment) for mortgages.
 - **`parameters.stochasticParameters`**: Parameters for the stochastic models.
-  For growth rates (market, rent, etc.), uses **Geometric Brownian Motion
-  (GBM)**: - `startValue`: The initial annual rate (e.g., 0.05 for 5%). - `mu`:
-  The drift or expected annual growth rate. - `sigma`: The annual volatility.
-  For interest rates (fiveYear, variable, etc.), uses **Cox-Ingersoll-Ross
-  (CIR)**: - `startValue`: The initial annual interest rate. - `a`: Speed of
-  mean reversion. - `b`: Long-term mean. - `sigma`: Annual volatility.
+  For all parameters (market return rate, dollar amounts, interest rates),
+  use: - `initialValue`: The starting value (e.g., `0.07` for 7% market return,
+  `1500` for $1,500 monthly rent, or `0.05` for a 5% interest rate). For
+  **Geometric Brownian Motion (GBM)** models (market, rent, expenses,
+  appreciation): - `mu`: The drift or expected annual growth rate. - `sigma`:
+  The annual volatility. For **Cox-Ingersoll-Ross (CIR)** models (interest
+  rates): - `a`: Speed of mean reversion. - `b`: Long-term mean. - `sigma`:
+  Annual volatility.
 - **`parameters.stochasticParameters.market`**: Market return rates for savings
   (GBM).
 - **`parameters.stochasticParameters.rent`**: Rent increase rates (GBM).
@@ -1341,6 +1456,27 @@ function simulateRentVsBuyMonteCarlo(
 - **`options.rates`**: If `true`, the function will capture and return the exact
   stochastic interest and appreciation rates generated for every iteration.
   Useful for auditing the simulation's statistical properties.
+- **`options.monthlyQuantiles`**: Pass an array of stat names to compute and
+  return per-month summaries for every variable, group, and category. Available
+  stats: `"q10"` (10th percentile), `"q50"` (median), `"q90"` (90th percentile),
+  `"min"` (minimum), `"max"` (maximum). Only the requested fields will be
+  present on each record; all others will be `undefined`. For example,
+  `["q10", "q50", "q90"]` reproduces the classic P10/P50/P90 output, while
+  `["min", "max"]` returns only the range. Each record in the returned
+  `monthlyQuantiles` array is in wide format:
+  `{ category, group, variable, monthIndex, ...requestedStats }`. Note that
+  enabling this option runs `simulateRentVsBuy` with full monthly output instead
+  of final-balance-only, which increases per-iteration cost.
+- **`options.monthlyIterations`**: If `true`, captures and returns the raw
+  monthly financial data for every variable, group, and category for each
+  individual iteration. Each record includes `iteration` (0-based index),
+  `category`, `group`, `variable`, `monthIndex`, and `amount`. This is the
+  un-aggregated counterpart to `monthlyQuantiles` — useful for custom analysis
+  or visualization of individual paths. Be aware that this can produce a very
+  large number of records (iterations × months × ~50 variables × 3 categories),
+  so use with caution at high iteration counts. Like `monthlyQuantiles`,
+  enabling this option forces full monthly output instead of final-balance-only
+  per iteration.
 
 ### Returns
 
@@ -1348,15 +1484,24 @@ An object containing the simulation results:
 
 - `winners`: An array of objects indicating which scenario yielded the highest
   final net balance (after house and investment sale) for each iteration. Each
-  object includes the `amount`, `category` (renter, buyerFixed, buyerVariable),
-  and the `iteration` details.
+  object includes `monthIndex`, `amount`, `category` (renter, buyerFixed,
+  buyerVariable), `group` (`"summaryCumulative"`), and `variable`
+  (`"balanceAfterSelling"`).
 - `winnersBeforeSelling`: An array of objects indicating which scenario yielded
   the highest final asset balance (before house and investment sale) for each
-  iteration. Contains similar details to `winners`.
+  iteration. Same shape as `winners` but with `variable` set to `"balance"`.
 - `values`: An array of objects containing the generated values paths for each
   iteration. Returns an empty array unless `options.values` is `true`.
 - `rates`: An array of objects containing the generated rate paths for each
   iteration. Returns an empty array unless `options.rates` is `true`.
+- `monthlyQuantiles`: An array of wide-format records (one per
+  `{ category, group, variable, monthIndex }` combination). Only the stat fields
+  listed in `options.monthlyQuantiles` are present on each record (`q10?`,
+  `q50?`, `q90?`, `min?`, `max?`); all others are `undefined`. Returns an empty
+  array unless `options.monthlyQuantiles` is provided.
+- `monthlyIterations`: An array of records containing the raw monthly financial
+  data for every variable, group, and category per iteration. Returns an empty
+  array unless `options.monthlyIterations` is `true`.
 
 ### Examples
 
@@ -1371,49 +1516,70 @@ const results = simulateRentVsBuyMonteCarlo({
   employmentIncome: 80000,
   province: "Ontario",
   renter: {
-    startingMonthlyRent: 1500,
     securityDeposit: 1500,
-    startingMonthlyInsurance: 25,
   },
   buyer: {
     downPayment: 50000,
-    purchasePrice: 400000,
     fixedRateAdjustment: -0.01,
     variableRateAdjustment: 0,
     purchaseFixedFees: 3000,
-    startingAnnualMaintenanceCost: 1500,
-    startingAnnualPropertyTax: 2500,
-    startingMonthlyCondoFees: 0,
-    startingMonthlyInsurance: 80,
-    sellingFixedFees: 1500,
     sellingCommissionRate: 0.05,
     floorRate: 0,
   },
   stochasticParameters: {
-    market: { startValue: 0.07, mu: 0.07, sigma: 0.15 },
-    rent: { startValue: 0.03, mu: 0.03, sigma: 0.02 },
-    ownerInsurance: { startValue: 0.03, mu: 0.03, sigma: 0.05 },
-    renterInsurance: { startValue: 0.03, mu: 0.03, sigma: 0.05 },
-    maintenance: { startValue: 0.02, mu: 0.02, sigma: 0.05 },
-    propertyTax: { startValue: 0.02, mu: 0.02, sigma: 0.02 },
-    condoFee: { startValue: 0.03, mu: 0.03, sigma: 0.05 },
-    appreciation: { startValue: 0.04, mu: 0.04, sigma: 0.10 },
-    sellingFixedFees: { startValue: 0.02, mu: 0.02, sigma: 0.05 },
-    fiveYearInterestRates: { startValue: 0.05, a: 0.2, b: 0.05, sigma: 0.02 },
-    fourYearInterestRates: { startValue: 0.048, a: 0.2, b: 0.048, sigma: 0.02 },
+    market: { initialValue: 0.07, mu: 0.07, sigma: 0.15 },
+    rent: { initialValue: 1500, mu: 0.03, sigma: 0.02 },
+    ownerInsurance: { initialValue: 80, mu: 0.03, sigma: 0.05 },
+    renterInsurance: { initialValue: 25, mu: 0.03, sigma: 0.05 },
+    maintenance: { initialValue: 1500, mu: 0.02, sigma: 0.05 },
+    propertyTax: { initialValue: 2500, mu: 0.02, sigma: 0.02 },
+    condoFee: { initialValue: 0, mu: 0.03, sigma: 0.05 },
+    appreciation: { initialValue: 400000, mu: 0.04, sigma: 0.10 },
+    sellingFixedFees: { initialValue: 1500, mu: 0.02, sigma: 0.05 },
+    fiveYearInterestRates: { initialValue: 0.05, a: 0.2, b: 0.05, sigma: 0.02 },
+    fourYearInterestRates: {
+      initialValue: 0.048,
+      a: 0.2,
+      b: 0.048,
+      sigma: 0.02,
+    },
     threeYearInterestRates: {
-      startValue: 0.045,
+      initialValue: 0.045,
       a: 0.2,
       b: 0.045,
       sigma: 0.02,
     },
-    twoYearInterestRates: { startValue: 0.042, a: 0.2, b: 0.042, sigma: 0.02 },
-    oneYearInterestRates: { startValue: 0.04, a: 0.2, b: 0.04, sigma: 0.02 },
-    variableInterestRates: { startValue: 0.06, a: 0.3, b: 0.055, sigma: 0.03 },
+    twoYearInterestRates: {
+      initialValue: 0.042,
+      a: 0.2,
+      b: 0.042,
+      sigma: 0.02,
+    },
+    oneYearInterestRates: { initialValue: 0.04, a: 0.2, b: 0.04, sigma: 0.02 },
+    variableInterestRates: {
+      initialValue: 0.06,
+      a: 0.3,
+      b: 0.055,
+      sigma: 0.03,
+    },
   },
 }, { verbose: true, verboseStep: 100 });
 
 console.log(results.winners.length); // 1000
+```
+
+```ts
+// With monthly P10/P50/P90 quantiles plus min/max range
+const results = simulateRentVsBuyMonteCarlo({ ...parameters }, {
+  monthlyQuantiles: ["q10", "q50", "q90", "min", "max"],
+});
+
+const renterBalance = results.monthlyQuantiles.filter(
+  (d) =>
+    d.category === "renter" && d.group === "summaryCumulative" &&
+    d.variable === "balance",
+);
+console.log(renterBalance[0]); // { category: "renter", ..., q10: ..., q50: ..., q90: ..., min: ..., max: ... }
 ```
 
 ## variableMortgagePayments
@@ -1498,9 +1664,9 @@ contains:
 
 ### Throws
 
-- **`Error`**: If the `amortizationPeriod` is less than the `term`, as this is
-  an invalid mortgage configuration.
-- **`Error`**: If the `rates` array does not contain enough rates for all
+- **`undefined`**: If the `amortizationPeriod` is less than the `term`, as this
+  is an invalid mortgage configuration.
+- **`undefined`**: If the `rates` array does not contain enough rates for all
   payments in the term.
 
 ### Examples
