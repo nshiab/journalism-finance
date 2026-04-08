@@ -275,9 +275,8 @@ function generateTypeRepr(tsType?: TsTypeDef): string {
       return "{}";
     }
     case "fnOrConstructor": {
-      const fnc =
-        (tsType.fnOrConstructor ??
-          tsType.value) as typeof tsType.fnOrConstructor;
+      const fnc = (tsType.fnOrConstructor ??
+        tsType.value) as typeof tsType.fnOrConstructor;
       if (!fnc) return "Function";
       const params = fnc.params.map((p) => {
         const paramName = p.name;
