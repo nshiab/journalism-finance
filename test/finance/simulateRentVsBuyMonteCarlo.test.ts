@@ -298,7 +298,7 @@ Deno.test("should return monthly quantiles when option monthlyQuantiles is true"
   const results = simulateRentVsBuyMonteCarlo(params, {
     verbose: true,
     verboseStep: 100,
-    monthlyQuantiles: true,
+    monthlyQuantiles: ["q10", "q50", "q90"],
   });
 
   // winners behavior unchanged
@@ -340,11 +340,11 @@ Deno.test("should return monthly quantiles when option monthlyQuantiles is true"
   // each record has q10 <= q50 <= q90
   for (const row of results.monthlyQuantiles) {
     assert(
-      row.q10 <= row.q50,
+      (row.q10 ?? 0) <= (row.q50 ?? 0),
       `q10 <= q50 failed for ${row.category}/${row.group}/${row.variable} month ${row.monthIndex}`,
     );
     assert(
-      row.q50 <= row.q90,
+      (row.q50 ?? 0) <= (row.q90 ?? 0),
       `q50 <= q90 failed for ${row.category}/${row.group}/${row.variable} month ${row.monthIndex}`,
     );
   }
@@ -483,7 +483,7 @@ Deno.test(
 
     // monthlyQuantiles path (onRecord active, stride=2)
     const quantileResults = simulateRentVsBuyMonteCarlo(params, {
-      monthlyQuantiles: true,
+      monthlyQuantiles: ["q10", "q50", "q90"],
     });
     logWinners("monthlyQuantiles", quantileResults);
     for (
@@ -514,7 +514,7 @@ Deno.test(
     }, false);
 
     const results = simulateRentVsBuyMonteCarlo(params, {
-      monthlyQuantiles: true,
+      monthlyQuantiles: ["q10", "q50", "q90"],
     });
 
     const counts = { buyerFixed: 0, buyerVariable: 0, renter: 0 };
@@ -581,15 +581,120 @@ Deno.test(
         // Quantile ordering must hold on every row
         for (const row of rows) {
           assert(
-            row.q10 <= row.q50,
+            (row.q10 ?? 0) <= (row.q50 ?? 0),
             `q10 <= q50 failed for ${category}/totals/${variable} month ${row.monthIndex}`,
           );
           assert(
-            row.q50 <= row.q90,
+            (row.q50 ?? 0) <= (row.q90 ?? 0),
             `q50 <= q90 failed for ${category}/totals/${variable} month ${row.monthIndex}`,
           );
         }
       }
+    }
+  },
+);
+
+Deno.test(
+  "monthlyQuantiles with ['min', 'max'] should have min/max but not q10/q50/q90",
+  () => {
+    const params = getParamsRentVsBuyMonteCarlo(10, "Montreal", "Quebec", {
+      downPayment: 0.10,
+      purchaseFixedFees: 0.02,
+    }, {
+      renterMonthlyInsurance: 70,
+      ownerMonthlyInsurance: 125,
+      sellingFixedFees: 2000,
+      condoFees: 250,
+    }, false);
+
+    const results = simulateRentVsBuyMonteCarlo(params, {
+      monthlyQuantiles: ["min", "max"],
+    });
+
+    assert(results.monthlyQuantiles.length > 0);
+
+    for (const row of results.monthlyQuantiles) {
+      assert(
+        typeof row.min === "number",
+        `min should be a number, got ${row.min}`,
+      );
+      assert(
+        typeof row.max === "number",
+        `max should be a number, got ${row.max}`,
+      );
+      assert(
+        row.min <= row.max,
+        `min <= max failed for ${row.category}/${row.group}/${row.variable} month ${row.monthIndex}`,
+      );
+      assertEquals(
+        row.q10,
+        undefined,
+        `q10 should be undefined when not requested`,
+      );
+      assertEquals(
+        row.q50,
+        undefined,
+        `q50 should be undefined when not requested`,
+      );
+      assertEquals(
+        row.q90,
+        undefined,
+        `q90 should be undefined when not requested`,
+      );
+    }
+  },
+);
+
+Deno.test(
+  "monthlyQuantiles with ['q50', 'min', 'max'] should have q50/min/max but not q10/q90",
+  () => {
+    const params = getParamsRentVsBuyMonteCarlo(10, "Montreal", "Quebec", {
+      downPayment: 0.10,
+      purchaseFixedFees: 0.02,
+    }, {
+      renterMonthlyInsurance: 70,
+      ownerMonthlyInsurance: 125,
+      sellingFixedFees: 2000,
+      condoFees: 250,
+    }, false);
+
+    const results = simulateRentVsBuyMonteCarlo(params, {
+      monthlyQuantiles: ["q50", "min", "max"],
+    });
+
+    assert(results.monthlyQuantiles.length > 0);
+
+    for (const row of results.monthlyQuantiles) {
+      assert(
+        typeof row.q50 === "number",
+        `q50 should be a number, got ${row.q50}`,
+      );
+      assert(
+        typeof row.min === "number",
+        `min should be a number, got ${row.min}`,
+      );
+      assert(
+        typeof row.max === "number",
+        `max should be a number, got ${row.max}`,
+      );
+      assert(
+        row.min <= row.q50,
+        `min <= q50 failed for ${row.category}/${row.group}/${row.variable} month ${row.monthIndex}`,
+      );
+      assert(
+        row.q50 <= row.max,
+        `q50 <= max failed for ${row.category}/${row.group}/${row.variable} month ${row.monthIndex}`,
+      );
+      assertEquals(
+        row.q10,
+        undefined,
+        `q10 should be undefined when not requested`,
+      );
+      assertEquals(
+        row.q90,
+        undefined,
+        `q90 should be undefined when not requested`,
+      );
     }
   },
 );

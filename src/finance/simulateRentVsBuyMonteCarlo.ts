@@ -69,14 +69,14 @@ import {
  *   @param options.verboseStep - The frequency of progress logging. For example, setting this to `50` will log progress every 50 iterations. Defaults to `1`.
  *   @param options.values - If `true`, the function will capture and return detailed monthly financial data (such as asset balances and net gains) for every iteration of the simulation. Be cautious with high iteration counts as this can consume significant memory.
  *   @param options.rates - If `true`, the function will capture and return the exact stochastic interest and appreciation rates generated for every iteration. Useful for auditing the simulation's statistical properties.
- *   @param options.monthlyQuantiles - If `true`, the function will compute and return P10/P50/P90 quantile summaries for every variable, group, and category across all simulation months. Each record in the returned `monthlyQuantiles` array is in wide format: `{ category, group, variable, monthIndex, year, month, date, q10, q50, q90 }`. Useful for charting the probable range of any financial variable over time (e.g. rent payments, cumulative balance). Note that enabling this option runs `simulateRentVsBuy` with full monthly output instead of final-balance-only, which increases per-iteration cost.
+ *   @param options.monthlyQuantiles - Pass an array of stat names to compute and return per-month summaries for every variable, group, and category. Available stats: `"q10"` (10th percentile), `"q50"` (median), `"q90"` (90th percentile), `"min"` (minimum), `"max"` (maximum). Only the requested fields will be present on each record; all others will be `undefined`. For example, `["q10", "q50", "q90"]` reproduces the classic P10/P50/P90 output, while `["min", "max"]` returns only the range. Each record in the returned `monthlyQuantiles` array is in wide format: `{ category, group, variable, monthIndex, year, month, date, ...requestedStats }`. Note that enabling this option runs `simulateRentVsBuy` with full monthly output instead of final-balance-only, which increases per-iteration cost.
  *
  * @returns An object containing the simulation results:
  *   - `winners`: An array of objects indicating which scenario yielded the highest final net balance (after house and investment sale) for each iteration. Each object includes the `amount`, `category` (renter, buyerFixed, buyerVariable), and the `iteration` details.
  *   - `winnersBeforeSelling`: An array of objects indicating which scenario yielded the highest final asset balance (before house and investment sale) for each iteration. Contains similar details to `winners`.
  *   - `values`: An array of objects containing the generated values paths for each iteration. Returns an empty array unless `options.values` is `true`.
  *   - `rates`: An array of objects containing the generated rate paths for each iteration. Returns an empty array unless `options.rates` is `true`.
- *   - `monthlyQuantiles`: An array of wide-format quantile records (one per `{ category, group, variable, monthIndex }` combination) with fields `q10`, `q50`, and `q90` representing the 10th, 50th, and 90th percentiles of that variable's amount across all iterations for that month. Returns an empty array unless `options.monthlyQuantiles` is `true`.
+ *   - `monthlyQuantiles`: An array of wide-format records (one per `{ category, group, variable, monthIndex }` combination). Only the stat fields listed in `options.monthlyQuantiles` are present on each record (`q10?`, `q50?`, `q90?`, `min?`, `max?`); all others are `undefined`. Returns an empty array unless `options.monthlyQuantiles` is provided.
  *
  * @example
  * ```ts
@@ -120,6 +120,19 @@ import {
  * }, { verbose: true, verboseStep: 100 });
  *
  * console.log(results.winners.length); // 1000
+ * ```
+ *
+ * @example
+ * ```ts
+ * // With monthly P10/P50/P90 quantiles plus min/max range
+ * const results = simulateRentVsBuyMonteCarlo({ ...parameters }, {
+ *   monthlyQuantiles: ["q10", "q50", "q90", "min", "max"],
+ * });
+ *
+ * const renterBalance = results.monthlyQuantiles.filter(
+ *   (d) => d.category === "renter" && d.group === "summaryCumulative" && d.variable === "balance"
+ * );
+ * console.log(renterBalance[0]); // { category: "renter", ..., q10: ..., q50: ..., q90: ..., min: ..., max: ... }
  * ```
  */
 export default function simulateRentVsBuyMonteCarlo(
@@ -217,7 +230,7 @@ export default function simulateRentVsBuyMonteCarlo(
     verboseStep?: number;
     values?: boolean;
     rates?: boolean;
-    monthlyQuantiles?: boolean;
+    monthlyQuantiles?: Array<"q10" | "q50" | "q90" | "min" | "max">;
   } = {},
 ): {
   values: {
@@ -308,9 +321,11 @@ export default function simulateRentVsBuyMonteCarlo(
     year: number;
     month: number;
     date: Date;
-    q10: number;
-    q50: number;
-    q90: number;
+    q10?: number;
+    q50?: number;
+    q90?: number;
+    min?: number;
+    max?: number;
   }[];
 } {
   const winners: {
@@ -360,6 +375,8 @@ export default function simulateRentVsBuyMonteCarlo(
         ),
       ),
   );
+
+  const statsSet = new Set(options.monthlyQuantiles ?? []);
 
   // Float64Array buckets: pre-sized to `iterations`, avoids dynamic resizing.
   const buckets: Map<string, Float64Array[]> | null = options.monthlyQuantiles
@@ -635,7 +652,11 @@ export default function simulateRentVsBuyMonteCarlo(
           parameters.stochasticParameters.variableInterestRates,
         ),
       },
-    }, { finalBalanceOnly: !options.monthlyQuantiles, onRecord });
+    }, {
+      finalBalanceOnly:
+        !(options.monthlyQuantiles && options.monthlyQuantiles.length > 0),
+      onRecord,
+    });
 
     // The results array always contains a fixed number of entries per category,
     // pushed in order: renter, buyerFixed, buyerVariable.
@@ -724,30 +745,38 @@ export default function simulateRentVsBuyMonteCarlo(
     year: number;
     month: number;
     date: Date;
-    q10: number;
-    q50: number;
-    q90: number;
+    q10?: number;
+    q50?: number;
+    q90?: number;
+    min?: number;
+    max?: number;
   }[] = [];
 
-  if (buckets) {
+  if (buckets && parameters.iterations > 0) {
     const startQuantiles = options.verbose ? Date.now() : null;
     const len = parameters.iterations;
     const buffer = new Float64Array(len);
 
-    const p10Index = 0.1 * (len - 1);
-    const p10Lower = Math.floor(p10Index);
-    const p10Upper = Math.ceil(p10Index);
-    const p10Weight = p10Index - p10Lower;
+    const needsQ10 = statsSet.has("q10");
+    const needsQ50 = statsSet.has("q50");
+    const needsQ90 = statsSet.has("q90");
+    const needsMin = statsSet.has("min");
+    const needsMax = statsSet.has("max");
 
-    const p50Index = 0.5 * (len - 1);
-    const p50Lower = Math.floor(p50Index);
-    const p50Upper = Math.ceil(p50Index);
-    const p50Weight = p50Index - p50Lower;
+    const p10Index = needsQ10 ? 0.1 * (len - 1) : 0;
+    const p10Lower = needsQ10 ? Math.floor(p10Index) : 0;
+    const p10Upper = needsQ10 ? Math.ceil(p10Index) : 0;
+    const p10Weight = needsQ10 ? p10Index - p10Lower : 0;
 
-    const p90Index = 0.9 * (len - 1);
-    const p90Lower = Math.floor(p90Index);
-    const p90Upper = Math.ceil(p90Index);
-    const p90Weight = p90Index - p90Lower;
+    const p50Index = needsQ50 ? 0.5 * (len - 1) : 0;
+    const p50Lower = needsQ50 ? Math.floor(p50Index) : 0;
+    const p50Upper = needsQ50 ? Math.ceil(p50Index) : 0;
+    const p50Weight = needsQ50 ? p50Index - p50Lower : 0;
+
+    const p90Index = needsQ90 ? 0.9 * (len - 1) : 0;
+    const p90Lower = needsQ90 ? Math.floor(p90Index) : 0;
+    const p90Upper = needsQ90 ? Math.ceil(p90Index) : 0;
+    const p90Weight = needsQ90 ? p90Index - p90Lower : 0;
 
     for (const [key, slots] of buckets) {
       const [category, group, variable] = key.split("|");
@@ -759,21 +788,21 @@ export default function simulateRentVsBuyMonteCarlo(
         const year = parameters.startingYear + Math.floor(monthIndex / 12);
         const month = monthIndex % 12;
 
-        const q10Raw = len > 0
+        const q10Raw = needsQ10
           ? (p10Lower === p10Upper
             ? buffer[p10Lower]
             : buffer[p10Lower] * (1 - p10Weight) + buffer[p10Upper] * p10Weight)
-          : 0;
-        const q50Raw = len > 0
+          : undefined;
+        const q50Raw = needsQ50
           ? (p50Lower === p50Upper
             ? buffer[p50Lower]
             : buffer[p50Lower] * (1 - p50Weight) + buffer[p50Upper] * p50Weight)
-          : 0;
-        const q90Raw = len > 0
+          : undefined;
+        const q90Raw = needsQ90
           ? (p90Lower === p90Upper
             ? buffer[p90Lower]
             : buffer[p90Lower] * (1 - p90Weight) + buffer[p90Upper] * p90Weight)
-          : 0;
+          : undefined;
 
         monthlyQuantilesResult.push({
           category: category as "renter" | "buyerFixed" | "buyerVariable",
@@ -831,9 +860,17 @@ export default function simulateRentVsBuyMonteCarlo(
           year,
           month,
           date: dates[monthIndex],
-          q10: Math.round(q10Raw * 100) / 100,
-          q50: Math.round(q50Raw * 100) / 100,
-          q90: Math.round(q90Raw * 100) / 100,
+          ...(q10Raw !== undefined
+            ? { q10: Math.round(q10Raw * 100) / 100 }
+            : {}),
+          ...(q50Raw !== undefined
+            ? { q50: Math.round(q50Raw * 100) / 100 }
+            : {}),
+          ...(q90Raw !== undefined
+            ? { q90: Math.round(q90Raw * 100) / 100 }
+            : {}),
+          ...(needsMin ? { min: Math.round(buffer[0] * 100) / 100 } : {}),
+          ...(needsMax ? { max: Math.round(buffer[len - 1] * 100) / 100 } : {}),
         });
       }
     }
