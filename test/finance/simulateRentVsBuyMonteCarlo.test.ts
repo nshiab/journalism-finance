@@ -698,3 +698,132 @@ Deno.test(
     }
   },
 );
+
+Deno.test("should return monthly iterations data when option monthlyIterations is true", () => {
+  const params = getParamsRentVsBuyMonteCarlo(3, "Montreal", "Quebec", {
+    downPayment: 0.10,
+    purchaseFixedFees: 0.02,
+  }, {
+    renterMonthlyInsurance: 70,
+    ownerMonthlyInsurance: 125,
+    sellingFixedFees: 2000,
+    condoFees: 250,
+  }, false);
+
+  // Just for the tests
+  params.renter.securityDeposit = 1000;
+
+  const results = simulateRentVsBuyMonteCarlo(params, {
+    monthlyIterations: true,
+  });
+
+  assertEquals(results.winners.length, 3);
+  assertEquals(results.winnersBeforeSelling.length, 3);
+
+  // monthlyIterations is empty by default
+  const defaultResults = simulateRentVsBuyMonteCarlo(params, {});
+  assertEquals(defaultResults.monthlyIterations, []);
+
+  // monthlyIterations is populated
+  assert(results.monthlyIterations.length > 0);
+
+  // Each record has the expected shape
+  const sample = results.monthlyIterations[0];
+  assert(typeof sample.iteration === "number");
+  assert(typeof sample.category === "string");
+  assert(typeof sample.group === "string");
+  assert(typeof sample.variable === "string");
+  assert(typeof sample.monthIndex === "number");
+  assert(typeof sample.amount === "number");
+
+  // Iteration values span 0 to iterations-1
+  const iterationValues = new Set(
+    results.monthlyIterations.map((r) => r.iteration),
+  );
+  for (let i = 0; i < 3; i++) {
+    assert(
+      iterationValues.has(i),
+      `Iteration ${i} should be present in monthlyIterations`,
+    );
+  }
+
+  // The renter summaryCumulative balance should appear once per month per iteration
+  const renterBalance = results.monthlyIterations.filter(
+    (r) =>
+      r.category === "renter" &&
+      r.group === "summaryCumulative" &&
+      r.variable === "balance",
+  );
+  const nbMonths = params.numberOfYears * 12;
+  assertEquals(renterBalance.length, 3 * nbMonths);
+
+  // monthIndex values for a single iteration/category/group/variable are contiguous 0..nbMonths-1
+  const renterBalanceIter0 = renterBalance
+    .filter((r) => r.iteration === 0)
+    .map((r) => r.monthIndex)
+    .sort((a, b) => a - b);
+  assertEquals(
+    renterBalanceIter0,
+    Array.from({ length: nbMonths }, (_, i) => i),
+    "monthIndex values for iteration 0 renter/summaryCumulative/balance should be 0..nbMonths-1",
+  );
+
+  // All expected variables are present across monthlyIterations
+  const expectedVariables = [
+    "rent",
+    "insurance",
+    "securityDeposit",
+    "mortgageCapital",
+    "mortgageInterests",
+    "maintenance",
+    "propertyTax",
+    "condoFees",
+    "downPayment",
+    "purchaseFixedFees",
+    "insurancePremium",
+    "tfsaFees",
+    "stocksFees",
+    "tfsaGains",
+    "tfsaContribution",
+    "stocksGains",
+    "newStocks",
+    "homeEquityGains",
+    "tfsa",
+    "stocks",
+    "homeEquity",
+    "balance",
+    "balanceAfterSelling",
+    "stockTaxes",
+    "homeSellingCommission",
+    "homeSellingFixedFees",
+    "mortgagePenalty",
+    "mortgageBalance",
+    "stockSellingGains",
+    "tfsaSellingGains",
+    "homeSellingGains",
+    "monthlyExpenses",
+    "cumulativeExpenses",
+    "monthlyGains",
+    "cumulativeGains",
+    "assets",
+    "saleCosts",
+    "saleNetGains",
+  ];
+  const actualVariables = new Set(
+    results.monthlyIterations.map((r) => r.variable),
+  );
+  for (const v of expectedVariables) {
+    assert(
+      actualVariables.has(v as any),
+      `Variable ${v} is missing from monthlyIterations`,
+    );
+  }
+
+  // monthlyIterations and monthlyQuantiles can be used simultaneously
+  const combined = simulateRentVsBuyMonteCarlo(params, {
+    monthlyIterations: true,
+    monthlyQuantiles: ["q10", "q50", "q90"],
+  });
+  assert(combined.monthlyIterations.length > 0);
+  assert(combined.monthlyQuantiles.length > 0);
+});

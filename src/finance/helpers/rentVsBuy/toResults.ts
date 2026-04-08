@@ -146,16 +146,11 @@ function computeTotals(persona: Persona) {
 }
 
 export default function toResults(
-  year: number,
-  month: number,
   category: "renter" | "buyerFixed" | "buyerVariable",
   persona: Persona,
   results: (
     & {
-      year: number;
-      month: number;
       monthIndex: number;
-      date: Date;
       amount: number;
       category: "renter" | "buyerFixed" | "buyerVariable";
     }
@@ -374,22 +369,15 @@ export default function toResults(
     // Still push the 2 summaryCumulative records at the final month so the
     // caller can extract winners without a separate scan.
     if (monthIndex === numberOfMonths - 1) {
-      const date = new Date(Date.UTC(year, month, 1));
       results.push({
-        year,
-        month,
         monthIndex,
-        date,
         amount: persona.summaryCumulative.balanceAfterSelling,
         category,
         group: "summaryCumulative",
         variable: "balanceAfterSelling",
       });
       results.push({
-        year,
-        month,
         monthIndex,
-        date,
         amount: persona.summaryCumulative.balance,
         category,
         group: "summaryCumulative",
@@ -401,22 +389,15 @@ export default function toResults(
 
   if (finalBalanceOnly) {
     if (monthIndex === numberOfMonths - 1) {
-      const date = new Date(Date.UTC(year, month, 1));
       results.push({
-        year,
-        month,
         monthIndex,
-        date,
         amount: persona.summaryCumulative.balanceAfterSelling,
         category,
         group: "summaryCumulative",
         variable: "balanceAfterSelling",
       });
       results.push({
-        year,
-        month,
         monthIndex,
-        date,
         amount: persona.summaryCumulative.balance,
         category,
         group: "summaryCumulative",
@@ -424,70 +405,49 @@ export default function toResults(
       });
       const totals = computeTotals(persona);
       results.push({
-        year,
-        month,
         monthIndex,
-        date,
         amount: totals.monthlyExpenses,
         category,
         group: "totals",
         variable: "monthlyExpenses",
       });
       results.push({
-        year,
-        month,
         monthIndex,
-        date,
         amount: totals.cumulativeExpenses,
         category,
         group: "totals",
         variable: "cumulativeExpenses",
       });
       results.push({
-        year,
-        month,
         monthIndex,
-        date,
         amount: totals.monthlyGains,
         category,
         group: "totals",
         variable: "monthlyGains",
       });
       results.push({
-        year,
-        month,
         monthIndex,
-        date,
         amount: totals.cumulativeGains,
         category,
         group: "totals",
         variable: "cumulativeGains",
       });
       results.push({
-        year,
-        month,
         monthIndex,
-        date,
         amount: totals.assets,
         category,
         group: "totals",
         variable: "assets",
       });
       results.push({
-        year,
-        month,
         monthIndex,
-        date,
         amount: totals.saleCosts,
         category,
         group: "totals",
         variable: "saleCosts",
       });
       results.push({
-        year,
-        month,
         monthIndex,
-        date,
         amount: totals.saleNetGains,
         category,
         group: "totals",
@@ -495,7 +455,6 @@ export default function toResults(
       });
     }
   } else {
-    const date = new Date(Date.UTC(year, month, 1));
     // Process monthlyExpenses
     let totalMonthlyExpenses = 0;
     for (
@@ -509,10 +468,7 @@ export default function toResults(
             variable === "mortgageInterests") && mortgagePayment
         ) {
           results.push({
-            year,
-            month,
             monthIndex,
-            date,
             amount,
             category,
             group: "monthlyExpenses",
@@ -524,10 +480,7 @@ export default function toResults(
           });
         } else {
           results.push({
-            year,
-            month,
             monthIndex,
-            date,
             amount,
             category,
             group: "monthlyExpenses",
@@ -537,10 +490,7 @@ export default function toResults(
       }
     }
     results.push({
-      year,
-      month,
       monthIndex,
-      date,
       amount: r2(totalMonthlyExpenses),
       category,
       group: "totals",
@@ -556,10 +506,7 @@ export default function toResults(
       totalCumulativeExpenses += amount;
       if (amount !== 0) {
         results.push({
-          year,
-          month,
           monthIndex,
-          date,
           amount,
           category,
           group: "cumulativeExpenses",
@@ -568,10 +515,7 @@ export default function toResults(
       }
     }
     results.push({
-      year,
-      month,
       monthIndex,
-      date,
       amount: r2(totalCumulativeExpenses),
       category,
       group: "totals",
@@ -593,10 +537,7 @@ export default function toResults(
           persona.assets.homeEquity !== undefined
         ) {
           results.push({
-            year,
-            month,
             monthIndex,
-            date,
             amount,
             category,
             group: "monthlyGains",
@@ -605,10 +546,7 @@ export default function toResults(
           });
         } else {
           results.push({
-            year,
-            month,
             monthIndex,
-            date,
             amount,
             category,
             group: "monthlyGains",
@@ -618,10 +556,7 @@ export default function toResults(
       }
     }
     results.push({
-      year,
-      month,
       monthIndex,
-      date,
       amount: r2(totalMonthlyGains),
       category,
       group: "totals",
@@ -637,10 +572,7 @@ export default function toResults(
       totalCumulativeGains += amount;
       if (amount !== 0) {
         results.push({
-          year,
-          month,
           monthIndex,
-          date,
           amount,
           category,
           group: "cumulativeGains",
@@ -649,10 +581,7 @@ export default function toResults(
       }
     }
     results.push({
-      year,
-      month,
       monthIndex,
-      date,
       amount: r2(totalCumulativeGains),
       category,
       group: "totals",
@@ -668,10 +597,7 @@ export default function toResults(
       totalAssets += amount;
       if (amount !== 0) {
         results.push({
-          year,
-          month,
           monthIndex,
-          date,
           amount,
           category,
           group: "assets",
@@ -680,10 +606,7 @@ export default function toResults(
       }
     }
     results.push({
-      year,
-      month,
       monthIndex,
-      date,
       amount: r2(totalAssets),
       category,
       group: "totals",
@@ -696,10 +619,7 @@ export default function toResults(
     ) {
       if (persona.summary[variable] !== 0) {
         results.push({
-          year,
-          month,
           monthIndex,
-          date,
           amount: persona.summary[variable],
           category,
           group: "summary",
@@ -714,10 +634,7 @@ export default function toResults(
     ) {
       if (persona.summaryCumulative[variable] !== 0) {
         results.push({
-          year,
-          month,
           monthIndex,
-          date,
           amount: persona.summaryCumulative[variable],
           category,
           group: "summaryCumulative",
@@ -735,10 +652,7 @@ export default function toResults(
       totalSaleCosts += amount;
       if (amount !== 0) {
         results.push({
-          year,
-          month,
           monthIndex,
-          date,
           amount,
           category,
           group: "saleCosts",
@@ -747,10 +661,7 @@ export default function toResults(
       }
     }
     results.push({
-      year,
-      month,
       monthIndex,
-      date,
       amount: r2(totalSaleCosts),
       category,
       group: "totals",
@@ -766,10 +677,7 @@ export default function toResults(
       totalSaleNetGains += amount;
       if (amount !== 0) {
         results.push({
-          year,
-          month,
           monthIndex,
-          date,
           amount,
           category,
           group: "saleNetGains",
@@ -778,10 +686,7 @@ export default function toResults(
       }
     }
     results.push({
-      year,
-      month,
       monthIndex,
-      date,
       amount: r2(totalSaleNetGains),
       category,
       group: "totals",

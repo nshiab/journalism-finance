@@ -69,7 +69,8 @@ import {
  *   @param options.verboseStep - The frequency of progress logging. For example, setting this to `50` will log progress every 50 iterations. Defaults to `1`.
  *   @param options.values - If `true`, the function will capture and return detailed monthly financial data (such as asset balances and net gains) for every iteration of the simulation. Be cautious with high iteration counts as this can consume significant memory.
  *   @param options.rates - If `true`, the function will capture and return the exact stochastic interest and appreciation rates generated for every iteration. Useful for auditing the simulation's statistical properties.
- *   @param options.monthlyQuantiles - Pass an array of stat names to compute and return per-month summaries for every variable, group, and category. Available stats: `"q10"` (10th percentile), `"q50"` (median), `"q90"` (90th percentile), `"min"` (minimum), `"max"` (maximum). Only the requested fields will be present on each record; all others will be `undefined`. For example, `["q10", "q50", "q90"]` reproduces the classic P10/P50/P90 output, while `["min", "max"]` returns only the range. Each record in the returned `monthlyQuantiles` array is in wide format: `{ category, group, variable, monthIndex, year, month, date, ...requestedStats }`. Note that enabling this option runs `simulateRentVsBuy` with full monthly output instead of final-balance-only, which increases per-iteration cost.
+ *   @param options.monthlyQuantiles - Pass an array of stat names to compute and return per-month summaries for every variable, group, and category. Available stats: `"q10"` (10th percentile), `"q50"` (median), `"q90"` (90th percentile), `"min"` (minimum), `"max"` (maximum). Only the requested fields will be present on each record; all others will be `undefined`. For example, `["q10", "q50", "q90"]` reproduces the classic P10/P50/P90 output, while `["min", "max"]` returns only the range. Each record in the returned `monthlyQuantiles` array is in wide format: `{ category, group, variable, monthIndex, ...requestedStats }`. Note that enabling this option runs `simulateRentVsBuy` with full monthly output instead of final-balance-only, which increases per-iteration cost.
+ *   @param options.monthlyIterations - If `true`, captures and returns the raw monthly financial data for every variable, group, and category for each individual iteration. Each record includes `iteration` (0-based index), `category`, `group`, `variable`, `monthIndex`, and `amount`. This is the un-aggregated counterpart to `monthlyQuantiles` — useful for custom analysis or visualization of individual paths. Be aware that this can produce a very large number of records (iterations × months × ~50 variables × 3 categories), so use with caution at high iteration counts. Like `monthlyQuantiles`, enabling this option forces full monthly output instead of final-balance-only per iteration.
  *
  * @returns An object containing the simulation results:
  *   - `winners`: An array of objects indicating which scenario yielded the highest final net balance (after house and investment sale) for each iteration. Each object includes the `amount`, `category` (renter, buyerFixed, buyerVariable), and the `iteration` details.
@@ -77,6 +78,7 @@ import {
  *   - `values`: An array of objects containing the generated values paths for each iteration. Returns an empty array unless `options.values` is `true`.
  *   - `rates`: An array of objects containing the generated rate paths for each iteration. Returns an empty array unless `options.rates` is `true`.
  *   - `monthlyQuantiles`: An array of wide-format records (one per `{ category, group, variable, monthIndex }` combination). Only the stat fields listed in `options.monthlyQuantiles` are present on each record (`q10?`, `q50?`, `q90?`, `min?`, `max?`); all others are `undefined`. Returns an empty array unless `options.monthlyQuantiles` is provided.
+ *   - `monthlyIterations`: An array of records containing the raw monthly financial data for every variable, group, and category per iteration. Returns an empty array unless `options.monthlyIterations` is `true`.
  *
  * @example
  * ```ts
@@ -231,6 +233,7 @@ export default function simulateRentVsBuyMonteCarlo(
     values?: boolean;
     rates?: boolean;
     monthlyQuantiles?: Array<"q10" | "q50" | "q90" | "min" | "max">;
+    monthlyIterations?: boolean;
   } = {},
 ): {
   values: {
@@ -246,20 +249,14 @@ export default function simulateRentVsBuyMonteCarlo(
     month: number;
   }[];
   winners: {
-    year: number;
-    month: number;
     monthIndex: number;
-    date: Date;
     amount: number;
     category: "renter" | "buyerFixed" | "buyerVariable";
     group: "summaryCumulative";
     variable: "balanceAfterSelling";
   }[];
   winnersBeforeSelling: {
-    year: number;
-    month: number;
     monthIndex: number;
-    date: Date;
     amount: number;
     category: "renter" | "buyerFixed" | "buyerVariable";
     group: "summaryCumulative";
@@ -318,31 +315,78 @@ export default function simulateRentVsBuyMonteCarlo(
       | "saleCosts"
       | "saleNetGains";
     monthIndex: number;
-    year: number;
-    month: number;
-    date: Date;
     q10?: number;
     q50?: number;
     q90?: number;
     min?: number;
     max?: number;
   }[];
+  monthlyIterations: {
+    iteration: number;
+    category: "renter" | "buyerFixed" | "buyerVariable";
+    group:
+      | "monthlyExpenses"
+      | "cumulativeExpenses"
+      | "monthlyGains"
+      | "cumulativeGains"
+      | "assets"
+      | "summary"
+      | "summaryCumulative"
+      | "saleCosts"
+      | "saleNetGains"
+      | "totals";
+    variable:
+      | "rent"
+      | "insurance"
+      | "securityDeposit"
+      | "mortgageCapital"
+      | "mortgageInterests"
+      | "maintenance"
+      | "propertyTax"
+      | "condoFees"
+      | "downPayment"
+      | "purchaseFixedFees"
+      | "insurancePremium"
+      | "tfsaFees"
+      | "stocksFees"
+      | "tfsaGains"
+      | "tfsaContribution"
+      | "stocksGains"
+      | "newStocks"
+      | "homeEquityGains"
+      | "tfsa"
+      | "stocks"
+      | "homeEquity"
+      | "balance"
+      | "balanceAfterSelling"
+      | "stockTaxes"
+      | "homeSellingCommission"
+      | "homeSellingFixedFees"
+      | "mortgagePenalty"
+      | "mortgageBalance"
+      | "stockSellingGains"
+      | "tfsaSellingGains"
+      | "homeSellingGains"
+      | "monthlyExpenses"
+      | "cumulativeExpenses"
+      | "monthlyGains"
+      | "cumulativeGains"
+      | "assets"
+      | "saleCosts"
+      | "saleNetGains";
+    monthIndex: number;
+    amount: number;
+  }[];
 } {
   const winners: {
-    year: number;
-    month: number;
     monthIndex: number;
-    date: Date;
     amount: number;
     category: "renter" | "buyerFixed" | "buyerVariable";
     group: "summaryCumulative";
     variable: "balanceAfterSelling";
   }[] = [];
   const winnersBeforeSelling: {
-    year: number;
-    month: number;
     monthIndex: number;
-    date: Date;
     amount: number;
     category: "renter" | "buyerFixed" | "buyerVariable";
     group: "summaryCumulative";
@@ -363,19 +407,6 @@ export default function simulateRentVsBuyMonteCarlo(
 
   const nbMonths = parameters.numberOfYears * 12;
 
-  // Pre-compute dates once — reused in the post-loop quantile output.
-  const dates: Date[] = Array.from(
-    { length: nbMonths },
-    (_, mi) =>
-      new Date(
-        Date.UTC(
-          parameters.startingYear + Math.floor(mi / 12),
-          mi % 12,
-          1,
-        ),
-      ),
-  );
-
   const statsSet = new Set(options.monthlyQuantiles ?? []);
 
   // Float64Array buckets: pre-sized to `iterations`, avoids dynamic resizing.
@@ -383,11 +414,69 @@ export default function simulateRentVsBuyMonteCarlo(
     ? new Map<string, Float64Array[]>()
     : null;
 
-  // onRecord streams values directly into buckets, bypassing result-object
-  // allocation in toResults. currentI is updated at the start of
-  // each iteration so the closure always writes to the correct column.
+  // Raw per-iteration monthly records, populated when options.monthlyIterations is true.
+  const monthlyIterationsResult: {
+    iteration: number;
+    category: "renter" | "buyerFixed" | "buyerVariable";
+    group:
+      | "monthlyExpenses"
+      | "cumulativeExpenses"
+      | "monthlyGains"
+      | "cumulativeGains"
+      | "assets"
+      | "summary"
+      | "summaryCumulative"
+      | "saleCosts"
+      | "saleNetGains"
+      | "totals";
+    variable:
+      | "rent"
+      | "insurance"
+      | "securityDeposit"
+      | "mortgageCapital"
+      | "mortgageInterests"
+      | "maintenance"
+      | "propertyTax"
+      | "condoFees"
+      | "downPayment"
+      | "purchaseFixedFees"
+      | "insurancePremium"
+      | "tfsaFees"
+      | "stocksFees"
+      | "tfsaGains"
+      | "tfsaContribution"
+      | "stocksGains"
+      | "newStocks"
+      | "homeEquityGains"
+      | "tfsa"
+      | "stocks"
+      | "homeEquity"
+      | "balance"
+      | "balanceAfterSelling"
+      | "stockTaxes"
+      | "homeSellingCommission"
+      | "homeSellingFixedFees"
+      | "mortgagePenalty"
+      | "mortgageBalance"
+      | "stockSellingGains"
+      | "tfsaSellingGains"
+      | "homeSellingGains"
+      | "monthlyExpenses"
+      | "cumulativeExpenses"
+      | "monthlyGains"
+      | "cumulativeGains"
+      | "assets"
+      | "saleCosts"
+      | "saleNetGains";
+    monthIndex: number;
+    amount: number;
+  }[] | null = options.monthlyIterations ? [] : null;
+
+  // onRecord streams values directly into buckets and/or monthlyIterationsResult,
+  // bypassing result-object allocation in toResults. currentI is updated at the
+  // start of each iteration so the closure always writes to the correct column.
   let currentI = 0;
-  const onRecord = buckets
+  const onRecord = (buckets || monthlyIterationsResult)
     ? (
       cat: string,
       grp: string,
@@ -395,16 +484,76 @@ export default function simulateRentVsBuyMonteCarlo(
       mi: number,
       amt: number,
     ) => {
-      const key = `${cat}|${grp}|${vr}`;
-      let bucket = buckets.get(key);
-      if (!bucket) {
-        bucket = Array.from(
-          { length: nbMonths },
-          () => new Float64Array(parameters.iterations),
-        );
-        buckets.set(key, bucket);
+      if (buckets) {
+        const key = `${cat}|${grp}|${vr}`;
+        let bucket = buckets.get(key);
+        if (!bucket) {
+          bucket = Array.from(
+            { length: nbMonths },
+            () => new Float64Array(parameters.iterations),
+          );
+          buckets.set(key, bucket);
+        }
+        bucket[mi][currentI] = amt;
       }
-      bucket[mi][currentI] = amt;
+      if (monthlyIterationsResult) {
+        monthlyIterationsResult.push({
+          iteration: currentI,
+          category: cat as "renter" | "buyerFixed" | "buyerVariable",
+          group: grp as
+            | "monthlyExpenses"
+            | "cumulativeExpenses"
+            | "monthlyGains"
+            | "cumulativeGains"
+            | "assets"
+            | "summary"
+            | "summaryCumulative"
+            | "saleCosts"
+            | "saleNetGains"
+            | "totals",
+          variable: vr as
+            | "rent"
+            | "insurance"
+            | "securityDeposit"
+            | "mortgageCapital"
+            | "mortgageInterests"
+            | "maintenance"
+            | "propertyTax"
+            | "condoFees"
+            | "downPayment"
+            | "purchaseFixedFees"
+            | "insurancePremium"
+            | "tfsaFees"
+            | "stocksFees"
+            | "tfsaGains"
+            | "tfsaContribution"
+            | "stocksGains"
+            | "newStocks"
+            | "homeEquityGains"
+            | "tfsa"
+            | "stocks"
+            | "homeEquity"
+            | "balance"
+            | "balanceAfterSelling"
+            | "stockTaxes"
+            | "homeSellingCommission"
+            | "homeSellingFixedFees"
+            | "mortgagePenalty"
+            | "mortgageBalance"
+            | "stockSellingGains"
+            | "tfsaSellingGains"
+            | "homeSellingGains"
+            | "monthlyExpenses"
+            | "cumulativeExpenses"
+            | "monthlyGains"
+            | "cumulativeGains"
+            | "assets"
+            | "saleCosts"
+            | "saleNetGains",
+          monthIndex: mi,
+          amount: amt,
+        });
+      }
     }
     : undefined;
 
@@ -653,8 +802,8 @@ export default function simulateRentVsBuyMonteCarlo(
         ),
       },
     }, {
-      finalBalanceOnly:
-        !(options.monthlyQuantiles && options.monthlyQuantiles.length > 0),
+      finalBalanceOnly: !options.monthlyQuantiles?.length &&
+        !options.monthlyIterations,
       onRecord,
     });
 
@@ -742,9 +891,6 @@ export default function simulateRentVsBuyMonteCarlo(
       | "saleCosts"
       | "saleNetGains";
     monthIndex: number;
-    year: number;
-    month: number;
-    date: Date;
     q10?: number;
     q50?: number;
     q90?: number;
@@ -784,9 +930,6 @@ export default function simulateRentVsBuyMonteCarlo(
         // Float64Array.sort() with no comparator sorts numerically (native code).
         buffer.set(slots[monthIndex]);
         buffer.sort();
-
-        const year = parameters.startingYear + Math.floor(monthIndex / 12);
-        const month = monthIndex % 12;
 
         const q10Raw = needsQ10
           ? (p10Lower === p10Upper
@@ -857,9 +1000,6 @@ export default function simulateRentVsBuyMonteCarlo(
             | "saleCosts"
             | "saleNetGains",
           monthIndex,
-          year,
-          month,
-          date: dates[monthIndex],
           ...(q10Raw !== undefined
             ? { q10: Math.round(q10Raw * 100) / 100 }
             : {}),
@@ -884,10 +1024,7 @@ export default function simulateRentVsBuyMonteCarlo(
 
   // Winners are already the correct entries, just cast and sort.
   const winnersFiltered = winners as {
-    year: number;
-    month: number;
     monthIndex: number;
-    date: Date;
     amount: number;
     category: "renter" | "buyerFixed" | "buyerVariable";
     group: "summaryCumulative";
@@ -895,10 +1032,7 @@ export default function simulateRentVsBuyMonteCarlo(
   }[];
 
   const winnersBeforeSellingFiltered = winnersBeforeSelling as {
-    year: number;
-    month: number;
     monthIndex: number;
-    date: Date;
     amount: number;
     category: "renter" | "buyerFixed" | "buyerVariable";
     group: "summaryCumulative";
@@ -922,5 +1056,6 @@ export default function simulateRentVsBuyMonteCarlo(
     winners: winnersSorted,
     winnersBeforeSelling: winnersBeforeSellingSorted,
     monthlyQuantiles: monthlyQuantilesResult,
+    monthlyIterations: monthlyIterationsResult ?? [],
   };
 }

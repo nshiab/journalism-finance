@@ -210,10 +210,7 @@ export default function simulateRentVsBuy(
   } = {},
 ): (
   & {
-    year: number;
-    month: number;
     monthIndex: number;
-    date: Date;
     amount: number;
     category: "renter" | "buyerFixed" | "buyerVariable";
   }
@@ -296,10 +293,7 @@ export default function simulateRentVsBuy(
 )[] {
   const results: (
     & {
-      year: number;
-      month: number;
       monthIndex: number;
-      date: Date;
       amount: number;
       category: "renter" | "buyerFixed" | "buyerVariable";
     }
@@ -664,8 +658,6 @@ export default function simulateRentVsBuy(
 
     // We push all results for this month
     toResults(
-      year,
-      month,
       "renter",
       renter,
       results,
@@ -676,8 +668,6 @@ export default function simulateRentVsBuy(
       options.onRecord,
     );
     toResults(
-      year,
-      month,
       "buyerFixed",
       buyerFixed,
       results,
@@ -688,8 +678,6 @@ export default function simulateRentVsBuy(
       options.onRecord,
     );
     toResults(
-      year,
-      month,
       "buyerVariable",
       buyerVariable,
       results,
