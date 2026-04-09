@@ -18,9 +18,19 @@ import simulateRentVsBuy from "./finance/simulateRentVsBuy.ts";
 import simulateRentVsBuyMonteCarlo from "./finance/simulateRentVsBuyMonteCarlo.ts";
 import getMortgagePenalty from "./finance/getMortgagePenalty.ts";
 import getIncomeTax from "./finance/getIncomeTax.ts";
+import {
+  decodeMonteCarloMonthlyIterations,
+  decodeMonteCarloMonthlyQuantiles,
+  decodeMonteCarloValues,
+  decodeMonteCarloWinners,
+} from "./finance/decodeMonteCarloResults.ts";
 
 export {
   adjustToInflation,
+  decodeMonteCarloMonthlyIterations,
+  decodeMonteCarloMonthlyQuantiles,
+  decodeMonteCarloValues,
+  decodeMonteCarloWinners,
   getIncomeTax,
   getMortgagePenalty,
   mortgageInsurancePremium,

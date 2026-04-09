@@ -30,9 +30,29 @@ import simulateRentVsBuyMonteCarlo from "./finance/simulateRentVsBuyMonteCarlo.t
 import getMortgagePenalty from "./finance/getMortgagePenalty.ts";
 import getSalesTax from "./finance/getSalesTax.ts";
 import getIncomeTax from "./finance/getIncomeTax.ts";
+import {
+  decodeMonteCarloMonthlyIterations,
+  decodeMonteCarloMonthlyQuantiles,
+  decodeMonteCarloValues,
+  decodeMonteCarloWinners,
+} from "./finance/decodeMonteCarloResults.ts";
+import type {
+  BaseOptions,
+  ColumnarResult,
+  ColumnarReturn,
+  MqCategory,
+  MqGroup,
+  MqVariable,
+  SimParams,
+  WinnersColumnar,
+} from "./finance/simulateRentVsBuyMonteCarlo.ts";
 
 export {
   adjustToInflation,
+  decodeMonteCarloMonthlyIterations,
+  decodeMonteCarloMonthlyQuantiles,
+  decodeMonteCarloValues,
+  decodeMonteCarloWinners,
   getIncomeTax,
   getMortgagePenalty,
   getSalesTax,
@@ -43,4 +63,15 @@ export {
   simulateRentVsBuy,
   simulateRentVsBuyMonteCarlo,
   variableMortgagePayments,
+};
+
+export type {
+  BaseOptions,
+  ColumnarResult,
+  ColumnarReturn,
+  MqCategory,
+  MqGroup,
+  MqVariable,
+  SimParams,
+  WinnersColumnar,
 };

@@ -66,8 +66,10 @@ import getSalesTax from "./getSalesTax.ts";
  *   @param parameters.rates.appreciationIncrease - Monthly home appreciation rates.
  *   @param parameters.rates.sellingFixedFeesIncrease - Monthly increase rates for selling fixed fees.
  * @param options - Additional simulation options.
- *   @param options.finalBalanceOnly - If `true`, the returned results will only include the final state for each scenario. The results will contain exactly two entries per scenario: `balance` and `balanceAfterSelling`, both under the `summaryCumulative` group for the final month of the simulation. Defaults to `false`.
- *   @param options.onRecord - Internal callback used by `simulateRentVsBuyMonteCarlo` when `monthlyQuantiles` is enabled. When provided, numeric values are streamed directly to the accumulator instead of being wrapped in result objects, avoiding the per-record heap allocation cost. At the final month, the two `summaryCumulative` records are still pushed to the results array for winner extraction.
+ *   @param options.winVariableOnly - If `true`, the returned results will only include the final `winVariable` record for each scenario (one entry per scenario at the final month). Requires `winVariable` to be set — throws if `winVariableOnly` is `true` but `winVariable` is not provided. Defaults to `false`.
+ *   @param options.winVariable - The variable used to identify the winner when extracting the final record. Use `"balanceAfterSelling"` for net balance after a simulated sale, `"balance"` for cumulative balance, or `"assets"` for total raw assets.
+ *   @param options.onRecord - Internal callback used by `simulateRentVsBuyMonteCarlo` when `details.iterations` or `details.quantiles` is enabled. When provided, numeric values are streamed directly to the accumulator instead of being wrapped in result objects, avoiding the per-record heap allocation cost. At the final month, one winner record (the `winVariable` entry) per category is still pushed to the results array for winner extraction.
+ *   @param options.groups - Internal filter used by `simulateRentVsBuyMonteCarlo` via `details.iterationsGroups`. Restricts which groups are emitted by `onRecord` and pushed to results.
  *
  * @returns A detailed array of monthly results for each scenario (renter, buyerFixed, buyerVariable).
  * Each object in the array represents a specific data point for a given month, categorized by:
@@ -109,7 +111,7 @@ import getSalesTax from "./getSalesTax.ts";
  * };
  *
  * const results = simulateRentVsBuy({
- *   startingYear: 2024,
+ *   startingYear: 2026,
  *   numberOfYears: 10,
  *   tfsaContributions: true,
  *   annualInvestmentFeeRate: 0.0025,
@@ -136,7 +138,7 @@ import getSalesTax from "./getSalesTax.ts";
  *     floorRate: 0,
  *   },
  *   rates
- * }, { finalBalanceOnly: true });
+ * }, { winVariableOnly: true, winVariable: "balanceAfterSelling" });
  * ```
  */
 export default function simulateRentVsBuy(
@@ -199,7 +201,7 @@ export default function simulateRentVsBuy(
     };
   },
   options: {
-    finalBalanceOnly?: boolean;
+    winVariableOnly?: boolean;
     onRecord?: (
       category: string,
       group: string,
@@ -207,6 +209,8 @@ export default function simulateRentVsBuy(
       monthIndex: number,
       amount: number,
     ) => void;
+    winVariable?: "balance" | "balanceAfterSelling" | "assets";
+    groups?: string[];
   } = {},
 ): (
   & {
@@ -374,6 +378,12 @@ export default function simulateRentVsBuy(
       }
     )
   )[] = [];
+
+  if (options.winVariableOnly && !options.winVariable) {
+    throw new Error(
+      "simulateRentVsBuy: winVariableOnly requires winVariable to be set.",
+    );
+  }
 
   // We keep track of amounts in structured objects
   const renter = getPersona({
@@ -602,7 +612,7 @@ export default function simulateRentVsBuy(
       null,
       null,
       null,
-      options.finalBalanceOnly ?? false,
+      options.winVariableOnly ?? false,
       numberOfMonths,
       parameters.province,
       parameters.couple,
@@ -615,7 +625,7 @@ export default function simulateRentVsBuy(
       currentFixedMortgagePayment,
       flooredRatesFixed,
       "fixed",
-      options.finalBalanceOnly ?? false,
+      options.winVariableOnly ?? false,
       numberOfMonths,
       parameters.province,
       parameters.couple,
@@ -628,7 +638,7 @@ export default function simulateRentVsBuy(
       currentVariableMortgagePayment,
       flooredRatesVariable,
       "variable",
-      options.finalBalanceOnly ?? false,
+      options.winVariableOnly ?? false,
       numberOfMonths,
       parameters.province,
       parameters.couple,
@@ -638,19 +648,19 @@ export default function simulateRentVsBuy(
     // We compute the balances
     computeBalances(
       renter,
-      options.finalBalanceOnly ?? false,
+      options.winVariableOnly ?? false,
       monthIndex,
       numberOfMonths,
     );
     computeBalances(
       buyerFixed,
-      options.finalBalanceOnly ?? false,
+      options.winVariableOnly ?? false,
       monthIndex,
       numberOfMonths,
     );
     computeBalances(
       buyerVariable,
-      options.finalBalanceOnly ?? false,
+      options.winVariableOnly ?? false,
       monthIndex,
       numberOfMonths,
     );
@@ -662,9 +672,11 @@ export default function simulateRentVsBuy(
       results,
       monthIndex,
       numberOfMonths,
-      options.finalBalanceOnly ?? false,
+      options.winVariableOnly ?? false,
       null,
       options.onRecord,
+      options.winVariable,
+      options.groups,
     );
     toResults(
       "buyerFixed",
@@ -672,9 +684,11 @@ export default function simulateRentVsBuy(
       results,
       monthIndex,
       numberOfMonths,
-      options.finalBalanceOnly ?? false,
+      options.winVariableOnly ?? false,
       currentFixedMortgagePayment,
       options.onRecord,
+      options.winVariable,
+      options.groups,
     );
     toResults(
       "buyerVariable",
@@ -682,9 +696,11 @@ export default function simulateRentVsBuy(
       results,
       monthIndex,
       numberOfMonths,
-      options.finalBalanceOnly ?? false,
+      options.winVariableOnly ?? false,
       currentVariableMortgagePayment,
       options.onRecord,
+      options.winVariable,
+      options.groups,
     );
 
     // We increment the parameters for next month

@@ -163,6 +163,7 @@ export default function getParamsRentVsBuyMonteCarlo(
       initialValue: number;
     };
   };
+  winVariable: "balance" | "balanceAfterSelling" | "assets";
 } {
   console.log("\ncity:", city);
 
@@ -392,5 +393,6 @@ export default function getParamsRentVsBuyMonteCarlo(
         ),
       },
     },
+    winVariable: "balanceAfterSelling" as const,
   };
 }

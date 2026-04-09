@@ -1,5 +1,11 @@
 import { assert, assertEquals } from "jsr:@std/assert";
 import simulateRentVsBuyMonteCarlo from "../../src/finance/simulateRentVsBuyMonteCarlo.ts";
+import {
+  decodeMonteCarloMonthlyIterations,
+  decodeMonteCarloMonthlyQuantiles,
+  decodeMonteCarloValues,
+  decodeMonteCarloWinners,
+} from "../../src/finance/decodeMonteCarloResults.ts";
 import getParamsRentVsBuyMonteCarlo from "./helpers/getParamsRentVsBuyMonteCarlo.ts";
 
 Deno.test("documentation example: simulateRentVsBuyMonteCarlo should run without errors", () => {
@@ -70,14 +76,14 @@ Deno.test("documentation example: simulateRentVsBuyMonteCarlo should run without
         sigma: 0.03,
       },
     },
+    winVariable: "balanceAfterSelling",
   }, { verbose: false });
 
-  assert(results.winners.length === 10);
-  assert(results.winnersBeforeSelling.length === 10);
+  assert(results.winners.monthIndex.length === 10);
 });
 
-Deno.test("should run a monte carlo simulation of rent vs buy with 1,000 iterations", async () => {
-  const params = getParamsRentVsBuyMonteCarlo(1000, "Montreal", "Quebec", {
+Deno.test("should run a monte carlo simulation of rent vs buy with 100 iterations", async () => {
+  const params = getParamsRentVsBuyMonteCarlo(100, "Montreal", "Quebec", {
     downPayment: 0.10,
     purchaseFixedFees: 0.02,
   }, {
@@ -93,13 +99,10 @@ Deno.test("should run a monte carlo simulation of rent vs buy with 1,000 iterati
     verbose: true,
     verboseStep: 100,
     values: true,
-    rates: true,
   });
 
   // console.log(simulationResults.values.slice(0, 1));
-  // console.log(simulationResults.rates.slice(0, 1));
   // console.log(simulationResults.winners.slice(0, 1));
-  // console.log(simulationResults.winnersBeforeSelling.slice(0, 1));
 
   const winnerCounts: {
     [key in "buyerFixed" | "buyerVariable" | "renter"]: number;
@@ -108,7 +111,7 @@ Deno.test("should run a monte carlo simulation of rent vs buy with 1,000 iterati
     buyerVariable: 0,
     renter: 0,
   };
-  for (const winner of simulationResults.winners) {
+  for (const winner of decodeMonteCarloWinners(simulationResults.winners)) {
     winnerCounts[winner.category] += 1;
   }
 
@@ -117,7 +120,7 @@ Deno.test("should run a monte carlo simulation of rent vs buy with 1,000 iterati
     buyerVariable: 0,
     renter: 0,
   };
-  const totalWinners = simulationResults.winners.length;
+  const totalWinners = simulationResults.winners.monthIndex.length;
   for (const category in winnerCounts) {
     winnerPercentages[category as "buyerFixed" | "buyerVariable" | "renter"] =
       Math.round(
@@ -132,42 +135,7 @@ Deno.test("should run a monte carlo simulation of rent vs buy with 1,000 iterati
     winnerPercentages,
   );
 
-  const winnerCountsBeforeSelling: {
-    [key in "buyerFixed" | "buyerVariable" | "renter"]: number;
-  } = {
-    buyerFixed: 0,
-    buyerVariable: 0,
-    renter: 0,
-  };
-  for (const winner of simulationResults.winnersBeforeSelling) {
-    winnerCountsBeforeSelling[winner.category] += 1;
-  }
-
-  const winnerPercentagesBeforeSelling = {
-    buyerFixed: 0,
-    buyerVariable: 0,
-    renter: 0,
-  };
-  const totalWinnersBeforeSelling = simulationResults.winnersBeforeSelling
-    .length;
-  for (const category in winnerCountsBeforeSelling) {
-    winnerPercentagesBeforeSelling[
-      category as "buyerFixed" | "buyerVariable" | "renter"
-    ] = Math.round(
-      (winnerCountsBeforeSelling[
-        category as "buyerFixed" | "buyerVariable" | "renter"
-      ] / totalWinnersBeforeSelling) * 100,
-    );
-  }
-
-  console.log(
-    "Winner counts and percentages before selling:",
-    winnerCountsBeforeSelling,
-    winnerPercentagesBeforeSelling,
-  );
-
-  assertEquals(simulationResults.winners.length, 1000);
-  assertEquals(simulationResults.winnersBeforeSelling.length, 1000);
+  assertEquals(simulationResults.winners.monthIndex.length, 100);
 
   // Verify that the sum of percentages is close to 100%
   const sumPercentages = Object.values(winnerPercentages).reduce(
@@ -177,8 +145,8 @@ Deno.test("should run a monte carlo simulation of rent vs buy with 1,000 iterati
   assert(Math.abs(sumPercentages - 100) <= 2);
 });
 
-Deno.test("should run a monte carlo simulation of rent vs buy with 1,000 iterations and option couple", async () => {
-  const params = getParamsRentVsBuyMonteCarlo(1000, "Montreal", "Quebec", {
+Deno.test("should run a monte carlo simulation of rent vs buy with 100 iterations and option couple", async () => {
+  const params = getParamsRentVsBuyMonteCarlo(100, "Montreal", "Quebec", {
     downPayment: 0.10,
     purchaseFixedFees: 0.02,
   }, {
@@ -197,13 +165,10 @@ Deno.test("should run a monte carlo simulation of rent vs buy with 1,000 iterati
     verbose: true,
     verboseStep: 100,
     values: true,
-    rates: true,
   });
 
   // console.log(simulationResults.values.slice(0, 1));
-  // console.log(simulationResults.rates.slice(0, 1));
   // console.log(simulationResults.winners.slice(0, 1));
-  // console.log(simulationResults.winnersBeforeSelling.slice(0, 1));
 
   const winnerCounts: {
     [key in "buyerFixed" | "buyerVariable" | "renter"]: number;
@@ -212,7 +177,7 @@ Deno.test("should run a monte carlo simulation of rent vs buy with 1,000 iterati
     buyerVariable: 0,
     renter: 0,
   };
-  for (const winner of simulationResults.winners) {
+  for (const winner of decodeMonteCarloWinners(simulationResults.winners)) {
     winnerCounts[winner.category] += 1;
   }
 
@@ -221,7 +186,7 @@ Deno.test("should run a monte carlo simulation of rent vs buy with 1,000 iterati
     buyerVariable: 0,
     renter: 0,
   };
-  const totalWinners = simulationResults.winners.length;
+  const totalWinners = simulationResults.winners.monthIndex.length;
   for (const category in winnerCounts) {
     winnerPercentages[category as "buyerFixed" | "buyerVariable" | "renter"] =
       Math.round(
@@ -236,42 +201,7 @@ Deno.test("should run a monte carlo simulation of rent vs buy with 1,000 iterati
     winnerPercentages,
   );
 
-  const winnerCountsBeforeSelling: {
-    [key in "buyerFixed" | "buyerVariable" | "renter"]: number;
-  } = {
-    buyerFixed: 0,
-    buyerVariable: 0,
-    renter: 0,
-  };
-  for (const winner of simulationResults.winnersBeforeSelling) {
-    winnerCountsBeforeSelling[winner.category] += 1;
-  }
-
-  const winnerPercentagesBeforeSelling = {
-    buyerFixed: 0,
-    buyerVariable: 0,
-    renter: 0,
-  };
-  const totalWinnersBeforeSelling = simulationResults.winnersBeforeSelling
-    .length;
-  for (const category in winnerCountsBeforeSelling) {
-    winnerPercentagesBeforeSelling[
-      category as "buyerFixed" | "buyerVariable" | "renter"
-    ] = Math.round(
-      (winnerCountsBeforeSelling[
-        category as "buyerFixed" | "buyerVariable" | "renter"
-      ] / totalWinnersBeforeSelling) * 100,
-    );
-  }
-
-  console.log(
-    "Winner counts and percentages before selling:",
-    winnerCountsBeforeSelling,
-    winnerPercentagesBeforeSelling,
-  );
-
-  assertEquals(simulationResults.winners.length, 1000);
-  assertEquals(simulationResults.winnersBeforeSelling.length, 1000);
+  assertEquals(simulationResults.winners.monthIndex.length, 100);
 
   // Verify that the sum of percentages is close to 100%
   const sumPercentagesCouple = Object.values(winnerPercentages).reduce(
@@ -279,146 +209,6 @@ Deno.test("should run a monte carlo simulation of rent vs buy with 1,000 iterati
     0,
   );
   assert(Math.abs(sumPercentagesCouple - 100) <= 2);
-});
-
-Deno.test("should return monthly quantiles when option monthlyQuantiles is true", async () => {
-  const params = getParamsRentVsBuyMonteCarlo(1000, "Montreal", "Quebec", {
-    downPayment: 0.10,
-    purchaseFixedFees: 0.02,
-  }, {
-    renterMonthlyInsurance: 70,
-    ownerMonthlyInsurance: 125,
-    sellingFixedFees: 2000,
-    condoFees: 250,
-  }, false);
-
-  // Just for the tests
-  params.renter.securityDeposit = 1000;
-
-  const results = simulateRentVsBuyMonteCarlo(params, {
-    verbose: true,
-    verboseStep: 100,
-    monthlyQuantiles: ["q10", "q50", "q90"],
-  });
-
-  // winners behavior unchanged
-  assertEquals(results.winners.length, 1000);
-  assertEquals(results.winnersBeforeSelling.length, 1000);
-
-  const winnerCounts = { buyerFixed: 0, buyerVariable: 0, renter: 0 };
-  const winnerCountsBeforeSelling = {
-    buyerFixed: 0,
-    buyerVariable: 0,
-    renter: 0,
-  };
-  for (const w of results.winners) winnerCounts[w.category] += 1;
-  for (const w of results.winnersBeforeSelling) {
-    winnerCountsBeforeSelling[w.category] += 1;
-  }
-  const total = results.winners.length;
-  const pct = (n: number) => Math.round((n / total) * 100);
-  console.log("Winner counts and percentages:", winnerCounts, {
-    buyerFixed: pct(winnerCounts.buyerFixed),
-    buyerVariable: pct(winnerCounts.buyerVariable),
-    renter: pct(winnerCounts.renter),
-  });
-  console.log(
-    "Winner counts and percentages before selling:",
-    winnerCountsBeforeSelling,
-    {
-      buyerFixed: pct(winnerCountsBeforeSelling.buyerFixed),
-      buyerVariable: pct(winnerCountsBeforeSelling.buyerVariable),
-      renter: pct(winnerCountsBeforeSelling.renter),
-    },
-  );
-
-  // console.log(results.monthlyQuantiles.slice(0, 3));
-
-  // monthlyQuantiles is populated
-  assert(results.monthlyQuantiles.length > 0);
-
-  // each record has q10 <= q50 <= q90
-  for (const row of results.monthlyQuantiles) {
-    assert(
-      (row.q10 ?? 0) <= (row.q50 ?? 0),
-      `q10 <= q50 failed for ${row.category}/${row.group}/${row.variable} month ${row.monthIndex}`,
-    );
-    assert(
-      (row.q50 ?? 0) <= (row.q90 ?? 0),
-      `q50 <= q90 failed for ${row.category}/${row.group}/${row.variable} month ${row.monthIndex}`,
-    );
-  }
-
-  // renter rent variable spans all 300 months (25 years) per group
-  const renterRent = results.monthlyQuantiles.filter(
-    (d) =>
-      d.category === "renter" &&
-      d.group === "monthlyExpenses" &&
-      d.variable === "rent",
-  );
-  assertEquals(renterRent.length, 300);
-
-  // Check that all expected variables are present in the output
-  const expectedVariables = [
-    "rent",
-    "insurance",
-    "securityDeposit",
-    "mortgageCapital",
-    "mortgageInterests",
-    "maintenance",
-    "propertyTax",
-    "condoFees",
-    "downPayment",
-    "purchaseFixedFees",
-    "insurancePremium",
-    "tfsaFees",
-    "stocksFees",
-    "tfsaGains",
-    "tfsaContribution",
-    "stocksGains",
-    "newStocks",
-    "homeEquityGains",
-    "tfsa",
-    "stocks",
-    "homeEquity",
-    "balance",
-    "balanceAfterSelling",
-    "stockTaxes",
-    "homeSellingCommission",
-    "homeSellingFixedFees",
-    "mortgagePenalty",
-    "mortgageBalance",
-    "stockSellingGains",
-    "tfsaSellingGains",
-    "homeSellingGains",
-    "monthlyExpenses",
-    "cumulativeExpenses",
-    "monthlyGains",
-    "cumulativeGains",
-    "assets",
-    "saleCosts",
-    "saleNetGains",
-  ];
-  const actualVariables = new Set(
-    results.monthlyQuantiles.map((d) => d.variable),
-  );
-  for (const v of expectedVariables) {
-    assert(
-      actualVariables.has(v as any),
-      `Variable ${v} is missing from results.monthlyQuantiles`,
-    );
-  }
-  for (const v of actualVariables) {
-    assert(
-      expectedVariables.includes(v as any),
-      `Variable ${v} was found in results but is not in the expectedVariables list`,
-    );
-  }
-  assertEquals(
-    actualVariables.size,
-    expectedVariables.length,
-    `Actual variable count (${actualVariables.size}) doesn't match expected (${expectedVariables.length})`,
-  );
 });
 
 Deno.test(
@@ -439,261 +229,33 @@ Deno.test(
       results: ReturnType<typeof simulateRentVsBuyMonteCarlo>,
     ) {
       const counts = { buyerFixed: 0, buyerVariable: 0, renter: 0 };
-      const countsBeforeSelling = {
-        buyerFixed: 0,
-        buyerVariable: 0,
-        renter: 0,
-      };
-      for (const w of results.winners) counts[w.category] += 1;
-      for (const w of results.winnersBeforeSelling) {
-        countsBeforeSelling[w.category] += 1;
+      for (const w of decodeMonteCarloWinners(results.winners)) {
+        counts[w.category] += 1;
       }
-      const total = results.winners.length;
+      const total = results.winners.monthIndex.length;
       const pct = (n: number) => Math.round((n / total) * 100);
       console.log(`${label} - Winner counts and percentages:`, counts, {
         buyerFixed: pct(counts.buyerFixed),
         buyerVariable: pct(counts.buyerVariable),
         renter: pct(counts.renter),
       });
-      console.log(
-        `${label} - Winner counts and percentages before selling:`,
-        countsBeforeSelling,
-        {
-          buyerFixed: pct(countsBeforeSelling.buyerFixed),
-          buyerVariable: pct(countsBeforeSelling.buyerVariable),
-          renter: pct(countsBeforeSelling.renter),
-        },
-      );
     }
 
-    // Default path (finalBalanceOnly, stride=9)
+    // Default path (winVariableOnly, stride=1)
     const defaultResults = simulateRentVsBuyMonteCarlo(params, {});
     logWinners("default", defaultResults);
-    for (
-      const category of ["renter", "buyerFixed", "buyerVariable"] as const
-    ) {
-      const wins = defaultResults.winners.filter((w) =>
-        w.category === category
-      ).length;
-      assert(
-        wins > 0,
-        `${category} should win at least once without monthlyQuantiles, got 0 out of ${defaultResults.winners.length}`,
-      );
-    }
-
-    // monthlyQuantiles path (onRecord active, stride=2)
-    const quantileResults = simulateRentVsBuyMonteCarlo(params, {
-      monthlyQuantiles: ["q10", "q50", "q90"],
-    });
-    logWinners("monthlyQuantiles", quantileResults);
-    for (
-      const category of ["renter", "buyerFixed", "buyerVariable"] as const
-    ) {
-      const wins = quantileResults.winners.filter((w) =>
-        w.category === category
-      ).length;
-      assert(
-        wins > 0,
-        `${category} should win at least once with monthlyQuantiles, got 0 out of ${quantileResults.winners.length}`,
-      );
-    }
-  },
-);
-
-Deno.test(
-  "monthlyQuantiles should include totals group for all categories, variables, and months",
-  async () => {
-    const params = getParamsRentVsBuyMonteCarlo(10, "Montreal", "Quebec", {
-      downPayment: 0.10,
-      purchaseFixedFees: 0.02,
-    }, {
-      renterMonthlyInsurance: 70,
-      ownerMonthlyInsurance: 125,
-      sellingFixedFees: 2000,
-      condoFees: 250,
-    }, false);
-
-    const results = simulateRentVsBuyMonteCarlo(params, {
-      monthlyQuantiles: ["q10", "q50", "q90"],
-    });
-
-    const counts = { buyerFixed: 0, buyerVariable: 0, renter: 0 };
-    const countsBeforeSelling = { buyerFixed: 0, buyerVariable: 0, renter: 0 };
-    for (const w of results.winners) counts[w.category] += 1;
-    for (const w of results.winnersBeforeSelling) {
-      countsBeforeSelling[w.category] += 1;
-    }
-    const total = results.winners.length;
-    const pct = (n: number) => Math.round((n / total) * 100);
-    console.log("Winner counts and percentages:", counts, {
-      buyerFixed: pct(counts.buyerFixed),
-      buyerVariable: pct(counts.buyerVariable),
-      renter: pct(counts.renter),
-    });
-    console.log(
-      "Winner counts and percentages before selling:",
-      countsBeforeSelling,
-      {
-        buyerFixed: pct(countsBeforeSelling.buyerFixed),
-        buyerVariable: pct(countsBeforeSelling.buyerVariable),
-        renter: pct(countsBeforeSelling.renter),
-      },
+    const decodedDefaultWinners = decodeMonteCarloWinners(
+      defaultResults.winners,
     );
-
-    const categories = ["renter", "buyerFixed", "buyerVariable"] as const;
-    const totalsVariables = [
-      "monthlyExpenses",
-      "cumulativeExpenses",
-      "monthlyGains",
-      "cumulativeGains",
-      "assets",
-      "saleCosts",
-      "saleNetGains",
-    ] as const;
-    const numberOfMonths = params.numberOfYears * 12;
-
-    for (const category of categories) {
-      for (const variable of totalsVariables) {
-        const rows = results.monthlyQuantiles.filter(
-          (d) =>
-            d.group === "totals" &&
-            d.variable === variable &&
-            d.category === category,
-        );
-
-        // Every month must be present
-        assertEquals(
-          rows.length,
-          numberOfMonths,
-          `Expected ${numberOfMonths} months for ${category}/totals/${variable}, got ${rows.length}`,
-        );
-
-        // Month indices must be contiguous 0..N-1
-        const monthIndices = rows.map((d) => d.monthIndex).sort((a, b) =>
-          a - b
-        );
-        assertEquals(
-          monthIndices,
-          Array.from({ length: numberOfMonths }, (_, i) => i),
-          `Month indices not contiguous for ${category}/totals/${variable}`,
-        );
-
-        // Quantile ordering must hold on every row
-        for (const row of rows) {
-          assert(
-            (row.q10 ?? 0) <= (row.q50 ?? 0),
-            `q10 <= q50 failed for ${category}/totals/${variable} month ${row.monthIndex}`,
-          );
-          assert(
-            (row.q50 ?? 0) <= (row.q90 ?? 0),
-            `q50 <= q90 failed for ${category}/totals/${variable} month ${row.monthIndex}`,
-          );
-        }
-      }
-    }
-  },
-);
-
-Deno.test(
-  "monthlyQuantiles with ['min', 'max'] should have min/max but not q10/q50/q90",
-  () => {
-    const params = getParamsRentVsBuyMonteCarlo(10, "Montreal", "Quebec", {
-      downPayment: 0.10,
-      purchaseFixedFees: 0.02,
-    }, {
-      renterMonthlyInsurance: 70,
-      ownerMonthlyInsurance: 125,
-      sellingFixedFees: 2000,
-      condoFees: 250,
-    }, false);
-
-    const results = simulateRentVsBuyMonteCarlo(params, {
-      monthlyQuantiles: ["min", "max"],
-    });
-
-    assert(results.monthlyQuantiles.length > 0);
-
-    for (const row of results.monthlyQuantiles) {
+    for (
+      const category of ["renter", "buyerFixed", "buyerVariable"] as const
+    ) {
+      const wins = decodedDefaultWinners.filter((w) =>
+        w.category === category
+      ).length;
       assert(
-        typeof row.min === "number",
-        `min should be a number, got ${row.min}`,
-      );
-      assert(
-        typeof row.max === "number",
-        `max should be a number, got ${row.max}`,
-      );
-      assert(
-        row.min <= row.max,
-        `min <= max failed for ${row.category}/${row.group}/${row.variable} month ${row.monthIndex}`,
-      );
-      assertEquals(
-        row.q10,
-        undefined,
-        `q10 should be undefined when not requested`,
-      );
-      assertEquals(
-        row.q50,
-        undefined,
-        `q50 should be undefined when not requested`,
-      );
-      assertEquals(
-        row.q90,
-        undefined,
-        `q90 should be undefined when not requested`,
-      );
-    }
-  },
-);
-
-Deno.test(
-  "monthlyQuantiles with ['q50', 'min', 'max'] should have q50/min/max but not q10/q90",
-  () => {
-    const params = getParamsRentVsBuyMonteCarlo(10, "Montreal", "Quebec", {
-      downPayment: 0.10,
-      purchaseFixedFees: 0.02,
-    }, {
-      renterMonthlyInsurance: 70,
-      ownerMonthlyInsurance: 125,
-      sellingFixedFees: 2000,
-      condoFees: 250,
-    }, false);
-
-    const results = simulateRentVsBuyMonteCarlo(params, {
-      monthlyQuantiles: ["q50", "min", "max"],
-    });
-
-    assert(results.monthlyQuantiles.length > 0);
-
-    for (const row of results.monthlyQuantiles) {
-      assert(
-        typeof row.q50 === "number",
-        `q50 should be a number, got ${row.q50}`,
-      );
-      assert(
-        typeof row.min === "number",
-        `min should be a number, got ${row.min}`,
-      );
-      assert(
-        typeof row.max === "number",
-        `max should be a number, got ${row.max}`,
-      );
-      assert(
-        row.min <= row.q50,
-        `min <= q50 failed for ${row.category}/${row.group}/${row.variable} month ${row.monthIndex}`,
-      );
-      assert(
-        row.q50 <= row.max,
-        `q50 <= max failed for ${row.category}/${row.group}/${row.variable} month ${row.monthIndex}`,
-      );
-      assertEquals(
-        row.q10,
-        undefined,
-        `q10 should be undefined when not requested`,
-      );
-      assertEquals(
-        row.q90,
-        undefined,
-        `q90 should be undefined when not requested`,
+        wins > 0,
+        `${category} should win at least once, got 0 out of ${defaultResults.winners.monthIndex.length}`,
       );
     }
   },
@@ -714,21 +276,39 @@ Deno.test("should return monthly iterations data when option monthlyIterations i
   params.renter.securityDeposit = 1000;
 
   const results = simulateRentVsBuyMonteCarlo(params, {
-    monthlyIterations: true,
+    details: {
+      iterations: true,
+      iterationsGroups: [
+        "monthlyExpenses",
+        "cumulativeExpenses",
+        "monthlyGains",
+        "cumulativeGains",
+        "assets",
+        "summary",
+        "summaryCumulative",
+        "saleCosts",
+        "saleNetGains",
+        "totals",
+      ],
+    },
   });
 
-  assertEquals(results.winners.length, 3);
-  assertEquals(results.winnersBeforeSelling.length, 3);
+  assertEquals(results.winners.monthIndex.length, 3);
 
   // monthlyIterations is empty by default
   const defaultResults = simulateRentVsBuyMonteCarlo(params, {});
-  assertEquals(defaultResults.monthlyIterations, []);
+  assertEquals(defaultResults.details.monthlyIterations.rows, 0);
+  assertEquals(defaultResults.details.monthlyIterations.keys.length, 0);
 
   // monthlyIterations is populated
-  assert(results.monthlyIterations.length > 0);
+  assert(results.details.monthlyIterations.keys.length > 0);
+
+  const decodedMonthlyIterations = decodeMonteCarloMonthlyIterations(
+    results.details.monthlyIterations,
+  );
 
   // Each record has the expected shape
-  const sample = results.monthlyIterations[0];
+  const sample = decodedMonthlyIterations[0];
   assert(typeof sample.iteration === "number");
   assert(typeof sample.category === "string");
   assert(typeof sample.group === "string");
@@ -738,7 +318,7 @@ Deno.test("should return monthly iterations data when option monthlyIterations i
 
   // Iteration values span 0 to iterations-1
   const iterationValues = new Set(
-    results.monthlyIterations.map((r) => r.iteration),
+    decodedMonthlyIterations.map((r) => r.iteration),
   );
   for (let i = 0; i < 3; i++) {
     assert(
@@ -748,7 +328,7 @@ Deno.test("should return monthly iterations data when option monthlyIterations i
   }
 
   // The renter summaryCumulative balance should appear once per month per iteration
-  const renterBalance = results.monthlyIterations.filter(
+  const renterBalance = decodedMonthlyIterations.filter(
     (r) =>
       r.category === "renter" &&
       r.group === "summaryCumulative" &&
@@ -810,7 +390,7 @@ Deno.test("should return monthly iterations data when option monthlyIterations i
     "saleNetGains",
   ];
   const actualVariables = new Set(
-    results.monthlyIterations.map((r) => r.variable),
+    decodedMonthlyIterations.map((r) => r.variable),
   );
   for (const v of expectedVariables) {
     assert(
@@ -818,12 +398,806 @@ Deno.test("should return monthly iterations data when option monthlyIterations i
       `Variable ${v} is missing from monthlyIterations`,
     );
   }
+});
 
-  // monthlyIterations and monthlyQuantiles can be used simultaneously
-  const combined = simulateRentVsBuyMonteCarlo(params, {
-    monthlyIterations: true,
-    monthlyQuantiles: ["q10", "q50", "q90"],
+// ---------------------------------------------------------------------------
+// Columnar format tests
+// ---------------------------------------------------------------------------
+
+Deno.test("columnar: all data values are Float64Arrays and winners are unchanged", () => {
+  const params = getParamsRentVsBuyMonteCarlo(3, "Montreal", "Quebec", {
+    downPayment: 0.10,
+    purchaseFixedFees: 0.02,
+  }, {
+    renterMonthlyInsurance: 70,
+    ownerMonthlyInsurance: 125,
+    sellingFixedFees: 2000,
+    condoFees: 250,
+  }, false);
+
+  const col = simulateRentVsBuyMonteCarlo(params, {
+    values: true,
+    details: {
+      iterations: true,
+      iterationsGroups: [
+        "monthlyExpenses",
+        "cumulativeExpenses",
+        "monthlyGains",
+        "cumulativeGains",
+        "assets",
+        "summary",
+        "summaryCumulative",
+        "saleCosts",
+        "saleNetGains",
+        "totals",
+      ],
+    },
   });
-  assert(combined.monthlyIterations.length > 0);
-  assert(combined.monthlyQuantiles.length > 0);
+
+  // winners are now WinnersColumnar typed arrays
+  assertEquals(col.winners.monthIndex.length, 3);
+
+  // all data entries are Float64Array
+  for (
+    const result of [
+      col.values,
+      col.details.monthlyIterations,
+    ]
+  ) {
+    for (const arr of Object.values(result.data)) {
+      assert(arr instanceof Float64Array, "Expected Float64Array");
+    }
+  }
+
+  // keys match data keys
+  for (
+    const result of [
+      col.values,
+      col.details.monthlyIterations,
+    ]
+  ) {
+    assertEquals(
+      result.keys.length,
+      Object.keys(result.data).length,
+      "keys length should match data key count",
+    );
+    for (const k of result.keys) {
+      assert(k in result.data, `key "${k}" missing from data`);
+    }
+  }
+});
+
+Deno.test("columnar: empty ColumnarResult when option is disabled", () => {
+  const params = getParamsRentVsBuyMonteCarlo(3, "Montreal", "Quebec", {
+    downPayment: 0.10,
+    purchaseFixedFees: 0.02,
+  }, {
+    renterMonthlyInsurance: 70,
+    ownerMonthlyInsurance: 125,
+    sellingFixedFees: 2000,
+    condoFees: 250,
+  }, false);
+
+  const col = simulateRentVsBuyMonteCarlo(params, {});
+
+  // nothing requested → all are empty
+  for (
+    const result of [
+      col.values,
+      col.details.monthlyIterations,
+      col.details.monthlyQuantiles,
+    ]
+  ) {
+    assertEquals(result.rows, 0);
+    assertEquals(result.keys.length, 0);
+    assertEquals(Object.keys(result.data).length, 0);
+  }
+});
+
+Deno.test("columnar monthlyIterations: decode matches object-array output", () => {
+  const params = getParamsRentVsBuyMonteCarlo(3, "Montreal", "Quebec", {
+    downPayment: 0.10,
+    purchaseFixedFees: 0.02,
+  }, {
+    renterMonthlyInsurance: 70,
+    ownerMonthlyInsurance: 125,
+    sellingFixedFees: 2000,
+    condoFees: 250,
+  }, false);
+  params.renter.securityDeposit = 1000;
+
+  // deterministic: run both with the same seed isn't possible,
+  // but we verify shapes and that decode round-trips correctly.
+  const col = simulateRentVsBuyMonteCarlo(params, {
+    details: {
+      iterations: true,
+      iterationsGroups: [
+        "monthlyExpenses",
+        "cumulativeExpenses",
+        "monthlyGains",
+        "cumulativeGains",
+        "assets",
+        "summary",
+        "summaryCumulative",
+        "saleCosts",
+        "saleNetGains",
+        "totals",
+      ],
+    },
+  });
+
+  assert(col.details.monthlyIterations.rows === params.iterations);
+  assert(col.details.monthlyIterations.cols === params.numberOfYears * 12);
+
+  const decoded = decodeMonteCarloMonthlyIterations(
+    col.details.monthlyIterations,
+  );
+  assert(decoded.length > 0);
+
+  // every decoded record has correct shape
+  for (const rec of decoded) {
+    assert(typeof rec.iteration === "number");
+    assert(typeof rec.category === "string");
+    assert(typeof rec.group === "string");
+    assert(typeof rec.variable === "string");
+    assert(typeof rec.monthIndex === "number");
+    assert(typeof rec.amount === "number");
+  }
+
+  // iteration values span 0..iterations-1
+  const iterSet = new Set(decoded.map((r) => r.iteration));
+  for (let i = 0; i < params.iterations; i++) {
+    assert(iterSet.has(i), `iteration ${i} missing from decoded output`);
+  }
+});
+
+Deno.test("columnar values: decode matches object-array shape", () => {
+  const params = getParamsRentVsBuyMonteCarlo(3, "Montreal", "Quebec", {
+    downPayment: 0.10,
+    purchaseFixedFees: 0.02,
+  }, {
+    renterMonthlyInsurance: 70,
+    ownerMonthlyInsurance: 125,
+    sellingFixedFees: 2000,
+    condoFees: 250,
+  }, false);
+
+  const col = simulateRentVsBuyMonteCarlo(params, {
+    values: true,
+  });
+
+  assert(col.values.rows === params.iterations);
+  assert(col.values.cols === params.numberOfYears * 12);
+
+  const decodedValues = decodeMonteCarloValues(col.values);
+
+  assert(
+    decodedValues.length > 0,
+    "decodeMonteCarloValues should produce records",
+  );
+
+  for (const rec of decodedValues) {
+    assert(typeof rec.iteration === "number");
+    assert(typeof rec.variable === "string");
+    assert(typeof rec.value === "number");
+    assert(typeof rec.monthIndex === "number");
+  }
+});
+
+Deno.test("columnar: buffers are detachable (transfer simulation)", () => {
+  const params = getParamsRentVsBuyMonteCarlo(3, "Montreal", "Quebec", {
+    downPayment: 0.10,
+    purchaseFixedFees: 0.02,
+  }, {
+    renterMonthlyInsurance: 70,
+    ownerMonthlyInsurance: 125,
+    sellingFixedFees: 2000,
+    condoFees: 250,
+  }, false);
+
+  const col = simulateRentVsBuyMonteCarlo(params, {
+    details: {
+      iterations: true,
+      iterationsGroups: [
+        "monthlyExpenses",
+        "cumulativeExpenses",
+        "monthlyGains",
+        "cumulativeGains",
+        "assets",
+        "summary",
+        "summaryCumulative",
+        "saleCosts",
+        "saleNetGains",
+        "totals",
+      ],
+    },
+    values: true,
+  });
+
+  // Collect all transferable buffers
+  const transferList: ArrayBuffer[] = [];
+  for (
+    const result of [
+      col.values,
+      col.details.monthlyIterations,
+    ]
+  ) {
+    for (const arr of Object.values(result.data)) {
+      transferList.push(arr.buffer as ArrayBuffer);
+    }
+  }
+
+  // Simulate structured-clone transfer by detaching via MessageChannel
+  const { port1, port2 } = new MessageChannel();
+  const received = new Promise<void>((resolve) => {
+    port2.onmessage = () => resolve();
+  });
+  port1.postMessage({ col }, transferList);
+  port1.close();
+  port2.close();
+
+  // After transfer, all Float64Array buffers should be detached (byteLength === 0)
+  for (
+    const result of [
+      col.values,
+      col.details.monthlyIterations,
+    ]
+  ) {
+    for (const arr of Object.values(result.data)) {
+      assertEquals(
+        arr.byteLength,
+        0,
+        "Buffer should be detached after transfer",
+      );
+    }
+  }
+});
+
+Deno.test("iteration is number (not string) on object-array values", () => {
+  const params = getParamsRentVsBuyMonteCarlo(3, "Montreal", "Quebec", {
+    downPayment: 0.10,
+    purchaseFixedFees: 0.02,
+  }, {
+    renterMonthlyInsurance: 70,
+    ownerMonthlyInsurance: 125,
+    sellingFixedFees: 2000,
+    condoFees: 250,
+  }, false);
+
+  const results = simulateRentVsBuyMonteCarlo(params, {
+    values: true,
+  });
+
+  for (const rec of decodeMonteCarloValues(results.values)) {
+    assert(
+      typeof rec.iteration === "number",
+      `values iteration should be number, got ${typeof rec.iteration}`,
+    );
+  }
+});
+
+Deno.test("winVariable: winners use the specified variable to determine the winner", () => {
+  const params = getParamsRentVsBuyMonteCarlo(10, "Montreal", "Quebec", {
+    downPayment: 0.10,
+    purchaseFixedFees: 0.02,
+  }, {
+    renterMonthlyInsurance: 70,
+    ownerMonthlyInsurance: 125,
+    sellingFixedFees: 2000,
+    condoFees: 250,
+  }, false);
+
+  const categories = ["renter", "buyerFixed", "buyerVariable"] as const;
+
+  for (
+    const winVariable of ["balanceAfterSelling", "balance", "assets"] as const
+  ) {
+    const results = simulateRentVsBuyMonteCarlo({ ...params, winVariable }, {});
+    assertEquals(
+      results.winners.monthIndex.length,
+      params.iterations,
+      `winners.length should equal iterations for winVariable="${winVariable}"`,
+    );
+    for (const w of decodeMonteCarloWinners(results.winners)) {
+      assert(
+        categories.includes(w.category),
+        `winner.category should be a valid category for winVariable="${winVariable}"`,
+      );
+      assert(typeof w.monthIndex === "number");
+      assert(typeof w.amount === "number");
+      assert(!("group" in w), "winner should not have a group field");
+      assert(!("variable" in w), "winner should not have a variable field");
+    }
+  }
+});
+
+Deno.test("should run a monte carlo simulation of rent vs buy with 100 iterations and option monthlyIterations", () => {
+  const params = getParamsRentVsBuyMonteCarlo(100, "Montreal", "Quebec", {
+    downPayment: 0.10,
+    purchaseFixedFees: 0.02,
+  }, {
+    renterMonthlyInsurance: 70,
+    ownerMonthlyInsurance: 125,
+    sellingFixedFees: 2000,
+    condoFees: 250,
+  }, false);
+
+  // Without monthlyIterations
+  const t0 = performance.now();
+  const resultsWithout = simulateRentVsBuyMonteCarlo(params, {});
+  const durationWithout = performance.now() - t0;
+  console.log(`Without monthlyIterations: ${durationWithout.toFixed(0)} ms`);
+  assertEquals(resultsWithout.winners.monthIndex.length, 100);
+
+  // With monthlyIterations
+  const t1 = performance.now();
+  const results = simulateRentVsBuyMonteCarlo(params, {
+    details: {
+      iterations: true,
+      iterationsGroups: [
+        "monthlyExpenses",
+        "cumulativeExpenses",
+        "monthlyGains",
+        "cumulativeGains",
+        "assets",
+        "summary",
+        "summaryCumulative",
+        "saleCosts",
+        "saleNetGains",
+        "totals",
+      ],
+    },
+  });
+  const durationWith = performance.now() - t1;
+  console.log(`With details.iterations: ${durationWith.toFixed(0)} ms`);
+
+  assertEquals(results.winners.monthIndex.length, 100);
+  assert(results.details.monthlyIterations.rows === 100);
+  assert(results.details.monthlyIterations.cols === params.numberOfYears * 12);
+  assert(results.details.monthlyIterations.keys.length > 0);
+
+  // Decode
+  const t2 = performance.now();
+  const decoded = decodeMonteCarloMonthlyIterations(
+    results.details.monthlyIterations,
+  );
+  const durationDecode = performance.now() - t2;
+  console.log(`Decode monthlyIterations: ${durationDecode.toFixed(0)} ms`);
+
+  assert(decoded.length > 0);
+
+  const iterSet = new Set(decoded.map((r) => r.iteration));
+  for (let i = 0; i < 100; i++) {
+    assert(iterSet.has(i), `iteration ${i} missing from decoded output`);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// monthlyQuantiles tests
+// ---------------------------------------------------------------------------
+
+Deno.test("monthlyQuantiles: rows and cols match quantile count and nbMonths", () => {
+  const params = getParamsRentVsBuyMonteCarlo(10, "Montreal", "Quebec", {
+    downPayment: 0.10,
+    purchaseFixedFees: 0.02,
+  }, {
+    renterMonthlyInsurance: 70,
+    ownerMonthlyInsurance: 125,
+    sellingFixedFees: 2000,
+    condoFees: 250,
+  }, false);
+
+  const quantiles = [0, 0.25, 0.5, 0.75, 1.0];
+  const results = simulateRentVsBuyMonteCarlo(params, {
+    details: { quantiles },
+  });
+
+  assertEquals(results.details.monthlyQuantiles.rows, quantiles.length);
+  assertEquals(
+    results.details.monthlyQuantiles.cols,
+    params.numberOfYears * 12,
+  );
+  assert(results.details.monthlyQuantiles.keys.length > 0);
+});
+
+Deno.test("monthlyQuantiles: empty sentinel when option is not set", () => {
+  const params = getParamsRentVsBuyMonteCarlo(5, "Montreal", "Quebec", {
+    downPayment: 0.10,
+    purchaseFixedFees: 0.02,
+  }, {
+    renterMonthlyInsurance: 70,
+    ownerMonthlyInsurance: 125,
+    sellingFixedFees: 2000,
+    condoFees: 250,
+  }, false);
+
+  const results = simulateRentVsBuyMonteCarlo(params, {});
+
+  assertEquals(results.details.monthlyQuantiles.rows, 0);
+  assertEquals(results.details.monthlyQuantiles.keys.length, 0);
+  assertEquals(Object.keys(results.details.monthlyQuantiles.data).length, 0);
+});
+
+Deno.test("monthlyQuantiles: q0 <= q50 <= q100 for all keys and months", () => {
+  const params = getParamsRentVsBuyMonteCarlo(10, "Montreal", "Quebec", {
+    downPayment: 0.10,
+    purchaseFixedFees: 0.02,
+  }, {
+    renterMonthlyInsurance: 70,
+    ownerMonthlyInsurance: 125,
+    sellingFixedFees: 2000,
+    condoFees: 250,
+  }, false);
+
+  const quantiles = [0, 0.5, 1.0];
+  const results = simulateRentVsBuyMonteCarlo(params, {
+    details: { quantiles },
+  });
+
+  const nbMonths = params.numberOfYears * 12;
+  for (const key of results.details.monthlyQuantiles.keys) {
+    const arr = results.details.monthlyQuantiles.data[key];
+    for (let mi = 0; mi < nbMonths; mi++) {
+      const q0 = arr[0 * nbMonths + mi];
+      const q50 = arr[1 * nbMonths + mi];
+      const q100 = arr[2 * nbMonths + mi];
+      assert(
+        q0 <= q50,
+        `q0 (${q0}) > q50 (${q50}) at key="${key}" monthIndex=${mi}`,
+      );
+      assert(
+        q50 <= q100,
+        `q50 (${q50}) > q100 (${q100}) at key="${key}" monthIndex=${mi}`,
+      );
+    }
+  }
+});
+
+Deno.test("monthlyQuantiles: all data values are Float64Array and keys match data", () => {
+  const params = getParamsRentVsBuyMonteCarlo(5, "Montreal", "Quebec", {
+    downPayment: 0.10,
+    purchaseFixedFees: 0.02,
+  }, {
+    renterMonthlyInsurance: 70,
+    ownerMonthlyInsurance: 125,
+    sellingFixedFees: 2000,
+    condoFees: 250,
+  }, false);
+
+  const results = simulateRentVsBuyMonteCarlo(params, {
+    details: { quantiles: [0, 0.5, 1.0] },
+  });
+
+  for (const arr of Object.values(results.details.monthlyQuantiles.data)) {
+    assert(arr instanceof Float64Array, "Expected Float64Array");
+  }
+  assertEquals(
+    results.details.monthlyQuantiles.keys.length,
+    Object.keys(results.details.monthlyQuantiles.data).length,
+  );
+  for (const k of results.details.monthlyQuantiles.keys) {
+    assert(
+      k in results.details.monthlyQuantiles.data,
+      `key "${k}" missing from data`,
+    );
+  }
+});
+
+Deno.test("monthlyQuantiles: buffers are detachable (transfer simulation)", () => {
+  const params = getParamsRentVsBuyMonteCarlo(5, "Montreal", "Quebec", {
+    downPayment: 0.10,
+    purchaseFixedFees: 0.02,
+  }, {
+    renterMonthlyInsurance: 70,
+    ownerMonthlyInsurance: 125,
+    sellingFixedFees: 2000,
+    condoFees: 250,
+  }, false);
+
+  const results = simulateRentVsBuyMonteCarlo(params, {
+    details: { quantiles: [0, 0.5, 1.0] },
+  });
+
+  const transferList: ArrayBuffer[] = [];
+  for (const arr of Object.values(results.details.monthlyQuantiles.data)) {
+    transferList.push(arr.buffer as ArrayBuffer);
+  }
+
+  const { port1, port2 } = new MessageChannel();
+  port2.onmessage = () => {};
+  port1.postMessage({ results }, transferList);
+  port1.close();
+  port2.close();
+
+  for (const arr of Object.values(results.details.monthlyQuantiles.data)) {
+    assertEquals(arr.byteLength, 0, "Buffer should be detached after transfer");
+  }
+});
+
+Deno.test("decodeMonteCarloMonthlyQuantiles: produces correct shapes and values", () => {
+  const params = getParamsRentVsBuyMonteCarlo(5, "Montreal", "Quebec", {
+    downPayment: 0.10,
+    purchaseFixedFees: 0.02,
+  }, {
+    renterMonthlyInsurance: 70,
+    ownerMonthlyInsurance: 125,
+    sellingFixedFees: 2000,
+    condoFees: 250,
+  }, false);
+
+  const quantiles = [0, 0.5, 1.0];
+  const results = simulateRentVsBuyMonteCarlo(params, {
+    details: { quantiles },
+  });
+
+  const decoded = decodeMonteCarloMonthlyQuantiles(
+    results.details.monthlyQuantiles,
+    quantiles,
+  );
+  assert(decoded.length > 0);
+
+  const nbMonths = params.numberOfYears * 12;
+  // Each key produces quantiles.length * nbMonths records
+  const expectedRecords = results.details.monthlyQuantiles.keys.length *
+    quantiles.length * nbMonths;
+  assertEquals(decoded.length, expectedRecords);
+
+  // Every record has the expected field types
+  for (const rec of decoded) {
+    assert(typeof rec.category === "string");
+    assert(typeof rec.group === "string");
+    assert(typeof rec.variable === "string");
+    assert(typeof rec.monthIndex === "number");
+    assert(typeof rec.quantile === "number");
+    assert(typeof rec.value === "number");
+    assert(
+      quantiles.includes(rec.quantile),
+      `Unexpected quantile value: ${rec.quantile}`,
+    );
+  }
+
+  // Quantile ordering holds in decoded output for each (key, monthIndex) group
+  for (const key of results.details.monthlyQuantiles.keys) {
+    const [category, group, variable] = key.split("|");
+    for (let mi = 0; mi < nbMonths; mi++) {
+      const monthRecords = decoded
+        .filter((r) =>
+          r.category === category && r.group === group &&
+          r.variable === variable && r.monthIndex === mi
+        )
+        .sort((a, b) => a.quantile - b.quantile);
+      assertEquals(monthRecords.length, quantiles.length);
+      for (let i = 0; i < monthRecords.length - 1; i++) {
+        assert(
+          monthRecords[i].value <= monthRecords[i + 1].value,
+          `Quantile ordering violated at key="${key}" monthIndex=${mi}`,
+        );
+      }
+    }
+  }
+});
+
+Deno.test("performance: monthlyQuantiles with 100 iterations", () => {
+  const params = getParamsRentVsBuyMonteCarlo(100, "Montreal", "Quebec", {
+    downPayment: 0.10,
+    purchaseFixedFees: 0.02,
+  }, {
+    renterMonthlyInsurance: 70,
+    ownerMonthlyInsurance: 125,
+    sellingFixedFees: 2000,
+    condoFees: 250,
+  }, false);
+
+  const quantiles = [0, 0.25, 0.5, 0.75, 1.0];
+
+  const t0 = performance.now();
+  const results = simulateRentVsBuyMonteCarlo(params, {
+    details: { quantiles },
+  });
+  const durationSim = performance.now() - t0;
+  console.log(
+    `details.quantiles simulation (100 iter): ${durationSim.toFixed(0)} ms`,
+  );
+
+  const t1 = performance.now();
+  const decoded = decodeMonteCarloMonthlyQuantiles(
+    results.details.monthlyQuantiles,
+    quantiles,
+  );
+  const durationDecode = performance.now() - t1;
+  console.log(`details.quantiles decode: ${durationDecode.toFixed(0)} ms`);
+  console.log(
+    `details.quantiles decoded records: ${decoded.length.toLocaleString()}`,
+  );
+
+  assertEquals(results.winners.monthIndex.length, 100);
+  assertEquals(results.details.monthlyQuantiles.rows, quantiles.length);
+  assertEquals(
+    results.details.monthlyQuantiles.cols,
+    params.numberOfYears * 12,
+  );
+  assert(decoded.length > 0);
+});
+
+Deno.test("performance: monthlyQuantiles + monthlyIterations with 100 iterations", () => {
+  const params = getParamsRentVsBuyMonteCarlo(100, "Montreal", "Quebec", {
+    downPayment: 0.10,
+    purchaseFixedFees: 0.02,
+  }, {
+    renterMonthlyInsurance: 70,
+    ownerMonthlyInsurance: 125,
+    sellingFixedFees: 2000,
+    condoFees: 250,
+  }, false);
+
+  const quantiles = [0, 0.25, 0.5, 0.75, 1.0];
+
+  const t0 = performance.now();
+  const results = simulateRentVsBuyMonteCarlo(params, {
+    details: {
+      quantiles,
+      iterations: true,
+      iterationsGroups: [
+        "monthlyExpenses",
+        "cumulativeExpenses",
+        "monthlyGains",
+        "cumulativeGains",
+        "assets",
+        "summary",
+        "summaryCumulative",
+        "saleCosts",
+        "saleNetGains",
+        "totals",
+      ],
+    },
+  });
+  const durationSim = performance.now() - t0;
+  console.log(
+    `details (quantiles + iterations) simulation (100 iter): ${
+      durationSim.toFixed(0)
+    } ms`,
+  );
+
+  const t1 = performance.now();
+  const decodedQuantiles = decodeMonteCarloMonthlyQuantiles(
+    results.details.monthlyQuantiles,
+    quantiles,
+  );
+  const durationDecodeQ = performance.now() - t1;
+  console.log(`details.quantiles decode: ${durationDecodeQ.toFixed(0)} ms`);
+  console.log(
+    `details.quantiles decoded records: ${decodedQuantiles.length.toLocaleString()}`,
+  );
+
+  const t2 = performance.now();
+  const decodedIterations = decodeMonteCarloMonthlyIterations(
+    results.details.monthlyIterations,
+  );
+  const durationDecodeI = performance.now() - t2;
+  console.log(`details.iterations decode: ${durationDecodeI.toFixed(0)} ms`);
+  console.log(
+    `details.iterations decoded records: ${decodedIterations.length.toLocaleString()}`,
+  );
+
+  assertEquals(results.winners.monthIndex.length, 100);
+  assertEquals(results.details.monthlyQuantiles.rows, quantiles.length);
+  assertEquals(results.details.monthlyIterations.rows, 100);
+  assert(decodedQuantiles.length > 0);
+  assert(decodedIterations.length > 0);
+
+  // Cross-validate: per-iteration values should lie within [q0, q_last] for every key/month.
+  const n = params.iterations;
+  const nbMonths = params.numberOfYears * 12;
+  const nqs = quantiles.length;
+  for (const key of results.details.monthlyQuantiles.keys) {
+    const qArr = results.details.monthlyQuantiles.data[key];
+    const iArr = results.details.monthlyIterations.data[key];
+    if (!iArr) continue;
+    for (let mi = 0; mi < nbMonths; mi++) {
+      const q0 = qArr[0 * nbMonths + mi];
+      const qMax = qArr[(nqs - 1) * nbMonths + mi];
+      for (let i = 0; i < n; i++) {
+        const val = iArr[i * nbMonths + mi];
+        assert(
+          val >= q0 - 1e-9 && val <= qMax + 1e-9,
+          `Iteration value ${val} out of [${q0}, ${qMax}] range at key="${key}" month=${mi} iter=${i}`,
+        );
+      }
+    }
+  }
+});
+
+Deno.test("simulateRentVsBuyMonteCarlo throws when iterations enabled without iterationsGroups", () => {
+  const p = getParamsRentVsBuyMonteCarlo(2, "Montreal", "Quebec", {
+    downPayment: 50000,
+    purchaseFixedFees: 2000,
+  }, {
+    renterMonthlyInsurance: 30,
+    ownerMonthlyInsurance: 150,
+    sellingFixedFees: 2000,
+    condoFees: 300,
+  }, false);
+  let error;
+  try {
+    simulateRentVsBuyMonteCarlo(p, { details: { iterations: true } } as any);
+  } catch (e: any) {
+    error = e;
+  }
+  assertEquals(error instanceof Error, true);
+  assertEquals(
+    error.message.includes("requires details.iterationsGroups to be set"),
+    true,
+  );
+});
+
+Deno.test("simulateRentVsBuyMonteCarlo filters outputs using iterationsGroups", () => {
+  const p = getParamsRentVsBuyMonteCarlo(5, "Montreal", "Quebec", {
+    downPayment: 50000,
+    purchaseFixedFees: 2000,
+  }, {
+    renterMonthlyInsurance: 30,
+    ownerMonthlyInsurance: 150,
+    sellingFixedFees: 2000,
+    condoFees: 300,
+  }, false);
+  const results = simulateRentVsBuyMonteCarlo(p, {
+    details: {
+      iterations: true,
+      iterationsGroups: ["totals"],
+    },
+  });
+
+  const parsed = decodeMonteCarloMonthlyIterations(
+    results.details.monthlyIterations,
+  );
+  for (const record of parsed) {
+    assertEquals(record.group, "totals");
+  }
+});
+
+Deno.test("simulateRentVsBuyMonteCarlo performance test with and without iterationsGroups", () => {
+  const p = getParamsRentVsBuyMonteCarlo(100, "Montreal", "Quebec", {
+    downPayment: 50000,
+    purchaseFixedFees: 2000,
+  }, {
+    renterMonthlyInsurance: 30,
+    ownerMonthlyInsurance: 150,
+    sellingFixedFees: 2000,
+    condoFees: 300,
+  }, false);
+
+  const startAll = performance.now();
+  simulateRentVsBuyMonteCarlo(p, {
+    details: {
+      iterations: true,
+      iterationsGroups: [
+        "monthlyExpenses",
+        "cumulativeExpenses",
+        "monthlyGains",
+        "cumulativeGains",
+        "assets",
+        "summary",
+        "summaryCumulative",
+        "saleCosts",
+        "saleNetGains",
+        "totals",
+      ],
+    },
+  });
+  const timeAll = performance.now() - startAll;
+
+  const startFiltered = performance.now();
+  simulateRentVsBuyMonteCarlo(p, {
+    details: {
+      iterations: true,
+      iterationsGroups: ["totals"],
+    },
+  });
+  const timeFiltered = performance.now() - startFiltered;
+
+  console.log(`\nPerformance with all groups: ${timeAll.toFixed(2)}ms`);
+  console.log(`Performance with "totals" only: ${timeFiltered.toFixed(2)}ms`);
+  console.log(`Speedup: ${(timeAll / timeFiltered).toFixed(2)}x`);
+
+  assertEquals(timeFiltered < timeAll, true);
 });

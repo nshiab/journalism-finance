@@ -52,7 +52,7 @@ Deno.test("documentation example: simulateRentVsBuy should run without errors", 
       floorRate: 0,
     },
     rates,
-  }, { finalBalanceOnly: true });
+  }, { winVariableOnly: true, winVariable: "balanceAfterSelling" });
 
   assert(results.length > 0);
 });
@@ -1961,8 +1961,9 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
     );
   });
 
-  const resultsFinalBalanceOnly = simulateRentVsBuy(params, {
-    finalBalanceOnly: true,
+  const resultsWinVariableOnly = simulateRentVsBuy(params, {
+    winVariableOnly: true,
+    winVariable: "balanceAfterSelling",
   });
 
   // console.log(resultsFinalBalanceOnly.map((d) => ({
@@ -1972,7 +1973,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
 
   await t.step("the final balance only option should work", async () => {
     assertEquals(
-      resultsFinalBalanceOnly,
+      resultsWinVariableOnly,
       [
         {
           monthIndex: 299,
@@ -1983,62 +1984,6 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
         },
         {
           monthIndex: 299,
-          amount: 300060.22,
-          category: "renter",
-          group: "summaryCumulative",
-          variable: "balance",
-        },
-        {
-          monthIndex: 299,
-          amount: 1049.3,
-          category: "renter",
-          group: "totals",
-          variable: "monthlyExpenses",
-        },
-        {
-          monthIndex: 299,
-          amount: 209168.87,
-          category: "renter",
-          group: "totals",
-          variable: "cumulativeExpenses",
-        },
-        {
-          monthIndex: 299,
-          amount: 9530.98,
-          category: "renter",
-          group: "totals",
-          variable: "monthlyGains",
-        },
-        {
-          monthIndex: 299,
-          amount: 498700.26,
-          category: "renter",
-          group: "totals",
-          variable: "cumulativeGains",
-        },
-        {
-          monthIndex: 299,
-          amount: 499209.26,
-          category: "renter",
-          group: "totals",
-          variable: "assets",
-        },
-        {
-          monthIndex: 299,
-          amount: 53722,
-          category: "renter",
-          group: "totals",
-          variable: "saleCosts",
-        },
-        {
-          monthIndex: 299,
-          amount: 445487.26,
-          category: "renter",
-          group: "totals",
-          variable: "saleNetGains",
-        },
-        {
-          monthIndex: 299,
           amount: 81350.69,
           category: "buyerFixed",
           group: "summaryCumulative",
@@ -2046,122 +1991,10 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
         },
         {
           monthIndex: 299,
-          amount: 106404.66,
-          category: "buyerFixed",
-          group: "summaryCumulative",
-          variable: "balance",
-        },
-        {
-          monthIndex: 299,
-          amount: 1241.73,
-          category: "buyerFixed",
-          group: "totals",
-          variable: "monthlyExpenses",
-        },
-        {
-          monthIndex: 299,
-          amount: 341773.11,
-          category: "buyerFixed",
-          group: "totals",
-          variable: "cumulativeExpenses",
-        },
-        {
-          monthIndex: 299,
-          amount: -582.11,
-          category: "buyerFixed",
-          group: "totals",
-          variable: "monthlyGains",
-        },
-        {
-          monthIndex: 299,
-          amount: 447630.39,
-          category: "buyerFixed",
-          group: "totals",
-          variable: "cumulativeGains",
-        },
-        {
-          monthIndex: 299,
-          amount: 447630.39,
-          category: "buyerFixed",
-          group: "totals",
-          variable: "assets",
-        },
-        {
-          monthIndex: 299,
-          amount: 25053.97,
-          category: "buyerFixed",
-          group: "totals",
-          variable: "saleCosts",
-        },
-        {
-          monthIndex: 299,
-          amount: 422576.42,
-          category: "buyerFixed",
-          group: "totals",
-          variable: "saleNetGains",
-        },
-        {
-          monthIndex: 299,
           amount: 131221.91,
           category: "buyerVariable",
           group: "summaryCumulative",
           variable: "balanceAfterSelling",
-        },
-        {
-          monthIndex: 299,
-          amount: 154454.88,
-          category: "buyerVariable",
-          group: "summaryCumulative",
-          variable: "balance",
-        },
-        {
-          monthIndex: 299,
-          amount: 1159.09,
-          category: "buyerVariable",
-          group: "totals",
-          variable: "monthlyExpenses",
-        },
-        {
-          monthIndex: 299,
-          amount: 324678.43,
-          category: "buyerVariable",
-          group: "totals",
-          variable: "cumulativeExpenses",
-        },
-        {
-          monthIndex: 299,
-          amount: 3.74,
-          category: "buyerVariable",
-          group: "totals",
-          variable: "monthlyGains",
-        },
-        {
-          monthIndex: 299,
-          amount: 478237.01,
-          category: "buyerVariable",
-          group: "totals",
-          variable: "cumulativeGains",
-        },
-        {
-          monthIndex: 299,
-          amount: 478237.01,
-          category: "buyerVariable",
-          group: "totals",
-          variable: "assets",
-        },
-        {
-          monthIndex: 299,
-          amount: 24578.15,
-          category: "buyerVariable",
-          group: "totals",
-          variable: "saleCosts",
-        },
-        {
-          monthIndex: 299,
-          amount: 455004.04,
-          category: "buyerVariable",
-          group: "totals",
-          variable: "saleNetGains",
         },
       ],
     );

@@ -5,11 +5,11 @@ const r2 = (x: number) => Math.round(x * 100) / 100;
 
 export default function computeBalances(
   persona: Persona,
-  finalBalanceOnly: boolean,
+  winVariableOnly: boolean,
   monthIndex: number,
   numberOfMonths: number,
 ) {
-  if (!finalBalanceOnly || monthIndex === numberOfMonths - 1) {
+  if (!winVariableOnly || monthIndex === numberOfMonths - 1) {
     // Monthly balance — field names are statically known, avoid Object.keys/reduce
     const totalMonthlyExpenses = persona.monthlyExpenses.mortgageCapital +
       persona.monthlyExpenses.mortgageInterests +

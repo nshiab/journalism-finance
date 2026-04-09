@@ -13,7 +13,7 @@ export default function computeSale(
   mortgagePayment: MortgagePayment | null,
   currentPostedRates: Record<number, number> | null,
   mortgageType: "fixed" | "variable" | null,
-  finalBalanceOnly: boolean,
+  winVariableOnly: boolean,
   numberOfMonths: number,
   province:
     | "Alberta"
@@ -32,7 +32,7 @@ export default function computeSale(
   couple?: boolean,
   salesTaxMultiplier = 0,
 ) {
-  if (!finalBalanceOnly || monthIndex === numberOfMonths - 1) {
+  if (!winVariableOnly || monthIndex === numberOfMonths - 1) {
     const TERM_MONTHS = 60;
 
     // First we calculate the sale costs
