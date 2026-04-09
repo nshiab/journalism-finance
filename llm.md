@@ -75,18 +75,24 @@ console.log(
 // Expected output: "A $45,000 salary in 1990 is equivalent to approximately $100149 in 2023."
 ```
 
-## decodeMonthlyIterations
+## decodeMonteCarloMonthlyIterations
 
-Decodes a columnar `monthlyIterations` result back into the original
-object-array shape.
+Decodes a columnar `monthlyIterations` result back into a flat object array.
+
+**⚠️ Memory Warning:** This function can allocate millions of small objects
+during large simulations. Proceed with caution or use pagination/UI
+virtualization if rendering these arrays to the DOM.
 
 Keys are `"category|group|variable"`. Each `Float64Array` has size
 `iterations × months`. Access: `data[key][iteration * cols + monthIndex]`.
 
+Records where `amount === 0` are omitted from the output, matching the
+zero-filtering applied by the `onRecord` callback during data collection.
+
 ### Signature
 
 ```typescript
-function decodeMonthlyIterations(
+function decodeMonteCarloMonthlyIterations(
   c: ColumnarResult,
 ): {
   iteration: number;
@@ -98,7 +104,38 @@ function decodeMonthlyIterations(
 }[];
 ```
 
-## decodeValues
+## decodeMonteCarloMonthlyQuantiles
+
+Decodes a columnar `monthlyQuantiles` result back into a flat record array.
+
+Keys are `"category|group|variable"`. Layout:
+`data[key][qIdx * cols + monthIndex]` where `rows` = number of quantile levels
+and `cols` = number of months.
+
+### Signature
+
+```typescript
+function decodeMonteCarloMonthlyQuantiles(
+  c: ColumnarResult,
+  quantiles: number[],
+): {
+  category: string;
+  group: string;
+  variable: string;
+  monthIndex: number;
+  quantile: number;
+  value: number;
+}[];
+```
+
+### Parameters
+
+- **`c`**: The `ColumnarResult` returned as `monthlyQuantiles` by
+  `simulateRentVsBuyMonteCarlo`.
+- **`quantiles`**: The same quantile levels passed to `options.monthlyQuantiles`
+  (e.g. `[0, 0.5, 1]`).
+
+## decodeMonteCarloValues
 
 Decodes a columnar `values` result back into the original object-array shape.
 
@@ -107,12 +144,12 @@ Keys are variable names. Each `Float64Array` has size `iterations × months`.
 ### Signature
 
 ```typescript
-function decodeValues(
+function decodeMonteCarloValues(
   c: ColumnarResult,
 ): { iteration: number; variable: string; value: number; monthIndex: number }[];
 ```
 
-## decodeWinners
+## decodeMonteCarloWinners
 
 Decodes a columnar `winners` result back into the original object-array shape.
 
@@ -123,7 +160,7 @@ Decodes a columnar `winners` result back into the original object-array shape.
 ### Signature
 
 ```typescript
-function decodeWinners(
+function decodeMonteCarloWinners(
   w: WinnersColumnar,
 ): {
   iteration: number;
@@ -919,6 +956,7 @@ function simulateRentVsBuy(
       amount: number,
     ) => void;
     winVariable?: "balance" | "balanceAfterSelling" | "assets";
+    groups?: string[];
   },
 ): (
   & {
@@ -1082,12 +1120,20 @@ function simulateRentVsBuy(
   scenario at the final month). Requires `winVariable` to be set — throws if
   `winVariableOnly` is `true` but `winVariable` is not provided. Defaults to
   `false`.
+- **`options.winVariable`**: The variable used to identify the winner when
+  extracting the final record. Use `"balanceAfterSelling"` for net balance after
+  a simulated sale, `"balance"` for cumulative balance, or `"assets"` for total
+  raw assets.
 - **`options.onRecord`**: Internal callback used by
-  `simulateRentVsBuyMonteCarlo` when `monthlyQuantiles` is enabled. When
-  provided, numeric values are streamed directly to the accumulator instead of
-  being wrapped in result objects, avoiding the per-record heap allocation cost.
-  At the final month, the two `summaryCumulative` records are still pushed to
-  the results array for winner extraction.
+  `simulateRentVsBuyMonteCarlo` when `details.iterations` or `details.quantiles`
+  is enabled. When provided, numeric values are streamed directly to the
+  accumulator instead of being wrapped in result objects, avoiding the
+  per-record heap allocation cost. At the final month, one winner record (the
+  `winVariable` entry) per category is still pushed to the results array for
+  winner extraction.
+- **`options.groups`**: Internal filter used by `simulateRentVsBuyMonteCarlo`
+  via `details.iterationsGroups`. Restricts which groups are emitted by
+  `onRecord` and pushed to results.
 
 ### Returns
 
@@ -1143,7 +1189,7 @@ const rates = {
 };
 
 const results = simulateRentVsBuy({
-  startingYear: 2024,
+  startingYear: 2026,
   numberOfYears: 10,
   tfsaContributions: true,
   annualInvestmentFeeRate: 0.0025,
@@ -1204,6 +1250,11 @@ function simulateRentVsBuyMonteCarlo(
 
 - **`parameters`**: The input parameters for the Monte Carlo simulation.
 - **`parameters.iterations`**: The number of simulation iterations to run.
+- **`parameters.winVariable`**: The variable used to determine the winner of
+  each iteration. Use `"balanceAfterSelling"` for the net balance after
+  simulated sale of all assets, `"balance"` for the cumulative balance before
+  any sale simulation, or `"assets"` for the total raw asset value (TFSA +
+  stocks + home equity + security deposit).
 - **`parameters.startingYear`**: The year the simulation begins.
 - **`parameters.numberOfYears`**: The duration of each simulation in years.
 - **`parameters.tfsaContributions`**: Whether to prioritize TFSA contributions
@@ -1276,51 +1327,65 @@ function simulateRentVsBuyMonteCarlo(
 - **`parameters.stochasticParameters.variableInterestRates`**: Variable interest
   rates (CIR).
 - **`options`**: Additional simulation options.
-- **`options.verbose`**: If `true`, logs the simulation's progress to the
-  console, including the current iteration and estimated time remaining. Useful
-  for long-running simulations.
+- **`options.verbose`**: If `true`, logs the current iteration number to the
+  console at the frequency set by `verboseStep`. Also logs the total elapsed
+  time upon completion via `prettyDuration`. Useful for long-running
+  simulations.
 - **`options.verboseStep`**: The frequency of progress logging. For example,
   setting this to `50` will log progress every 50 iterations. Defaults to `1`.
 - **`options.values`**: If `true`, the function will capture and return detailed
   monthly financial data (such as asset balances and net gains) for every
   iteration of the simulation. Be cautious with high iteration counts as this
   can consume significant memory.
-- **`options.monthlyIterations`**: If `true`, captures and returns the raw
+- **`options.details`**: When provided, enables detailed monthly data
+  collection. Both sub-options share the same internal column-major buffer, so
+  enabling both together is more memory-efficient than the sum of their
+  individual costs.
+- **`options.details.iterations`**: If `true`, captures and returns the raw
   monthly financial data for every variable, group, and category for each
-  individual iteration. Each record includes `iteration` (0-based index),
-  `category`, `group`, `variable`, `monthIndex`, and `amount`. Useful for custom
-  aggregations or visualization of individual paths. Be aware that this can
-  produce a very large number of records (iterations × months × ~50 variables ×
-  3 categories), so use with caution at high iteration counts. Enabling this
-  option forces full monthly output instead of final-balance-only per iteration.
-- **`parameters.winVariable`**: The variable used to determine the winner of
-  each iteration. Use `"balanceAfterSelling"` for the net balance after
-  simulated sale of all assets, `"balance"` for the cumulative balance before
-  any sale simulation, or `"assets"` for the total raw asset value (TFSA +
-  stocks + home equity + security deposit).
+  individual iteration. Requires `details.iterationsGroups` to be set and
+  non-empty — throws otherwise. Each record includes `iteration` (0-based
+  index), `category`, `group`, `variable`, `monthIndex`, and `amount`. Useful
+  for custom aggregations or visualization of individual paths. Be aware that
+  this can produce a very large number of records (iterations × months ×
+  variables × 3 categories), so use `iterationsGroups` to limit scope.
+- **`options.details.quantiles`**: When provided, pre-computes the specified
+  quantile levels (e.g. `[0, 0.5, 1]` for min/median/max) across all iterations
+  for every variable/group/category/month combination. Layout:
+  `data[key][qIdx * cols + monthIndex]`. Decode with
+  `decodeMonteCarloMonthlyQuantiles`.
+- **`options.details.iterationsGroups`**: Required when `details.iterations` is
+  `true`. Restricts which groups are included in the `monthlyIterations` output
+  (e.g. `["assets", "summaryCumulative"]`), reducing memory usage. Also filters
+  the shared column-major buffer used by `details.quantiles`.
 
 ### Returns
 
 An object with all large arrays in columnar format (flat `Float64Array`
-matrices, transferable via `postMessage`). Use `decodeWinners`, `decodeValues`,
-and `decodeMonthlyIterations` from `@nshiab/journalism-finance` to restore
+matrices, transferable via `postMessage`). Use `decodeMonteCarloWinners`,
+`decodeMonteCarloValues`, `decodeMonteCarloMonthlyIterations`, and
+`decodeMonteCarloMonthlyQuantiles` from `@nshiab/journalism-finance` to restore
 object-array shapes.
 
 - `winners`: A `WinnersColumnar` with `monthIndex`, `amount` (`Float64Array`)
   and `category` (`Uint8Array`) indicating which scenario won each iteration.
-  Decode with `decodeWinners`.
+  Decode with `decodeMonteCarloWinners`.
 - `values`: A `ColumnarResult` with stochastic path values per iteration
-  (enabled with `options.values`). Decode with `decodeValues`.
-- `monthlyIterations`: A `ColumnarResult` with raw monthly records per iteration
-  (enabled with `options.monthlyIterations`). Decode with
-  `decodeMonthlyIterations`.
+  (enabled with `options.values`). Decode with `decodeMonteCarloValues`.
+- `details.monthlyIterations`: A `ColumnarResult` with raw monthly records per
+  iteration (enabled with `options.details.iterations`). Decode with
+  `decodeMonteCarloMonthlyIterations`.
+- `details.monthlyQuantiles`: A `ColumnarResult` with pre-computed quantile
+  summaries (enabled with `options.details.quantiles`). Decode with
+  `decodeMonteCarloMonthlyQuantiles`.
 
 ### Examples
 
 ```ts
 const results = simulateRentVsBuyMonteCarlo({
   iterations: 1000,
-  startingYear: 2024,
+  winVariable: "balanceAfterSelling",
+  startingYear: 2026,
   numberOfYears: 25,
   tfsaContributions: true,
   annualInvestmentFeeRate: 0.0025,
@@ -1375,7 +1440,14 @@ const results = simulateRentVsBuyMonteCarlo({
       sigma: 0.03,
     },
   },
-}, { verbose: true, verboseStep: 100 });
+}, {
+  verbose: true,
+  verboseStep: 100,
+  details: {
+    iterations: false,
+    quantiles: [0, 0.25, 0.5, 0.75, 1],
+  },
+});
 
 console.log(results.winners.monthIndex.length); // 1000
 ```
