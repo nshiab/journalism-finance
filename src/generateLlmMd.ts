@@ -8,6 +8,7 @@ interface JsDocTag {
   name?: string;
   doc?: string;
   type?: string;
+  tsType?: TsTypeDef;
 }
 
 interface JsDoc {
@@ -34,6 +35,8 @@ interface TsTypeDef {
     | "typeOperator"
     | "tuple";
   keyword?: string;
+  // deno-lint-ignore no-explicit-any
+  value?: any; // Added to support Deno Doc v2
   typeRef?: {
     typeName: string;
     typeParams?: TsTypeDef[];
@@ -82,8 +85,6 @@ interface TsTypeDef {
     tsType: TsTypeDef;
   };
   tuple?: TsTypeDef[];
-  // v2 format: all named fields above are replaced by a single `value` field
-  value?: unknown;
 }
 
 interface Param {
@@ -140,26 +141,66 @@ interface DocNode {
   classDef?: ClassDef;
 }
 
-interface DenoDocV2FileEntry {
-  module_doc?: JsDoc;
-  imports?: unknown[];
-  symbols: Array<{
-    name: string;
-    declarations: Array<{
-      declarationKind: string;
-      jsDoc?: JsDoc;
-      kind: string;
-      def?: Record<string, unknown>;
-    }>;
-  }>;
-}
-
 interface DenoDoc {
   version?: number;
-  nodes: DocNode[] | Record<string, DenoDocV2FileEntry>;
+  // deno-lint-ignore no-explicit-any
+  nodes: DocNode[] | Record<string, any>;
 }
 
 // #endregion
+
+/**
+ * Normalizes Deno Doc JSON v2 format to v1 format.
+ * @param data - The Deno Doc JSON data.
+ * @returns An array of DocNode objects.
+ */
+function normalizeDocNodes(data: DenoDoc): DocNode[] {
+  if (Array.isArray(data.nodes)) {
+    return data.nodes;
+  }
+
+  const nodes: DocNode[] = [];
+
+  for (const [_, fileData] of Object.entries(data.nodes)) {
+    if (fileData.module_doc) {
+      nodes.push({
+        name: "moduleDoc",
+        kind: "moduleDoc",
+        declarationKind: "export",
+        jsDoc: fileData.module_doc,
+      });
+    }
+
+    if (Array.isArray(fileData.symbols)) {
+      for (const symbol of fileData.symbols) {
+        if (!Array.isArray(symbol.declarations)) continue;
+
+        for (const decl of symbol.declarations) {
+          const node: DocNode = {
+            name: symbol.name,
+            kind: decl.kind,
+            declarationKind: decl.declarationKind,
+            jsDoc: decl.jsDoc,
+          };
+
+          if (decl.kind === "function" && decl.def) {
+            node.functionDef = decl.def;
+          } else if (decl.kind === "class" && decl.def) {
+            node.classDef = {
+              isAbstract: decl.def.isAbstract || false,
+              constructors: decl.def.constructors || [],
+              methods: decl.def.methods || [],
+            };
+          }
+
+          nodes.push(node);
+        }
+      }
+    }
+  }
+
+  return nodes;
+}
 
 /**
  * Recursively generates a string representation for a TypeScript type.
@@ -173,48 +214,53 @@ function generateTypeRepr(tsType?: TsTypeDef): string {
   const ansiRegex = new RegExp(String.fromCharCode(27) + "\\[[0-9;]*m", "g");
   const cleanRepr = tsType.repr?.replace(ansiRegex, "");
 
-  // Don't use repr if we have type parameters to process or if repr is empty
-  // Also skip repr for literal types so they get quoted properly
-  if (
-    cleanRepr && cleanRepr.trim() !== "" && tsType.kind !== "typeRef" &&
-    tsType.kind !== "literal"
-  ) {
-    return cleanRepr;
+  // Deno Doc v2 nested the structural type information inside the `value` property
+  // We normalize this by mapping `tsType.value` to the property matching its kind
+  if (tsType.value !== undefined) {
+    if (tsType.kind === "typeRef") tsType.typeRef = tsType.value;
+    else if (tsType.kind === "array") tsType.array = tsType.value;
+    else if (tsType.kind === "union") tsType.union = tsType.value;
+    else if (tsType.kind === "intersection") tsType.intersection = tsType.value;
+    else if (tsType.kind === "parenthesized") {
+      tsType.parenthesized = tsType.value;
+    } else if (tsType.kind === "typeLiteral") tsType.typeLiteral = tsType.value;
+    else if (tsType.kind === "fnOrConstructor") {
+      tsType.fnOrConstructor = tsType.value;
+    } else if (tsType.kind === "literal") tsType.literal = tsType.value;
+    else if (tsType.kind === "typePredicate") {
+      tsType.typePredicate = tsType.value;
+    } else if (tsType.kind === "mapped") tsType.mappedType = tsType.value;
+    else if (tsType.kind === "indexedAccess") {
+      tsType.indexedAccess = tsType.value;
+    } else if (tsType.kind === "typeOperator") {
+      tsType.typeOperator = tsType.value;
+    } else if (tsType.kind === "tuple") tsType.tuple = tsType.value;
+    else if (tsType.kind === "keyword") tsType.keyword = tsType.value;
   }
 
   switch (tsType.kind) {
     case "keyword":
-      return (tsType.keyword ?? tsType.value as string) ?? "any";
-    case "typeRef": {
-      const ref = (tsType.typeRef ?? tsType.value) as typeof tsType.typeRef;
-      if (ref?.typeParams?.length) {
-        const params = ref.typeParams.map(generateTypeRepr).join(", ");
-        return `${ref.typeName}<${params}>`;
+      return tsType.keyword ?? "any";
+    case "typeRef":
+      if (tsType.typeRef?.typeParams?.length) {
+        const params = tsType.typeRef.typeParams.map(generateTypeRepr).join(
+          ", ",
+        );
+        return `${tsType.typeRef.typeName}<${params}>`;
       }
-      return ref?.typeName ?? "any";
-    }
+      return tsType.typeRef?.typeName ?? "any";
     case "array":
-      return `${
-        generateTypeRepr((tsType.array ?? tsType.value) as TsTypeDef)
-      }[]`;
+      return `${generateTypeRepr(tsType.array)}[]`;
     case "union":
-      return ((tsType.union ?? tsType.value) as TsTypeDef[])?.map(
-        generateTypeRepr,
-      ).join(" | ") ?? "any";
+      return tsType.union?.map(generateTypeRepr).join(" | ") ?? "any";
     case "intersection":
-      return ((tsType.intersection ?? tsType.value) as TsTypeDef[])?.map(
-        generateTypeRepr,
-      ).join(" & ") ?? "any";
+      return tsType.intersection?.map(generateTypeRepr).join(" & ") ?? "any";
     case "parenthesized":
       // Handle parenthesized types (e.g., (string | number))
-      return `(${
-        generateTypeRepr((tsType.parenthesized ?? tsType.value) as TsTypeDef)
-      })`;
+      return `(${generateTypeRepr(tsType.parenthesized)})`;
     case "typePredicate": {
-      const predicate =
-        (tsType.typePredicate ?? tsType.value) as typeof tsType.typePredicate;
-      if (!predicate) return "boolean";
-      const { asserts, param, type } = predicate;
+      if (!tsType.typePredicate) return "boolean";
+      const { asserts, param, type } = tsType.typePredicate;
       if (asserts && param && type) {
         return `asserts ${param.name} is ${generateTypeRepr(type)}`;
       }
@@ -224,10 +270,8 @@ function generateTypeRepr(tsType?: TsTypeDef): string {
       return "boolean";
     }
     case "mapped": {
-      const mapped =
-        (tsType.mappedType ?? tsType.value) as typeof tsType.mappedType;
-      if (!mapped) return "any";
-      const { typeParam, tsType: mappedTsType } = mapped;
+      if (!tsType.mappedType) return "any";
+      const { typeParam, tsType: mappedTsType } = tsType.mappedType;
       const constraint = typeParam.constraint
         ? ` in ${generateTypeRepr(typeParam.constraint)}`
         : "";
@@ -235,37 +279,32 @@ function generateTypeRepr(tsType?: TsTypeDef): string {
       return `{ [${typeParam.name}${constraint}]: ${valueType} }`;
     }
     case "indexedAccess": {
-      const ia =
-        (tsType.indexedAccess ?? tsType.value) as typeof tsType.indexedAccess;
-      if (!ia) return "any";
-      const objType = generateTypeRepr(ia.objType);
-      const indexType = ia.indexType ? generateTypeRepr(ia.indexType) : "any";
+      if (!tsType.indexedAccess) return "any";
+      const objType = generateTypeRepr(tsType.indexedAccess.objType);
+      const indexType = tsType.indexedAccess.indexType
+        ? generateTypeRepr(tsType.indexedAccess.indexType)
+        : "any";
       return `${objType}[${indexType}]`;
     }
     case "typeOperator": {
-      const to =
-        (tsType.typeOperator ?? tsType.value) as typeof tsType.typeOperator;
-      if (!to) return "any";
-      const operandType = generateTypeRepr(to.tsType);
-      return `${to.operator} ${operandType}`;
+      if (!tsType.typeOperator) return "any";
+      const operandType = generateTypeRepr(tsType.typeOperator.tsType);
+      return `${tsType.typeOperator.operator} ${operandType}`;
     }
     case "tuple": {
-      const tuple = (tsType.tuple ?? tsType.value) as TsTypeDef[] | undefined;
-      if (!tuple?.length) return "[]";
-      const elements = tuple.map(generateTypeRepr);
+      if (!tsType.tuple?.length) return "[]";
+      const elements = tsType.tuple.map(generateTypeRepr);
       return `[${elements.join(", ")}]`;
     }
     case "typeLiteral": {
-      const tl =
-        (tsType.typeLiteral ?? tsType.value) as typeof tsType.typeLiteral;
-      if (tl?.indexSignatures?.length) {
-        const sig = tl.indexSignatures[0];
+      if (tsType.typeLiteral?.indexSignatures?.length) {
+        const sig = tsType.typeLiteral.indexSignatures[0];
         const keyType = generateTypeRepr(sig.params[0].tsType);
         const valueType = generateTypeRepr(sig.tsType);
         return `Record<${keyType}, ${valueType}>`;
       }
-      if (tl?.properties?.length) {
-        const props = tl.properties.map((prop) => {
+      if (tsType.typeLiteral?.properties?.length) {
+        const props = tsType.typeLiteral.properties.map((prop) => {
           return `${prop.name}${prop.optional ? "?" : ""}: ${
             generateTypeRepr(prop.tsType)
           }`;
@@ -275,34 +314,33 @@ function generateTypeRepr(tsType?: TsTypeDef): string {
       return "{}";
     }
     case "fnOrConstructor": {
-      const fnc = (tsType.fnOrConstructor ??
-        tsType.value) as typeof tsType.fnOrConstructor;
-      if (!fnc) return "Function";
-      const params = fnc.params.map((p) => {
+      if (!tsType.fnOrConstructor) return "Function";
+      const params = tsType.fnOrConstructor.params.map((p) => {
         const paramName = p.name;
         const paramType = generateTypeRepr(p.tsType);
         return `${paramName}: ${paramType}`;
       }).join(", ");
       // In Deno's JSON, the return type is stored in tsType, not returnType
-      const returnType = generateTypeRepr(fnc.tsType || fnc.returnType);
+      const returnType = generateTypeRepr(
+        tsType.fnOrConstructor.tsType || tsType.fnOrConstructor.returnType,
+      );
       return `(${params}) => ${returnType}`;
     }
     case "literal": {
-      const lit = (tsType.literal ?? tsType.value) as typeof tsType.literal;
-      if (lit?.kind === "string") {
-        return `"${lit.string}"`;
+      if (tsType.literal?.kind === "string") {
+        return `"${tsType.literal.string}"`;
       }
-      if (lit?.kind === "number") {
-        return `${lit.number}`;
+      if (tsType.literal?.kind === "number") {
+        return `${tsType.literal.number}`;
       }
-      if (lit?.kind === "boolean") {
-        return `${lit.boolean}`;
+      if (tsType.literal?.kind === "boolean") {
+        return `${tsType.literal.boolean}`;
       }
       return tsType.repr || "any";
     }
     default:
-      // Fallback to repr if available and not empty
-      return (tsType.repr && tsType.repr.trim() !== "") ? tsType.repr : "any";
+      // Fallback to cleanRepr if available and not empty
+      return (cleanRepr && cleanRepr.trim() !== "") ? cleanRepr : "any";
   }
 }
 
@@ -394,7 +432,12 @@ const generateFunctionMarkdown = (node: DocNode): string => {
   if (throws.length > 0) {
     md += "### Throws\n\n";
     throws.forEach((t) => {
-      md += `* **\`${t.type}\`**: ${t.doc?.replace(/\n/g, " ").trim() ?? ""}\n`;
+      const typeLabel = t.tsType
+        ? generateTypeRepr(t.tsType)
+        : (t.type ?? "Error");
+      md += `* **\`${typeLabel}\`**: ${
+        t.doc?.replace(/\n/g, " ").trim() ?? ""
+      }\n`;
     });
     md += "\n";
   }
@@ -525,6 +568,24 @@ const generateClassMarkdown = (node: DocNode): string => {
           md += `##### Returns\n\n${methodReturns.doc.trim()}\n\n`;
         }
 
+        // Method throws
+        const methodThrows = getJsDocTag(
+          { jsDoc: method.jsDoc } as DocNode,
+          "throws",
+        );
+        if (methodThrows.length > 0) {
+          md += "##### Throws\n\n";
+          methodThrows.forEach((t) => {
+            const typeLabel = t.tsType
+              ? generateTypeRepr(t.tsType)
+              : (t.type ?? "Error");
+            md += `* **\`${typeLabel}\`**: ${
+              t.doc?.replace(/\n/g, " ").trim() ?? ""
+            }\n`;
+          });
+          md += "\n";
+        }
+
         // Method examples
         const examples = getJsDocTag(
           { jsDoc: method.jsDoc } as DocNode,
@@ -560,51 +621,17 @@ function generateMarkdown(jsonPath: string, outputPath: string) {
   try {
     console.log(`\nReading from ${jsonPath}...`);
     const jsonContent = fs.readFileSync(jsonPath, "utf-8");
-    const docData: DenoDoc = JSON.parse(jsonContent);
+    const rawData = JSON.parse(jsonContent);
+    const docNodes: DocNode[] = normalizeDocNodes(rawData);
 
-    // Normalize v2 format (nodes is an object) into flat DocNode array
-    let flatNodes: DocNode[];
-    if (Array.isArray(docData.nodes)) {
-      flatNodes = docData.nodes;
-    } else {
-      flatNodes = [];
-      for (const fileData of Object.values(docData.nodes)) {
-        if (fileData.module_doc) {
-          flatNodes.push({
-            name: "",
-            kind: "moduleDoc",
-            declarationKind: "export",
-            jsDoc: fileData.module_doc,
-          });
-        }
-        for (const symbol of fileData.symbols) {
-          for (const decl of symbol.declarations) {
-            flatNodes.push({
-              name: symbol.name,
-              kind: decl.kind as DocNode["kind"],
-              declarationKind: decl
-                .declarationKind as DocNode["declarationKind"],
-              jsDoc: decl.jsDoc,
-              functionDef: decl.kind === "function"
-                ? decl.def as unknown as FunctionDef
-                : undefined,
-              classDef: decl.kind === "class"
-                ? decl.def as unknown as ClassDef
-                : undefined,
-            });
-          }
-        }
-      }
-    }
-
-    const publicNodes = flatNodes
-      .filter((node) =>
+    const publicNodes = docNodes
+      .filter((node: DocNode) =>
         node.declarationKind === "export" &&
         (node.kind === "function" || node.kind === "class") &&
         node.jsDoc?.doc &&
-        !node.jsDoc?.tags?.some((tag) => tag.kind === "internal")
+        !node.jsDoc?.tags?.some((tag: JsDocTag) => tag.kind === "internal")
       )
-      .sort((a, b) => a.name.localeCompare(b.name));
+      .sort((a: DocNode, b: DocNode) => a.name.localeCompare(b.name));
 
     console.log(
       `Found ${publicNodes.length} public functions/classes to document.`,
@@ -612,9 +639,11 @@ function generateMarkdown(jsonPath: string, outputPath: string) {
 
     let markdownContent = "";
 
-    const moduleDoc = flatNodes.find((node) => node.kind === "moduleDoc");
+    const moduleDoc = docNodes.find((node: DocNode) =>
+      node.kind === "moduleDoc"
+    );
     if (moduleDoc?.jsDoc?.tags) {
-      const moduleTag = moduleDoc.jsDoc.tags.find((tag) =>
+      const moduleTag = moduleDoc.jsDoc.tags.find((tag: JsDocTag) =>
         tag.kind === "module"
       );
       if (moduleTag?.name) {
@@ -626,7 +655,7 @@ function generateMarkdown(jsonPath: string, outputPath: string) {
       markdownContent += "# API Reference\n\n";
     }
 
-    publicNodes.forEach((node) => {
+    publicNodes.forEach((node: DocNode) => {
       if (node.kind === "function") {
         markdownContent += generateFunctionMarkdown(node);
       } else if (node.kind === "class") {

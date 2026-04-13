@@ -362,8 +362,8 @@ The calculated mortgage penalty rounded to 2 decimal places.
 
 ### Throws
 
-- **`undefined`**: Error if no current posted rate is found for the remaining
-  term length.
+- **`Error`**: Error if no current posted rate is found for the remaining term
+  length.
 
 ### Examples
 
@@ -558,7 +558,7 @@ required in such cases.
 
 ### Throws
 
-- **`undefined`**: If the down payment is less than 5% of the purchase price, as
+- **`Error`**: If the down payment is less than 5% of the purchase price, as
   this is generally the minimum required down payment for insured mortgages in
   Canada.
 
@@ -817,8 +817,8 @@ contains:
 
 ### Throws
 
-- **`undefined`**: If the `amortizationPeriod` is less than the `term`, as this
-  is an invalid mortgage configuration.
+- **`Error`**: If the `amortizationPeriod` is less than the `term`, as this is
+  an invalid mortgage configuration.
 
 ### Examples
 
@@ -1534,9 +1534,9 @@ contains:
 
 ### Throws
 
-- **`undefined`**: If the `amortizationPeriod` is less than the `term`, as this
-  is an invalid mortgage configuration.
-- **`undefined`**: If the `rates` array does not contain enough rates for all
+- **`Error`**: If the `amortizationPeriod` is less than the `term`, as this is
+  an invalid mortgage configuration.
+- **`Error`**: If the `rates` array does not contain enough rates for all
   payments in the term.
 
 ### Examples
