@@ -1691,6 +1691,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
           category: "renter",
           group: "saleCosts",
           variable: "stockTaxes",
+          employmentIncome: 75000,
         },
         {
           monthIndex: 299,
@@ -1698,6 +1699,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
           category: "buyerFixed",
           group: "saleCosts",
           variable: "stockTaxes",
+          employmentIncome: 75000,
         },
         {
           monthIndex: 299,
@@ -1719,6 +1721,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
           category: "buyerVariable",
           group: "saleCosts",
           variable: "stockTaxes",
+          employmentIncome: 75000,
         },
         {
           monthIndex: 299,
@@ -2217,6 +2220,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
               category: "renter",
               group: "saleCosts",
               variable: "stockTaxes",
+              employmentIncome: 75000,
             },
             {
               monthIndex: 299,
@@ -2224,6 +2228,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
               category: "buyerFixed",
               group: "saleCosts",
               variable: "stockTaxes",
+              employmentIncome: 75000,
             },
             {
               monthIndex: 299,
@@ -2231,6 +2236,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
               category: "buyerVariable",
               group: "saleCosts",
               variable: "stockTaxes",
+              employmentIncome: 75000,
             },
           ],
           saleCostsLastMonthCouple: [
@@ -2240,6 +2246,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
               category: "renter",
               group: "saleCosts",
               variable: "stockTaxes",
+              employmentIncome: 75000,
             },
             {
               monthIndex: 299,
@@ -2247,6 +2254,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
               category: "buyerFixed",
               group: "saleCosts",
               variable: "stockTaxes",
+              employmentIncome: 75000,
             },
             {
               monthIndex: 299,
@@ -2254,6 +2262,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
               category: "buyerVariable",
               group: "saleCosts",
               variable: "stockTaxes",
+              employmentIncome: 75000,
             },
           ],
         },

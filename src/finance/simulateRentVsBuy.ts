@@ -269,15 +269,16 @@ export default function simulateRentVsBuy(
     }
     | {
       group: "saleCosts";
-      variable:
-        | "stockTaxes"
-        | "homeSellingCommission"
-        | "homeSellingFixedFees"
-        | "mortgagePenalty"
-        | "mortgageBalance";
-    }
-    | {
-      group: "saleNetGains";
+        variable:
+          | "stockTaxes"
+          | "homeSellingCommission"
+          | "homeSellingFixedFees"
+          | "mortgagePenalty"
+          | "mortgageBalance";
+        employmentIncome?: number;
+      }
+      | {
+        group: "saleNetGains";
       variable:
         | "stockSellingGains"
         | "tfsaSellingGains"
@@ -358,6 +359,7 @@ export default function simulateRentVsBuy(
           | "homeSellingFixedFees"
           | "mortgagePenalty"
           | "mortgageBalance";
+        employmentIncome?: number;
       }
       | {
         group: "saleNetGains";
@@ -676,6 +678,7 @@ export default function simulateRentVsBuy(
       numberOfMonths,
       options.winVariableOnly ?? false,
       null,
+      parameters.values.employmentIncome[monthIndex],
       options.onRecord,
       options.winVariable,
       options.groups,
@@ -688,6 +691,7 @@ export default function simulateRentVsBuy(
       numberOfMonths,
       options.winVariableOnly ?? false,
       currentFixedMortgagePayment,
+      parameters.values.employmentIncome[monthIndex],
       options.onRecord,
       options.winVariable,
       options.groups,
@@ -700,6 +704,7 @@ export default function simulateRentVsBuy(
       numberOfMonths,
       options.winVariableOnly ?? false,
       currentVariableMortgagePayment,
+      parameters.values.employmentIncome[monthIndex],
       options.onRecord,
       options.winVariable,
       options.groups,
