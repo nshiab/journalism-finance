@@ -114,7 +114,6 @@ export type SimParams = {
   tfsaContributions: boolean;
   annualInvestmentFeeRate: number;
   couple: boolean;
-  employmentIncome: number;
   province:
     | "Alberta"
     | "British Columbia"
@@ -139,6 +138,7 @@ export type SimParams = {
     floorRate: number;
   };
   stochasticParameters: {
+    employmentIncome: { initialValue: number; mu: number; sigma: number };
     market: { initialValue: number; mu: number; sigma: number };
     rent: { initialValue: number; mu: number; sigma: number };
     ownerInsurance: { initialValue: number; mu: number; sigma: number };
@@ -389,6 +389,37 @@ function simulateRentVsBuyMonteCarlo(
     }
     : undefined;
 
+  function prepPathGbm(
+    iteration: number,
+    variable: string,
+    params: { initialValue: number; mu: number; sigma: number },
+  ): number[] {
+    // If the initial value is 0 there is nothing to grow; return zero rates.
+    if (params.initialValue === 0) {
+      return new Array<number>(nbMonths).fill(0);
+    }
+    // We generate a bit more than the number of months...
+    const path = generateGbmPath(
+      params.initialValue,
+      params.mu,
+      params.sigma,
+      parameters.numberOfYears + 0.9,
+      12,
+    );
+    if (valuesColumnar) {
+      let bucket = valuesColumnar.get(variable);
+      if (!bucket) {
+        bucket = new Float64Array(parameters.iterations * nbMonths);
+        valuesColumnar.set(variable, bucket);
+      }
+      for (let i = 0; i < nbMonths; i++) {
+        bucket[iteration * nbMonths + i] = path[i];
+      }
+    }
+
+    return path.slice(0, nbMonths);
+  }
+
   function prepRatesGbm(
     iteration: number,
     variable: string,
@@ -470,7 +501,6 @@ function simulateRentVsBuyMonteCarlo(
       numberOfYears: parameters.numberOfYears,
       tfsaContributions: parameters.tfsaContributions,
       couple: parameters.couple,
-      employmentIncome: parameters.employmentIncome,
       province: parameters.province,
       renter: {
         startingMonthlyRent: parameters.stochasticParameters.rent.initialValue,
@@ -500,6 +530,11 @@ function simulateRentVsBuyMonteCarlo(
       },
       annualInvestmentFeeRate: parameters.annualInvestmentFeeRate,
       rates: {
+        employmentIncome: prepPathGbm(
+          i,
+          "employment income",
+          parameters.stochasticParameters.employmentIncome,
+        ),
         marketReturnRate: prepRatesGbm(
           i,
           "market returns",

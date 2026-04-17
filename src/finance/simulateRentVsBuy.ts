@@ -148,7 +148,6 @@ export default function simulateRentVsBuy(
     tfsaContributions: boolean;
     annualInvestmentFeeRate: number;
     couple: boolean;
-    employmentIncome: number;
     province:
       | "Alberta"
       | "British Columbia"
@@ -183,6 +182,7 @@ export default function simulateRentVsBuy(
       floorRate: number;
     };
     rates: {
+      employmentIncome: number[];
       marketReturnRate: number[];
       rentIncrease: number[];
       ownerInsuranceIncrease: number[];
@@ -608,7 +608,7 @@ export default function simulateRentVsBuy(
     computeSale(
       monthIndex,
       renter,
-      parameters.employmentIncome,
+      parameters.rates.employmentIncome[monthIndex],
       null,
       null,
       null,
@@ -621,7 +621,7 @@ export default function simulateRentVsBuy(
     computeSale(
       monthIndex,
       buyerFixed,
-      parameters.employmentIncome,
+      parameters.rates.employmentIncome[monthIndex],
       currentFixedMortgagePayment,
       flooredRatesFixed,
       "fixed",
@@ -634,7 +634,7 @@ export default function simulateRentVsBuy(
     computeSale(
       monthIndex,
       buyerVariable,
-      parameters.employmentIncome,
+      parameters.rates.employmentIncome[monthIndex],
       currentVariableMortgagePayment,
       flooredRatesVariable,
       "variable",

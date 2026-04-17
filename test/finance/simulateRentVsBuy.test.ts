@@ -30,7 +30,6 @@ Deno.test("documentation example: simulateRentVsBuy should run without errors", 
     tfsaContributions: true,
     annualInvestmentFeeRate: 0,
     couple: false,
-    employmentIncome: 75_000,
     province: "Ontario",
     renter: {
       startingMonthlyRent: 2000,
@@ -51,7 +50,10 @@ Deno.test("documentation example: simulateRentVsBuy should run without errors", 
       sellingCommissionRate: 0.05,
       floorRate: 0,
     },
-    rates,
+    rates: {
+      ...rates,
+      employmentIncome: new Array(120).fill(75_000),
+    },
   }, { winVariableOnly: true, winVariable: "balanceAfterSelling" });
 
   assert(results.length > 0);
@@ -84,7 +86,6 @@ Deno.test("simulateRentVsBuy: should apply floor rate to mortgage interest", () 
     tfsaContributions: true,
     annualInvestmentFeeRate: 0,
     couple: false,
-    employmentIncome: 75_000,
     province: "Ontario",
     renter: {
       startingMonthlyRent: 2000,
@@ -105,7 +106,10 @@ Deno.test("simulateRentVsBuy: should apply floor rate to mortgage interest", () 
       sellingCommissionRate: 0.05,
       floorRate,
     },
-    rates,
+    rates: {
+      ...rates,
+      employmentIncome: new Array(60).fill(75_000),
+    },
   });
 
   // Filter to find effective interest rates for fixed and variable scenarios

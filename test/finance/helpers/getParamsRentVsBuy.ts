@@ -26,7 +26,6 @@ export default function getParamsRentVsBuy(
   tfsaContributions: boolean;
   annualInvestmentFeeRate: number;
   couple: boolean;
-  employmentIncome: number;
   renter: {
     startingMonthlyRent: number;
     endingMonthlyRent: number;
@@ -88,7 +87,6 @@ export default function getParamsRentVsBuy(
   tfsaContributions: boolean;
   annualInvestmentFeeRate: number;
   couple: boolean;
-  employmentIncome: number;
   province:
     | "Alberta"
     | "British Columbia"
@@ -127,6 +125,7 @@ export default function getParamsRentVsBuy(
     floorRate: number;
   };
   rates: {
+    employmentIncome: number[];
     marketReturnRate: number[];
     rentIncrease: number[];
     ownerInsuranceIncrease: number[];
@@ -391,7 +390,6 @@ export default function getParamsRentVsBuy(
     tfsaContributions: true,
     annualInvestmentFeeRate: 0.0025,
     couple,
-    employmentIncome: 75_000,
     province,
     renter: {
       startingMonthlyRent,
@@ -424,6 +422,9 @@ export default function getParamsRentVsBuy(
     return baseParams;
   } else {
     // RATES
+    const nbMonths = numberOfYears * 12;
+    const employmentIncome = new Array(nbMonths).fill(75_000);
+
     // Yahoo Finance S&P/TSX
     const marketReturnRate = allRates.filter((d) =>
       d.geo === "Stock market" && d.variable === "Balanced"
@@ -485,6 +486,7 @@ export default function getParamsRentVsBuy(
     return {
       ...baseParams,
       rates: {
+        employmentIncome,
         marketReturnRate: marketReturnRate.map((d) => d.pctChange),
         rentIncrease: rentIncreaseCPI.map((d) => d.pctChange),
         ownerInsuranceIncrease: ownerInsuranceIncrease.map((d) => d.pctChange),

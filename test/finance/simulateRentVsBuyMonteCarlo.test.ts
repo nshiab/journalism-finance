@@ -16,7 +16,6 @@ Deno.test("documentation example: simulateRentVsBuyMonteCarlo should run without
     tfsaContributions: true,
     annualInvestmentFeeRate: 0,
     couple: false,
-    employmentIncome: 75000,
     province: "Ontario",
     renter: {
       securityDeposit: 1500,
@@ -30,6 +29,7 @@ Deno.test("documentation example: simulateRentVsBuyMonteCarlo should run without
       floorRate: 0,
     },
     stochasticParameters: {
+      employmentIncome: { initialValue: 75000, mu: 0.02, sigma: 0.01 },
       market: { initialValue: 0.07, mu: 0.07, sigma: 0.15 },
       rent: { initialValue: 1500, mu: 0.03, sigma: 0.02 },
       ownerInsurance: { initialValue: 80, mu: 0.03, sigma: 0.05 },
