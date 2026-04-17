@@ -125,22 +125,24 @@ export default function getParamsRentVsBuy(
     floorRate: number;
   };
   rates: {
-    employmentIncome: number[];
     marketReturnRate: number[];
     rentIncrease: number[];
     ownerInsuranceIncrease: number[];
     renterInsuranceIncrease: number[];
+    maintenanceIncrease: number[];
+    propertyTaxIncrease: number[];
+    condoFeeIncrease: number[];
+    appreciationIncrease: number[];
+    sellingFixedFeesIncrease: number[];
+  };
+  values: {
+    employmentIncome: number[];
     fiveYearInterestRates: number[];
     fourYearInterestRates: number[];
     threeYearInterestRates: number[];
     twoYearInterestRates: number[];
     oneYearInterestRates: number[];
     variableInterestRates: number[];
-    maintenanceIncrease: number[];
-    propertyTaxIncrease: number[];
-    condoFeeIncrease: number[];
-    appreciationIncrease: number[];
-    sellingFixedFeesIncrease: number[];
   };
   allRatesFiltered: any[];
 };
@@ -485,20 +487,22 @@ export default function getParamsRentVsBuy(
 
     return {
       ...baseParams,
-      rates: {
+      values: {
         employmentIncome,
-        marketReturnRate: marketReturnRate.map((d) => d.pctChange),
-        rentIncrease: rentIncreaseCPI.map((d) => d.pctChange),
-        ownerInsuranceIncrease: ownerInsuranceIncrease.map((d) => d.pctChange),
-        renterInsuranceIncrease: canadaRenterInsuranceIncrease.map((d) =>
-          d.pctChange
-        ),
         fiveYearInterestRates: fiveYearInterestRates.map((d) => d.value),
         fourYearInterestRates: fourYearInterestRates.map((d) => d.value),
         threeYearInterestRates: threeYearInterestRates.map((d) => d.value),
         twoYearInterestRates: twoYearInterestRates.map((d) => d.value),
         oneYearInterestRates: oneYearInterestRates.map((d) => d.value),
         variableInterestRates: variableInterestRates.map((d) => d.value),
+      },
+      rates: {
+        marketReturnRate: marketReturnRate.map((d) => d.pctChange),
+        rentIncrease: rentIncreaseCPI.map((d) => d.pctChange),
+        ownerInsuranceIncrease: ownerInsuranceIncrease.map((d) => d.pctChange),
+        renterInsuranceIncrease: canadaRenterInsuranceIncrease.map((d) =>
+          d.pctChange
+        ),
         maintenanceIncrease: maintenanceIncrease.map((d) => d.pctChange),
         propertyTaxIncrease: propertyTaxIncrease.map((d) => d.pctChange),
         condoFeeIncrease: maintenanceIncrease.map((d) => d.pctChange),

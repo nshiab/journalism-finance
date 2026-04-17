@@ -389,7 +389,7 @@ function simulateRentVsBuyMonteCarlo(
     }
     : undefined;
 
-  function prepPathGbm(
+  function prepAbsoluteGbm(
     iteration: number,
     variable: string,
     params: { initialValue: number; mu: number; sigma: number },
@@ -529,12 +529,44 @@ function simulateRentVsBuyMonteCarlo(
         floorRate: parameters.buyer.floorRate,
       },
       annualInvestmentFeeRate: parameters.annualInvestmentFeeRate,
-      rates: {
-        employmentIncome: prepPathGbm(
+      values: {
+        employmentIncome: prepAbsoluteGbm(
           i,
           "employment income",
           parameters.stochasticParameters.employmentIncome,
         ),
+        fiveYearInterestRates: prepRatesCir(
+          i,
+          "five year interest rates",
+          parameters.stochasticParameters.fiveYearInterestRates,
+        ),
+        fourYearInterestRates: prepRatesCir(
+          i,
+          "four year interest rates",
+          parameters.stochasticParameters.fourYearInterestRates,
+        ),
+        threeYearInterestRates: prepRatesCir(
+          i,
+          "three year interest rates",
+          parameters.stochasticParameters.threeYearInterestRates,
+        ),
+        twoYearInterestRates: prepRatesCir(
+          i,
+          "two year interest rates",
+          parameters.stochasticParameters.twoYearInterestRates,
+        ),
+        oneYearInterestRates: prepRatesCir(
+          i,
+          "one year interest rates",
+          parameters.stochasticParameters.oneYearInterestRates,
+        ),
+        variableInterestRates: prepRatesCir(
+          i,
+          "variable interest rates",
+          parameters.stochasticParameters.variableInterestRates,
+        ),
+      },
+      rates: {
         marketReturnRate: prepRatesGbm(
           i,
           "market returns",
@@ -621,36 +653,6 @@ function simulateRentVsBuyMonteCarlo(
             mu: parameters.stochasticParameters.sellingFixedFees.mu,
             sigma: parameters.stochasticParameters.sellingFixedFees.sigma,
           },
-        ),
-        fiveYearInterestRates: prepRatesCir(
-          i,
-          "five year interest rates",
-          parameters.stochasticParameters.fiveYearInterestRates,
-        ),
-        fourYearInterestRates: prepRatesCir(
-          i,
-          "four year interest rates",
-          parameters.stochasticParameters.fourYearInterestRates,
-        ),
-        threeYearInterestRates: prepRatesCir(
-          i,
-          "three year interest rates",
-          parameters.stochasticParameters.threeYearInterestRates,
-        ),
-        twoYearInterestRates: prepRatesCir(
-          i,
-          "two year interest rates",
-          parameters.stochasticParameters.twoYearInterestRates,
-        ),
-        oneYearInterestRates: prepRatesCir(
-          i,
-          "one year interest rates",
-          parameters.stochasticParameters.oneYearInterestRates,
-        ),
-        variableInterestRates: prepRatesCir(
-          i,
-          "variable interest rates",
-          parameters.stochasticParameters.variableInterestRates,
         ),
       },
     }, {

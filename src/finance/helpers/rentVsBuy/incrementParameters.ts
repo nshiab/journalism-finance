@@ -14,12 +14,6 @@ export default function incrementParameters(
     maintenanceIncrease: number[];
     propertyTaxIncrease: number[];
     condoFeeIncrease: number[];
-    fiveYearInterestRates: number[];
-    fourYearInterestRates: number[];
-    threeYearInterestRates: number[];
-    twoYearInterestRates: number[];
-    oneYearInterestRates: number[];
-    variableInterestRates: number[];
     appreciationIncrease: number[];
     sellingFixedFeesIncrease: number[];
   },

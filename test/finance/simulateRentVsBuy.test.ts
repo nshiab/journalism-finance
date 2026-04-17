@@ -14,14 +14,18 @@ Deno.test("documentation example: simulateRentVsBuy should run without errors", 
     maintenanceIncrease: new Array(120).fill(0.002),
     propertyTaxIncrease: new Array(120).fill(0.002),
     condoFeeIncrease: new Array(120).fill(0.002),
+    appreciationIncrease: new Array(120).fill(0.003),
+    sellingFixedFeesIncrease: new Array(120).fill(0.002),
+  };
+
+  const values = {
+    employmentIncome: new Array(120).fill(75_000),
     fiveYearInterestRates: new Array(120).fill(0.05),
     fourYearInterestRates: new Array(120).fill(0.05),
     threeYearInterestRates: new Array(120).fill(0.05),
     twoYearInterestRates: new Array(120).fill(0.05),
     oneYearInterestRates: new Array(120).fill(0.05),
     variableInterestRates: new Array(120).fill(0.06),
-    appreciationIncrease: new Array(120).fill(0.003),
-    sellingFixedFeesIncrease: new Array(120).fill(0.002),
   };
 
   const results = simulateRentVsBuy({
@@ -50,10 +54,8 @@ Deno.test("documentation example: simulateRentVsBuy should run without errors", 
       sellingCommissionRate: 0.05,
       floorRate: 0,
     },
-    rates: {
-      ...rates,
-      employmentIncome: new Array(120).fill(75_000),
-    },
+    values,
+    rates,
   }, { winVariableOnly: true, winVariable: "balanceAfterSelling" });
 
   assert(results.length > 0);
@@ -68,14 +70,18 @@ Deno.test("simulateRentVsBuy: should apply floor rate to mortgage interest", () 
     maintenanceIncrease: new Array(60).fill(0.002),
     propertyTaxIncrease: new Array(60).fill(0.002),
     condoFeeIncrease: new Array(60).fill(0.002),
+    appreciationIncrease: new Array(60).fill(0.003),
+    sellingFixedFeesIncrease: new Array(60).fill(0.002),
+  };
+
+  const values = {
+    employmentIncome: new Array(60).fill(75_000),
     fiveYearInterestRates: new Array(60).fill(0.005), // 0.5%
     fourYearInterestRates: new Array(60).fill(0.005),
     threeYearInterestRates: new Array(60).fill(0.005),
     twoYearInterestRates: new Array(60).fill(0.005),
     oneYearInterestRates: new Array(60).fill(0.005),
     variableInterestRates: new Array(60).fill(0.005),
-    appreciationIncrease: new Array(60).fill(0.003),
-    sellingFixedFeesIncrease: new Array(60).fill(0.002),
   };
 
   const floorRate = 0.01; // 1%
@@ -106,10 +112,8 @@ Deno.test("simulateRentVsBuy: should apply floor rate to mortgage interest", () 
       sellingCommissionRate: 0.05,
       floorRate,
     },
-    rates: {
-      ...rates,
-      employmentIncome: new Array(60).fill(75_000),
-    },
+    values,
+    rates,
   });
 
   // Filter to find effective interest rates for fixed and variable scenarios
