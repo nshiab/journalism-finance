@@ -394,7 +394,7 @@ function simulateRentVsBuyMonteCarlo(
     variable: string,
     params: { initialValue: number; mu: number; sigma: number },
   ): number[] {
-    // If the initial value is 0 there is nothing to grow; return zero rates.
+    // If the initial value is 0 there is nothing to grow; return zeroes.
     if (params.initialValue === 0) {
       return new Array<number>(nbMonths).fill(0);
     }
