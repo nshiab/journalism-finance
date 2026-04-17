@@ -14,14 +14,18 @@ Deno.test("documentation example: simulateRentVsBuy should run without errors", 
     maintenanceIncrease: new Array(120).fill(0.002),
     propertyTaxIncrease: new Array(120).fill(0.002),
     condoFeeIncrease: new Array(120).fill(0.002),
+    appreciationIncrease: new Array(120).fill(0.003),
+    sellingFixedFeesIncrease: new Array(120).fill(0.002),
+  };
+
+  const values = {
+    employmentIncome: new Array(120).fill(75_000),
     fiveYearInterestRates: new Array(120).fill(0.05),
     fourYearInterestRates: new Array(120).fill(0.05),
     threeYearInterestRates: new Array(120).fill(0.05),
     twoYearInterestRates: new Array(120).fill(0.05),
     oneYearInterestRates: new Array(120).fill(0.05),
     variableInterestRates: new Array(120).fill(0.06),
-    appreciationIncrease: new Array(120).fill(0.003),
-    sellingFixedFeesIncrease: new Array(120).fill(0.002),
   };
 
   const results = simulateRentVsBuy({
@@ -30,7 +34,6 @@ Deno.test("documentation example: simulateRentVsBuy should run without errors", 
     tfsaContributions: true,
     annualInvestmentFeeRate: 0,
     couple: false,
-    employmentIncome: 75_000,
     province: "Ontario",
     renter: {
       startingMonthlyRent: 2000,
@@ -51,6 +54,7 @@ Deno.test("documentation example: simulateRentVsBuy should run without errors", 
       sellingCommissionRate: 0.05,
       floorRate: 0,
     },
+    values,
     rates,
   }, { winVariableOnly: true, winVariable: "balanceAfterSelling" });
 
@@ -66,14 +70,18 @@ Deno.test("simulateRentVsBuy: should apply floor rate to mortgage interest", () 
     maintenanceIncrease: new Array(60).fill(0.002),
     propertyTaxIncrease: new Array(60).fill(0.002),
     condoFeeIncrease: new Array(60).fill(0.002),
+    appreciationIncrease: new Array(60).fill(0.003),
+    sellingFixedFeesIncrease: new Array(60).fill(0.002),
+  };
+
+  const values = {
+    employmentIncome: new Array(60).fill(75_000),
     fiveYearInterestRates: new Array(60).fill(0.005), // 0.5%
     fourYearInterestRates: new Array(60).fill(0.005),
     threeYearInterestRates: new Array(60).fill(0.005),
     twoYearInterestRates: new Array(60).fill(0.005),
     oneYearInterestRates: new Array(60).fill(0.005),
     variableInterestRates: new Array(60).fill(0.005),
-    appreciationIncrease: new Array(60).fill(0.003),
-    sellingFixedFeesIncrease: new Array(60).fill(0.002),
   };
 
   const floorRate = 0.01; // 1%
@@ -84,7 +92,6 @@ Deno.test("simulateRentVsBuy: should apply floor rate to mortgage interest", () 
     tfsaContributions: true,
     annualInvestmentFeeRate: 0,
     couple: false,
-    employmentIncome: 75_000,
     province: "Ontario",
     renter: {
       startingMonthlyRent: 2000,
@@ -105,6 +112,7 @@ Deno.test("simulateRentVsBuy: should apply floor rate to mortgage interest", () 
       sellingCommissionRate: 0.05,
       floorRate,
     },
+    values,
     rates,
   });
 
@@ -1683,6 +1691,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
           category: "renter",
           group: "saleCosts",
           variable: "stockTaxes",
+          employmentIncome: 75000,
         },
         {
           monthIndex: 299,
@@ -1690,6 +1699,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
           category: "buyerFixed",
           group: "saleCosts",
           variable: "stockTaxes",
+          employmentIncome: 75000,
         },
         {
           monthIndex: 299,
@@ -1711,6 +1721,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
           category: "buyerVariable",
           group: "saleCosts",
           variable: "stockTaxes",
+          employmentIncome: 75000,
         },
         {
           monthIndex: 299,
@@ -2209,6 +2220,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
               category: "renter",
               group: "saleCosts",
               variable: "stockTaxes",
+              employmentIncome: 75000,
             },
             {
               monthIndex: 299,
@@ -2216,6 +2228,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
               category: "buyerFixed",
               group: "saleCosts",
               variable: "stockTaxes",
+              employmentIncome: 75000,
             },
             {
               monthIndex: 299,
@@ -2223,6 +2236,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
               category: "buyerVariable",
               group: "saleCosts",
               variable: "stockTaxes",
+              employmentIncome: 75000,
             },
           ],
           saleCostsLastMonthCouple: [
@@ -2232,6 +2246,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
               category: "renter",
               group: "saleCosts",
               variable: "stockTaxes",
+              employmentIncome: 75000,
             },
             {
               monthIndex: 299,
@@ -2239,6 +2254,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
               category: "buyerFixed",
               group: "saleCosts",
               variable: "stockTaxes",
+              employmentIncome: 75000,
             },
             {
               monthIndex: 299,
@@ -2246,6 +2262,7 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
               category: "buyerVariable",
               group: "saleCosts",
               variable: "stockTaxes",
+              employmentIncome: 75000,
             },
           ],
         },
@@ -2303,3 +2320,141 @@ Deno.test("simulateRentVsBuy: annualInvestmentFeeRate should reduce capital gain
     );
   }
 });
+
+Deno.test("simulateRentVsBuy: higher employmentIncome should result in higher capital gains taxes", () => {
+  const params = getParams("Montreal", "Quebec", {
+    downPayment: 0.10,
+    purchaseFixedFees: 0.02,
+  }, {
+    renterMonthlyInsurance: 70,
+    ownerMonthlyInsurance: 125,
+    sellingFixedFees: 2000,
+    condoFees: 250,
+  }, false);
+
+  const nbMonths = params.numberOfYears * 12;
+  const lastMonthIndex = nbMonths - 1;
+
+  // Scenario 1: Low constant income
+  const resultsLowIncome = simulateRentVsBuy({
+    ...params,
+    values: {
+      ...params.values,
+      employmentIncome: new Array(nbMonths).fill(30_000),
+    },
+  });
+
+  // Scenario 2: High constant income
+  const resultsHighIncome = simulateRentVsBuy({
+    ...params,
+    values: {
+      ...params.values,
+      employmentIncome: new Array(nbMonths).fill(250_000),
+    },
+  });
+
+  const getStockTaxes = (results: any[]) =>
+    results
+      .filter((d) =>
+        d.group === "saleCosts" && d.variable === "stockTaxes" &&
+        d.monthIndex === lastMonthIndex
+      )
+      .map((d) => d.amount);
+
+  const taxesLow = getStockTaxes(resultsLowIncome);
+  const taxesHigh = getStockTaxes(resultsHighIncome);
+
+  assert(taxesLow.length > 0);
+  assert(taxesHigh.length > 0);
+
+  for (let i = 0; i < taxesLow.length; i++) {
+    // Higher income = higher marginal tax rate = higher capital gains tax
+    assert(
+      taxesHigh[i] > taxesLow[i],
+      `Category index ${i}: expected higher taxes (${taxesHigh[i]}) for high income than for low income (${taxesLow[i]})`,
+    );
+  }
+
+  // Scenario 3: Growing income (starts low, ends high)
+  const growingIncome = new Array(nbMonths).fill(0).map((_, i) =>
+    30_000 + (i / nbMonths) * 200_000
+  );
+  const resultsGrowingIncome = simulateRentVsBuy({
+    ...params,
+    values: {
+      ...params.values,
+      employmentIncome: growingIncome,
+    },
+  });
+
+  const taxesGrowing = getStockTaxes(resultsGrowingIncome);
+
+  for (let i = 0; i < taxesLow.length; i++) {
+    // Growing income ends at 230k, so final sale tax should be significantly higher than constant 30k
+    assert(
+      taxesGrowing[i] > taxesLow[i],
+      `Category index ${i}: expected higher taxes (${taxesGrowing[i]}) for growing income than for static low income (${taxesLow[i]})`,
+    );
+  }
+});
+
+Deno.test("simulateRentVsBuy: employmentIncome in results should match the input trajectory", () => {
+  const params = getParams("Montreal", "Quebec", {
+    downPayment: 0.10,
+    purchaseFixedFees: 0.02,
+  }, {
+    renterMonthlyInsurance: 70,
+    ownerMonthlyInsurance: 125,
+    sellingFixedFees: 2000,
+    condoFees: 250,
+  }, false);
+
+  const nbMonths = params.numberOfYears * 12;
+
+  // Linear growing income: $50,000 + $1,000 per year approx
+  const growingIncome = new Array(nbMonths).fill(0).map((_, i) =>
+    50_000 + i * 100
+  );
+
+  const results = simulateRentVsBuy({
+    ...params,
+    values: {
+      ...params.values,
+      employmentIncome: growingIncome,
+    },
+  });
+
+  // Filter for stockTaxes records where income should be present
+  const stockTaxesRecords = results.filter((d) =>
+    d.group === "saleCosts" && d.variable === "stockTaxes" && d.amount > 0
+  );
+
+  assert(stockTaxesRecords.length > 10, "Expected at least some months with stock taxes");
+
+  for (const record of stockTaxesRecords) {
+    const incomeInRecord = (record as any).employmentIncome;
+    assert(incomeInRecord !== undefined, "employmentIncome should be present in stockTaxes records");
+
+    const expectedValue = 50_000 + record.monthIndex * 100;
+    assertEquals(
+      incomeInRecord,
+      expectedValue,
+      `Month ${record.monthIndex}: expected exact income ${expectedValue}, got ${incomeInRecord}`,
+    );
+  }
+
+  // Also check that it's increasing in the results
+  const renterRecords = stockTaxesRecords.filter((d) => d.category === "renter")
+    .sort((a, b) => a.monthIndex - b.monthIndex);
+
+  if (renterRecords.length >= 2) {
+    const firstIncome = (renterRecords[0] as any).employmentIncome;
+    const lastIncome = (renterRecords[renterRecords.length - 1] as any).employmentIncome;
+    assert(
+      lastIncome > firstIncome,
+      `Expected income in results to increase (${lastIncome} > ${firstIncome})`,
+    );
+  }
+});
+
+

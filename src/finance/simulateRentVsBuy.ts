@@ -148,7 +148,6 @@ export default function simulateRentVsBuy(
     tfsaContributions: boolean;
     annualInvestmentFeeRate: number;
     couple: boolean;
-    employmentIncome: number;
     province:
       | "Alberta"
       | "British Columbia"
@@ -182,6 +181,15 @@ export default function simulateRentVsBuy(
       sellingCommissionRate: number;
       floorRate: number;
     };
+    values: {
+      employmentIncome: number[];
+      fiveYearInterestRates: number[];
+      fourYearInterestRates: number[];
+      threeYearInterestRates: number[];
+      twoYearInterestRates: number[];
+      oneYearInterestRates: number[];
+      variableInterestRates: number[];
+    };
     rates: {
       marketReturnRate: number[];
       rentIncrease: number[];
@@ -190,12 +198,6 @@ export default function simulateRentVsBuy(
       maintenanceIncrease: number[];
       propertyTaxIncrease: number[];
       condoFeeIncrease: number[];
-      fiveYearInterestRates: number[];
-      fourYearInterestRates: number[];
-      threeYearInterestRates: number[];
-      twoYearInterestRates: number[];
-      oneYearInterestRates: number[];
-      variableInterestRates: number[];
       appreciationIncrease: number[];
       sellingFixedFeesIncrease: number[];
     };
@@ -267,15 +269,16 @@ export default function simulateRentVsBuy(
     }
     | {
       group: "saleCosts";
-      variable:
-        | "stockTaxes"
-        | "homeSellingCommission"
-        | "homeSellingFixedFees"
-        | "mortgagePenalty"
-        | "mortgageBalance";
-    }
-    | {
-      group: "saleNetGains";
+        variable:
+          | "stockTaxes"
+          | "homeSellingCommission"
+          | "homeSellingFixedFees"
+          | "mortgagePenalty"
+          | "mortgageBalance";
+        employmentIncome?: number;
+      }
+      | {
+        group: "saleNetGains";
       variable:
         | "stockSellingGains"
         | "tfsaSellingGains"
@@ -356,6 +359,7 @@ export default function simulateRentVsBuy(
           | "homeSellingFixedFees"
           | "mortgagePenalty"
           | "mortgageBalance";
+        employmentIncome?: number;
       }
       | {
         group: "saleNetGains";
@@ -454,8 +458,8 @@ export default function simulateRentVsBuy(
       parameters.buyer.purchasePrice - parameters.buyer.downPayment,
       parameters.buyer.fixedRateAdjustment,
       parameters.buyer.variableRateAdjustment,
-      parameters.rates.fiveYearInterestRates,
-      parameters.rates.variableInterestRates,
+      parameters.values.fiveYearInterestRates,
+      parameters.values.variableInterestRates,
       parameters.buyer.floorRate,
     );
 
@@ -567,11 +571,11 @@ export default function simulateRentVsBuy(
 
     // Now we simulate a sale of all assets
     // Mutate pre-allocated objects to avoid per-iteration heap allocations.
-    currentPostedRates[1] = parameters.rates.oneYearInterestRates[monthIndex];
-    currentPostedRates[2] = parameters.rates.twoYearInterestRates[monthIndex];
-    currentPostedRates[3] = parameters.rates.threeYearInterestRates[monthIndex];
-    currentPostedRates[4] = parameters.rates.fourYearInterestRates[monthIndex];
-    currentPostedRates[5] = parameters.rates.fiveYearInterestRates[monthIndex];
+    currentPostedRates[1] = parameters.values.oneYearInterestRates[monthIndex];
+    currentPostedRates[2] = parameters.values.twoYearInterestRates[monthIndex];
+    currentPostedRates[3] = parameters.values.threeYearInterestRates[monthIndex];
+    currentPostedRates[4] = parameters.values.fourYearInterestRates[monthIndex];
+    currentPostedRates[5] = parameters.values.fiveYearInterestRates[monthIndex];
 
     // Pre-apply floor rate for fixed buyer.
     const fixedAdj = parameters.buyer.fixedRateAdjustment;
@@ -608,7 +612,7 @@ export default function simulateRentVsBuy(
     computeSale(
       monthIndex,
       renter,
-      parameters.employmentIncome,
+      parameters.values.employmentIncome[monthIndex],
       null,
       null,
       null,
@@ -621,7 +625,7 @@ export default function simulateRentVsBuy(
     computeSale(
       monthIndex,
       buyerFixed,
-      parameters.employmentIncome,
+      parameters.values.employmentIncome[monthIndex],
       currentFixedMortgagePayment,
       flooredRatesFixed,
       "fixed",
@@ -634,7 +638,7 @@ export default function simulateRentVsBuy(
     computeSale(
       monthIndex,
       buyerVariable,
-      parameters.employmentIncome,
+      parameters.values.employmentIncome[monthIndex],
       currentVariableMortgagePayment,
       flooredRatesVariable,
       "variable",
@@ -674,6 +678,7 @@ export default function simulateRentVsBuy(
       numberOfMonths,
       options.winVariableOnly ?? false,
       null,
+      parameters.values.employmentIncome[monthIndex],
       options.onRecord,
       options.winVariable,
       options.groups,
@@ -686,6 +691,7 @@ export default function simulateRentVsBuy(
       numberOfMonths,
       options.winVariableOnly ?? false,
       currentFixedMortgagePayment,
+      parameters.values.employmentIncome[monthIndex],
       options.onRecord,
       options.winVariable,
       options.groups,
@@ -698,6 +704,7 @@ export default function simulateRentVsBuy(
       numberOfMonths,
       options.winVariableOnly ?? false,
       currentVariableMortgagePayment,
+      parameters.values.employmentIncome[monthIndex],
       options.onRecord,
       options.winVariable,
       options.groups,

@@ -212,6 +212,7 @@ export default function toResults(
           | "homeSellingFixedFees"
           | "mortgagePenalty"
           | "mortgageBalance";
+        employmentIncome?: number;
       }
       | {
         group: "saleNetGains";
@@ -238,6 +239,7 @@ export default function toResults(
   numberOfMonths: number,
   winVariableOnly: boolean,
   mortgagePayment: MortgagePayment | null,
+  employmentIncome: number | null,
   onRecord?: (
     category: string,
     group: string,
@@ -679,13 +681,24 @@ export default function toResults(
       ) {
         const amount = persona.saleCosts[variable];
         if (amount !== 0) {
-          results.push({
-            monthIndex,
-            amount,
-            category,
-            group: "saleCosts",
-            variable,
-          });
+          if (variable === "stockTaxes" && employmentIncome !== null) {
+            results.push({
+              monthIndex,
+              amount,
+              category,
+              group: "saleCosts",
+              variable,
+              employmentIncome,
+            });
+          } else {
+            results.push({
+              monthIndex,
+              amount,
+              category,
+              group: "saleCosts",
+              variable,
+            });
+          }
         }
       }
     }

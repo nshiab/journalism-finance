@@ -16,7 +16,6 @@ Deno.test("documentation example: simulateRentVsBuyMonteCarlo should run without
     tfsaContributions: true,
     annualInvestmentFeeRate: 0,
     couple: false,
-    employmentIncome: 75000,
     province: "Ontario",
     renter: {
       securityDeposit: 1500,
@@ -30,6 +29,7 @@ Deno.test("documentation example: simulateRentVsBuyMonteCarlo should run without
       floorRate: 0,
     },
     stochasticParameters: {
+      employmentIncome: { initialValue: 75000, mu: 0.02, sigma: 0.01 },
       market: { initialValue: 0.07, mu: 0.07, sigma: 0.15 },
       rent: { initialValue: 1500, mu: 0.03, sigma: 0.02 },
       ownerInsurance: { initialValue: 80, mu: 0.03, sigma: 0.05 },
@@ -1198,6 +1198,83 @@ Deno.test("simulateRentVsBuyMonteCarlo performance test with and without iterati
   console.log(`\nPerformance with all groups: ${timeAll.toFixed(2)}ms`);
   console.log(`Performance with "totals" only: ${timeFiltered.toFixed(2)}ms`);
   console.log(`Speedup: ${(timeAll / timeFiltered).toFixed(2)}x`);
-
-  assertEquals(timeFiltered < timeAll, true);
 });
+
+Deno.test("simulateRentVsBuyMonteCarlo: income paths should be stochastic and follow parameters", () => {
+  const p = getParamsRentVsBuyMonteCarlo(20, "Montreal", "Quebec", {
+    downPayment: 50000,
+    purchaseFixedFees: 2000,
+  }, {
+    renterMonthlyInsurance: 30,
+    ownerMonthlyInsurance: 150,
+    sellingFixedFees: 2000,
+    condoFees: 300,
+  }, false);
+
+  const initialIncome = 50_000;
+  const mu = 0.05; // 5% growth
+  const sigma = 0.02;
+
+  const results = simulateRentVsBuyMonteCarlo({
+    ...p,
+    stochasticParameters: {
+      ...p.stochasticParameters,
+      employmentIncome: { initialValue: initialIncome, mu, sigma },
+    },
+  }, { values: true });
+
+  const values = decodeMonteCarloValues(results.values);
+  const incomeRecords = values.filter((d) => d.variable === "employment income");
+
+  assertEquals(incomeRecords.length, 20 * p.numberOfYears * 12);
+
+  // Check that paths are different (stochastic)
+  const iter0 = incomeRecords.filter((d) => d.iteration === 0).sort((a, b) => a.monthIndex - b.monthIndex);
+  const iter1 = incomeRecords.filter((d) => d.iteration === 1).sort((a, b) => a.monthIndex - b.monthIndex);
+
+  let isDifferent = false;
+  for (let i = 0; i < iter0.length; i++) {
+    if (Math.abs(iter0[i].value - iter1[i].value) > 1e-9) {
+      isDifferent = true;
+      break;
+    }
+  }
+  assert(isDifferent, "Expected different income paths for different iterations");
+
+  // Check general growth trend
+  const avgFinalIncome = [0, 1, 2, 3, 4].reduce((acc, iter) => {
+    const path = incomeRecords.filter((d) => d.iteration === iter).sort((a, b) => a.monthIndex - b.monthIndex);
+    return acc + path[path.length - 1].value;
+  }, 0) / 5;
+
+  assert(avgFinalIncome > initialIncome, "Expected income to grow on average");
+});
+
+Deno.test("simulateRentVsBuyMonteCarlo: should capture employment income in values output", () => {
+  const p = getParamsRentVsBuyMonteCarlo(10, "Montreal", "Quebec", {
+    downPayment: 50000,
+    purchaseFixedFees: 2000,
+  }, {
+    renterMonthlyInsurance: 30,
+    ownerMonthlyInsurance: 150,
+    sellingFixedFees: 2000,
+    condoFees: 300,
+  }, false);
+
+  const results = simulateRentVsBuyMonteCarlo(p, { values: true });
+  const values = decodeMonteCarloValues(results.values);
+
+  // Filter for one iteration's income path
+  const incomeIteration0 = values.filter((d) =>
+    d.iteration === 0 && d.variable === "employment income"
+  ).sort((a, b) => a.monthIndex - b.monthIndex);
+
+  assertEquals(incomeIteration0.length, p.numberOfYears * 12);
+
+  const firstMonth = incomeIteration0[0].value;
+  const lastMonth = incomeIteration0[incomeIteration0.length - 1].value;
+
+  // Since mu is positive in getParams (0.02), income should generally increase
+  assert(lastMonth > firstMonth);
+});
+

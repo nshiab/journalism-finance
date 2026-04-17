@@ -26,7 +26,6 @@ export default function getParamsRentVsBuy(
   tfsaContributions: boolean;
   annualInvestmentFeeRate: number;
   couple: boolean;
-  employmentIncome: number;
   renter: {
     startingMonthlyRent: number;
     endingMonthlyRent: number;
@@ -88,7 +87,6 @@ export default function getParamsRentVsBuy(
   tfsaContributions: boolean;
   annualInvestmentFeeRate: number;
   couple: boolean;
-  employmentIncome: number;
   province:
     | "Alberta"
     | "British Columbia"
@@ -131,17 +129,20 @@ export default function getParamsRentVsBuy(
     rentIncrease: number[];
     ownerInsuranceIncrease: number[];
     renterInsuranceIncrease: number[];
+    maintenanceIncrease: number[];
+    propertyTaxIncrease: number[];
+    condoFeeIncrease: number[];
+    appreciationIncrease: number[];
+    sellingFixedFeesIncrease: number[];
+  };
+  values: {
+    employmentIncome: number[];
     fiveYearInterestRates: number[];
     fourYearInterestRates: number[];
     threeYearInterestRates: number[];
     twoYearInterestRates: number[];
     oneYearInterestRates: number[];
     variableInterestRates: number[];
-    maintenanceIncrease: number[];
-    propertyTaxIncrease: number[];
-    condoFeeIncrease: number[];
-    appreciationIncrease: number[];
-    sellingFixedFeesIncrease: number[];
   };
   allRatesFiltered: any[];
 };
@@ -391,7 +392,6 @@ export default function getParamsRentVsBuy(
     tfsaContributions: true,
     annualInvestmentFeeRate: 0.0025,
     couple,
-    employmentIncome: 75_000,
     province,
     renter: {
       startingMonthlyRent,
@@ -424,6 +424,9 @@ export default function getParamsRentVsBuy(
     return baseParams;
   } else {
     // RATES
+    const nbMonths = numberOfYears * 12;
+    const employmentIncome = new Array(nbMonths).fill(75_000);
+
     // Yahoo Finance S&P/TSX
     const marketReturnRate = allRates.filter((d) =>
       d.geo === "Stock market" && d.variable === "Balanced"
@@ -484,6 +487,15 @@ export default function getParamsRentVsBuy(
 
     return {
       ...baseParams,
+      values: {
+        employmentIncome,
+        fiveYearInterestRates: fiveYearInterestRates.map((d) => d.value),
+        fourYearInterestRates: fourYearInterestRates.map((d) => d.value),
+        threeYearInterestRates: threeYearInterestRates.map((d) => d.value),
+        twoYearInterestRates: twoYearInterestRates.map((d) => d.value),
+        oneYearInterestRates: oneYearInterestRates.map((d) => d.value),
+        variableInterestRates: variableInterestRates.map((d) => d.value),
+      },
       rates: {
         marketReturnRate: marketReturnRate.map((d) => d.pctChange),
         rentIncrease: rentIncreaseCPI.map((d) => d.pctChange),
@@ -491,12 +503,6 @@ export default function getParamsRentVsBuy(
         renterInsuranceIncrease: canadaRenterInsuranceIncrease.map((d) =>
           d.pctChange
         ),
-        fiveYearInterestRates: fiveYearInterestRates.map((d) => d.value),
-        fourYearInterestRates: fourYearInterestRates.map((d) => d.value),
-        threeYearInterestRates: threeYearInterestRates.map((d) => d.value),
-        twoYearInterestRates: twoYearInterestRates.map((d) => d.value),
-        oneYearInterestRates: oneYearInterestRates.map((d) => d.value),
-        variableInterestRates: variableInterestRates.map((d) => d.value),
         maintenanceIncrease: maintenanceIncrease.map((d) => d.pctChange),
         propertyTaxIncrease: propertyTaxIncrease.map((d) => d.pctChange),
         condoFeeIncrease: maintenanceIncrease.map((d) => d.pctChange),

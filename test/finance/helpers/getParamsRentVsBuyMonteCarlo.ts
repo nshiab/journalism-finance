@@ -43,7 +43,6 @@ export default function getParamsRentVsBuyMonteCarlo(
   tfsaContributions: boolean;
   annualInvestmentFeeRate: number;
   couple: boolean;
-  employmentIncome: number;
   province:
     | "Alberta"
     | "British Columbia"
@@ -70,6 +69,7 @@ export default function getParamsRentVsBuyMonteCarlo(
     floorRate: number;
   };
   stochasticParameters: {
+    employmentIncome: { initialValue: number; mu: number; sigma: number };
     market: {
       mu: number;
       sigma: number;
@@ -246,7 +246,6 @@ export default function getParamsRentVsBuyMonteCarlo(
     tfsaContributions: params.tfsaContributions,
     annualInvestmentFeeRate: params.annualInvestmentFeeRate,
     couple: params.couple,
-    employmentIncome: params.employmentIncome,
     province,
     renter: {
       securityDeposit: params.renter.securityDeposit,
@@ -264,6 +263,11 @@ export default function getParamsRentVsBuyMonteCarlo(
       floorRate: params.buyer.floorRate,
     },
     stochasticParameters: {
+      employmentIncome: {
+        initialValue: 75_000,
+        mu: 0.02,
+        sigma: 0.01,
+      },
       market: {
         // Actual values
         initialValue: marketReturnRate.at(-1)!.value,
