@@ -2311,3 +2311,81 @@ Deno.test("simulateRentVsBuy: annualInvestmentFeeRate should reduce capital gain
     );
   }
 });
+
+Deno.test("simulateRentVsBuy: higher employmentIncome should result in higher capital gains taxes", () => {
+  const params = getParams("Montreal", "Quebec", {
+    downPayment: 0.10,
+    purchaseFixedFees: 0.02,
+  }, {
+    renterMonthlyInsurance: 70,
+    ownerMonthlyInsurance: 125,
+    sellingFixedFees: 2000,
+    condoFees: 250,
+  }, false);
+
+  const nbMonths = params.numberOfYears * 12;
+  const lastMonthIndex = nbMonths - 1;
+
+  // Scenario 1: Low constant income
+  const resultsLowIncome = simulateRentVsBuy({
+    ...params,
+    values: {
+      ...params.values,
+      employmentIncome: new Array(nbMonths).fill(30_000),
+    },
+  });
+
+  // Scenario 2: High constant income
+  const resultsHighIncome = simulateRentVsBuy({
+    ...params,
+    values: {
+      ...params.values,
+      employmentIncome: new Array(nbMonths).fill(250_000),
+    },
+  });
+
+  const getStockTaxes = (results: any[]) =>
+    results
+      .filter((d) =>
+        d.group === "saleCosts" && d.variable === "stockTaxes" &&
+        d.monthIndex === lastMonthIndex
+      )
+      .map((d) => d.amount);
+
+  const taxesLow = getStockTaxes(resultsLowIncome);
+  const taxesHigh = getStockTaxes(resultsHighIncome);
+
+  assert(taxesLow.length > 0);
+  assert(taxesHigh.length > 0);
+
+  for (let i = 0; i < taxesLow.length; i++) {
+    // Higher income = higher marginal tax rate = higher capital gains tax
+    assert(
+      taxesHigh[i] > taxesLow[i],
+      `Category index ${i}: expected higher taxes (${taxesHigh[i]}) for high income than for low income (${taxesLow[i]})`,
+    );
+  }
+
+  // Scenario 3: Growing income (starts low, ends high)
+  const growingIncome = new Array(nbMonths).fill(0).map((_, i) =>
+    30_000 + (i / nbMonths) * 200_000
+  );
+  const resultsGrowingIncome = simulateRentVsBuy({
+    ...params,
+    values: {
+      ...params.values,
+      employmentIncome: growingIncome,
+    },
+  });
+
+  const taxesGrowing = getStockTaxes(resultsGrowingIncome);
+
+  for (let i = 0; i < taxesLow.length; i++) {
+    // Growing income ends at 230k, so final sale tax should be significantly higher than constant 30k
+    assert(
+      taxesGrowing[i] > taxesLow[i],
+      `Category index ${i}: expected higher taxes (${taxesGrowing[i]}) for growing income than for static low income (${taxesLow[i]})`,
+    );
+  }
+});
+
