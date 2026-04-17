@@ -225,7 +225,7 @@ export type BaseOptions = {
  * @param parameters.numberOfYears - The duration of each simulation in years.
  * @param parameters.tfsaContributions - Whether to prioritize TFSA contributions for investments (tax-free gains).
  * @param parameters.annualInvestmentFeeRate - Annual investment fee rate (e.g. ETF MER or platform/advisor fee) expressed as a decimal (e.g. `0.0025` for 0.25%). Applied monthly to TFSA and stock portfolio balances using a multiplicative model — the fee is charged on the grown balance. The monthly dollar cost is also tracked as `tfsaFees` and `stocksFees` under `monthlyExpenses` and `cumulativeExpenses` in the output.
- * @param parameters.couple - Whether to simulate investments and taxes for a couple doubling TFSA contribution room and splitting capital gains in 2. Assumes parameter employmentIncome represents the per-partner income.
+ * @param parameters.couple - Whether to simulate investments and taxes for a couple doubling TFSA contribution room and splitting capital gains in 2. Assumes the stochastic employmentIncome parameter represents the per-partner income.
  * @param parameters.province - The Canadian province or territory, used for calculating sales taxes.
  * @param parameters.renter - Configuration for the renter scenario.
  *   @param parameters.renter.securityDeposit - The initial security deposit or last month's rent (scenario-dependent).
