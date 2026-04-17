@@ -30,7 +30,6 @@ import getSalesTax from "./getSalesTax.ts";
  * @param parameters.tfsaContributions - Whether to prioritize TFSA contributions for investments (tax-free gains).
  * @param parameters.annualInvestmentFeeRate - Annual investment fee rate (e.g. ETF MER or platform/advisor fee) expressed as a decimal (e.g. `0.0025` for 0.25%). Applied monthly to TFSA and stock portfolio balances using a multiplicative model — the fee is charged on the grown balance. The monthly dollar cost is also tracked as `tfsaFees` and `stocksFees` under `monthlyExpenses` and `cumulativeExpenses` in the output.
  * @param parameters.couple - Whether to simulate investments and taxes for a couple doubling TFSA contribution room and splitting capital gains in 2. Assumes parameter employmentIncome represents the per-partner income.
- * @param parameters.employmentIncome - The employment income used for calculating income taxes on investment gains.
  * @param parameters.province - The province used to calculate sales tax on the selling fixed fees and commission when selling the home.
  * @param parameters.renter - Configuration for the renter scenario.
  *   @param parameters.renter.startingMonthlyRent - The initial monthly rent payment.
@@ -49,7 +48,15 @@ import getSalesTax from "./getSalesTax.ts";
  *   @param parameters.buyer.sellingFixedFees - Fixed fees associated with selling the home (before sales tax).
  *   @param parameters.buyer.sellingCommissionRate - The real estate commission rate for selling the home (e.g., 0.05 for 5%).
  *   @param parameters.buyer.floorRate - The minimum interest rate (posted + adjustment) for mortgages.
- * @param parameters.rates - Annualized rates and their values over the simulation period. Each array should have a length of `numberOfYears * 12`. These can be historical or projected rates.
+ * @param parameters.values - Shared absolute values over the simulation period. Each array should have a length of `numberOfYears * 12`.
+ *   @param parameters.values.employmentIncome - Monthly employment income used for calculating income taxes on investment gains.
+ *   @param parameters.values.fiveYearInterestRates - Monthly 5-year fixed mortgage interest rates.
+ *   @param parameters.values.fourYearInterestRates - Monthly 4-year fixed mortgage interest rates.
+ *   @param parameters.values.threeYearInterestRates - Monthly 3-year fixed mortgage interest rates.
+ *   @param parameters.values.twoYearInterestRates - Monthly 2-year fixed mortgage interest rates.
+ *   @param parameters.values.oneYearInterestRates - Monthly 1-year fixed mortgage interest rates.
+ *   @param parameters.values.variableInterestRates - Monthly variable mortgage interest rates.
+ * @param parameters.rates - Annualized growth rates over the simulation period. Each array should have a length of `numberOfYears * 12`. These can be historical or projected rates.
  *   @param parameters.rates.marketReturnRate - Monthly market return rates.
  *   @param parameters.rates.rentIncrease - Monthly rent increase rates.
  *   @param parameters.rates.ownerInsuranceIncrease - Monthly homeowner's insurance increase rates.
@@ -57,12 +64,6 @@ import getSalesTax from "./getSalesTax.ts";
  *   @param parameters.rates.maintenanceIncrease - Monthly maintenance cost increase rates.
  *   @param parameters.rates.propertyTaxIncrease - Monthly property tax increase rates.
  *   @param parameters.rates.condoFeeIncrease - Monthly condo fee increase rates.
- *   @param parameters.rates.fiveYearInterestRates - Monthly 5-year fixed mortgage interest rates.
- *   @param parameters.rates.fourYearInterestRates - Monthly 4-year fixed mortgage interest rates.
- *   @param parameters.rates.threeYearInterestRates - Monthly 3-year fixed mortgage interest rates.
- *   @param parameters.rates.twoYearInterestRates - Monthly 2-year fixed mortgage interest rates.
- *   @param parameters.rates.oneYearInterestRates - Monthly 1-year fixed mortgage interest rates.
- *   @param parameters.rates.variableInterestRates - Monthly variable mortgage interest rates.
  *   @param parameters.rates.appreciationIncrease - Monthly home appreciation rates.
  *   @param parameters.rates.sellingFixedFeesIncrease - Monthly increase rates for selling fixed fees.
  * @param options - Additional simulation options.
@@ -86,7 +87,7 @@ import getSalesTax from "./getSalesTax.ts";
  *   - `homeEquity` (for Buyers)
  * - `summary`: `balance` (monthly net worth)
  * - `summaryCumulative`: `balance` (cumulative net worth), `balanceAfterSelling` (net worth after hypothetical property sale and associated taxes/fees)
- * - `saleCosts`: `stockTaxes`, `homeSellingCommission`, `homeSellingFixedFees`, `mortgagePenalty`, `mortgageBalance` (hypothetical costs incurred upon selling)
+ * - `saleCosts`: `stockTaxes` (includes `employmentIncome` used for calculation), `homeSellingCommission`, `homeSellingFixedFees`, `mortgagePenalty`, `mortgageBalance` (hypothetical costs incurred upon selling)
  * - `saleNetGains`: `stockSellingGains`, `tfsaSellingGains`, `homeSellingGains`, `securityDeposit` (hypothetical gains realized upon selling)
  * - `totals`: `monthlyExpenses`, `cumulativeExpenses`, `monthlyGains`, `cumulativeGains`, `assets`, `saleCosts`, `saleNetGains` (sum of all variables in each respective group; always emitted even when zero)
  *
@@ -100,23 +101,26 @@ import getSalesTax from "./getSalesTax.ts";
  *   maintenanceIncrease: new Array(120).fill(0.002),
  *   propertyTaxIncrease: new Array(120).fill(0.002),
  *   condoFeeIncrease: new Array(120).fill(0.002),
+ *   appreciationIncrease: new Array(120).fill(0.003),
+ *   sellingFixedFeesIncrease: new Array(120).fill(0.002),
+ * };
+ *
+ * const values = {
+ *   employmentIncome: new Array(120).fill(75000),
  *   fiveYearInterestRates: new Array(120).fill(0.05),
  *   fourYearInterestRates: new Array(120).fill(0.05),
  *   threeYearInterestRates: new Array(120).fill(0.05),
  *   twoYearInterestRates: new Array(120).fill(0.05),
  *   oneYearInterestRates: new Array(120).fill(0.05),
  *   variableInterestRates: new Array(120).fill(0.06),
- *   appreciationIncrease: new Array(120).fill(0.003),
- *   sellingFixedFeesIncrease: new Array(120).fill(0.002),
  * };
  *
  * const results = simulateRentVsBuy({
- *   startingYear: 2026,
+ *   startingYear: 2024,
  *   numberOfYears: 10,
  *   tfsaContributions: true,
- *   annualInvestmentFeeRate: 0.0025,
+ *   annualInvestmentFeeRate: 0,
  *   couple: false,
- *   employmentIncome: 100000,
  *   province: "Ontario",
  *   renter: {
  *     startingMonthlyRent: 2000,
@@ -126,8 +130,8 @@ import getSalesTax from "./getSalesTax.ts";
  *   buyer: {
  *     downPayment: 100000,
  *     purchasePrice: 500000,
- *     fixedRateAdjustment: -0.015,
- *     variableRateAdjustment: -0.005,
+ *     fixedRateAdjustment: -1.5,
+ *     variableRateAdjustment: -0.5,
  *     purchaseFixedFees: 5000,
  *     startingAnnualMaintenanceCost: 2000,
  *     startingAnnualPropertyTax: 3000,
@@ -137,7 +141,8 @@ import getSalesTax from "./getSalesTax.ts";
  *     sellingCommissionRate: 0.05,
  *     floorRate: 0,
  *   },
- *   rates
+ *   values,
+ *   rates,
  * }, { winVariableOnly: true, winVariable: "balanceAfterSelling" });
  * ```
  */

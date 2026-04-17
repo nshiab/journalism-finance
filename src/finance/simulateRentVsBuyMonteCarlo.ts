@@ -226,7 +226,6 @@ export type BaseOptions = {
  * @param parameters.tfsaContributions - Whether to prioritize TFSA contributions for investments (tax-free gains).
  * @param parameters.annualInvestmentFeeRate - Annual investment fee rate (e.g. ETF MER or platform/advisor fee) expressed as a decimal (e.g. `0.0025` for 0.25%). Applied monthly to TFSA and stock portfolio balances using a multiplicative model — the fee is charged on the grown balance. The monthly dollar cost is also tracked as `tfsaFees` and `stocksFees` under `monthlyExpenses` and `cumulativeExpenses` in the output.
  * @param parameters.couple - Whether to simulate investments and taxes for a couple doubling TFSA contribution room and splitting capital gains in 2. Assumes parameter employmentIncome represents the per-partner income.
- * @param parameters.employmentIncome - The employment income used for calculating income taxes on investment gains.
  * @param parameters.province - The Canadian province or territory, used for calculating sales taxes.
  * @param parameters.renter - Configuration for the renter scenario.
  *   @param parameters.renter.securityDeposit - The initial security deposit or last month's rent (scenario-dependent).
@@ -241,7 +240,7 @@ export type BaseOptions = {
  *   For all parameters (market return rate, dollar amounts, interest rates), use:
  *   - `initialValue`: The starting value (e.g., `0.07` for 7% market return, `1500` for $1,500 monthly rent, or `0.05` for a 5% interest rate).
  *
- *   For **Geometric Brownian Motion (GBM)** models (market, rent, expenses, appreciation):
+ *   For **Geometric Brownian Motion (GBM)** models (income, market, rent, expenses, appreciation):
  *   - `mu`: The drift or expected annual growth rate.
  *   - `sigma`: The annual volatility.
  *
@@ -250,6 +249,7 @@ export type BaseOptions = {
  *   - `b`: Long-term mean.
  *   - `sigma`: Annual volatility.
  *
+ * @param parameters.stochasticParameters.employmentIncome - Employment income trajectory (GBM).
  * @param parameters.stochasticParameters.market - Market return rates for savings (GBM).
  * @param parameters.stochasticParameters.rent - Rent increase rates (GBM).
  * @param parameters.stochasticParameters.ownerInsurance - Homeowner's insurance increase rates (GBM).
@@ -291,46 +291,37 @@ export type BaseOptions = {
  *   tfsaContributions: true,
  *   annualInvestmentFeeRate: 0.0025,
  *   couple: false,
- *   employmentIncome: 80000,
  *   province: "Ontario",
  *   renter: {
  *     securityDeposit: 1500,
  *   },
  *   buyer: {
  *     downPayment: 50000,
- *     fixedRateAdjustment: -0.01,
- *     variableRateAdjustment: 0,
- *     purchaseFixedFees: 3000,
+ *     fixedRateAdjustment: -0.015,
+ *     variableRateAdjustment: -0.005,
+ *     purchaseFixedFees: 5000,
  *     sellingCommissionRate: 0.05,
- *     floorRate: 0,
+ *     floorRate: 0.01,
  *   },
  *   stochasticParameters: {
+ *     employmentIncome: { initialValue: 80000, mu: 0.03, sigma: 0.05 },
  *     market: { initialValue: 0.07, mu: 0.07, sigma: 0.15 },
  *     rent: { initialValue: 1500, mu: 0.03, sigma: 0.02 },
- *     ownerInsurance: { initialValue: 80, mu: 0.03, sigma: 0.05 },
- *     renterInsurance: { initialValue: 25, mu: 0.03, sigma: 0.05 },
- *     maintenance: { initialValue: 1500, mu: 0.02, sigma: 0.05 },
- *     propertyTax: { initialValue: 2500, mu: 0.02, sigma: 0.02 },
- *     condoFee: { initialValue: 0, mu: 0.03, sigma: 0.05 },
- *     appreciation: { initialValue: 400000, mu: 0.04, sigma: 0.10 },
- *     sellingFixedFees: { initialValue: 1500, mu: 0.02, sigma: 0.05 },
+ *     ownerInsurance: { initialValue: 120, mu: 0.03, sigma: 0.02 },
+ *     renterInsurance: { initialValue: 30, mu: 0.03, sigma: 0.02 },
+ *     maintenance: { initialValue: 200, mu: 0.03, sigma: 0.02 },
+ *     propertyTax: { initialValue: 300, mu: 0.03, sigma: 0.02 },
+ *     condoFee: { initialValue: 300, mu: 0.03, sigma: 0.02 },
+ *     appreciation: { initialValue: 500000, mu: 0.04, sigma: 0.1 },
+ *     sellingFixedFees: { initialValue: 2000, mu: 0.02, sigma: 0.01 },
  *     fiveYearInterestRates: { initialValue: 0.05, a: 0.2, b: 0.05, sigma: 0.02 },
- *     fourYearInterestRates: { initialValue: 0.048, a: 0.2, b: 0.048, sigma: 0.02 },
- *     threeYearInterestRates: { initialValue: 0.045, a: 0.2, b: 0.045, sigma: 0.02 },
- *     twoYearInterestRates: { initialValue: 0.042, a: 0.2, b: 0.042, sigma: 0.02 },
- *     oneYearInterestRates: { initialValue: 0.04, a: 0.2, b: 0.04, sigma: 0.02 },
- *     variableInterestRates: { initialValue: 0.06, a: 0.3, b: 0.055, sigma: 0.03 },
- *   }
- * }, {
- *   verbose: true,
- *   verboseStep: 100,
- *   details: {
- *     iterations: false,
- *     quantiles: [0, 0.25, 0.5, 0.75, 1]
- *   }
+ *     fourYearInterestRates: { initialValue: 0.05, a: 0.2, b: 0.05, sigma: 0.02 },
+ *     threeYearInterestRates: { initialValue: 0.05, a: 0.2, b: 0.05, sigma: 0.02 },
+ *     twoYearInterestRates: { initialValue: 0.05, a: 0.2, b: 0.05, sigma: 0.02 },
+ *     oneYearInterestRates: { initialValue: 0.05, a: 0.2, b: 0.05, sigma: 0.02 },
+ *     variableInterestRates: { initialValue: 0.06, a: 0.2, b: 0.06, sigma: 0.02 },
+ *   },
  * });
- *
- * console.log(results.winners.monthIndex.length); // 1000
  * ```
  */
 function simulateRentVsBuyMonteCarlo(
