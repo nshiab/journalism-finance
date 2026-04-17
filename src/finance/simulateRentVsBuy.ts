@@ -274,16 +274,16 @@ export default function simulateRentVsBuy(
     }
     | {
       group: "saleCosts";
-        variable:
-          | "stockTaxes"
-          | "homeSellingCommission"
-          | "homeSellingFixedFees"
-          | "mortgagePenalty"
-          | "mortgageBalance";
-        employmentIncome?: number;
-      }
-      | {
-        group: "saleNetGains";
+      variable:
+        | "stockTaxes"
+        | "homeSellingCommission"
+        | "homeSellingFixedFees"
+        | "mortgagePenalty"
+        | "mortgageBalance";
+      employmentIncome?: number;
+    }
+    | {
+      group: "saleNetGains";
       variable:
         | "stockSellingGains"
         | "tfsaSellingGains"
@@ -578,7 +578,8 @@ export default function simulateRentVsBuy(
     // Mutate pre-allocated objects to avoid per-iteration heap allocations.
     currentPostedRates[1] = parameters.values.oneYearInterestRates[monthIndex];
     currentPostedRates[2] = parameters.values.twoYearInterestRates[monthIndex];
-    currentPostedRates[3] = parameters.values.threeYearInterestRates[monthIndex];
+    currentPostedRates[3] =
+      parameters.values.threeYearInterestRates[monthIndex];
     currentPostedRates[4] = parameters.values.fourYearInterestRates[monthIndex];
     currentPostedRates[5] = parameters.values.fiveYearInterestRates[monthIndex];
 

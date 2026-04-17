@@ -1224,13 +1224,19 @@ Deno.test("simulateRentVsBuyMonteCarlo: income paths should be stochastic and fo
   }, { values: true });
 
   const values = decodeMonteCarloValues(results.values);
-  const incomeRecords = values.filter((d) => d.variable === "employment income");
+  const incomeRecords = values.filter((d) =>
+    d.variable === "employment income"
+  );
 
   assertEquals(incomeRecords.length, 20 * p.numberOfYears * 12);
 
   // Check that paths are different (stochastic)
-  const iter0 = incomeRecords.filter((d) => d.iteration === 0).sort((a, b) => a.monthIndex - b.monthIndex);
-  const iter1 = incomeRecords.filter((d) => d.iteration === 1).sort((a, b) => a.monthIndex - b.monthIndex);
+  const iter0 = incomeRecords.filter((d) => d.iteration === 0).sort((a, b) =>
+    a.monthIndex - b.monthIndex
+  );
+  const iter1 = incomeRecords.filter((d) => d.iteration === 1).sort((a, b) =>
+    a.monthIndex - b.monthIndex
+  );
 
   let isDifferent = false;
   for (let i = 0; i < iter0.length; i++) {
@@ -1239,11 +1245,17 @@ Deno.test("simulateRentVsBuyMonteCarlo: income paths should be stochastic and fo
       break;
     }
   }
-  assert(isDifferent, "Expected different income paths for different iterations");
+  assert(
+    isDifferent,
+    "Expected different income paths for different iterations",
+  );
 
   // Check general growth trend
   const avgFinalIncome = [0, 1, 2, 3, 4].reduce((acc, iter) => {
-    const path = incomeRecords.filter((d) => d.iteration === iter).sort((a, b) => a.monthIndex - b.monthIndex);
+    const path = incomeRecords.filter((d) => d.iteration === iter).sort((
+      a,
+      b,
+    ) => a.monthIndex - b.monthIndex);
     return acc + path[path.length - 1].value;
   }, 0) / 5;
 
@@ -1277,4 +1289,3 @@ Deno.test("simulateRentVsBuyMonteCarlo: should capture employment income in valu
   // Since mu is positive in getParams (0.02), income should generally increase
   assert(lastMonth > firstMonth);
 });
-

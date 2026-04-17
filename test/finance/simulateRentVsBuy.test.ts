@@ -2371,7 +2371,9 @@ Deno.test("simulateRentVsBuy: higher employmentIncome should result in higher ca
     // Higher income = higher marginal tax rate = higher capital gains tax
     assert(
       taxesHigh[i] > taxesLow[i],
-      `Category index ${i}: expected higher taxes (${taxesHigh[i]}) for high income than for low income (${taxesLow[i]})`,
+      `Category index ${i}: expected higher taxes (${
+        taxesHigh[i]
+      }) for high income than for low income (${taxesLow[i]})`,
     );
   }
 
@@ -2393,7 +2395,9 @@ Deno.test("simulateRentVsBuy: higher employmentIncome should result in higher ca
     // Growing income ends at 230k, so final sale tax should be significantly higher than constant 30k
     assert(
       taxesGrowing[i] > taxesLow[i],
-      `Category index ${i}: expected higher taxes (${taxesGrowing[i]}) for growing income than for static low income (${taxesLow[i]})`,
+      `Category index ${i}: expected higher taxes (${
+        taxesGrowing[i]
+      }) for growing income than for static low income (${taxesLow[i]})`,
     );
   }
 });
@@ -2429,11 +2433,17 @@ Deno.test("simulateRentVsBuy: employmentIncome in results should match the input
     d.group === "saleCosts" && d.variable === "stockTaxes" && d.amount > 0
   );
 
-  assert(stockTaxesRecords.length > 10, "Expected at least some months with stock taxes");
+  assert(
+    stockTaxesRecords.length > 10,
+    "Expected at least some months with stock taxes",
+  );
 
   for (const record of stockTaxesRecords) {
     const incomeInRecord = (record as any).employmentIncome;
-    assert(incomeInRecord !== undefined, "employmentIncome should be present in stockTaxes records");
+    assert(
+      incomeInRecord !== undefined,
+      "employmentIncome should be present in stockTaxes records",
+    );
 
     const expectedValue = 50_000 + record.monthIndex * 100;
     assertEquals(
@@ -2449,12 +2459,11 @@ Deno.test("simulateRentVsBuy: employmentIncome in results should match the input
 
   if (renterRecords.length >= 2) {
     const firstIncome = (renterRecords[0] as any).employmentIncome;
-    const lastIncome = (renterRecords[renterRecords.length - 1] as any).employmentIncome;
+    const lastIncome =
+      (renterRecords[renterRecords.length - 1] as any).employmentIncome;
     assert(
       lastIncome > firstIncome,
       `Expected income in results to increase (${lastIncome} > ${firstIncome})`,
     );
   }
 });
-
-
