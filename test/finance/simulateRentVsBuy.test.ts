@@ -2398,3 +2398,63 @@ Deno.test("simulateRentVsBuy: higher employmentIncome should result in higher ca
   }
 });
 
+Deno.test("simulateRentVsBuy: employmentIncome in results should match the input trajectory", () => {
+  const params = getParams("Montreal", "Quebec", {
+    downPayment: 0.10,
+    purchaseFixedFees: 0.02,
+  }, {
+    renterMonthlyInsurance: 70,
+    ownerMonthlyInsurance: 125,
+    sellingFixedFees: 2000,
+    condoFees: 250,
+  }, false);
+
+  const nbMonths = params.numberOfYears * 12;
+
+  // Linear growing income: $50,000 + $1,000 per year approx
+  const growingIncome = new Array(nbMonths).fill(0).map((_, i) =>
+    50_000 + i * 100
+  );
+
+  const results = simulateRentVsBuy({
+    ...params,
+    values: {
+      ...params.values,
+      employmentIncome: growingIncome,
+    },
+  });
+
+  // Filter for stockTaxes records where income should be present
+  const stockTaxesRecords = results.filter((d) =>
+    d.group === "saleCosts" && d.variable === "stockTaxes" && d.amount > 0
+  );
+
+  assert(stockTaxesRecords.length > 10, "Expected at least some months with stock taxes");
+
+  for (const record of stockTaxesRecords) {
+    const incomeInRecord = (record as any).employmentIncome;
+    assert(incomeInRecord !== undefined, "employmentIncome should be present in stockTaxes records");
+
+    const expectedValue = 50_000 + record.monthIndex * 100;
+    assertEquals(
+      incomeInRecord,
+      expectedValue,
+      `Month ${record.monthIndex}: expected exact income ${expectedValue}, got ${incomeInRecord}`,
+    );
+  }
+
+  // Also check that it's increasing in the results
+  const renterRecords = stockTaxesRecords.filter((d) => d.category === "renter")
+    .sort((a, b) => a.monthIndex - b.monthIndex);
+
+  if (renterRecords.length >= 2) {
+    const firstIncome = (renterRecords[0] as any).employmentIncome;
+    const lastIncome = (renterRecords[renterRecords.length - 1] as any).employmentIncome;
+    assert(
+      lastIncome > firstIncome,
+      `Expected income in results to increase (${lastIncome} > ${firstIncome})`,
+    );
+  }
+});
+
+
