@@ -42,6 +42,8 @@ export type StochasticData = Record<StochasticVariable, number[]>;
  * identity matrix (which results in independent, uncorrelated paths).
  *
  * @param data - An object containing arrays of equal-length historical values for all 16 variables.
+ * @param options - Optional configuration.
+ * @param options.jitter - A tiny positive value (e.g., 1e-9) added to the diagonal of the correlation matrix to force positive-definiteness. This can be useful if the decomposition fails due to numerical precision issues.
  *
  * @example
  * ```ts
@@ -56,6 +58,9 @@ export type StochasticData = Record<StochasticVariable, number[]>;
  *   // ... and the remaining 13 variables
  * });
  *
+ * // Using jitter to handle numerical precision issues
+ * const choleskyMatrixWithJitter = getRentVsBuyCholeskyMatrix(historicalData, { jitter: 1e-9 });
+ *
  * const results = simulateRentVsBuyMonteCarlo({
  *   // ... other parameters
  *   choleskyMatrix: choleskyMatrixCorrelated,
@@ -64,6 +69,7 @@ export type StochasticData = Record<StochasticVariable, number[]>;
  */
 export default function getRentVsBuyCholeskyMatrix(
   data?: StochasticData,
+  options: { jitter?: number } = {},
 ): number[][] {
   const numVars = 16;
 
@@ -76,7 +82,7 @@ export default function getRentVsBuyCholeskyMatrix(
           (_, j) => (i === j ? 1 : 0),
         ) as number[],
     );
-    return getCholeskyMatrix(identityMatrix);
+    return getCholeskyMatrix(identityMatrix, options.jitter);
   }
 
   const arrays = [
@@ -121,5 +127,5 @@ export default function getRentVsBuyCholeskyMatrix(
 
   const corMatrix = getCorrelationMatrix(observations);
 
-  return getCholeskyMatrix(corMatrix);
+  return getCholeskyMatrix(corMatrix, options.jitter);
 }

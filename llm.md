@@ -406,13 +406,20 @@ identity matrix (which results in independent, uncorrelated paths).
 ### Signature
 
 ```typescript
-function getRentVsBuyCholeskyMatrix(data?: StochasticData): number[][];
+function getRentVsBuyCholeskyMatrix(
+  data?: StochasticData,
+  options?: { jitter?: number },
+): number[][];
 ```
 
 ### Parameters
 
 - **`data`**: An object containing arrays of equal-length historical values for
   all 16 variables.
+- **`options`**: Optional configuration.
+- **`options.jitter`**: A tiny positive value (e.g., 1e-9) added to the diagonal
+  of the correlation matrix to force positive-definiteness. This can be useful
+  if the decomposition fails due to numerical precision issues.
 
 ### Examples
 
