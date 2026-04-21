@@ -2,7 +2,7 @@
   "version": "5",
   "specifiers": {
     "jsr:@nshiab/journalism-format@^1.1.3": "1.1.3",
-    "jsr:@nshiab/journalism-statistics@^1.2.3": "1.2.3",
+    "jsr:@nshiab/journalism-statistics@^1.5.0": "1.5.0",
     "jsr:@std/assert@*": "1.0.16",
     "jsr:@std/internal@^1.0.12": "1.0.12",
     "npm:d3-array@^3.2.4": "3.2.4",
@@ -20,8 +20,8 @@
         "npm:date-fns-tz"
       ]
     },
-    "@nshiab/journalism-statistics@1.2.3": {
-      "integrity": "071e41c3c7e99fd3b64c6999755601bf474d42fa7a008cc20aa687108488fecd",
+    "@nshiab/journalism-statistics@1.5.0": {
+      "integrity": "70c733d9c27efde25295192187dd840acf9ce42ef4f6ef76b86b57e68a1d3363",
       "dependencies": [
         "npm:jstat"
       ]
@@ -144,7 +144,7 @@
   "workspace": {
     "dependencies": [
       "jsr:@nshiab/journalism-format@^1.1.3",
-      "jsr:@nshiab/journalism-statistics@^1.2.3",
+      "jsr:@nshiab/journalism-statistics@^1.5.0",
       "npm:d3-array@^3.2.4",
       "npm:playwright@^1.58.2"
     ]

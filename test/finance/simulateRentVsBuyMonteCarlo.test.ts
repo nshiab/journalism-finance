@@ -7,6 +7,7 @@ import {
   decodeMonteCarloWinners,
 } from "../../src/finance/decodeMonteCarloResults.ts";
 import getParamsRentVsBuyMonteCarlo from "./helpers/getParamsRentVsBuyMonteCarlo.ts";
+import getRentVsBuyCholeskyMatrix from "../../src/finance/helpers/rentVsBuy/getRentVsBuyCholeskyMatrix.ts";
 
 Deno.test("documentation example: simulateRentVsBuyMonteCarlo should run without errors", () => {
   const results = simulateRentVsBuyMonteCarlo({
@@ -28,6 +29,7 @@ Deno.test("documentation example: simulateRentVsBuyMonteCarlo should run without
       sellingCommissionRate: 0.05,
       floorRate: 0,
     },
+    choleskyMatrix: getRentVsBuyCholeskyMatrix(),
     stochasticParameters: {
       employmentIncome: { initialValue: 75000, mu: 0.02, sigma: 0.01 },
       market: { initialValue: 0.07, mu: 0.07, sigma: 0.15 },
@@ -1288,4 +1290,86 @@ Deno.test("simulateRentVsBuyMonteCarlo: should capture employment income in valu
 
   // Since mu is positive in getParams (0.02), income should generally increase
   assert(lastMonth > firstMonth);
+});
+
+Deno.test("simulateRentVsBuyMonteCarlo: executes successfully with an identity cholesky matrix", () => {
+  const iterations = 100;
+  const p = getParamsRentVsBuyMonteCarlo(iterations, "Montreal", "Quebec", {
+    downPayment: 0.10,
+    purchaseFixedFees: 0.02,
+  }, {
+    renterMonthlyInsurance: 70,
+    ownerMonthlyInsurance: 125,
+    sellingFixedFees: 2000,
+    condoFees: 250,
+  }, false);
+
+  const t0 = performance.now();
+  const results = simulateRentVsBuyMonteCarlo({
+    ...p,
+    choleskyMatrix: getRentVsBuyCholeskyMatrix(),
+  }, {});
+  const t1 = performance.now();
+
+  const counts = { buyerFixed: 0, buyerVariable: 0, renter: 0 };
+  for (const w of decodeMonteCarloWinners(results.winners)) {
+    counts[w.category] += 1;
+  }
+
+  console.log(`\nIdentity Matrix (Uncorrelated) - ${iterations} iterations`);
+  console.log(`Execution time: ${(t1 - t0).toFixed(0)} ms`);
+  console.log(`Winners:`, counts);
+  console.log(`Percentages:`, {
+    buyerFixed: ((counts.buyerFixed / iterations) * 100).toFixed(1) + "%",
+    buyerVariable: ((counts.buyerVariable / iterations) * 100).toFixed(1) + "%",
+    renter: ((counts.renter / iterations) * 100).toFixed(1) + "%",
+  });
+
+  assertEquals(results.winners.monthIndex.length, iterations);
+});
+
+Deno.test("simulateRentVsBuyMonteCarlo: executes successfully with a fully correlated data-driven cholesky matrix", () => {
+  const iterations = 100;
+  const p = getParamsRentVsBuyMonteCarlo(iterations, "Montreal", "Quebec", {
+    downPayment: 0.10,
+    purchaseFixedFees: 0.02,
+  }, {
+    renterMonthlyInsurance: 70,
+    ownerMonthlyInsurance: 125,
+    sellingFixedFees: 2000,
+    condoFees: 250,
+  }, false);
+
+  // Add tiny random noise to historical data to ensure matrix is strictly positive-definite
+  // (breaks perfect linear dependency caused by using the same CPI dataset for multiple variables)
+  const noisyData = { ...p.rawHistoricalData };
+  for (const key in noisyData) {
+    noisyData[key] = noisyData[key].map((val) =>
+      val * (1 + (Math.random() * 0.0001 - 0.00005))
+    );
+  }
+
+  const t0 = performance.now();
+  const choleskyMatrix = getRentVsBuyCholeskyMatrix(noisyData as any);
+  const results = simulateRentVsBuyMonteCarlo({
+    ...p,
+    choleskyMatrix,
+  }, {});
+  const t1 = performance.now();
+
+  const counts = { buyerFixed: 0, buyerVariable: 0, renter: 0 };
+  for (const w of decodeMonteCarloWinners(results.winners)) {
+    counts[w.category] += 1;
+  }
+
+  console.log(`\nCorrelated Matrix (Data-driven) - ${iterations} iterations`);
+  console.log(`Execution time: ${(t1 - t0).toFixed(0)} ms`);
+  console.log(`Winners:`, counts);
+  console.log(`Percentages:`, {
+    buyerFixed: ((counts.buyerFixed / iterations) * 100).toFixed(1) + "%",
+    buyerVariable: ((counts.buyerVariable / iterations) * 100).toFixed(1) + "%",
+    renter: ((counts.renter / iterations) * 100).toFixed(1) + "%",
+  });
+
+  assertEquals(results.winners.monthIndex.length, iterations);
 });

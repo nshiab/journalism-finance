@@ -1,9 +1,11 @@
 import { prettyDuration } from "@nshiab/journalism-format";
 import simulateRentVsBuy from "./simulateRentVsBuy.ts";
 import {
-  generateCirPath,
-  generateGbmPath,
+  getCorrelatedShocks,
+  stepCir,
+  stepGbm,
 } from "@nshiab/journalism-statistics";
+import randNormal from "./helpers/rentVsBuy/randNormal.ts";
 
 /** Flat-matrix result for transferable output. `data[key][row * cols + col]`. */
 export type ColumnarResult = {
@@ -137,6 +139,12 @@ export type SimParams = {
     sellingCommissionRate: number;
     floorRate: number;
   };
+  /**
+   * Mandatory Cholesky decomposition matrix for the 16 stochastic variables.
+   * You must pre-compute this using `getRentVsBuyCholeskyMatrix` and pass it
+   * into the simulation.
+   */
+  choleskyMatrix: number[][];
   stochasticParameters: {
     employmentIncome: { initialValue: number; mu: number; sigma: number };
     market: { initialValue: number; mu: number; sigma: number };
@@ -236,6 +244,7 @@ export type BaseOptions = {
  *   @param parameters.buyer.purchaseFixedFees - One-time costs at purchase (notary, land transfer tax, etc.).
  *   @param parameters.buyer.sellingCommissionRate - The commission rate paid to real estate agents upon sale (e.g., `0.05` for 5%).
  *   @param parameters.buyer.floorRate - The minimum interest rate (posted + adjustment) for mortgages.
+ * @param parameters.choleskyMatrix - Mandatory Cholesky decomposition matrix for the 16 stochastic variables. Must be pre-computed using `getRentVsBuyCholeskyMatrix` from this library.
  * @param parameters.stochasticParameters - Parameters for the stochastic models.
  *   For all parameters (market return rate, dollar amounts, interest rates), use:
  *   - `initialValue`: The starting value (e.g., `0.07` for 7% market return, `1500` for $1,500 monthly rent, or `0.05` for a 5% interest rate).
@@ -283,8 +292,15 @@ export type BaseOptions = {
  *
  * @example
  * ```ts
+ * import { simulateRentVsBuyMonteCarlo, getRentVsBuyCholeskyMatrix } from "@nshiab/journalism-finance";
+ *
+ * // Assuming you have an object `historicalData` of type `StochasticData`
+ * // where each key holds an array of historical values for that variable.
+ * const choleskyMatrix = getRentVsBuyCholeskyMatrix(historicalData);
+ *
  * const results = simulateRentVsBuyMonteCarlo({
  *   iterations: 1000,
+ *   choleskyMatrix,
  *   winVariable: "balanceAfterSelling",
  *   startingYear: 2026,
  *   numberOfYears: 25,
@@ -380,104 +396,24 @@ function simulateRentVsBuyMonteCarlo(
     }
     : undefined;
 
-  function prepAbsoluteGbm(
+  const numVars = 16;
+  const dt = 1 / 12;
+  const populateValuesColumnar = (
     iteration: number,
     variable: string,
-    params: { initialValue: number; mu: number; sigma: number },
-  ): number[] {
-    // If the initial value is 0 there is nothing to grow; return zeroes.
-    if (params.initialValue === 0) {
-      return new Array<number>(nbMonths).fill(0);
-    }
-    // We generate a bit more than the number of months...
-    const path = generateGbmPath(
-      params.initialValue,
-      params.mu,
-      params.sigma,
-      parameters.numberOfYears + 0.9,
-      12,
-    );
+    path: Float64Array,
+  ) => {
     if (valuesColumnar) {
       let bucket = valuesColumnar.get(variable);
       if (!bucket) {
         bucket = new Float64Array(parameters.iterations * nbMonths);
         valuesColumnar.set(variable, bucket);
       }
-      for (let i = 0; i < nbMonths; i++) {
-        bucket[iteration * nbMonths + i] = path[i];
+      for (let j = 0; j < nbMonths; j++) {
+        bucket[iteration * nbMonths + j] = path[j];
       }
     }
-
-    return path.slice(0, nbMonths);
-  }
-
-  function prepRatesGbm(
-    iteration: number,
-    variable: string,
-    params: { initialValue: number; mu: number; sigma: number },
-  ): number[] {
-    // If the initial value is 0 there is nothing to grow; return zero rates.
-    if (params.initialValue === 0) {
-      return new Array<number>(nbMonths).fill(0);
-    }
-    // We generate a bit more than the number of months...
-    const path = generateGbmPath(
-      params.initialValue,
-      params.mu,
-      params.sigma,
-      parameters.numberOfYears + 0.9,
-      12,
-    );
-    if (valuesColumnar) {
-      let bucket = valuesColumnar.get(variable);
-      if (!bucket) {
-        bucket = new Float64Array(parameters.iterations * nbMonths);
-        valuesColumnar.set(variable, bucket);
-      }
-      for (let i = 0; i < nbMonths; i++) {
-        bucket[iteration * nbMonths + i] = path[i];
-      }
-    }
-
-    // So we can compute the monthly returns, which is what we need for the simulation
-    const randomRates = new Array<number>(nbMonths);
-    for (let i = 0; i < nbMonths; i++) {
-      randomRates[i] = (path[i + 1] - path[i]) / path[i];
-    }
-
-    return randomRates;
-  }
-
-  function prepRatesCir(
-    iteration: number,
-    variable: string,
-    params: { initialValue: number; a: number; b: number; sigma: number },
-  ): number[] {
-    // We generate a bit more than the number of months...
-    const path = generateCirPath(
-      params.initialValue,
-      params.a,
-      params.b,
-      params.sigma,
-      parameters.numberOfYears + 0.9,
-      12,
-    );
-    if (valuesColumnar) {
-      let bucket = valuesColumnar.get(variable);
-      if (!bucket) {
-        bucket = new Float64Array(parameters.iterations * nbMonths);
-        valuesColumnar.set(variable, bucket);
-      }
-      for (let i = 0; i < nbMonths; i++) {
-        bucket[iteration * nbMonths + i] = path[i];
-      }
-    }
-
-    // For interest rates, we use the actual values generated by the CIR model
-    const randomRates = path.slice(0, nbMonths);
-
-    return randomRates;
-  }
+  };
 
   const start = options.verbose ? Date.now() : null;
   const verboseStep = options.verboseStep || 1;
@@ -486,6 +422,190 @@ function simulateRentVsBuyMonteCarlo(
     if (options.verbose && i % verboseStep === 0) {
       console.log(`Simulation ${i} / ${parameters.iterations}`);
     }
+
+    const paths = Array.from(
+      { length: numVars },
+      () => new Float64Array(nbMonths + 1),
+    );
+
+    // Seed initial values
+    paths[0][0] = parameters.stochasticParameters.employmentIncome.initialValue;
+    paths[1][0] = parameters.stochasticParameters.market.initialValue;
+    paths[2][0] = parameters.stochasticParameters.rent.initialValue;
+    paths[3][0] = parameters.stochasticParameters.ownerInsurance.initialValue;
+    paths[4][0] = parameters.stochasticParameters.renterInsurance.initialValue;
+    paths[5][0] = parameters.stochasticParameters.maintenance.initialValue;
+    paths[6][0] = parameters.stochasticParameters.propertyTax.initialValue;
+    paths[7][0] = parameters.stochasticParameters.condoFee.initialValue;
+    paths[8][0] = parameters.stochasticParameters.appreciation.initialValue;
+    paths[9][0] = parameters.stochasticParameters.sellingFixedFees.initialValue;
+    paths[10][0] =
+      parameters.stochasticParameters.fiveYearInterestRates.initialValue;
+    paths[11][0] =
+      parameters.stochasticParameters.fourYearInterestRates.initialValue;
+    paths[12][0] =
+      parameters.stochasticParameters.threeYearInterestRates.initialValue;
+    paths[13][0] =
+      parameters.stochasticParameters.twoYearInterestRates.initialValue;
+    paths[14][0] =
+      parameters.stochasticParameters.oneYearInterestRates.initialValue;
+    paths[15][0] =
+      parameters.stochasticParameters.variableInterestRates.initialValue;
+
+    const Z = new Float64Array(numVars);
+    for (let m = 0; m < nbMonths; m++) {
+      for (let v = 0; v < numVars; v++) {
+        Z[v] = randNormal();
+      }
+      const X = getCorrelatedShocks(parameters.choleskyMatrix, Array.from(Z));
+
+      // 0-9 are GBM
+      paths[0][m + 1] = stepGbm(
+        paths[0][m],
+        parameters.stochasticParameters.employmentIncome.mu,
+        parameters.stochasticParameters.employmentIncome.sigma,
+        dt,
+        X[0],
+      );
+      paths[1][m + 1] = stepGbm(
+        paths[1][m],
+        parameters.stochasticParameters.market.mu,
+        parameters.stochasticParameters.market.sigma,
+        dt,
+        X[1],
+      );
+      paths[2][m + 1] = stepGbm(
+        paths[2][m],
+        parameters.stochasticParameters.rent.mu,
+        parameters.stochasticParameters.rent.sigma,
+        dt,
+        X[2],
+      );
+      paths[3][m + 1] = stepGbm(
+        paths[3][m],
+        parameters.stochasticParameters.ownerInsurance.mu,
+        parameters.stochasticParameters.ownerInsurance.sigma,
+        dt,
+        X[3],
+      );
+      paths[4][m + 1] = stepGbm(
+        paths[4][m],
+        parameters.stochasticParameters.renterInsurance.mu,
+        parameters.stochasticParameters.renterInsurance.sigma,
+        dt,
+        X[4],
+      );
+      paths[5][m + 1] = stepGbm(
+        paths[5][m],
+        parameters.stochasticParameters.maintenance.mu,
+        parameters.stochasticParameters.maintenance.sigma,
+        dt,
+        X[5],
+      );
+      paths[6][m + 1] = stepGbm(
+        paths[6][m],
+        parameters.stochasticParameters.propertyTax.mu,
+        parameters.stochasticParameters.propertyTax.sigma,
+        dt,
+        X[6],
+      );
+      paths[7][m + 1] = stepGbm(
+        paths[7][m],
+        parameters.stochasticParameters.condoFee.mu,
+        parameters.stochasticParameters.condoFee.sigma,
+        dt,
+        X[7],
+      );
+      paths[8][m + 1] = stepGbm(
+        paths[8][m],
+        parameters.stochasticParameters.appreciation.mu,
+        parameters.stochasticParameters.appreciation.sigma,
+        dt,
+        X[8],
+      );
+      paths[9][m + 1] = stepGbm(
+        paths[9][m],
+        parameters.stochasticParameters.sellingFixedFees.mu,
+        parameters.stochasticParameters.sellingFixedFees.sigma,
+        dt,
+        X[9],
+      );
+
+      // 10-15 are CIR
+      paths[10][m + 1] = stepCir(
+        paths[10][m],
+        parameters.stochasticParameters.fiveYearInterestRates.a,
+        parameters.stochasticParameters.fiveYearInterestRates.b,
+        parameters.stochasticParameters.fiveYearInterestRates.sigma,
+        dt,
+        X[10],
+      );
+      paths[11][m + 1] = stepCir(
+        paths[11][m],
+        parameters.stochasticParameters.fourYearInterestRates.a,
+        parameters.stochasticParameters.fourYearInterestRates.b,
+        parameters.stochasticParameters.fourYearInterestRates.sigma,
+        dt,
+        X[11],
+      );
+      paths[12][m + 1] = stepCir(
+        paths[12][m],
+        parameters.stochasticParameters.threeYearInterestRates.a,
+        parameters.stochasticParameters.threeYearInterestRates.b,
+        parameters.stochasticParameters.threeYearInterestRates.sigma,
+        dt,
+        X[12],
+      );
+      paths[13][m + 1] = stepCir(
+        paths[13][m],
+        parameters.stochasticParameters.twoYearInterestRates.a,
+        parameters.stochasticParameters.twoYearInterestRates.b,
+        parameters.stochasticParameters.twoYearInterestRates.sigma,
+        dt,
+        X[13],
+      );
+      paths[14][m + 1] = stepCir(
+        paths[14][m],
+        parameters.stochasticParameters.oneYearInterestRates.a,
+        parameters.stochasticParameters.oneYearInterestRates.b,
+        parameters.stochasticParameters.oneYearInterestRates.sigma,
+        dt,
+        X[14],
+      );
+      paths[15][m + 1] = stepCir(
+        paths[15][m],
+        parameters.stochasticParameters.variableInterestRates.a,
+        parameters.stochasticParameters.variableInterestRates.b,
+        parameters.stochasticParameters.variableInterestRates.sigma,
+        dt,
+        X[15],
+      );
+    }
+
+    populateValuesColumnar(i, "employment income", paths[0]);
+    populateValuesColumnar(i, "market returns", paths[1]);
+    populateValuesColumnar(i, "rent", paths[2]);
+    populateValuesColumnar(i, "owner insurance", paths[3]);
+    populateValuesColumnar(i, "renter insurance", paths[4]);
+    populateValuesColumnar(i, "maintenance costs", paths[5]);
+    populateValuesColumnar(i, "property taxes", paths[6]);
+    populateValuesColumnar(i, "condo fees", paths[7]);
+    populateValuesColumnar(i, "property appreciation", paths[8]);
+    populateValuesColumnar(i, "selling fixed fees", paths[9]);
+    populateValuesColumnar(i, "five year interest rates", paths[10]);
+    populateValuesColumnar(i, "four year interest rates", paths[11]);
+    populateValuesColumnar(i, "three year interest rates", paths[12]);
+    populateValuesColumnar(i, "two year interest rates", paths[13]);
+    populateValuesColumnar(i, "one year interest rates", paths[14]);
+    populateValuesColumnar(i, "variable interest rates", paths[15]);
+
+    const getRatesFromPath = (path: Float64Array) => {
+      const r = new Array(nbMonths);
+      for (let m = 0; m < nbMonths; m++) {
+        r[m] = path[m] === 0 ? 0 : (path[m + 1] - path[m]) / path[m];
+      }
+      return r;
+    };
 
     const iterationResults = simulateRentVsBuy({
       startingYear: parameters.startingYear,
@@ -521,130 +641,24 @@ function simulateRentVsBuyMonteCarlo(
       },
       annualInvestmentFeeRate: parameters.annualInvestmentFeeRate,
       values: {
-        employmentIncome: prepAbsoluteGbm(
-          i,
-          "employment income",
-          parameters.stochasticParameters.employmentIncome,
-        ),
-        fiveYearInterestRates: prepRatesCir(
-          i,
-          "five year interest rates",
-          parameters.stochasticParameters.fiveYearInterestRates,
-        ),
-        fourYearInterestRates: prepRatesCir(
-          i,
-          "four year interest rates",
-          parameters.stochasticParameters.fourYearInterestRates,
-        ),
-        threeYearInterestRates: prepRatesCir(
-          i,
-          "three year interest rates",
-          parameters.stochasticParameters.threeYearInterestRates,
-        ),
-        twoYearInterestRates: prepRatesCir(
-          i,
-          "two year interest rates",
-          parameters.stochasticParameters.twoYearInterestRates,
-        ),
-        oneYearInterestRates: prepRatesCir(
-          i,
-          "one year interest rates",
-          parameters.stochasticParameters.oneYearInterestRates,
-        ),
-        variableInterestRates: prepRatesCir(
-          i,
-          "variable interest rates",
-          parameters.stochasticParameters.variableInterestRates,
-        ),
+        employmentIncome: Array.from(paths[0].slice(0, nbMonths)),
+        fiveYearInterestRates: Array.from(paths[10].slice(0, nbMonths)),
+        fourYearInterestRates: Array.from(paths[11].slice(0, nbMonths)),
+        threeYearInterestRates: Array.from(paths[12].slice(0, nbMonths)),
+        twoYearInterestRates: Array.from(paths[13].slice(0, nbMonths)),
+        oneYearInterestRates: Array.from(paths[14].slice(0, nbMonths)),
+        variableInterestRates: Array.from(paths[15].slice(0, nbMonths)),
       },
       rates: {
-        marketReturnRate: prepRatesGbm(
-          i,
-          "market returns",
-          {
-            initialValue: parameters.stochasticParameters.market.initialValue,
-            mu: parameters.stochasticParameters.market.mu,
-            sigma: parameters.stochasticParameters.market.sigma,
-          },
-        ),
-        rentIncrease: prepRatesGbm(
-          i,
-          "rent",
-          {
-            initialValue: parameters.stochasticParameters.rent.initialValue,
-            mu: parameters.stochasticParameters.rent.mu,
-            sigma: parameters.stochasticParameters.rent.sigma,
-          },
-        ),
-        renterInsuranceIncrease: prepRatesGbm(
-          i,
-          "renter insurance",
-          {
-            initialValue:
-              parameters.stochasticParameters.renterInsurance.initialValue,
-            mu: parameters.stochasticParameters.renterInsurance.mu,
-            sigma: parameters.stochasticParameters.renterInsurance.sigma,
-          },
-        ),
-        ownerInsuranceIncrease: prepRatesGbm(
-          i,
-          "owner insurance",
-          {
-            initialValue:
-              parameters.stochasticParameters.ownerInsurance.initialValue,
-            mu: parameters.stochasticParameters.ownerInsurance.mu,
-            sigma: parameters.stochasticParameters.ownerInsurance.sigma,
-          },
-        ),
-        maintenanceIncrease: prepRatesGbm(
-          i,
-          "maintenance costs",
-          {
-            initialValue:
-              parameters.stochasticParameters.maintenance.initialValue,
-            mu: parameters.stochasticParameters.maintenance.mu,
-            sigma: parameters.stochasticParameters.maintenance.sigma,
-          },
-        ),
-        propertyTaxIncrease: prepRatesGbm(
-          i,
-          "property taxes",
-          {
-            initialValue:
-              parameters.stochasticParameters.propertyTax.initialValue,
-            mu: parameters.stochasticParameters.propertyTax.mu,
-            sigma: parameters.stochasticParameters.propertyTax.sigma,
-          },
-        ),
-        condoFeeIncrease: prepRatesGbm(
-          i,
-          "condo fees",
-          {
-            initialValue: parameters.stochasticParameters.condoFee.initialValue,
-            mu: parameters.stochasticParameters.condoFee.mu,
-            sigma: parameters.stochasticParameters.condoFee.sigma,
-          },
-        ),
-        appreciationIncrease: prepRatesGbm(
-          i,
-          "property appreciation",
-          {
-            initialValue:
-              parameters.stochasticParameters.appreciation.initialValue,
-            mu: parameters.stochasticParameters.appreciation.mu,
-            sigma: parameters.stochasticParameters.appreciation.sigma,
-          },
-        ),
-        sellingFixedFeesIncrease: prepRatesGbm(
-          i,
-          "selling fixed fees",
-          {
-            initialValue:
-              parameters.stochasticParameters.sellingFixedFees.initialValue,
-            mu: parameters.stochasticParameters.sellingFixedFees.mu,
-            sigma: parameters.stochasticParameters.sellingFixedFees.sigma,
-          },
-        ),
+        marketReturnRate: getRatesFromPath(paths[1]),
+        rentIncrease: getRatesFromPath(paths[2]),
+        renterInsuranceIncrease: getRatesFromPath(paths[4]),
+        ownerInsuranceIncrease: getRatesFromPath(paths[3]),
+        maintenanceIncrease: getRatesFromPath(paths[5]),
+        propertyTaxIncrease: getRatesFromPath(paths[6]),
+        condoFeeIncrease: getRatesFromPath(paths[7]),
+        appreciationIncrease: getRatesFromPath(paths[8]),
+        sellingFixedFeesIncrease: getRatesFromPath(paths[9]),
       },
     }, {
       winVariableOnly: !options.details?.iterations &&

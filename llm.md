@@ -391,6 +391,49 @@ const penalty = getMortgagePenalty({
 });
 ```
 
+## getRentVsBuyCholeskyMatrix
+
+Generates a Cholesky decomposition matrix from historical variable data,
+formatted specifically for the `simulateRentVsBuyMonteCarlo` function.
+
+This helper calculates the covariance matrix of the provided data arrays,
+normalizes it into a correlation matrix, and computes the Cholesky
+decomposition, mapping variables internally to the correct 16x16 matrix indices.
+
+If no data object is provided, it returns the Cholesky decomposition of an
+identity matrix (which results in independent, uncorrelated paths).
+
+### Signature
+
+```typescript
+function getRentVsBuyCholeskyMatrix(data?: StochasticData): number[][];
+```
+
+### Parameters
+
+- **`data`**: An object containing arrays of equal-length historical values for
+  all 16 variables.
+
+### Examples
+
+```ts
+// Using an identity matrix (no correlation)
+const choleskyMatrixId = getRentVsBuyCholeskyMatrix();
+
+// Using historical data to capture true economic correlations
+const choleskyMatrixCorrelated = getRentVsBuyCholeskyMatrix({
+  employmentIncome: [75000, 76000, 78000, ...],
+  market: [0.05, 0.07, -0.02, ...],
+  rent: [1500, 1550, 1600, ...],
+  // ... and the remaining 13 variables
+});
+
+const results = simulateRentVsBuyMonteCarlo({
+  // ... other parameters
+  choleskyMatrix: choleskyMatrixCorrelated,
+});
+```
+
 ## getSalesTax
 
 Calculates the Canadian sales tax for a given amount, province, and year.
@@ -1297,6 +1340,9 @@ function simulateRentVsBuyMonteCarlo(
   estate agents upon sale (e.g., `0.05` for 5%).
 - **`parameters.buyer.floorRate`**: The minimum interest rate (posted +
   adjustment) for mortgages.
+- **`parameters.choleskyMatrix`**: Mandatory Cholesky decomposition matrix for
+  the 16 stochastic variables. Must be pre-computed using
+  `getRentVsBuyCholeskyMatrix` from this library.
 - **`parameters.stochasticParameters`**: Parameters for the stochastic models.
   For all parameters (market return rate, dollar amounts, interest rates),
   use: - `initialValue`: The starting value (e.g., `0.07` for 7% market return,
@@ -1393,8 +1439,18 @@ object-array shapes.
 ### Examples
 
 ```ts
+import {
+  getRentVsBuyCholeskyMatrix,
+  simulateRentVsBuyMonteCarlo,
+} from "@nshiab/journalism-finance";
+
+// Assuming you have an object `historicalData` of type `StochasticData`
+// where each key holds an array of historical values for that variable.
+const choleskyMatrix = getRentVsBuyCholeskyMatrix(historicalData);
+
 const results = simulateRentVsBuyMonteCarlo({
   iterations: 1000,
+  choleskyMatrix,
   winVariable: "balanceAfterSelling",
   startingYear: 2026,
   numberOfYears: 25,

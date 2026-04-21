@@ -27,6 +27,10 @@ import getYahooFinanceData from "./finance/getYahooFinanceData.ts";
 import variableMortgagePayments from "./finance/variableMortgagePayments.ts";
 import simulateRentVsBuy from "./finance/simulateRentVsBuy.ts";
 import simulateRentVsBuyMonteCarlo from "./finance/simulateRentVsBuyMonteCarlo.ts";
+import getRentVsBuyCholeskyMatrix, {
+  type StochasticData,
+  type StochasticVariable,
+} from "./finance/helpers/rentVsBuy/getRentVsBuyCholeskyMatrix.ts";
 import getMortgagePenalty from "./finance/getMortgagePenalty.ts";
 import getSalesTax from "./finance/getSalesTax.ts";
 import getIncomeTax from "./finance/getIncomeTax.ts";
@@ -55,6 +59,7 @@ export {
   decodeMonteCarloWinners,
   getIncomeTax,
   getMortgagePenalty,
+  getRentVsBuyCholeskyMatrix,
   getSalesTax,
   getYahooFinanceData,
   mortgageInsurancePremium,
@@ -73,5 +78,7 @@ export type {
   MqGroup,
   MqVariable,
   SimParams,
+  StochasticData,
+  StochasticVariable,
   WinnersColumnar,
 };
