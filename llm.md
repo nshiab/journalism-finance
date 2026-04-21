@@ -435,6 +435,9 @@ const choleskyMatrixCorrelated = getRentVsBuyCholeskyMatrix({
   // ... and the remaining 13 variables
 });
 
+// Using jitter to handle numerical precision issues
+const choleskyMatrixWithJitter = getRentVsBuyCholeskyMatrix(historicalData, { jitter: 1e-9 });
+
 const results = simulateRentVsBuyMonteCarlo({
   // ... other parameters
   choleskyMatrix: choleskyMatrixCorrelated,
