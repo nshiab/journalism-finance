@@ -79,6 +79,15 @@ export default async function getYahooFinanceData(
   } else {
     const response = await fetch(url);
 
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(
+        `Failed to fetch data: ${response.status} ${response.statusText}${
+          text ? `. ${text}` : ""
+        }`,
+      );
+    }
+
     data = await response.json();
   }
 

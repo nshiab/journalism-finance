@@ -316,6 +316,52 @@ capital gains tax baked into them. Summing all itemized deductions plus
 and $5k Capital Gains, excluding RAMQ getIncomeTax(80000, "Quebec", 2025, {
 rrsp: 10000, capitalGains: 5000, quebec: { ramq: false } });
 
+## getLandTransferTax
+
+Calculates the standard Land Transfer Tax (or equivalent registration fee) for a
+given city and property value based on 2026 tax frameworks.
+
+- **Rebate Limitations and Exclusions:** The `firstTimeOwner` parameter applies
+  structural, point-of-sale land transfer tax rebates assuming the buyer meets
+  all idealized programmatic criteria (e.g., absolute zero global ownership
+  history, Canadian citizenship/PR, and continuous provincial residency).
+- The following rebates and subsidies are INTENTIONALLY EXCLUDED from this
+  calculation:
+
+* **Nova Scotia:** The First-Time Home Buyers Rebate is excluded because it is
+  restricted exclusively to a refund on the provincial portion of the HST for
+  _newly built_ properties, not the 1.5% municipal Deed Transfer Tax calculated
+  here.
+* **Montreal (HPAP) & Quebec City (Programme Accès Famille):** Excluded because
+  they operate as localized financial grants or down payment assistance loans
+  requiring specific household compositions (e.g., dependents under 18) or
+  new-build environmental certifications, rather than structural tax base
+  reductions.
+* **Manitoba:** Excluded because the "Home Buyers' Amount" is a $1,500 general
+  income tax credit claimed on annual tax returns, not an upfront point-of-sale
+  deduction from the provincial land transfer tax.
+
+### Signature
+
+```typescript
+function getLandTransferTax(
+  city: City,
+  propertyValue: number,
+  firstTimeOwner?: boolean,
+): number;
+```
+
+### Parameters
+
+- **`city`**: The metropolitan market.
+- **`propertyValue`**: The fair market value or purchase price of the property.
+- **`firstTimeOwner`**: Indicates if the purchaser qualifies for strict FTHB
+  exemptions.
+
+### Returns
+
+The total calculated transaction friction cost in Canadian Dollars.
+
 ## getMortgagePenalty
 
 Calculates the mortgage prepayment penalty.
