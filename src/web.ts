@@ -42,6 +42,7 @@ import type {
   StochasticData,
   StochasticVariable,
 } from "./finance/helpers/rentVsBuy/getRentVsBuyCholeskyMatrix.ts";
+import getLandTransferTax from "./finance/getLandTransferTax.ts";
 
 export {
   adjustToInflation,
@@ -50,6 +51,7 @@ export {
   decodeMonteCarloValues,
   decodeMonteCarloWinners,
   getIncomeTax,
+  getLandTransferTax,
   getMortgagePenalty,
   getRentVsBuyCholeskyMatrix,
   getSalesTax,
