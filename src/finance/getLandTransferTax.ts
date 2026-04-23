@@ -1,4 +1,7 @@
-type City =
+/**
+ * Valid Canadian metropolitan markets for Land Transfer Tax calculations.
+ */
+export type City =
   | "Toronto"
   | "Montreal"
   | "Calgary"

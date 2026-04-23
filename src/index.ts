@@ -50,7 +50,7 @@ import type {
   SimParams,
   WinnersColumnar,
 } from "./finance/simulateRentVsBuyMonteCarlo.ts";
-import getLandTransferTax from "./finance/getLandTransferTax.ts";
+import getLandTransferTax, { type City } from "./finance/getLandTransferTax.ts";
 export {
   adjustToInflation,
   decodeMonteCarloMonthlyIterations,
@@ -73,6 +73,7 @@ export {
 
 export type {
   BaseOptions,
+  City,
   ColumnarResult,
   ColumnarReturn,
   MqCategory,
