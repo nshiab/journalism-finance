@@ -1,6 +1,6 @@
 {
   "name": "@nshiab/journalism-finance",
-  "version": "1.5.18",
+  "version": "1.5.19",
   "exports": {
     ".": "./src/index.ts",
     "./web": "./src/web.ts"
