@@ -1,5 +1,4 @@
 import { arraysToData } from "@nshiab/journalism-format";
-import { chromium } from "playwright";
 
 /**
  * Fetches historical financial data for a given stock symbol from Yahoo Finance. This function provides a convenient way to access various financial metrics (e.g., open, high, low, close, adjusted close, volume) at specified intervals (daily, hourly, or minute-by-minute).
@@ -20,7 +19,7 @@ import { chromium } from "playwright";
  *   - `"1d"`: Daily data.
  *   - `"1h"`: Hourly data.
  *   - `"1m"`: Minute-by-minute data.
- * @param useBrowser - If true, the function will use Playwright to fetch the data. This can be useful when facing rate limiting issues with the traditional fetch.
+ * @param useBrowser - If true, the function will use a browser-like User-Agent to fetch the data. This can be useful when facing rate limiting issues with the traditional fetch.
  * @returns A promise that resolves to an array of objects, where each object contains a `timestamp` (Unix timestamp in milliseconds) and the `value` of the requested financial variable for that period.
  *
  * @example
@@ -65,31 +64,24 @@ export default async function getYahooFinanceData(
     encodeURIComponent(symbol)
   }?events=capitalGain%7Cdiv%7Csplit&formatted=true&includeAdjustedClose=true&interval=${interval}&period1=${period1}&period2=${period2}&symbol=${symbol}&userYfid=true&lang=en-CA&region=CA`;
 
-  let data;
+  const headers: Record<string, string> = {};
   if (useBrowser) {
-    const browser = await chromium.launch();
-    const page = await browser.newPage();
-    await page.goto(url);
-    const content = await page.textContent("pre");
-    if (!content) {
-      throw new Error("No content found in browser.");
-    }
-    data = JSON.parse(content);
-    await browser.close();
-  } else {
-    const response = await fetch(url);
-
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error(
-        `Failed to fetch data: ${response.status} ${response.statusText}${
-          text ? `. ${text}` : ""
-        }`,
-      );
-    }
-
-    data = await response.json();
+    headers["User-Agent"] =
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36";
   }
+
+  const response = await fetch(url, { headers });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(
+      `Failed to fetch data: ${response.status} ${response.statusText}${
+        text ? `. ${text}` : ""
+      }${!useBrowser ? ". Try setting the 'useBrowser' option to true." : ""}`,
+    );
+  }
+
+  const data = await response.json();
 
   if (data.chart.result.length === 0) {
     throw new Error("No data found.");

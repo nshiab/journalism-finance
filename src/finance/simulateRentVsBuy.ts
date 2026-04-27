@@ -480,8 +480,8 @@ export default function simulateRentVsBuy(
   // a given province + year, used inside computeSale every month).
   // Use a large divisor (10000) to avoid toFixed(4) precision loss on rates
   // like Quebec's PST of 0.09975 — getSalesTax(1) would truncate it to 0.0998.
-  const salesTaxMultiplier =
-    getSalesTax(10000, province, 2025).totalTax / 10000;
+  const salesTaxMultiplier = getSalesTax(10000, province, 2025).totalTax /
+    10000;
 
   // Pre-allocate objects that are mutated each month to avoid per-iteration heap allocations.
   const currentPostedRates: Record<number, number> = {

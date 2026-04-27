@@ -6,7 +6,7 @@ import {
   stepGbm,
 } from "@nshiab/journalism-statistics";
 import randNormal from "./helpers/rentVsBuy/randNormal.ts";
-import { type City } from "./getLandTransferTax.ts";
+import type { City } from "./getLandTransferTax.ts";
 
 /** Flat-matrix result for transferable output. `data[key][row * cols + col]`. */
 export type ColumnarResult = {

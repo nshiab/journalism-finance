@@ -321,12 +321,15 @@ rrsp: 10000, capitalGains: 5000, quebec: { ramq: false } });
 Calculates the standard Land Transfer Tax (or equivalent registration fee) for a
 given city and property value based on 2026 tax frameworks.
 
-- **Rebate Limitations and Exclusions:** The `firstTimeOwner` parameter applies
-  structural, point-of-sale land transfer tax rebates assuming the buyer meets
-  all idealized programmatic criteria (e.g., absolute zero global ownership
-  history, Canadian citizenship/PR, and continuous provincial residency).
-- The following rebates and subsidies are INTENTIONALLY EXCLUDED from this
-  calculation:
+-
+  - **Rebate Limitations and Exclusions:** The `firstTimeOwner` parameter
+    applies structural, point-of-sale land transfer tax rebates assuming the
+    buyer meets all idealized programmatic criteria (e.g., absolute zero global
+    ownership history, Canadian citizenship/PR, and continuous provincial
+    residency).
+-
+  - The following rebates and subsidies are INTENTIONALLY EXCLUDED from this
+    calculation:
 
 * **Nova Scotia:** The First-Time Home Buyers Rebate is excluded because it is
   restricted exclusively to a refund on the provincial portion of the HST for
@@ -337,9 +340,12 @@ given city and property value based on 2026 tax frameworks.
   requiring specific household compositions (e.g., dependents under 18) or
   new-build environmental certifications, rather than structural tax base
   reductions.
-* **Manitoba:** Excluded because the "Home Buyers' Amount" is a $1,500 general
-  income tax credit claimed on annual tax returns, not an upfront point-of-sale
-  deduction from the provincial land transfer tax.
+* **Manitoba & Quebec (2026 Provincial):** Excluded because their respective
+  FTHB relief amounts are general income tax credits claimed on annual tax
+  returns in the spring/fall, not an upfront point-of-sale deduction from the
+  land transfer tax.
+
+- @param city - The metropolitan market.
 
 ### Signature
 
@@ -347,14 +353,15 @@ given city and property value based on 2026 tax frameworks.
 function getLandTransferTax(
   city: City,
   propertyValue: number,
+  year: 2026,
   firstTimeOwner?: boolean,
 ): number;
 ```
 
 ### Parameters
 
-- **`city`**: The metropolitan market.
 - **`propertyValue`**: The fair market value or purchase price of the property.
+- **`year`**: The tax year (currently only 2026 is supported).
 - **`firstTimeOwner`**: Indicates if the purchaser qualifies for strict FTHB
   exemptions.
 
@@ -587,9 +594,9 @@ async function getYahooFinanceData(
   for the period.
 - **`interval`**: The time interval for the data points. Can be one of: -
   `"1d"`: Daily data. - `"1h"`: Hourly data. - `"1m"`: Minute-by-minute data.
-- **`useBrowser`**: If true, the function will use Playwright to fetch the data.
-  This can be useful when facing rate limiting issues with the traditional
-  fetch.
+- **`useBrowser`**: If true, the function will use a browser-like User-Agent to
+  fetch the data. This can be useful when facing rate limiting issues with the
+  traditional fetch.
 
 ### Returns
 
@@ -993,20 +1000,7 @@ function simulateRentVsBuy(
     tfsaContributions: boolean;
     annualInvestmentFeeRate: number;
     couple: boolean;
-    province:
-      | "Alberta"
-      | "British Columbia"
-      | "Manitoba"
-      | "New Brunswick"
-      | "Newfoundland and Labrador"
-      | "Nova Scotia"
-      | "Northwest Territories"
-      | "Nunavut"
-      | "Ontario"
-      | "Prince Edward Island"
-      | "Quebec"
-      | "Saskatchewan"
-      | "Yukon";
+    city: City;
     renter: {
       startingMonthlyRent: number;
       securityDeposit: number;
@@ -1017,6 +1011,7 @@ function simulateRentVsBuy(
       purchasePrice: number;
       fixedRateAdjustment: number;
       variableRateAdjustment: number;
+      firstTimeOwner: boolean;
       purchaseFixedFees: number;
       startingAnnualMaintenanceCost: number;
       startingAnnualPropertyTax: number;
@@ -1079,6 +1074,7 @@ function simulateRentVsBuy(
         | "condoFees"
         | "downPayment"
         | "purchaseFixedFees"
+        | "landTransferTax"
         | "insurancePremium"
         | "tfsaFees"
         | "stocksFees";
@@ -1156,8 +1152,8 @@ function simulateRentVsBuy(
   couple doubling TFSA contribution room and splitting capital gains in 2.
   Assumes each per-month value in parameters.values.employmentIncome represents
   the per-partner income.
-- **`parameters.province`**: The province used to calculate sales tax on the
-  selling fixed fees and commission when selling the home.
+- **`parameters.city`**: The city where the home is located, used to calculate
+  land transfer tax and derive the province for sales and income taxes.
 - **`parameters.renter`**: Configuration for the renter scenario.
 - **`parameters.renter.startingMonthlyRent`**: The initial monthly rent payment.
 - **`parameters.renter.securityDeposit`**: The initial security deposit.
@@ -1170,8 +1166,11 @@ function simulateRentVsBuy(
   posted fixed mortgage rate (added to the posted rate).
 - **`parameters.buyer.variableRateAdjustment`**: The adjustment applied to the
   variable mortgage rate (added to the posted rate).
+- **`parameters.buyer.firstTimeOwner`**: Whether the buyer is a first-time
+  owner, used to calculate land transfer tax rebates.
 - **`parameters.buyer.purchaseFixedFees`**: Fixed fees associated with the
-  purchase (e.g., notary, land transfer tax).
+  purchase (e.g., notary). Do not include land transfer tax here, as it is
+  calculated automatically based on the city.
 - **`parameters.buyer.startingAnnualMaintenanceCost`**: The initial annual
   maintenance cost.
 - **`parameters.buyer.startingAnnualPropertyTax`**: The initial annual property
@@ -1303,7 +1302,7 @@ const results = simulateRentVsBuy({
   tfsaContributions: true,
   annualInvestmentFeeRate: 0,
   couple: false,
-  province: "Ontario",
+  city: "Toronto",
   renter: {
     startingMonthlyRent: 2000,
     securityDeposit: 2000,
@@ -1314,7 +1313,8 @@ const results = simulateRentVsBuy({
     purchasePrice: 500000,
     fixedRateAdjustment: -0.015,
     variableRateAdjustment: -0.005,
-    purchaseFixedFees: 5000,
+    firstTimeOwner: true,
+    purchaseFixedFees: 2000,
     startingAnnualMaintenanceCost: 2000,
     startingAnnualPropertyTax: 3000,
     startingMonthlyCondoFees: 300,
@@ -1378,8 +1378,8 @@ function simulateRentVsBuyMonteCarlo(
   couple doubling TFSA contribution room and splitting capital gains in 2.
   Assumes the stochastic employmentIncome parameter represents the per-partner
   income.
-- **`parameters.province`**: The Canadian province or territory, used for
-  calculating sales taxes.
+- **`parameters.city`**: The city where the home is located, used to calculate
+  land transfer tax and derive the province for sales and income taxes.
 - **`parameters.renter`**: Configuration for the renter scenario.
 - **`parameters.renter.securityDeposit`**: The initial security deposit or last
   month's rent (scenario-dependent).
@@ -1390,8 +1390,11 @@ function simulateRentVsBuyMonteCarlo(
   posted fixed mortgage rate (added to the posted rate).
 - **`parameters.buyer.variableRateAdjustment`**: The adjustment applied to the
   variable mortgage rate (added to the posted rate).
+- **`parameters.buyer.firstTimeOwner`**: Whether the buyer is a first-time
+  owner, used to calculate land transfer tax rebates.
 - **`parameters.buyer.purchaseFixedFees`**: One-time costs at purchase (notary,
-  land transfer tax, etc.).
+  etc.). Do not include land transfer tax here, as it is calculated
+  automatically based on the city.
 - **`parameters.buyer.sellingCommissionRate`**: The commission rate paid to real
   estate agents upon sale (e.g., `0.05` for 5%).
 - **`parameters.buyer.floorRate`**: The minimum interest rate (posted +
@@ -1513,7 +1516,7 @@ const results = simulateRentVsBuyMonteCarlo({
   tfsaContributions: true,
   annualInvestmentFeeRate: 0.0025,
   couple: false,
-  province: "Ontario",
+  city: "Toronto",
   renter: {
     securityDeposit: 1500,
   },
@@ -1521,7 +1524,8 @@ const results = simulateRentVsBuyMonteCarlo({
     downPayment: 50000,
     fixedRateAdjustment: -0.015,
     variableRateAdjustment: -0.005,
-    purchaseFixedFees: 5000,
+    firstTimeOwner: true,
+    purchaseFixedFees: 2000,
     sellingCommissionRate: 0.05,
     floorRate: 0.01,
   },

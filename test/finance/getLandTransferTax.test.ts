@@ -81,13 +81,22 @@ Deno.test("Land Transfer Tax Calculator", async (t) => {
       assertEquals(getLandTransferTax("Quebec", 500000, 2026), 5610.5);
     });
 
-    await st.step("Ignores FTHB boolean (not a point-of-sale deduction)", () => {
-      const taxMontreal = getLandTransferTax("Montreal", 500000, 2026);
-      assertEquals(getLandTransferTax("Montreal", 500000, 2026, true), taxMontreal);
+    await st.step(
+      "Ignores FTHB boolean (not a point-of-sale deduction)",
+      () => {
+        const taxMontreal = getLandTransferTax("Montreal", 500000, 2026);
+        assertEquals(
+          getLandTransferTax("Montreal", 500000, 2026, true),
+          taxMontreal,
+        );
 
-      const taxQuebec = getLandTransferTax("Quebec", 500000, 2026);
-      assertEquals(getLandTransferTax("Quebec", 500000, 2026, true), taxQuebec);
-    });
+        const taxQuebec = getLandTransferTax("Quebec", 500000, 2026);
+        assertEquals(
+          getLandTransferTax("Quebec", 500000, 2026, true),
+          taxQuebec,
+        );
+      },
+    );
 
     await st.step("Calculates higher bracket divergence ($1M)", () => {
       // Montreal: 62.9k*0.005 + 252.1k*0.01 + 237.3k*0.015 + 447.7k*0.02 = 15349
@@ -116,10 +125,13 @@ Deno.test("Land Transfer Tax Calculator", async (t) => {
       assertEquals(getLandTransferTax("Edmonton", 400000, 2026), 450);
     });
 
-    await st.step("Handles 'portion thereof' rounding (above $5k boundary)", () => {
-      // 50 + ceil(400001 / 5000) * 5 = 50 + 81 * 5 = 455
-      assertEquals(getLandTransferTax("Calgary", 400001, 2026), 455);
-    });
+    await st.step(
+      "Handles 'portion thereof' rounding (above $5k boundary)",
+      () => {
+        // 50 + ceil(400001 / 5000) * 5 = 50 + 81 * 5 = 455
+        assertEquals(getLandTransferTax("Calgary", 400001, 2026), 455);
+      },
+    );
   });
 
   await t.step("Saskatchewan (Saskatoon / Regina)", async (st) => {
@@ -158,7 +170,10 @@ Deno.test("Land Transfer Tax Calculator", async (t) => {
 
     await st.step("Applies 50% FTHB discount", () => {
       // 1698 * 0.5 = 849
-      assertEquals(getLandTransferTax("Saint John's (NL)", 400000, 2026, true), 849);
+      assertEquals(
+        getLandTransferTax("Saint John's (NL)", 400000, 2026, true),
+        849,
+      );
     });
   });
 

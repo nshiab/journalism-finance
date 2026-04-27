@@ -1,4 +1,4 @@
-import { type Province } from "./getSalesTax.ts";
+import type { Province } from "./getSalesTax.ts";
 
 /**
  * Valid Canadian metropolitan markets for Land Transfer Tax calculations.
