@@ -14,6 +14,7 @@ export type Persona = {
     monthlyCondoFees: number;
     sellingFixedFees: number;
     sellingCommissionRate: number;
+    landTransferTax: number;
     insurancePremium: number;
     floorRate: number;
   };
@@ -28,6 +29,7 @@ export type Persona = {
     condoFees: number;
     downPayment: number;
     purchaseFixedFees: number;
+    landTransferTax: number;
     insurancePremium: number;
     tfsaFees: number;
     stocksFees: number;
@@ -43,6 +45,7 @@ export type Persona = {
     condoFees: number;
     downPayment: number;
     purchaseFixedFees: number;
+    landTransferTax: number;
     insurancePremium: number;
     tfsaFees: number;
     stocksFees: number;

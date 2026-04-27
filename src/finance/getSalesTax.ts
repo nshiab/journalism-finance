@@ -1,4 +1,4 @@
-type Province =
+export type Province =
   | "Alberta"
   | "British Columbia"
   | "Manitoba"

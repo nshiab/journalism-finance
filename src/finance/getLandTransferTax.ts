@@ -1,3 +1,5 @@
+import { type Province } from "./getSalesTax.ts";
+
 /**
  * Valid Canadian metropolitan markets for Land Transfer Tax calculations.
  */
@@ -24,6 +26,38 @@ export type City =
   | "Moncton"
   | "Saint John (NB)"
   | "Saint John's (NL)";
+
+const CITY_TO_PROVINCE: Record<City, Province> = {
+  Toronto: "Ontario",
+  Montreal: "Quebec",
+  Calgary: "Alberta",
+  Ottawa: "Ontario",
+  Edmonton: "Alberta",
+  Winnipeg: "Manitoba",
+  Vancouver: "British Columbia",
+  Hamilton: "Ontario",
+  Quebec: "Quebec",
+  Halifax: "Nova Scotia",
+  London: "Ontario",
+  Saskatoon: "Saskatchewan",
+  "Kitchener-Waterloo": "Ontario",
+  Regina: "Saskatchewan",
+  Victoria: "British Columbia",
+  Barrie: "Ontario",
+  Guelph: "Ontario",
+  Kingston: "Ontario",
+  Fredericton: "New Brunswick",
+  Moncton: "New Brunswick",
+  "Saint John (NB)": "New Brunswick",
+  "Saint John's (NL)": "Newfoundland and Labrador",
+};
+
+/**
+ * Returns the province associated with a given city.
+ */
+export function getProvinceFromCity(city: City): Province {
+  return CITY_TO_PROVINCE[city];
+}
 
 interface TaxBracket {
   limit: number;
@@ -53,11 +87,11 @@ function calculateMarginalTax(value: number, brackets: TaxBracket[]): number {
 /**
  * Calculates the standard Land Transfer Tax (or equivalent registration fee)
  * for a given city and property value based on 2026 tax frameworks.
- * * **Rebate Limitations and Exclusions:**
+ * * * **Rebate Limitations and Exclusions:**
  * The `firstTimeOwner` parameter applies structural, point-of-sale land transfer tax
  * rebates assuming the buyer meets all idealized programmatic criteria (e.g., absolute
  * zero global ownership history, Canadian citizenship/PR, and continuous provincial residency).
- * * The following rebates and subsidies are INTENTIONALLY EXCLUDED from this calculation:
+ * * * The following rebates and subsidies are INTENTIONALLY EXCLUDED from this calculation:
  * - **Nova Scotia:** The First-Time Home Buyers Rebate is excluded because it is restricted
  * exclusively to a refund on the provincial portion of the HST for *newly built* properties,
  * not the 1.5% municipal Deed Transfer Tax calculated here.
@@ -65,19 +99,25 @@ function calculateMarginalTax(value: number, brackets: TaxBracket[]): number {
  * as localized financial grants or down payment assistance loans requiring specific household
  * compositions (e.g., dependents under 18) or new-build environmental certifications, rather
  * than structural tax base reductions.
- * - **Manitoba:** Excluded because the "Home Buyers' Amount" is a $1,500 general income tax
- * credit claimed on annual tax returns, not an upfront point-of-sale deduction from the
- * provincial land transfer tax.
- * @param city - The metropolitan market.
+ * - **Manitoba & Quebec (2026 Provincial):** Excluded because their respective FTHB relief
+ * amounts are general income tax credits claimed on annual tax returns in the spring/fall,
+ * not an upfront point-of-sale deduction from the land transfer tax.
+ * * @param city - The metropolitan market.
  * @param propertyValue - The fair market value or purchase price of the property.
+ * @param year - The tax year (currently only 2026 is supported).
  * @param firstTimeOwner - Indicates if the purchaser qualifies for strict FTHB exemptions.
  * @returns The total calculated transaction friction cost in Canadian Dollars.
  */
 export default function getLandTransferTax(
   city: City,
   propertyValue: number,
+  year: 2026,
   firstTimeOwner: boolean = false,
 ): number {
+  if (year !== 2026) {
+    throw new Error(`Land transfer tax rates not found for year ${year}`);
+  }
+
   // 1. Ontario Provincial Brackets
   // Tax Source: https://www.ontario.ca/document/land-transfer-tax/calculating-land-transfer-tax
   const ontarioProvincialBrackets: TaxBracket[] = [
@@ -159,7 +199,8 @@ export default function getLandTransferTax(
     if (firstTimeOwner) {
       // FTHB Source: https://www2.gov.bc.ca/gov/content/taxes/property-taxes/property-transfer-tax/exemptions/first-time-home-buyers
       if (propertyValue <= 835000) {
-        tax = 0;
+        // Exemption covers the tax on the first $500k, which equates to exactly $8,000.
+        tax = Math.max(0, tax - 8000);
       } else if (propertyValue < 860000) {
         // Partial linear phase-out over $25,000 span starting with an $8,000 baseline
         const exemption = 8000 * ((860000 - propertyValue) / 25000);
@@ -198,21 +239,9 @@ export default function getLandTransferTax(
       tax = calculateMarginalTax(propertyValue, quebecCityBrackets);
     }
 
-    if (firstTimeOwner) {
-      // 2026 Provincial FTHB Source: https://www.cbc.ca/news/canada/montreal/quebec-welcome-tax-homebuyers-1.7168671
-      // Covers first $5,000, plus 25% of remainder up to an additional $875
-      let baseRebate = Math.min(tax, 5000) +
-        Math.min(Math.max(0, tax - 5000) * 0.25, 875);
-
-      // Phase-out between $750,000 and $1,000,000
-      if (propertyValue >= 1000000) {
-        baseRebate = 0;
-      } else if (propertyValue > 750000) {
-        baseRebate *= (1000000 - propertyValue) / 250000;
-      }
-
-      tax = Math.max(0, tax - baseRebate);
-    }
+    // Note: The 2026 Provincial FTHB rebate operates as an income tax credit
+    // filed at year-end, not a point-of-sale reduction. Therefore, it is
+    // intentionally excluded from this upfront cash-to-close calculation.
     return tax;
   }
 
@@ -234,7 +263,8 @@ export default function getLandTransferTax(
   // Tax Source: https://www.alberta.ca/register-land-title-document-plan
   // No FTHB rebate available for administrative levies.
   if (city === "Calgary" || city === "Edmonton") {
-    return 50 + (propertyValue * 0.001);
+    // $50 base fee + $5 for every $5,000 of value (or portion thereof).
+    return 50 + (Math.ceil(propertyValue / 5000) * 5);
   }
 
   // 8. Saskatchewan (Saskatoon, Regina)
@@ -265,7 +295,11 @@ export default function getLandTransferTax(
   // 11. Newfoundland and Labrador (Saint John's (NL))
   // Tax Source: https://www.gov.nl.ca/gs/registries/deeds/deed-reg/
   if (city === "Saint John's (NL)") {
-    let fee = 100 + (propertyValue * 0.004);
+    let fee = 100;
+    if (propertyValue > 500) {
+      // Fee is $100 for the first $500, plus $0.40 per $100 thereafter.
+      fee += Math.ceil((propertyValue - 500) / 100) * 0.4;
+    }
     if (firstTimeOwner) {
       // FTHB Source: https://www.nlhc.nl.ca/housing-programs/first-time-homebuyers-program-fhp/
       // Program covers 50% of legal/registration closing costs

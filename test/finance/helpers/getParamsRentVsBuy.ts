@@ -1,13 +1,16 @@
 import { round } from "@nshiab/journalism-format";
 import adjustToInflation from "../../../src/finance/adjustToInflation.ts";
 import allRates from "../../data/allRates.json" with { type: "json" };
+import {
+  type City,
+  getProvinceFromCity,
+} from "../../../src/finance/getLandTransferTax.ts";
 
 /**
  * Helper function to get the parameters for the simulateRentVsBuy function.
  */
 export default function getParamsRentVsBuy(
-  city: string,
-  province: string,
+  city: City,
   percentages: {
     downPayment: number;
     purchaseFixedFees: number;
@@ -26,6 +29,7 @@ export default function getParamsRentVsBuy(
   tfsaContributions: boolean;
   annualInvestmentFeeRate: number;
   couple: boolean;
+  city: City;
   renter: {
     startingMonthlyRent: number;
     endingMonthlyRent: number;
@@ -39,6 +43,7 @@ export default function getParamsRentVsBuy(
     purchaseFixedFees: number;
     fixedRateAdjustment: number;
     variableRateAdjustment: number;
+    firstTimeOwner: boolean;
     startingAnnualMaintenanceCost: number;
     endingAnnualMaintenanceCost: number;
     startingMonthlyCondoFees: number;
@@ -54,21 +59,7 @@ export default function getParamsRentVsBuy(
  * Helper function to get the parameters for the simulateRentVsBuy function.
  */
 export default function getParamsRentVsBuy(
-  city: string,
-  province:
-    | "Alberta"
-    | "British Columbia"
-    | "Manitoba"
-    | "New Brunswick"
-    | "Newfoundland and Labrador"
-    | "Nova Scotia"
-    | "Northwest Territories"
-    | "Nunavut"
-    | "Ontario"
-    | "Prince Edward Island"
-    | "Quebec"
-    | "Saskatchewan"
-    | "Yukon",
+  city: City,
   percentages: {
     downPayment: number;
     purchaseFixedFees: number;
@@ -87,20 +78,7 @@ export default function getParamsRentVsBuy(
   tfsaContributions: boolean;
   annualInvestmentFeeRate: number;
   couple: boolean;
-  province:
-    | "Alberta"
-    | "British Columbia"
-    | "Manitoba"
-    | "New Brunswick"
-    | "Newfoundland and Labrador"
-    | "Nova Scotia"
-    | "Northwest Territories"
-    | "Nunavut"
-    | "Ontario"
-    | "Prince Edward Island"
-    | "Quebec"
-    | "Saskatchewan"
-    | "Yukon";
+  city: City;
   renter: {
     startingMonthlyRent: number;
     endingMonthlyRent: number;
@@ -114,6 +92,7 @@ export default function getParamsRentVsBuy(
     purchaseFixedFees: number;
     fixedRateAdjustment: number;
     variableRateAdjustment: number;
+    firstTimeOwner: boolean;
     startingAnnualMaintenanceCost: number;
     endingAnnualMaintenanceCost: number;
     startingMonthlyCondoFees: number;
@@ -147,8 +126,7 @@ export default function getParamsRentVsBuy(
   allRatesFiltered: any[];
 };
 export default function getParamsRentVsBuy(
-  city: string,
-  province: string,
+  city: City,
   percentages: {
     downPayment: number;
     purchaseFixedFees: number;
@@ -163,6 +141,7 @@ export default function getParamsRentVsBuy(
   noRates?: boolean,
 ) {
   // console.log("\ncity:", city);
+  const province = getProvinceFromCity(city);
 
   // Shared variables
   const numberOfYears = 25;
@@ -265,13 +244,13 @@ export default function getParamsRentVsBuy(
     taxRate = 0.02728200;
   } else if (city === "Hamilton") {
     taxRate = 0.01424000;
-  } else if (city === "Quebec city") {
+  } else if (city === "Quebec") {
     taxRate = 0.00998720;
   } else if (city === "London") {
     taxRate = 0.01573126;
   } else if (city === "Saskatoon") {
     taxRate = 0.01339512;
-  } else if (city === "Kitchener_waterloo") {
+  } else if (city === "Kitchener-Waterloo") {
     taxRate = 0.01272828;
   } else if (city === "Regina") {
     taxRate = 0.01485783;
@@ -287,9 +266,9 @@ export default function getParamsRentVsBuy(
     taxRate = 0.01328600;
   } else if (city === "Moncton") {
     taxRate = 0.01423100;
-  } else if (city === "Saint_john_nb") {
+  } else if (city === "Saint John (NB)") {
     taxRate = 0.01580000;
-  } else if (city === "St_johns_nl") {
+  } else if (city === "Saint John's (NL)") {
     taxRate = 0.00910000;
   }
 
@@ -392,7 +371,7 @@ export default function getParamsRentVsBuy(
     tfsaContributions: true,
     annualInvestmentFeeRate: 0.0025,
     couple,
-    province,
+    city,
     renter: {
       startingMonthlyRent,
       endingMonthlyRent,
@@ -408,6 +387,7 @@ export default function getParamsRentVsBuy(
       ),
       fixedRateAdjustment: -0.0191,
       variableRateAdjustment: -0.0035,
+      firstTimeOwner: false,
       startingAnnualMaintenanceCost,
       endingAnnualMaintenanceCost,
       startingMonthlyCondoFees,

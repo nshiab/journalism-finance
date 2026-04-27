@@ -5,27 +5,17 @@ import {
 } from "@nshiab/journalism-statistics";
 import getParamsRentVsBuy from "./getParamsRentVsBuy.ts";
 import getRentVsBuyCholeskyMatrix from "../../../src/finance/helpers/rentVsBuy/getRentVsBuyCholeskyMatrix.ts";
+import {
+  type City,
+  getProvinceFromCity,
+} from "../../../src/finance/getLandTransferTax.ts";
 
 /**
  * Helper function to get the parameters for the simulateRentVsBuyMonteCarlo function.
  */
 export default function getParamsRentVsBuyMonteCarlo(
   iterations: number,
-  city: string,
-  province:
-    | "Alberta"
-    | "British Columbia"
-    | "Manitoba"
-    | "New Brunswick"
-    | "Newfoundland and Labrador"
-    | "Nova Scotia"
-    | "Northwest Territories"
-    | "Nunavut"
-    | "Ontario"
-    | "Prince Edward Island"
-    | "Quebec"
-    | "Saskatchewan"
-    | "Yukon",
+  city: City,
   percentages: {
     downPayment: number;
     purchaseFixedFees: number;
@@ -44,20 +34,7 @@ export default function getParamsRentVsBuyMonteCarlo(
   tfsaContributions: boolean;
   annualInvestmentFeeRate: number;
   couple: boolean;
-  province:
-    | "Alberta"
-    | "British Columbia"
-    | "Manitoba"
-    | "New Brunswick"
-    | "Newfoundland and Labrador"
-    | "Nova Scotia"
-    | "Northwest Territories"
-    | "Nunavut"
-    | "Ontario"
-    | "Prince Edward Island"
-    | "Quebec"
-    | "Saskatchewan"
-    | "Yukon";
+  city: City;
   renter: {
     securityDeposit: number;
   };
@@ -66,6 +43,8 @@ export default function getParamsRentVsBuyMonteCarlo(
     purchaseFixedFees: number;
     fixedRateAdjustment: number;
     variableRateAdjustment: number;
+    city: City;
+    firstTimeOwner: boolean;
     sellingCommissionRate: number;
     floorRate: number;
   };
@@ -170,9 +149,10 @@ export default function getParamsRentVsBuyMonteCarlo(
 } {
   console.log("\ncity:", city);
 
+  const province = getProvinceFromCity(city);
+
   const params = getParamsRentVsBuy(
     city,
-    province,
     percentages,
     endingValues,
     couple,
@@ -300,7 +280,7 @@ export default function getParamsRentVsBuyMonteCarlo(
     tfsaContributions: params.tfsaContributions,
     annualInvestmentFeeRate: params.annualInvestmentFeeRate,
     couple: params.couple,
-    province,
+    city,
     renter: {
       securityDeposit: params.renter.securityDeposit,
     },
@@ -313,6 +293,8 @@ export default function getParamsRentVsBuyMonteCarlo(
       ),
       fixedRateAdjustment: params.buyer.fixedRateAdjustment,
       variableRateAdjustment: params.buyer.variableRateAdjustment,
+      city: city as City,
+      firstTimeOwner: true,
       sellingCommissionRate: params.buyer.sellingCommissionRate,
       floorRate: params.buyer.floorRate,
     },

@@ -12,6 +12,7 @@ const MONTHLY_EXPENSES_KEYS = [
   "condoFees",
   "downPayment",
   "purchaseFixedFees",
+  "landTransferTax",
   "insurancePremium",
   "tfsaFees",
   "stocksFees",
@@ -27,6 +28,7 @@ const CUMULATIVE_EXPENSES_KEYS = [
   "condoFees",
   "downPayment",
   "purchaseFixedFees",
+  "landTransferTax",
   "insurancePremium",
   "tfsaFees",
   "stocksFees",
@@ -82,6 +84,7 @@ function computeTotals(persona: Persona) {
       persona.monthlyExpenses.condoFees +
       persona.monthlyExpenses.downPayment +
       persona.monthlyExpenses.purchaseFixedFees +
+      persona.monthlyExpenses.landTransferTax +
       persona.monthlyExpenses.insurancePremium +
       persona.monthlyExpenses.tfsaFees +
       persona.monthlyExpenses.stocksFees,
@@ -97,6 +100,7 @@ function computeTotals(persona: Persona) {
       persona.cumulativeExpenses.condoFees +
       persona.cumulativeExpenses.downPayment +
       persona.cumulativeExpenses.purchaseFixedFees +
+      persona.cumulativeExpenses.landTransferTax +
       persona.cumulativeExpenses.insurancePremium +
       persona.cumulativeExpenses.tfsaFees +
       persona.cumulativeExpenses.stocksFees,
@@ -168,6 +172,7 @@ export default function toResults(
           | "condoFees"
           | "downPayment"
           | "purchaseFixedFees"
+          | "landTransferTax"
           | "insurancePremium"
           | "tfsaFees"
           | "stocksFees";

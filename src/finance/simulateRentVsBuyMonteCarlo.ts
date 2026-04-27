@@ -6,6 +6,7 @@ import {
   stepGbm,
 } from "@nshiab/journalism-statistics";
 import randNormal from "./helpers/rentVsBuy/randNormal.ts";
+import { type City } from "./getLandTransferTax.ts";
 
 /** Flat-matrix result for transferable output. `data[key][row * cols + col]`. */
 export type ColumnarResult = {
@@ -40,6 +41,7 @@ export type MqVariable =
   | "condoFees"
   | "downPayment"
   | "purchaseFixedFees"
+  | "landTransferTax"
   | "insurancePremium"
   | "tfsaFees"
   | "stocksFees"
@@ -116,25 +118,13 @@ export type SimParams = {
   tfsaContributions: boolean;
   annualInvestmentFeeRate: number;
   couple: boolean;
-  province:
-    | "Alberta"
-    | "British Columbia"
-    | "Manitoba"
-    | "New Brunswick"
-    | "Newfoundland and Labrador"
-    | "Nova Scotia"
-    | "Northwest Territories"
-    | "Nunavut"
-    | "Ontario"
-    | "Prince Edward Island"
-    | "Quebec"
-    | "Saskatchewan"
-    | "Yukon";
+  city: City;
   renter: { securityDeposit: number };
   buyer: {
     downPayment: number;
     fixedRateAdjustment: number;
     variableRateAdjustment: number;
+    firstTimeOwner: boolean;
     purchaseFixedFees: number;
     sellingCommissionRate: number;
     floorRate: number;
@@ -234,14 +224,15 @@ export type BaseOptions = {
  * @param parameters.tfsaContributions - Whether to prioritize TFSA contributions for investments (tax-free gains).
  * @param parameters.annualInvestmentFeeRate - Annual investment fee rate (e.g. ETF MER or platform/advisor fee) expressed as a decimal (e.g. `0.0025` for 0.25%). Applied monthly to TFSA and stock portfolio balances using a multiplicative model — the fee is charged on the grown balance. The monthly dollar cost is also tracked as `tfsaFees` and `stocksFees` under `monthlyExpenses` and `cumulativeExpenses` in the output.
  * @param parameters.couple - Whether to simulate investments and taxes for a couple doubling TFSA contribution room and splitting capital gains in 2. Assumes the stochastic employmentIncome parameter represents the per-partner income.
- * @param parameters.province - The Canadian province or territory, used for calculating sales taxes.
+ * @param parameters.city - The city where the home is located, used to calculate land transfer tax and derive the province for sales and income taxes.
  * @param parameters.renter - Configuration for the renter scenario.
  *   @param parameters.renter.securityDeposit - The initial security deposit or last month's rent (scenario-dependent).
  * @param parameters.buyer - Configuration for the buyer scenarios.
  *   @param parameters.buyer.downPayment - The total down payment amount paid at the start.
  *   @param parameters.buyer.fixedRateAdjustment - The adjustment applied to the posted fixed mortgage rate (added to the posted rate).
  *   @param parameters.buyer.variableRateAdjustment - The adjustment applied to the variable mortgage rate (added to the posted rate).
- *   @param parameters.buyer.purchaseFixedFees - One-time costs at purchase (notary, land transfer tax, etc.).
+ *   @param parameters.buyer.firstTimeOwner - Whether the buyer is a first-time owner, used to calculate land transfer tax rebates.
+ *   @param parameters.buyer.purchaseFixedFees - One-time costs at purchase (notary, etc.). Do not include land transfer tax here, as it is calculated automatically based on the city.
  *   @param parameters.buyer.sellingCommissionRate - The commission rate paid to real estate agents upon sale (e.g., `0.05` for 5%).
  *   @param parameters.buyer.floorRate - The minimum interest rate (posted + adjustment) for mortgages.
  * @param parameters.choleskyMatrix - Mandatory Cholesky decomposition matrix for the 16 stochastic variables. Must be pre-computed using `getRentVsBuyCholeskyMatrix` from this library.
@@ -307,7 +298,7 @@ export type BaseOptions = {
  *   tfsaContributions: true,
  *   annualInvestmentFeeRate: 0.0025,
  *   couple: false,
- *   province: "Ontario",
+ *   city: "Toronto",
  *   renter: {
  *     securityDeposit: 1500,
  *   },
@@ -315,7 +306,8 @@ export type BaseOptions = {
  *     downPayment: 50000,
  *     fixedRateAdjustment: -0.015,
  *     variableRateAdjustment: -0.005,
- *     purchaseFixedFees: 5000,
+ *     firstTimeOwner: true,
+ *     purchaseFixedFees: 2000,
  *     sellingCommissionRate: 0.05,
  *     floorRate: 0.01,
  *   },
@@ -612,7 +604,7 @@ function simulateRentVsBuyMonteCarlo(
       numberOfYears: parameters.numberOfYears,
       tfsaContributions: parameters.tfsaContributions,
       couple: parameters.couple,
-      province: parameters.province,
+      city: parameters.city,
       renter: {
         startingMonthlyRent: parameters.stochasticParameters.rent.initialValue,
         securityDeposit: parameters.renter.securityDeposit,
@@ -625,6 +617,7 @@ function simulateRentVsBuyMonteCarlo(
           parameters.stochasticParameters.appreciation.initialValue,
         fixedRateAdjustment: parameters.buyer.fixedRateAdjustment,
         variableRateAdjustment: parameters.buyer.variableRateAdjustment,
+        firstTimeOwner: parameters.buyer.firstTimeOwner,
         purchaseFixedFees: parameters.buyer.purchaseFixedFees,
         startingAnnualMaintenanceCost:
           parameters.stochasticParameters.maintenance.initialValue,

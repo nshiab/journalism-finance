@@ -8,6 +8,10 @@ import precomputeMortgagePayments from "./helpers/rentVsBuy/precomputeMortgagePa
 import toResults from "./helpers/rentVsBuy/toResults.ts";
 import mortgageInsurancePremium from "./mortgageInsurancePremium.ts";
 import getSalesTax from "./getSalesTax.ts";
+import getLandTransferTax, {
+  type City,
+  getProvinceFromCity,
+} from "./getLandTransferTax.ts";
 
 /**
  * Simulates and compares the financial outcomes of renting versus buying a home over a specified number of years.
@@ -30,7 +34,7 @@ import getSalesTax from "./getSalesTax.ts";
  * @param parameters.tfsaContributions - Whether to prioritize TFSA contributions for investments (tax-free gains).
  * @param parameters.annualInvestmentFeeRate - Annual investment fee rate (e.g. ETF MER or platform/advisor fee) expressed as a decimal (e.g. `0.0025` for 0.25%). Applied monthly to TFSA and stock portfolio balances using a multiplicative model — the fee is charged on the grown balance. The monthly dollar cost is also tracked as `tfsaFees` and `stocksFees` under `monthlyExpenses` and `cumulativeExpenses` in the output.
  * @param parameters.couple - Whether to simulate investments and taxes for a couple doubling TFSA contribution room and splitting capital gains in 2. Assumes each per-month value in parameters.values.employmentIncome represents the per-partner income.
- * @param parameters.province - The province used to calculate sales tax on the selling fixed fees and commission when selling the home.
+ * @param parameters.city - The city where the home is located, used to calculate land transfer tax and derive the province for sales and income taxes.
  * @param parameters.renter - Configuration for the renter scenario.
  *   @param parameters.renter.startingMonthlyRent - The initial monthly rent payment.
  *   @param parameters.renter.securityDeposit - The initial security deposit.
@@ -40,7 +44,8 @@ import getSalesTax from "./getSalesTax.ts";
  *   @param parameters.buyer.purchasePrice - The purchase price of the home.
  *   @param parameters.buyer.fixedRateAdjustment - The adjustment applied to the posted fixed mortgage rate (added to the posted rate).
  *   @param parameters.buyer.variableRateAdjustment - The adjustment applied to the variable mortgage rate (added to the posted rate).
- *   @param parameters.buyer.purchaseFixedFees - Fixed fees associated with the purchase (e.g., notary, land transfer tax).
+ *   @param parameters.buyer.firstTimeOwner - Whether the buyer is a first-time owner, used to calculate land transfer tax rebates.
+ *   @param parameters.buyer.purchaseFixedFees - Fixed fees associated with the purchase (e.g., notary). Do not include land transfer tax here, as it is calculated automatically based on the city.
  *   @param parameters.buyer.startingAnnualMaintenanceCost - The initial annual maintenance cost.
  *   @param parameters.buyer.startingAnnualPropertyTax - The initial annual property tax.
  *   @param parameters.buyer.startingMonthlyCondoFees - The initial monthly condo fees.
@@ -121,7 +126,7 @@ import getSalesTax from "./getSalesTax.ts";
  *   tfsaContributions: true,
  *   annualInvestmentFeeRate: 0,
  *   couple: false,
- *   province: "Ontario",
+ *   city: "Toronto",
  *   renter: {
  *     startingMonthlyRent: 2000,
  *     securityDeposit: 2000,
@@ -132,7 +137,8 @@ import getSalesTax from "./getSalesTax.ts";
  *     purchasePrice: 500000,
  *     fixedRateAdjustment: -0.015,
  *     variableRateAdjustment: -0.005,
- *     purchaseFixedFees: 5000,
+ *     firstTimeOwner: true,
+ *     purchaseFixedFees: 2000,
  *     startingAnnualMaintenanceCost: 2000,
  *     startingAnnualPropertyTax: 3000,
  *     startingMonthlyCondoFees: 300,
@@ -153,20 +159,7 @@ export default function simulateRentVsBuy(
     tfsaContributions: boolean;
     annualInvestmentFeeRate: number;
     couple: boolean;
-    province:
-      | "Alberta"
-      | "British Columbia"
-      | "Manitoba"
-      | "New Brunswick"
-      | "Newfoundland and Labrador"
-      | "Nova Scotia"
-      | "Northwest Territories"
-      | "Nunavut"
-      | "Ontario"
-      | "Prince Edward Island"
-      | "Quebec"
-      | "Saskatchewan"
-      | "Yukon";
+    city: City;
     renter: {
       startingMonthlyRent: number;
       securityDeposit: number;
@@ -177,6 +170,7 @@ export default function simulateRentVsBuy(
       purchasePrice: number;
       fixedRateAdjustment: number;
       variableRateAdjustment: number;
+      firstTimeOwner: boolean;
       purchaseFixedFees: number;
       startingAnnualMaintenanceCost: number;
       startingAnnualPropertyTax: number;
@@ -239,6 +233,7 @@ export default function simulateRentVsBuy(
         | "condoFees"
         | "downPayment"
         | "purchaseFixedFees"
+        | "landTransferTax"
         | "insurancePremium"
         | "tfsaFees"
         | "stocksFees";
@@ -394,6 +389,8 @@ export default function simulateRentVsBuy(
     );
   }
 
+  const province = getProvinceFromCity(parameters.city);
+
   // We keep track of amounts in structured objects
   const renter = getPersona({
     startingMonthlyRent: parameters.renter.startingMonthlyRent,
@@ -406,6 +403,7 @@ export default function simulateRentVsBuy(
     fixedRateAdjustment: 0,
     variableRateAdjustment: 0,
     purchaseFixedFees: 0,
+    landTransferTax: 0,
     startingAnnualMaintenanceCost: 0,
     startingAnnualPropertyTax: 0,
     startingMonthlyCondoFees: 0,
@@ -417,6 +415,12 @@ export default function simulateRentVsBuy(
     parameters.buyer.purchasePrice,
     parameters.buyer.downPayment,
   );
+  const landTransferTax = getLandTransferTax(
+    parameters.city,
+    parameters.buyer.purchasePrice,
+    2026,
+    parameters.buyer.firstTimeOwner,
+  );
   const buyerFixed = getPersona({
     startingMonthlyRent: 0,
     securityDeposit: 0,
@@ -424,6 +428,7 @@ export default function simulateRentVsBuy(
     downPayment: parameters.buyer.downPayment,
     purchasePrice: parameters.buyer.purchasePrice,
     insurancePremium,
+    landTransferTax,
     homeValue: parameters.buyer.purchasePrice,
     fixedRateAdjustment: parameters.buyer.fixedRateAdjustment,
     variableRateAdjustment: 0, // No variable rate adjustment for fixed mortgage
@@ -444,6 +449,7 @@ export default function simulateRentVsBuy(
     purchasePrice: parameters.buyer.purchasePrice,
     homeValue: parameters.buyer.purchasePrice,
     insurancePremium,
+    landTransferTax,
     fixedRateAdjustment: 0, // No fixed rate adjustment for variable mortgage
     variableRateAdjustment: parameters.buyer.variableRateAdjustment,
     purchaseFixedFees: parameters.buyer.purchaseFixedFees,
@@ -475,7 +481,7 @@ export default function simulateRentVsBuy(
   // Use a large divisor (10000) to avoid toFixed(4) precision loss on rates
   // like Quebec's PST of 0.09975 — getSalesTax(1) would truncate it to 0.0998.
   const salesTaxMultiplier =
-    getSalesTax(10000, parameters.province, 2025).totalTax / 10000;
+    getSalesTax(10000, province, 2025).totalTax / 10000;
 
   // Pre-allocate objects that are mutated each month to avoid per-iteration heap allocations.
   const currentPostedRates: Record<number, number> = {
@@ -624,7 +630,7 @@ export default function simulateRentVsBuy(
       null,
       options.winVariableOnly ?? false,
       numberOfMonths,
-      parameters.province,
+      province,
       parameters.couple,
       salesTaxMultiplier,
     );
@@ -637,7 +643,7 @@ export default function simulateRentVsBuy(
       "fixed",
       options.winVariableOnly ?? false,
       numberOfMonths,
-      parameters.province,
+      province,
       parameters.couple,
       salesTaxMultiplier,
     );
@@ -650,7 +656,7 @@ export default function simulateRentVsBuy(
       "variable",
       options.winVariableOnly ?? false,
       numberOfMonths,
-      parameters.province,
+      province,
       parameters.couple,
       salesTaxMultiplier,
     );

@@ -17,7 +17,7 @@ Deno.test("documentation example: simulateRentVsBuyMonteCarlo should run without
     tfsaContributions: true,
     annualInvestmentFeeRate: 0,
     couple: false,
-    province: "Ontario",
+    city: "Toronto",
     renter: {
       securityDeposit: 1500,
     },
@@ -25,6 +25,7 @@ Deno.test("documentation example: simulateRentVsBuyMonteCarlo should run without
       downPayment: 50000,
       fixedRateAdjustment: -1.0,
       variableRateAdjustment: 0,
+      firstTimeOwner: true,
       purchaseFixedFees: 3000,
       sellingCommissionRate: 0.05,
       floorRate: 0,
@@ -85,7 +86,7 @@ Deno.test("documentation example: simulateRentVsBuyMonteCarlo should run without
 });
 
 Deno.test("should run a monte carlo simulation of rent vs buy with 100 iterations", async () => {
-  const params = getParamsRentVsBuyMonteCarlo(100, "Montreal", "Quebec", {
+  const params = getParamsRentVsBuyMonteCarlo(100, "Montreal", {
     downPayment: 0.10,
     purchaseFixedFees: 0.02,
   }, {
@@ -148,7 +149,7 @@ Deno.test("should run a monte carlo simulation of rent vs buy with 100 iteration
 });
 
 Deno.test("should run a monte carlo simulation of rent vs buy with 100 iterations and option couple", async () => {
-  const params = getParamsRentVsBuyMonteCarlo(100, "Montreal", "Quebec", {
+  const params = getParamsRentVsBuyMonteCarlo(100, "Montreal", {
     downPayment: 0.10,
     purchaseFixedFees: 0.02,
   }, {
@@ -216,7 +217,7 @@ Deno.test("should run a monte carlo simulation of rent vs buy with 100 iteration
 Deno.test(
   "Making sure all scenarios have wins",
   async () => {
-    const params = getParamsRentVsBuyMonteCarlo(100, "Montreal", "Quebec", {
+    const params = getParamsRentVsBuyMonteCarlo(100, "Montreal", {
       downPayment: 0.10,
       purchaseFixedFees: 0.02,
     }, {
@@ -264,7 +265,7 @@ Deno.test(
 );
 
 Deno.test("should return monthly iterations data when option monthlyIterations is true", () => {
-  const params = getParamsRentVsBuyMonteCarlo(3, "Montreal", "Quebec", {
+  const params = getParamsRentVsBuyMonteCarlo(3, "Montreal", {
     downPayment: 0.10,
     purchaseFixedFees: 0.02,
   }, {
@@ -407,7 +408,7 @@ Deno.test("should return monthly iterations data when option monthlyIterations i
 // ---------------------------------------------------------------------------
 
 Deno.test("columnar: all data values are Float64Arrays and winners are unchanged", () => {
-  const params = getParamsRentVsBuyMonteCarlo(3, "Montreal", "Quebec", {
+  const params = getParamsRentVsBuyMonteCarlo(3, "Montreal", {
     downPayment: 0.10,
     purchaseFixedFees: 0.02,
   }, {
@@ -470,7 +471,7 @@ Deno.test("columnar: all data values are Float64Arrays and winners are unchanged
 });
 
 Deno.test("columnar: empty ColumnarResult when option is disabled", () => {
-  const params = getParamsRentVsBuyMonteCarlo(3, "Montreal", "Quebec", {
+  const params = getParamsRentVsBuyMonteCarlo(3, "Montreal", {
     downPayment: 0.10,
     purchaseFixedFees: 0.02,
   }, {
@@ -497,7 +498,7 @@ Deno.test("columnar: empty ColumnarResult when option is disabled", () => {
 });
 
 Deno.test("columnar monthlyIterations: decode matches object-array output", () => {
-  const params = getParamsRentVsBuyMonteCarlo(3, "Montreal", "Quebec", {
+  const params = getParamsRentVsBuyMonteCarlo(3, "Montreal", {
     downPayment: 0.10,
     purchaseFixedFees: 0.02,
   }, {
@@ -554,7 +555,7 @@ Deno.test("columnar monthlyIterations: decode matches object-array output", () =
 });
 
 Deno.test("columnar values: decode matches object-array shape", () => {
-  const params = getParamsRentVsBuyMonteCarlo(3, "Montreal", "Quebec", {
+  const params = getParamsRentVsBuyMonteCarlo(3, "Montreal", {
     downPayment: 0.10,
     purchaseFixedFees: 0.02,
   }, {
@@ -587,7 +588,7 @@ Deno.test("columnar values: decode matches object-array shape", () => {
 });
 
 Deno.test("columnar: buffers are detachable (transfer simulation)", () => {
-  const params = getParamsRentVsBuyMonteCarlo(3, "Montreal", "Quebec", {
+  const params = getParamsRentVsBuyMonteCarlo(3, "Montreal", {
     downPayment: 0.10,
     purchaseFixedFees: 0.02,
   }, {
@@ -656,7 +657,7 @@ Deno.test("columnar: buffers are detachable (transfer simulation)", () => {
 });
 
 Deno.test("iteration is number (not string) on object-array values", () => {
-  const params = getParamsRentVsBuyMonteCarlo(3, "Montreal", "Quebec", {
+  const params = getParamsRentVsBuyMonteCarlo(3, "Montreal", {
     downPayment: 0.10,
     purchaseFixedFees: 0.02,
   }, {
@@ -679,7 +680,7 @@ Deno.test("iteration is number (not string) on object-array values", () => {
 });
 
 Deno.test("winVariable: winners use the specified variable to determine the winner", () => {
-  const params = getParamsRentVsBuyMonteCarlo(10, "Montreal", "Quebec", {
+  const params = getParamsRentVsBuyMonteCarlo(10, "Montreal", {
     downPayment: 0.10,
     purchaseFixedFees: 0.02,
   }, {
@@ -714,7 +715,7 @@ Deno.test("winVariable: winners use the specified variable to determine the winn
 });
 
 Deno.test("should run a monte carlo simulation of rent vs buy with 100 iterations and option monthlyIterations", () => {
-  const params = getParamsRentVsBuyMonteCarlo(100, "Montreal", "Quebec", {
+  const params = getParamsRentVsBuyMonteCarlo(100, "Montreal", {
     downPayment: 0.10,
     purchaseFixedFees: 0.02,
   }, {
@@ -779,7 +780,7 @@ Deno.test("should run a monte carlo simulation of rent vs buy with 100 iteration
 // ---------------------------------------------------------------------------
 
 Deno.test("monthlyQuantiles: rows and cols match quantile count and nbMonths", () => {
-  const params = getParamsRentVsBuyMonteCarlo(10, "Montreal", "Quebec", {
+  const params = getParamsRentVsBuyMonteCarlo(10, "Montreal", {
     downPayment: 0.10,
     purchaseFixedFees: 0.02,
   }, {
@@ -803,7 +804,7 @@ Deno.test("monthlyQuantiles: rows and cols match quantile count and nbMonths", (
 });
 
 Deno.test("monthlyQuantiles: empty sentinel when option is not set", () => {
-  const params = getParamsRentVsBuyMonteCarlo(5, "Montreal", "Quebec", {
+  const params = getParamsRentVsBuyMonteCarlo(5, "Montreal", {
     downPayment: 0.10,
     purchaseFixedFees: 0.02,
   }, {
@@ -821,7 +822,7 @@ Deno.test("monthlyQuantiles: empty sentinel when option is not set", () => {
 });
 
 Deno.test("monthlyQuantiles: q0 <= q50 <= q100 for all keys and months", () => {
-  const params = getParamsRentVsBuyMonteCarlo(10, "Montreal", "Quebec", {
+  const params = getParamsRentVsBuyMonteCarlo(10, "Montreal", {
     downPayment: 0.10,
     purchaseFixedFees: 0.02,
   }, {
@@ -856,7 +857,7 @@ Deno.test("monthlyQuantiles: q0 <= q50 <= q100 for all keys and months", () => {
 });
 
 Deno.test("monthlyQuantiles: all data values are Float64Array and keys match data", () => {
-  const params = getParamsRentVsBuyMonteCarlo(5, "Montreal", "Quebec", {
+  const params = getParamsRentVsBuyMonteCarlo(5, "Montreal", {
     downPayment: 0.10,
     purchaseFixedFees: 0.02,
   }, {
@@ -886,7 +887,7 @@ Deno.test("monthlyQuantiles: all data values are Float64Array and keys match dat
 });
 
 Deno.test("monthlyQuantiles: buffers are detachable (transfer simulation)", () => {
-  const params = getParamsRentVsBuyMonteCarlo(5, "Montreal", "Quebec", {
+  const params = getParamsRentVsBuyMonteCarlo(5, "Montreal", {
     downPayment: 0.10,
     purchaseFixedFees: 0.02,
   }, {
@@ -917,7 +918,7 @@ Deno.test("monthlyQuantiles: buffers are detachable (transfer simulation)", () =
 });
 
 Deno.test("decodeMonteCarloMonthlyQuantiles: produces correct shapes and values", () => {
-  const params = getParamsRentVsBuyMonteCarlo(5, "Montreal", "Quebec", {
+  const params = getParamsRentVsBuyMonteCarlo(5, "Montreal", {
     downPayment: 0.10,
     purchaseFixedFees: 0.02,
   }, {
@@ -980,7 +981,7 @@ Deno.test("decodeMonteCarloMonthlyQuantiles: produces correct shapes and values"
 });
 
 Deno.test("performance: monthlyQuantiles with 100 iterations", () => {
-  const params = getParamsRentVsBuyMonteCarlo(100, "Montreal", "Quebec", {
+  const params = getParamsRentVsBuyMonteCarlo(100, "Montreal", {
     downPayment: 0.10,
     purchaseFixedFees: 0.02,
   }, {
@@ -1022,7 +1023,7 @@ Deno.test("performance: monthlyQuantiles with 100 iterations", () => {
 });
 
 Deno.test("performance: monthlyQuantiles + monthlyIterations with 100 iterations", () => {
-  const params = getParamsRentVsBuyMonteCarlo(100, "Montreal", "Quebec", {
+  const params = getParamsRentVsBuyMonteCarlo(100, "Montreal", {
     downPayment: 0.10,
     purchaseFixedFees: 0.02,
   }, {
@@ -1110,7 +1111,7 @@ Deno.test("performance: monthlyQuantiles + monthlyIterations with 100 iterations
 });
 
 Deno.test("simulateRentVsBuyMonteCarlo throws when iterations enabled without iterationsGroups", () => {
-  const p = getParamsRentVsBuyMonteCarlo(2, "Montreal", "Quebec", {
+  const p = getParamsRentVsBuyMonteCarlo(2, "Montreal", {
     downPayment: 50000,
     purchaseFixedFees: 2000,
   }, {
@@ -1133,7 +1134,7 @@ Deno.test("simulateRentVsBuyMonteCarlo throws when iterations enabled without it
 });
 
 Deno.test("simulateRentVsBuyMonteCarlo filters outputs using iterationsGroups", () => {
-  const p = getParamsRentVsBuyMonteCarlo(5, "Montreal", "Quebec", {
+  const p = getParamsRentVsBuyMonteCarlo(5, "Montreal", {
     downPayment: 50000,
     purchaseFixedFees: 2000,
   }, {
@@ -1158,7 +1159,7 @@ Deno.test("simulateRentVsBuyMonteCarlo filters outputs using iterationsGroups", 
 });
 
 Deno.test("simulateRentVsBuyMonteCarlo performance test with and without iterationsGroups", () => {
-  const p = getParamsRentVsBuyMonteCarlo(100, "Montreal", "Quebec", {
+  const p = getParamsRentVsBuyMonteCarlo(100, "Montreal", {
     downPayment: 50000,
     purchaseFixedFees: 2000,
   }, {
@@ -1203,7 +1204,7 @@ Deno.test("simulateRentVsBuyMonteCarlo performance test with and without iterati
 });
 
 Deno.test("simulateRentVsBuyMonteCarlo: income paths should be stochastic and follow parameters", () => {
-  const p = getParamsRentVsBuyMonteCarlo(20, "Montreal", "Quebec", {
+  const p = getParamsRentVsBuyMonteCarlo(20, "Montreal", {
     downPayment: 50000,
     purchaseFixedFees: 2000,
   }, {
@@ -1265,7 +1266,7 @@ Deno.test("simulateRentVsBuyMonteCarlo: income paths should be stochastic and fo
 });
 
 Deno.test("simulateRentVsBuyMonteCarlo: should capture employment income in values output", () => {
-  const p = getParamsRentVsBuyMonteCarlo(10, "Montreal", "Quebec", {
+  const p = getParamsRentVsBuyMonteCarlo(10, "Montreal", {
     downPayment: 50000,
     purchaseFixedFees: 2000,
   }, {
@@ -1294,7 +1295,7 @@ Deno.test("simulateRentVsBuyMonteCarlo: should capture employment income in valu
 
 Deno.test("simulateRentVsBuyMonteCarlo: executes successfully with an identity cholesky matrix", () => {
   const iterations = 100;
-  const p = getParamsRentVsBuyMonteCarlo(iterations, "Montreal", "Quebec", {
+  const p = getParamsRentVsBuyMonteCarlo(iterations, "Montreal", {
     downPayment: 0.10,
     purchaseFixedFees: 0.02,
   }, {
@@ -1330,7 +1331,7 @@ Deno.test("simulateRentVsBuyMonteCarlo: executes successfully with an identity c
 
 Deno.test("simulateRentVsBuyMonteCarlo: executes successfully with a fully correlated data-driven cholesky matrix", () => {
   const iterations = 100;
-  const p = getParamsRentVsBuyMonteCarlo(iterations, "Montreal", "Quebec", {
+  const p = getParamsRentVsBuyMonteCarlo(iterations, "Montreal", {
     downPayment: 0.10,
     purchaseFixedFees: 0.02,
   }, {
