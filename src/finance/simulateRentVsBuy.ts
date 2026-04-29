@@ -14,6 +14,20 @@ import getLandTransferTax, {
 } from "./getLandTransferTax.ts";
 
 /**
+ * This type defines the keys for the various rates used in the rent vs buy simulation.
+ */
+export type RentVsBuyRates =
+  | "marketReturnRate"
+  | "rentIncrease"
+  | "ownerInsuranceIncrease"
+  | "renterInsuranceIncrease"
+  | "maintenanceIncrease"
+  | "propertyTaxIncrease"
+  | "condoFeeIncrease"
+  | "appreciationIncrease"
+  | "sellingFixedFeesIncrease";
+
+/**
  * Simulates and compares the financial outcomes of renting versus buying a home over a specified number of years.
  * This comprehensive simulation accounts for various factors including mortgage payments (fixed and variable),
  * property taxes, maintenance costs, condo fees, insurance, rent increases, market returns on savings, and
@@ -153,17 +167,6 @@ import getLandTransferTax, {
  * }, { winVariableOnly: true, winVariable: "balanceAfterSelling" });
  * ```
  */
-export type RentVsBuyRates =
-  | "marketReturnRate"
-  | "rentIncrease"
-  | "ownerInsuranceIncrease"
-  | "renterInsuranceIncrease"
-  | "maintenanceIncrease"
-  | "propertyTaxIncrease"
-  | "condoFeeIncrease"
-  | "appreciationIncrease"
-  | "sellingFixedFeesIncrease";
-
 export default function simulateRentVsBuy(
   parameters: {
     startingYear: number;
