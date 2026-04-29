@@ -2511,3 +2511,111 @@ Deno.test("simulateRentVsBuy: employmentIncome in results should match the input
     );
   }
 });
+
+Deno.test("simulateRentVsBuy: adjustToInflation should discount future values", () => {
+  const years = 10;
+  const inflationRate = 0.05; // 5% monthly (extreme for testing)
+
+  const rates = {
+    marketReturnRate: new Array(years * 12).fill(0),
+    rentIncrease: new Array(years * 12).fill(inflationRate),
+    ownerInsuranceIncrease: new Array(years * 12).fill(0),
+    renterInsuranceIncrease: new Array(years * 12).fill(0),
+    maintenanceIncrease: new Array(years * 12).fill(0),
+    propertyTaxIncrease: new Array(years * 12).fill(0),
+    condoFeeIncrease: new Array(years * 12).fill(0),
+    appreciationIncrease: new Array(years * 12).fill(0),
+    sellingFixedFeesIncrease: new Array(years * 12).fill(0),
+  };
+
+  const values = {
+    employmentIncome: new Array(years * 12).fill(0),
+    fiveYearInterestRates: new Array(years * 12).fill(0.05),
+    fourYearInterestRates: new Array(years * 12).fill(0.05),
+    threeYearInterestRates: new Array(years * 12).fill(0.05),
+    twoYearInterestRates: new Array(years * 12).fill(0.05),
+    oneYearInterestRates: new Array(years * 12).fill(0.05),
+    variableInterestRates: new Array(years * 12).fill(0.05),
+  };
+
+  const params = {
+    startingYear: 2024,
+    numberOfYears: years,
+    tfsaContributions: false,
+    annualInvestmentFeeRate: 0,
+    couple: false,
+    city: "Toronto" as const,
+    renter: {
+      startingMonthlyRent: 1000,
+      securityDeposit: 0,
+      startingMonthlyInsurance: 0,
+    },
+    buyer: {
+      downPayment: 0,
+      purchasePrice: 0,
+      fixedRateAdjustment: 0,
+      variableRateAdjustment: 0,
+      firstTimeOwner: false,
+      purchaseFixedFees: 0,
+      startingAnnualMaintenanceCost: 0,
+      startingAnnualPropertyTax: 0,
+      startingMonthlyCondoFees: 0,
+      startingMonthlyInsurance: 0,
+      sellingFixedFees: 0,
+      sellingCommissionRate: 0,
+      floorRate: 0,
+    },
+    values,
+    rates,
+  };
+
+  const resultsNormal = simulateRentVsBuy(params);
+  const resultsAdjusted = simulateRentVsBuy(params, {
+    adjustToInflation: "rentIncrease",
+  });
+
+  // Month 0 should be the same
+  const rent0Normal = resultsNormal.find((r) =>
+    r.monthIndex === 0 && r.variable === "rent"
+  )?.amount;
+  const rent0Adjusted = resultsAdjusted.find((r) =>
+    r.monthIndex === 0 && r.variable === "rent"
+  )?.amount;
+  assertEquals(rent0Normal, 1000);
+  assertEquals(rent0Adjusted, 1000);
+
+  // At month 1, rent increased by 5% but is adjusted back
+  // Normal: 1000 * 1.05 = 1050
+  // Adjusted: (1000 * 1.05) / 1.05 = 1000
+  const rent1Normal = resultsNormal.find((r) =>
+    r.monthIndex === 1 && r.variable === "rent"
+  )?.amount;
+  const rent1Adjusted = resultsAdjusted.find((r) =>
+    r.monthIndex === 1 && r.variable === "rent"
+  )?.amount;
+  assertEquals(rent1Normal, 1050);
+  assertEquals(rent1Adjusted, 1000);
+
+  // Check month 12 (1 year later)
+  // Check month 12 (1 year later)
+  const rent12Normal = resultsNormal.find((r) =>
+    r.monthIndex === 12 && r.variable === "rent"
+  )?.amount;
+  const rent12Adjusted = resultsAdjusted.find((r) =>
+    r.monthIndex === 12 && r.variable === "rent"
+  )?.amount;
+  // Let's check they are within 0.1 of 1000 to account for r2 rounding over 12 months.
+  assert(rent12Normal! > 1700);
+  assert(Math.abs(rent12Adjusted! - 1000) < 0.1);
+
+  // Check month 60 (5 years later)
+  const rent60Normal = resultsNormal.find((r) =>
+    r.monthIndex === 60 && r.variable === "rent"
+  )?.amount;
+  const rent60Adjusted = resultsAdjusted.find((r) =>
+    r.monthIndex === 60 && r.variable === "rent"
+  )?.amount;
+  // Let's just assert adjusted is very close to 1000 and nominal is much higher
+  assert(rent60Normal! > 18000);
+  assert(Math.abs(rent60Adjusted! - 1000) < 0.1);
+});

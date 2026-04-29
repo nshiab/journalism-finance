@@ -14,6 +14,20 @@ import getLandTransferTax, {
 } from "./getLandTransferTax.ts";
 
 /**
+ * This type defines the keys for the various rates used in the rent vs buy simulation.
+ */
+export type RentVsBuyRates =
+  | "marketReturnRate"
+  | "rentIncrease"
+  | "ownerInsuranceIncrease"
+  | "renterInsuranceIncrease"
+  | "maintenanceIncrease"
+  | "propertyTaxIncrease"
+  | "condoFeeIncrease"
+  | "appreciationIncrease"
+  | "sellingFixedFeesIncrease";
+
+/**
  * Simulates and compares the financial outcomes of renting versus buying a home over a specified number of years.
  * This comprehensive simulation accounts for various factors including mortgage payments (fixed and variable),
  * property taxes, maintenance costs, condo fees, insurance, rent increases, market returns on savings, and
@@ -76,6 +90,7 @@ import getLandTransferTax, {
  *   @param options.winVariable - The variable used to identify the winner when extracting the final record. Use `"balanceAfterSelling"` for net balance after a simulated sale, `"balance"` for cumulative balance, or `"assets"` for total raw assets.
  *   @param options.onRecord - Internal callback used by `simulateRentVsBuyMonteCarlo` when `details.iterations` or `details.quantiles` is enabled. When provided, numeric values are streamed directly to the accumulator instead of being wrapped in result objects, avoiding the per-record heap allocation cost. At the final month, one winner record (the `winVariable` entry) per category is still pushed to the results array for winner extraction.
  *   @param options.groups - Internal filter used by `simulateRentVsBuyMonteCarlo` via `details.iterationsGroups`. Restricts which groups are emitted by `onRecord` and pushed to results.
+ *   @param options.adjustToInflation - The rate parameter used as a proxy for inflation to discount all future dollar values back to Year 0 (today's dollars). For example, setting this to `"sellingFixedFeesIncrease"` will use that parameter's values to calculate the monthly discount factor. Defaults to `undefined` (no adjustment).
  *
  * @returns A detailed array of monthly results for each scenario (renter, buyerFixed, buyerVariable).
  * Each object in the array represents a specific data point for a given month, categorized by:
@@ -212,6 +227,7 @@ export default function simulateRentVsBuy(
     ) => void;
     winVariable?: "balance" | "balanceAfterSelling" | "assets";
     groups?: string[];
+    adjustToInflation?: RentVsBuyRates;
   } = {},
 ): (
   & {
@@ -476,6 +492,8 @@ export default function simulateRentVsBuy(
 
   const numberOfMonths = parameters.numberOfYears * 12;
 
+  let cumulativeInflationFactor = 1;
+
   // Pre-compute the sales tax multiplier for home selling costs (constant for
   // a given province + year, used inside computeSale every month).
   // Use a large divisor (10000) to avoid toFixed(4) precision loss on rates
@@ -512,6 +530,8 @@ export default function simulateRentVsBuy(
     monthIndex++
   ) {
     const year = parameters.startingYear + Math.floor(monthIndex / 12);
+
+    const inflationMultiplier = 1 / cumulativeInflationFactor;
 
     const currentFixedMortgagePayment = allFixedMortgagePayments[monthIndex];
     const currentVariableMortgagePayment =
@@ -691,6 +711,7 @@ export default function simulateRentVsBuy(
       options.winVariableOnly ?? false,
       null,
       parameters.values.employmentIncome[monthIndex],
+      inflationMultiplier,
       options.onRecord,
       options.winVariable,
       options.groups,
@@ -704,6 +725,7 @@ export default function simulateRentVsBuy(
       options.winVariableOnly ?? false,
       currentFixedMortgagePayment,
       parameters.values.employmentIncome[monthIndex],
+      inflationMultiplier,
       options.onRecord,
       options.winVariable,
       options.groups,
@@ -717,6 +739,7 @@ export default function simulateRentVsBuy(
       options.winVariableOnly ?? false,
       currentVariableMortgagePayment,
       parameters.values.employmentIncome[monthIndex],
+      inflationMultiplier,
       options.onRecord,
       options.winVariable,
       options.groups,
@@ -726,6 +749,11 @@ export default function simulateRentVsBuy(
     incrementParameters(monthIndex, renter, parameters.rates);
     incrementParameters(monthIndex, buyerFixed, parameters.rates);
     incrementParameters(monthIndex, buyerVariable, parameters.rates);
+
+    if (options.adjustToInflation) {
+      cumulativeInflationFactor *= 1 +
+        parameters.rates[options.adjustToInflation][monthIndex];
+    }
   }
 
   return results;

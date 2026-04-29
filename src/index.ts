@@ -25,7 +25,9 @@ import mortgageInsurancePremium from "./finance/mortgageInsurancePremium.ts";
 import mortgageMaxAmount from "./finance/mortgageMaxAmount.ts";
 import getYahooFinanceData from "./finance/getYahooFinanceData.ts";
 import variableMortgagePayments from "./finance/variableMortgagePayments.ts";
-import simulateRentVsBuy from "./finance/simulateRentVsBuy.ts";
+import simulateRentVsBuy, {
+  type RentVsBuyRates,
+} from "./finance/simulateRentVsBuy.ts";
 import simulateRentVsBuyMonteCarlo from "./finance/simulateRentVsBuyMonteCarlo.ts";
 import getRentVsBuyCholeskyMatrix, {
   type StochasticData,
@@ -79,6 +81,7 @@ export type {
   MqCategory,
   MqGroup,
   MqVariable,
+  RentVsBuyRates,
   SimParams,
   StochasticData,
   StochasticVariable,
