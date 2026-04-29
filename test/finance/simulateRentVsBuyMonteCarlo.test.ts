@@ -1374,3 +1374,36 @@ Deno.test("simulateRentVsBuyMonteCarlo: executes successfully with a fully corre
 
   assertEquals(results.winners.monthIndex.length, iterations);
 });
+
+Deno.test("simulateRentVsBuyMonteCarlo: adjustToInflation should correctly propagate and discount values", () => {
+  const params = getParamsRentVsBuyMonteCarlo(10, "Montreal", {
+    downPayment: 0.20,
+    purchaseFixedFees: 0.01,
+  }, {
+    renterMonthlyInsurance: 30,
+    ownerMonthlyInsurance: 100,
+    sellingFixedFees: 2000,
+    condoFees: 300,
+  }, false);
+
+  const resultsNormal = simulateRentVsBuyMonteCarlo(params, { verbose: false });
+  const resultsAdjusted = simulateRentVsBuyMonteCarlo(params, {
+    verbose: false,
+    adjustToInflation: "sellingFixedFeesIncrease",
+  });
+
+  // Since sellingFixedFeesIncrease is usually positive (inflation), adjusted amounts should be lower than nominal ones at the end.
+  const avgWinnerAmountNormal =
+    resultsNormal.winners.amount.reduce((a, b) => a + b, 0) / 10;
+  const avgWinnerAmountAdjusted =
+    resultsAdjusted.winners.amount.reduce((a, b) => a + b, 0) / 10;
+
+  console.log(
+    `Average winner amount (normal): ${avgWinnerAmountNormal.toFixed(2)}`,
+  );
+  console.log(
+    `Average winner amount (adjusted): ${avgWinnerAmountAdjusted.toFixed(2)}`,
+  );
+
+  assert(avgWinnerAmountAdjusted < avgWinnerAmountNormal);
+});

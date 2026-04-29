@@ -1,5 +1,7 @@
 import { prettyDuration } from "@nshiab/journalism-format";
-import simulateRentVsBuy from "./simulateRentVsBuy.ts";
+import simulateRentVsBuy, {
+  type RentVsBuyRates,
+} from "./simulateRentVsBuy.ts";
 import {
   getCorrelatedShocks,
   stepCir,
@@ -202,6 +204,7 @@ export type BaseOptions = {
     quantiles?: number[];
     iterationsGroups?: MqGroup[];
   };
+  adjustToInflation?: RentVsBuyRates;
 };
 
 /**
@@ -274,6 +277,7 @@ export type BaseOptions = {
  *   @param options.details.iterations - If `true`, captures and returns the raw monthly financial data for every variable, group, and category for each individual iteration. Requires `details.iterationsGroups` to be set and non-empty — throws otherwise. Each record includes `iteration` (0-based index), `category`, `group`, `variable`, `monthIndex`, and `amount`. Useful for custom aggregations or visualization of individual paths. Be aware that this can produce a very large number of records (iterations × months × variables × 3 categories), so use `iterationsGroups` to limit scope.
  *   @param options.details.quantiles - When provided, pre-computes the specified quantile levels (e.g. `[0, 0.5, 1]` for min/median/max) across all iterations for every variable/group/category/month combination. Layout: `data[key][qIdx * cols + monthIndex]`. Decode with `decodeMonteCarloMonthlyQuantiles`.
  *   @param options.details.iterationsGroups - Required when `details.iterations` is `true`. Restricts which groups are included in the `monthlyIterations` output (e.g. `["assets", "summaryCumulative"]`), reducing memory usage. Also filters the shared column-major buffer used by `details.quantiles`.
+ *   @param options.adjustToInflation - The rate parameter used as a proxy for inflation to discount all future dollar values back to Year 0 (today's dollars). For example, setting this to `"sellingFixedFeesIncrease"` will use the simulated path of that parameter to calculate the monthly discount factor. Defaults to `undefined` (no adjustment).
  *
  * @returns An object with all large arrays in columnar format (flat `Float64Array` matrices, transferable via `postMessage`). Use `decodeMonteCarloWinners`, `decodeMonteCarloValues`, `decodeMonteCarloMonthlyIterations`, and `decodeMonteCarloMonthlyQuantiles` from `@nshiab/journalism-finance` to restore object-array shapes.
  *   - `winners`: A `WinnersColumnar` with `monthIndex`, `amount` (`Float64Array`) and `category` (`Uint8Array`) indicating which scenario won each iteration. Decode with `decodeMonteCarloWinners`.
@@ -659,6 +663,7 @@ function simulateRentVsBuyMonteCarlo(
       onRecord,
       winVariable: parameters.winVariable,
       groups: options.details?.iterationsGroups,
+      adjustToInflation: options.adjustToInflation,
     });
 
     // The results array always contains exactly 1 entry per category, pushed in
