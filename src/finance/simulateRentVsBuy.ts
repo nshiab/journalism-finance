@@ -748,8 +748,8 @@ export default function simulateRentVsBuy(
     incrementParameters(monthIndex, buyerVariable, parameters.rates);
 
     if (options.adjustToInflation) {
-      cumulativeInflationFactor *=
-        (1 + parameters.rates[options.adjustToInflation][monthIndex]);
+      cumulativeInflationFactor *= 1 +
+        parameters.rates[options.adjustToInflation][monthIndex];
     }
   }
 

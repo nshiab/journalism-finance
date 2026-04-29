@@ -1,7 +1,5 @@
 import { prettyDuration } from "@nshiab/journalism-format";
-import simulateRentVsBuy, {
-  type RentVsBuyRates,
-} from "./simulateRentVsBuy.ts";
+import simulateRentVsBuy, { type RentVsBuyRates } from "./simulateRentVsBuy.ts";
 import {
   getCorrelatedShocks,
   stepCir,

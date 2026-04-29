@@ -400,7 +400,13 @@ export default function toResults(
           onRecord(category, "saleCosts", variable, monthIndex, adj(amount));
         }
       }
-      onRecord(category, "totals", "saleCosts", monthIndex, adj(totalSaleCosts));
+      onRecord(
+        category,
+        "totals",
+        "saleCosts",
+        monthIndex,
+        adj(totalSaleCosts),
+      );
     }
 
     if (!groups || groups.includes("saleNetGains")) {
