@@ -1053,6 +1053,7 @@ function simulateRentVsBuy(
     ) => void;
     winVariable?: "balance" | "balanceAfterSelling" | "assets";
     groups?: string[];
+    adjustToInflation?: RentVsBuyRates;
   },
 ): (
   & {
@@ -1238,6 +1239,11 @@ function simulateRentVsBuy(
 - **`options.groups`**: Internal filter used by `simulateRentVsBuyMonteCarlo`
   via `details.iterationsGroups`. Restricts which groups are emitted by
   `onRecord` and pushed to results.
+- **`options.adjustToInflation`**: The rate parameter used as a proxy for
+  inflation to discount all future dollar values back to Year 0 (today's
+  dollars). For example, setting this to `"sellingFixedFeesIncrease"` will use
+  that parameter's values to calculate the monthly discount factor. Defaults to
+  `undefined` (no adjustment).
 
 ### Returns
 
@@ -1474,6 +1480,11 @@ function simulateRentVsBuyMonteCarlo(
   `true`. Restricts which groups are included in the `monthlyIterations` output
   (e.g. `["assets", "summaryCumulative"]`), reducing memory usage. Also filters
   the shared column-major buffer used by `details.quantiles`.
+- **`options.adjustToInflation`**: The rate parameter used as a proxy for
+  inflation to discount all future dollar values back to Year 0 (today's
+  dollars). For example, setting this to `"sellingFixedFeesIncrease"` will use
+  the simulated path of that parameter to calculate the monthly discount factor.
+  Defaults to `undefined` (no adjustment).
 
 ### Returns
 
