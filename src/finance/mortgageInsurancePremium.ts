@@ -1,3 +1,5 @@
+import getMinimumDownPayment from "./getMinimumDownPayment.ts";
+
 /**
  * Calculates the mortgage insurance premium based on the property's purchase price and the down payment amount. This function is designed to reflect the premium rates typically applied in Canada, as outlined by institutions like the Financial Consumer Agency of Canada. The calculated premium is rounded to the nearest integer.
  *
@@ -6,7 +8,7 @@
  * @param purchasePrice - The total price of the property being purchased.
  * @param downPayment - The amount of money paid upfront by the buyer towards the purchase price.
  * @returns The calculated mortgage insurance premium, rounded to the nearest integer. Returns `0` if the down payment is 20% or more, as insurance is typically not required in such cases.
- * @throws {Error} If the down payment is less than 5% of the purchase price, as this is generally the minimum required down payment for insured mortgages in Canada.
+ * @throws {Error} If the down payment is less than the minimum required down payment in Canada.
  *
  * @example
  * ```ts
@@ -36,7 +38,7 @@
  *   mortgageInsurancePremium(500_000, 20_000); // 4% down payment
  * } catch (error) {
  *   console.error("Error:", error.message);
- *   // Expected output: "Error: The down payment must be more than 5% of the purchase price..."
+ *   // Expected output: "Error: The down payment is less than the minimum required down payment..."
  * }
  * ```
  * @category Finance
@@ -46,12 +48,13 @@ export default function mortgageInsurancePremium(
   purchasePrice: number,
   downPayment: number,
 ): number {
+  const downPaymentMin = getMinimumDownPayment(purchasePrice);
   const downPaymentPerc = downPayment / purchasePrice;
   const mortgageAmount = purchasePrice - downPayment;
 
-  if (downPaymentPerc < 0.05) {
+  if (downPayment < downPaymentMin) {
     throw new Error(
-      `The down payment must be more than 5% of the purchase price (downPaymentPerc=${downPaymentPerc}).`,
+      `The down payment is less than the minimum required down payment (${downPayment} < ${downPaymentMin}).`,
     );
   } else if (downPaymentPerc < 0.1) {
     return Math.round(mortgageAmount * 0.04);

@@ -1,4 +1,5 @@
 import mortgageInsurancePremium from "./mortgageInsurancePremium.ts";
+import getMinimumDownPayment from "./getMinimumDownPayment.ts";
 
 /**
  * Calculates the maximum affordable property purchase price and the corresponding mortgage amount a borrower can qualify for, based on their annual income, down payment, and current mortgage interest rates. This function is designed to simulate mortgage qualification criteria, taking into account various financial factors and debt service ratios.
@@ -241,21 +242,9 @@ function findMaxAmount(
     purchasePrice += increment
   ) {
     // We check that the down payment is enough
-    if (purchasePrice <= 500_000) {
-      const downPaymentMin = purchasePrice * 0.05;
-      if (downPayment < downPaymentMin) {
-        downPaymentTooLow = true;
-      }
-    } else if (purchasePrice > 500_000 && purchasePrice < 1_500_000) {
-      const downPaymentMin = 25_000 + (purchasePrice - 500_000) * 0.1;
-      if (downPayment < downPaymentMin) {
-        downPaymentTooLow = true;
-      }
-    } else if (purchasePrice >= 1_500_000) {
-      const downPaymentMin = purchasePrice * 0.2;
-      if (downPayment < downPaymentMin) {
-        downPaymentTooLow = true;
-      }
+    const downPaymentMin = getMinimumDownPayment(purchasePrice);
+    if (downPayment < downPaymentMin) {
+      downPaymentTooLow = true;
     }
 
     if (downPaymentTooLow) {
