@@ -1,5 +1,6 @@
 import { prettyDuration } from "@nshiab/journalism-format";
 import simulateRentVsBuy, { type RentVsBuyRates } from "./simulateRentVsBuy.ts";
+import getMinimumDownPayment from "./getMinimumDownPayment.ts";
 import {
   getCorrelatedShocks,
   stepCir,
@@ -229,7 +230,7 @@ export type BaseOptions = {
  * @param parameters.renter - Configuration for the renter scenario.
  *   @param parameters.renter.securityDeposit - The initial security deposit or last month's rent (scenario-dependent).
  * @param parameters.buyer - Configuration for the buyer scenarios.
- *   @param parameters.buyer.downPayment - The total down payment amount paid at the start.
+ *   @param parameters.buyer.downPayment - The total down payment amount paid at the start. Must meet the minimum required down payment in Canada based on the initial property appreciation value.
  *   @param parameters.buyer.fixedRateAdjustment - The adjustment applied to the posted fixed mortgage rate (added to the posted rate).
  *   @param parameters.buyer.variableRateAdjustment - The adjustment applied to the variable mortgage rate (added to the posted rate).
  *   @param parameters.buyer.firstTimeOwner - Whether the buyer is a first-time owner, used to calculate land transfer tax rebates.
@@ -278,6 +279,7 @@ export type BaseOptions = {
  *   @param options.adjustToInflation - The rate parameter used as a proxy for inflation to discount all future dollar values back to Year 0 (today's dollars). For example, setting this to `"sellingFixedFeesIncrease"` will use the simulated path of that parameter to calculate the monthly discount factor. Defaults to `undefined` (no adjustment).
  *
  * @returns An object with all large arrays in columnar format (flat `Float64Array` matrices, transferable via `postMessage`). Use `decodeMonteCarloWinners`, `decodeMonteCarloValues`, `decodeMonteCarloMonthlyIterations`, and `decodeMonteCarloMonthlyQuantiles` from `@nshiab/journalism-finance` to restore object-array shapes.
+ * @throws {Error} If the down payment is less than the minimum required down payment in Canada.
  *   - `winners`: A `WinnersColumnar` with `monthIndex`, `amount` (`Float64Array`) and `category` (`Uint8Array`) indicating which scenario won each iteration. Decode with `decodeMonteCarloWinners`.
  *   - `values`: A `ColumnarResult` with stochastic path values per iteration (enabled with `options.values`). Decode with `decodeMonteCarloValues`.
  *   - `details.monthlyIterations`: A `ColumnarResult` with raw monthly records per iteration (enabled with `options.details.iterations`). Decode with `decodeMonteCarloMonthlyIterations`.
@@ -345,6 +347,15 @@ function simulateRentVsBuyMonteCarlo(
   ) {
     throw new Error(
       "simulateRentVsBuyMonteCarlo: details.iterations requires details.iterationsGroups to be set and not empty.",
+    );
+  }
+
+  const downPaymentMin = getMinimumDownPayment(
+    parameters.stochasticParameters.appreciation.initialValue,
+  );
+  if (parameters.buyer.downPayment < downPaymentMin) {
+    throw new Error(
+      `The down payment is less than the minimum required down payment (${parameters.buyer.downPayment} < ${downPaymentMin}).`,
     );
   }
 

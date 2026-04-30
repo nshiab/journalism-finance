@@ -1205,7 +1205,8 @@ function simulateRentVsBuy(
 - **`parameters.renter.startingMonthlyInsurance`**: The initial monthly renter's
   insurance.
 - **`parameters.buyer`**: Configuration for the buyer scenarios.
-- **`parameters.buyer.downPayment`**: The down payment amount.
+- **`parameters.buyer.downPayment`**: The down payment amount. Must meet the
+  minimum required down payment in Canada based on the purchase price.
 - **`parameters.buyer.purchasePrice`**: The purchase price of the home.
 - **`parameters.buyer.fixedRateAdjustment`**: The adjustment applied to the
   posted fixed mortgage rate (added to the posted rate).
@@ -1292,34 +1293,31 @@ function simulateRentVsBuy(
 ### Returns
 
 A detailed array of monthly results for each scenario (renter, buyerFixed,
-buyerVariable). Each object in the array represents a specific data point for a
-given month, categorized by:
+buyerVariable).
 
-- `monthlyExpenses` or `cumulativeExpenses`:
-- `rent`, `insurance`, `securityDeposit` (for Renter)
-- `mortgageCapital`, `mortgageInterests`, `maintenance`, `propertyTax`,
+### Throws
+
+- **`Error`**: If the down payment is less than the minimum required down
+  payment in Canada. Each object in the array represents a specific data point
+  for a given month, categorized by: - `monthlyExpenses` or
+  `cumulativeExpenses`: - `rent`, `insurance`, `securityDeposit` (for Renter) -
+  `mortgageCapital`, `mortgageInterests`, `maintenance`, `propertyTax`,
   `condoFees`, `downPayment`, `purchaseFixedFees`, `insurancePremium` (for
-  Buyers)
-- `tfsaFees`, `stocksFees` (for all scenarios)
-- `monthlyGains` or `cumulativeGains`:
-- `tfsaGains`, `tfsaContribution`, `stocksGains`, `newStocks` (for all
-  scenarios)
-- `homeEquityGains` (for Buyers)
-- `assets`:
-- `tfsa`, `stocks` (for all scenarios)
-- `securityDeposit` (for Renter)
-- `homeEquity` (for Buyers)
-- `summary`: `balance` (monthly net worth)
-- `summaryCumulative`: `balance` (cumulative net worth), `balanceAfterSelling`
-  (net worth after hypothetical property sale and associated taxes/fees)
-- `saleCosts`: `stockTaxes` (includes `employmentIncome` used for calculation),
+  Buyers) - `tfsaFees`, `stocksFees` (for all scenarios) - `monthlyGains` or
+  `cumulativeGains`: - `tfsaGains`, `tfsaContribution`, `stocksGains`,
+  `newStocks` (for all scenarios) - `homeEquityGains` (for Buyers) - `assets`: -
+  `tfsa`, `stocks` (for all scenarios) - `securityDeposit` (for Renter) -
+  `homeEquity` (for Buyers) - `summary`: `balance` (monthly net worth) -
+  `summaryCumulative`: `balance` (cumulative net worth), `balanceAfterSelling`
+  (net worth after hypothetical property sale and associated taxes/fees) -
+  `saleCosts`: `stockTaxes` (includes `employmentIncome` used for calculation),
   `homeSellingCommission`, `homeSellingFixedFees`, `mortgagePenalty`,
-  `mortgageBalance` (hypothetical costs incurred upon selling)
-- `saleNetGains`: `stockSellingGains`, `tfsaSellingGains`, `homeSellingGains`,
-  `securityDeposit` (hypothetical gains realized upon selling)
-- `totals`: `monthlyExpenses`, `cumulativeExpenses`, `monthlyGains`,
-  `cumulativeGains`, `assets`, `saleCosts`, `saleNetGains` (sum of all variables
-  in each respective group; always emitted even when zero)
+  `mortgageBalance` (hypothetical costs incurred upon selling) - `saleNetGains`:
+  `stockSellingGains`, `tfsaSellingGains`, `homeSellingGains`, `securityDeposit`
+  (hypothetical gains realized upon selling) - `totals`: `monthlyExpenses`,
+  `cumulativeExpenses`, `monthlyGains`, `cumulativeGains`, `assets`,
+  `saleCosts`, `saleNetGains` (sum of all variables in each respective group;
+  always emitted even when zero)
 
 ### Examples
 
@@ -1435,7 +1433,8 @@ function simulateRentVsBuyMonteCarlo(
   month's rent (scenario-dependent).
 - **`parameters.buyer`**: Configuration for the buyer scenarios.
 - **`parameters.buyer.downPayment`**: The total down payment amount paid at the
-  start.
+  start. Must meet the minimum required down payment in Canada based on the
+  initial property appreciation value.
 - **`parameters.buyer.fixedRateAdjustment`**: The adjustment applied to the
   posted fixed mortgage rate (added to the posted rate).
 - **`parameters.buyer.variableRateAdjustment`**: The adjustment applied to the
@@ -1538,17 +1537,19 @@ matrices, transferable via `postMessage`). Use `decodeMonteCarloWinners`,
 `decodeMonteCarloMonthlyQuantiles` from `@nshiab/journalism-finance` to restore
 object-array shapes.
 
-- `winners`: A `WinnersColumnar` with `monthIndex`, `amount` (`Float64Array`)
-  and `category` (`Uint8Array`) indicating which scenario won each iteration.
-  Decode with `decodeMonteCarloWinners`.
-- `values`: A `ColumnarResult` with stochastic path values per iteration
-  (enabled with `options.values`). Decode with `decodeMonteCarloValues`.
-- `details.monthlyIterations`: A `ColumnarResult` with raw monthly records per
+### Throws
+
+- **`Error`**: If the down payment is less than the minimum required down
+  payment in Canada. - `winners`: A `WinnersColumnar` with `monthIndex`,
+  `amount` (`Float64Array`) and `category` (`Uint8Array`) indicating which
+  scenario won each iteration. Decode with `decodeMonteCarloWinners`. -
+  `values`: A `ColumnarResult` with stochastic path values per iteration
+  (enabled with `options.values`). Decode with `decodeMonteCarloValues`. -
+  `details.monthlyIterations`: A `ColumnarResult` with raw monthly records per
   iteration (enabled with `options.details.iterations`). Decode with
-  `decodeMonteCarloMonthlyIterations`.
-- `details.monthlyQuantiles`: A `ColumnarResult` with pre-computed quantile
-  summaries (enabled with `options.details.quantiles`). Decode with
-  `decodeMonteCarloMonthlyQuantiles`.
+  `decodeMonteCarloMonthlyIterations`. - `details.monthlyQuantiles`: A
+  `ColumnarResult` with pre-computed quantile summaries (enabled with
+  `options.details.quantiles`). Decode with `decodeMonteCarloMonthlyQuantiles`.
 
 ### Examples
 

@@ -7,6 +7,7 @@ import incrementParameters from "./helpers/rentVsBuy/incrementParameters.ts";
 import precomputeMortgagePayments from "./helpers/rentVsBuy/precomputeMortgagePayments.ts";
 import toResults from "./helpers/rentVsBuy/toResults.ts";
 import mortgageInsurancePremium from "./mortgageInsurancePremium.ts";
+import getMinimumDownPayment from "./getMinimumDownPayment.ts";
 import getSalesTax from "./getSalesTax.ts";
 import getLandTransferTax, {
   type City,
@@ -54,7 +55,7 @@ export type RentVsBuyRates =
  *   @param parameters.renter.securityDeposit - The initial security deposit.
  *   @param parameters.renter.startingMonthlyInsurance - The initial monthly renter's insurance.
  * @param parameters.buyer - Configuration for the buyer scenarios.
- *   @param parameters.buyer.downPayment - The down payment amount.
+ *   @param parameters.buyer.downPayment - The down payment amount. Must meet the minimum required down payment in Canada based on the purchase price.
  *   @param parameters.buyer.purchasePrice - The purchase price of the home.
  *   @param parameters.buyer.fixedRateAdjustment - The adjustment applied to the posted fixed mortgage rate (added to the posted rate).
  *   @param parameters.buyer.variableRateAdjustment - The adjustment applied to the variable mortgage rate (added to the posted rate).
@@ -93,6 +94,7 @@ export type RentVsBuyRates =
  *   @param options.adjustToInflation - The rate parameter used as a proxy for inflation to discount all future dollar values back to Year 0 (today's dollars). For example, setting this to `"sellingFixedFeesIncrease"` will use that parameter's values to calculate the monthly discount factor. Defaults to `undefined` (no adjustment).
  *
  * @returns A detailed array of monthly results for each scenario (renter, buyerFixed, buyerVariable).
+ * @throws {Error} If the down payment is less than the minimum required down payment in Canada.
  * Each object in the array represents a specific data point for a given month, categorized by:
  * - `monthlyExpenses` or `cumulativeExpenses`:
  *   - `rent`, `insurance`, `securityDeposit` (for Renter)
@@ -406,6 +408,13 @@ export default function simulateRentVsBuy(
   }
 
   const province = getProvinceFromCity(parameters.city);
+
+  const downPaymentMin = getMinimumDownPayment(parameters.buyer.purchasePrice);
+  if (parameters.buyer.downPayment < downPaymentMin) {
+    throw new Error(
+      `The down payment is less than the minimum required down payment (${parameters.buyer.downPayment} < ${downPaymentMin}).`,
+    );
+  }
 
   // We keep track of amounts in structured objects
   const renter = getPersona({
