@@ -23,6 +23,7 @@ import adjustToInflation from "./finance/adjustToInflation.ts";
 import mortgagePayments from "./finance/mortgagePayments.ts";
 import mortgageInsurancePremium from "./finance/mortgageInsurancePremium.ts";
 import mortgageMaxAmount from "./finance/mortgageMaxAmount.ts";
+import getMinimumDownPayment from "./finance/getMinimumDownPayment.ts";
 import getYahooFinanceData from "./finance/getYahooFinanceData.ts";
 import variableMortgagePayments from "./finance/variableMortgagePayments.ts";
 import simulateRentVsBuy, {
@@ -61,6 +62,7 @@ export {
   decodeMonteCarloWinners,
   getIncomeTax,
   getLandTransferTax,
+  getMinimumDownPayment,
   getMortgagePenalty,
   getRentVsBuyCholeskyMatrix,
   getSalesTax,

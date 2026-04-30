@@ -369,6 +369,51 @@ function getLandTransferTax(
 
 The total calculated transaction friction cost in Canadian Dollars.
 
+## getMinimumDownPayment
+
+Calculates the minimum down payment required for a property purchase in Canada,
+based on the purchase price.
+
+The calculation follows the Financial Consumer Agency of Canada (FCAC) rules:
+
+- For properties $500,000 or less: 5% of the purchase price.
+- For properties between $500,000 and $1.5 million: 5% of the first $500,000,
+  plus 10% of the portion above $500,000.
+- For properties $1.5 million or more: 20% of the total purchase price.
+
+### Signature
+
+```typescript
+function getMinimumDownPayment(purchasePrice: number): number;
+```
+
+### Parameters
+
+- **`purchasePrice`**: The total price of the property being purchased.
+
+### Returns
+
+The minimum down payment amount.
+
+### Examples
+
+```ts
+// Minimum down payment for a $400,000 home (5%)
+const downPayment400k = getMinimumDownPayment(400_000);
+console.log(downPayment400k); // 20000
+
+// Minimum down payment for a $600,000 home (5% of 500k + 10% of 100k)
+const downPayment600k = getMinimumDownPayment(600_000);
+console.log(downPayment600k); // 35000
+
+// Minimum down payment for a $1,600,000 home (20%)
+const downPayment1600k = getMinimumDownPayment(1_600_000);
+console.log(downPayment1600k); // 320000
+```
+
+Reference:
+https://www.canada.ca/en/financial-consumer-agency/services/mortgages/down-payment.html
+
 ## getMortgagePenalty
 
 Calculates the mortgage prepayment penalty.
@@ -664,9 +709,8 @@ required in such cases.
 
 ### Throws
 
-- **`Error`**: If the down payment is less than 5% of the purchase price, as
-  this is generally the minimum required down payment for insured mortgages in
-  Canada.
+- **`Error`**: If the down payment is less than the minimum required down
+  payment in Canada.
 
 ### Examples
 
@@ -697,7 +741,7 @@ try {
   mortgageInsurancePremium(500_000, 20_000); // 4% down payment
 } catch (error) {
   console.error("Error:", error.message);
-  // Expected output: "Error: The down payment must be more than 5% of the purchase price..."
+  // Expected output: "Error: The down payment is less than the minimum required down payment..."
 }
 ```
 
