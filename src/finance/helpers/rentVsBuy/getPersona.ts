@@ -18,6 +18,7 @@ export default function getPersona(parameters: {
   sellingCommissionRate: number;
   landTransferTax: number;
   floorRate: number;
+  investsSavings: boolean;
 }): Persona {
   return {
     params: {
@@ -40,6 +41,7 @@ export default function getPersona(parameters: {
       landTransferTax: parameters.landTransferTax,
       insurancePremium: parameters.insurancePremium,
       floorRate: parameters.floorRate,
+      investsSavings: parameters.investsSavings,
     },
     monthlyExpenses: {
       mortgageCapital: 0,

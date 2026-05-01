@@ -1064,6 +1064,7 @@ function simulateRentVsBuy(
       sellingFixedFees: number;
       sellingCommissionRate: number;
       floorRate: number;
+      investsSavings: boolean;
     };
     values: {
       employmentIncome: number[];
@@ -1231,6 +1232,10 @@ function simulateRentVsBuy(
   for selling the home (e.g., 0.05 for 5%).
 - **`parameters.buyer.floorRate`**: The minimum interest rate (posted +
   adjustment) for mortgages.
+- **`parameters.buyer.investsSavings`**: Whether the buyer invests any monthly
+  savings (difference between their expenses and the renter's/max expenses) into
+  the stock market. If `false`, these savings are discarded (simulating
+  lifestyle inflation or other spending).
 - **`parameters.values`**: Shared absolute values over the simulation period.
   Each array should have a length of `numberOfYears * 12`.
 - **`parameters.values.employmentIncome`**: Monthly employment income used for
@@ -1362,6 +1367,7 @@ const results = simulateRentVsBuy({
     fixedRateAdjustment: -0.015,
     variableRateAdjustment: -0.005,
     firstTimeOwner: true,
+    investsSavings: true,
     purchaseFixedFees: 2000,
     startingAnnualMaintenanceCost: 2000,
     startingAnnualPropertyTax: 3000,
@@ -1370,6 +1376,7 @@ const results = simulateRentVsBuy({
     sellingFixedFees: 2000,
     sellingCommissionRate: 0.05,
     floorRate: 0.01,
+    investsSavings: true,
   },
   values,
   rates,
@@ -1448,6 +1455,9 @@ function simulateRentVsBuyMonteCarlo(
   estate agents upon sale (e.g., `0.05` for 5%).
 - **`parameters.buyer.floorRate`**: The minimum interest rate (posted +
   adjustment) for mortgages.
+- **`parameters.buyer.investsSavings`**: Whether the buyer invests any monthly
+  savings (difference between their expenses and the renter's/max expenses) into
+  the stock market. If `false`, these savings are discarded.
 - **`parameters.choleskyMatrix`**: Mandatory Cholesky decomposition matrix for
   the 16 stochastic variables. Must be pre-computed using
   `getRentVsBuyCholeskyMatrix` from this library.
@@ -1581,9 +1591,11 @@ const results = simulateRentVsBuyMonteCarlo({
     fixedRateAdjustment: -0.015,
     variableRateAdjustment: -0.005,
     firstTimeOwner: true,
+    investsSavings: true,
     purchaseFixedFees: 2000,
     sellingCommissionRate: 0.05,
     floorRate: 0.01,
+    investsSavings: true,
   },
   stochasticParameters: {
     employmentIncome: { initialValue: 80000, mu: 0.03, sigma: 0.05 },

@@ -46,6 +46,7 @@ Deno.test("documentation example: simulateRentVsBuy should run without errors", 
       fixedRateAdjustment: -1.5,
       variableRateAdjustment: -0.5,
       firstTimeOwner: true,
+      investsSavings: true,
       purchaseFixedFees: 5000,
       startingAnnualMaintenanceCost: 2000,
       startingAnnualPropertyTax: 3000,
@@ -60,6 +61,119 @@ Deno.test("documentation example: simulateRentVsBuy should run without errors", 
   }, { winVariableOnly: true, winVariable: "balanceAfterSelling" });
 
   assert(results.length > 0);
+});
+
+Deno.test("simulateRentVsBuy: buyer investments should be zero when investsSavings is false", () => {
+  const years = 5;
+  const rates = {
+    marketReturnRate: new Array(years * 12).fill(0.005),
+    rentIncrease: new Array(years * 12).fill(0.1), // Very high rent increase to make renter more expensive
+    ownerInsuranceIncrease: new Array(years * 12).fill(0),
+    renterInsuranceIncrease: new Array(years * 12).fill(0),
+    maintenanceIncrease: new Array(years * 12).fill(0),
+    propertyTaxIncrease: new Array(years * 12).fill(0),
+    condoFeeIncrease: new Array(years * 12).fill(0),
+    appreciationIncrease: new Array(years * 12).fill(0),
+    sellingFixedFeesIncrease: new Array(years * 12).fill(0),
+  };
+
+  const values = {
+    employmentIncome: new Array(years * 12).fill(100_000),
+    fiveYearInterestRates: new Array(years * 12).fill(0.05),
+    fourYearInterestRates: new Array(years * 12).fill(0.05),
+    threeYearInterestRates: new Array(years * 12).fill(0.05),
+    twoYearInterestRates: new Array(years * 12).fill(0.05),
+    oneYearInterestRates: new Array(years * 12).fill(0.05),
+    variableInterestRates: new Array(years * 12).fill(0.06),
+  };
+
+  const commonParams = {
+    startingYear: 2024,
+    numberOfYears: years,
+    tfsaContributions: true,
+    annualInvestmentFeeRate: 0,
+    couple: false,
+    city: "Toronto" as const,
+    renter: {
+      startingMonthlyRent: 2000,
+      securityDeposit: 0,
+      startingMonthlyInsurance: 0,
+    },
+    buyer: {
+      downPayment: 100000,
+      purchasePrice: 500000,
+      fixedRateAdjustment: 0,
+      variableRateAdjustment: 0,
+      firstTimeOwner: true,
+      investsSavings: true,
+      purchaseFixedFees: 0,
+      startingAnnualMaintenanceCost: 0,
+      startingAnnualPropertyTax: 0,
+      startingMonthlyCondoFees: 0,
+      startingMonthlyInsurance: 0,
+      sellingFixedFees: 0,
+      sellingCommissionRate: 0,
+      floorRate: 0,
+    },
+    values,
+    rates,
+  };
+
+  // Run with default (investsSavings = true)
+  const resultsWithSavings = simulateRentVsBuy(commonParams, {
+    winVariableOnly: false,
+  });
+
+  // Run with investsSavings = false
+  const resultsWithoutSavings = simulateRentVsBuy({
+    ...commonParams,
+    buyer: { ...commonParams.buyer, investsSavings: false },
+  }, {
+    winVariableOnly: false,
+  });
+
+  const lastMonth = years * 12 - 1;
+
+  // Debug: print results categories to see what we got
+  // console.log("Unique categories:", [...new Set(resultsWithSavings.map(r => r.category))]);
+  // console.log("Unique groups:", [...new Set(resultsWithSavings.map(r => r.group))]);
+  // console.log("Unique variables:", [...new Set(resultsWithSavings.map(r => r.variable))]);
+
+  const buyerFixedWith = resultsWithSavings.find((r) =>
+    r.category === "buyerFixed" && r.group === "assets" &&
+    r.variable === "tfsa" &&
+    r.monthIndex === lastMonth
+  );
+
+  const buyerFixedWithout = resultsWithoutSavings.find((r) =>
+    r.category === "buyerFixed" && r.group === "assets" &&
+    r.variable === "tfsa" &&
+    r.monthIndex === lastMonth
+  );
+
+  // If tfsa was never recorded (because it's 0 and was optimized out), we treat it as 0
+  const buyerFixedWithAmount = buyerFixedWith?.amount ?? 0;
+  const buyerFixedWithoutAmount = buyerFixedWithout?.amount ?? 0;
+
+  const buyerFixedStocksWith = resultsWithSavings.find((r) =>
+    r.category === "buyerFixed" && r.group === "assets" &&
+    r.variable === "stocks" &&
+    r.monthIndex === lastMonth
+  );
+  const buyerFixedStocksWithout = resultsWithoutSavings.find((r) =>
+    r.category === "buyerFixed" && r.group === "assets" &&
+    r.variable === "stocks" &&
+    r.monthIndex === lastMonth
+  );
+
+  const buyerFixedStocksWithAmount = buyerFixedStocksWith?.amount ?? 0;
+  const buyerFixedStocksWithoutAmount = buyerFixedStocksWithout?.amount ?? 0;
+
+  // When high rent makes the renter the "maxMonthlyExpenses", the buyer usually gets "savings" to invest.
+  // With investsSavings: false, these should stay at 0 (or much lower than the version with savings).
+  assert(buyerFixedWithoutAmount <= buyerFixedWithAmount);
+  assertEquals(buyerFixedWithoutAmount, 0);
+  assertEquals(buyerFixedStocksWithoutAmount, 0);
 });
 
 Deno.test("simulateRentVsBuy: should apply floor rate to mortgage interest", () => {
@@ -105,6 +219,7 @@ Deno.test("simulateRentVsBuy: should apply floor rate to mortgage interest", () 
       fixedRateAdjustment: -1.0, // This would normally bring 0.005 to -0.995
       variableRateAdjustment: -1.0,
       firstTimeOwner: true,
+      investsSavings: true,
       purchaseFixedFees: 5000,
       startingAnnualMaintenanceCost: 2000,
       startingAnnualPropertyTax: 3000,
@@ -2556,6 +2671,7 @@ Deno.test("simulateRentVsBuy: adjustToInflation should discount future values", 
       fixedRateAdjustment: 0,
       variableRateAdjustment: 0,
       firstTimeOwner: false,
+      investsSavings: true,
       purchaseFixedFees: 0,
       startingAnnualMaintenanceCost: 0,
       startingAnnualPropertyTax: 0,

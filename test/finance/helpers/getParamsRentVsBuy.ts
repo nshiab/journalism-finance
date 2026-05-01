@@ -53,6 +53,7 @@ export default function getParamsRentVsBuy(
     sellingFixedFees: number;
     sellingCommissionRate: number;
     floorRate: number;
+    investsSavings: boolean;
   };
 };
 /**
@@ -102,6 +103,7 @@ export default function getParamsRentVsBuy(
     sellingFixedFees: number;
     sellingCommissionRate: number;
     floorRate: number;
+    investsSavings: boolean;
   };
   rates: {
     marketReturnRate: number[];
@@ -397,6 +399,7 @@ export default function getParamsRentVsBuy(
       sellingFixedFees: startingSellingFixedFees,
       sellingCommissionRate: 0.04,
       floorRate: 0.01,
+      investsSavings: true,
     },
   };
 
