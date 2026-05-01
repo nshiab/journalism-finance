@@ -312,7 +312,7 @@ export type BaseOptions = {
  *     downPayment: 50000,
  *     fixedRateAdjustment: -0.015,
  *     variableRateAdjustment: -0.005,
- *     firstTimeOwner: true,
+ *     firstTimeOwner: true, investsSavings: true,
  *     purchaseFixedFees: 2000,
  *     sellingCommissionRate: 0.05,
  *     floorRate: 0.01,

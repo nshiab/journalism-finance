@@ -155,7 +155,7 @@ export type RentVsBuyRates =
  *     purchasePrice: 500000,
  *     fixedRateAdjustment: -0.015,
  *     variableRateAdjustment: -0.005,
- *     firstTimeOwner: true,
+ *     firstTimeOwner: true, investsSavings: true,
  *     purchaseFixedFees: 2000,
  *     startingAnnualMaintenanceCost: 2000,
  *     startingAnnualPropertyTax: 3000,

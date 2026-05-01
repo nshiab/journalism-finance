@@ -26,10 +26,10 @@ Deno.test("documentation example: simulateRentVsBuyMonteCarlo should run without
       fixedRateAdjustment: -1.0,
       variableRateAdjustment: 0,
       firstTimeOwner: true,
+      investsSavings: true,
       purchaseFixedFees: 3000,
       sellingCommissionRate: 0.05,
       floorRate: 0,
-      investsSavings: true,
     },
     choleskyMatrix: getRentVsBuyCholeskyMatrix(),
     stochasticParameters: {
