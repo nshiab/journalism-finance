@@ -129,6 +129,7 @@ export type SimParams = {
     purchaseFixedFees: number;
     sellingCommissionRate: number;
     floorRate: number;
+    investsSavings: boolean;
   };
   /**
    * Mandatory Cholesky decomposition matrix for the 16 stochastic variables.
@@ -237,6 +238,7 @@ export type BaseOptions = {
  *   @param parameters.buyer.purchaseFixedFees - One-time costs at purchase (notary, etc.). Do not include land transfer tax here, as it is calculated automatically based on the city.
  *   @param parameters.buyer.sellingCommissionRate - The commission rate paid to real estate agents upon sale (e.g., `0.05` for 5%).
  *   @param parameters.buyer.floorRate - The minimum interest rate (posted + adjustment) for mortgages.
+ *   @param parameters.buyer.investsSavings - Whether the buyer invests any monthly savings (difference between their expenses and the renter's/max expenses) into the stock market. If `false`, these savings are discarded.
  * @param parameters.choleskyMatrix - Mandatory Cholesky decomposition matrix for the 16 stochastic variables. Must be pre-computed using `getRentVsBuyCholeskyMatrix` from this library.
  * @param parameters.stochasticParameters - Parameters for the stochastic models.
  *   For all parameters (market return rate, dollar amounts, interest rates), use:
@@ -314,6 +316,7 @@ export type BaseOptions = {
  *     purchaseFixedFees: 2000,
  *     sellingCommissionRate: 0.05,
  *     floorRate: 0.01,
+ *     investsSavings: true,
  *   },
  *   stochasticParameters: {
  *     employmentIncome: { initialValue: 80000, mu: 0.03, sigma: 0.05 },
@@ -644,6 +647,7 @@ function simulateRentVsBuyMonteCarlo(
           parameters.stochasticParameters.sellingFixedFees.initialValue,
         sellingCommissionRate: parameters.buyer.sellingCommissionRate,
         floorRate: parameters.buyer.floorRate,
+        investsSavings: parameters.buyer.investsSavings,
       },
       annualInvestmentFeeRate: parameters.annualInvestmentFeeRate,
       values: {

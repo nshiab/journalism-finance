@@ -29,6 +29,7 @@ Deno.test("documentation example: simulateRentVsBuyMonteCarlo should run without
       purchaseFixedFees: 3000,
       sellingCommissionRate: 0.05,
       floorRate: 0,
+      investsSavings: true,
     },
     choleskyMatrix: getRentVsBuyCholeskyMatrix(),
     stochasticParameters: {
@@ -1406,4 +1407,83 @@ Deno.test("simulateRentVsBuyMonteCarlo: adjustToInflation should correctly propa
   );
 
   assert(avgWinnerAmountAdjusted < avgWinnerAmountNormal);
+});
+
+Deno.test("simulateRentVsBuyMonteCarlo: buyer investments should be zero when investsSavings is false", () => {
+  const iterations = 5;
+  const years = 5;
+  const params = getParamsRentVsBuyMonteCarlo(iterations, "Montreal", {
+    downPayment: 0.2,
+    purchaseFixedFees: 0.01,
+  }, {
+    renterMonthlyInsurance: 30,
+    ownerMonthlyInsurance: 100,
+    sellingFixedFees: 2000,
+    condoFees: 300,
+  }, false);
+
+  // Manipulate rent to be very high so buyers always have savings to invest
+  params.stochasticParameters.rent.initialValue = 5000;
+  params.stochasticParameters.rent.mu = 0.05;
+  // Minimize volatility to keep results consistent across iterations
+  params.stochasticParameters.rent.sigma = 0.001;
+
+  params.buyer.investsSavings = false;
+  params.numberOfYears = years;
+
+  const results = simulateRentVsBuyMonteCarlo(params, {
+    details: {
+      iterations: true,
+      iterationsGroups: ["assets"],
+    },
+  });
+
+  const decoded = decodeMonteCarloMonthlyIterations(
+    results.details.monthlyIterations,
+  );
+  const lastMonth = years * 12 - 1;
+
+  // Check buyerFixed and buyerVariable for all iterations
+  for (let i = 0; i < iterations; i++) {
+    // Accessing results.details.monthlyIterations data via structured access to avoid property indexing issues
+    const colCount = results.details.monthlyIterations.cols;
+
+    // We can't easily find the keys in the columnar result without the keys array
+    // Let's just check the ColumnarReturn.winners or some other indicator if we can't easily decode
+    // Actually, ColumnarResult has a 'keys' property.
+
+    const findAmount = (cat: string, grp: string, vr: string) => {
+      const key = `${cat}|${grp}|${vr}`;
+      const keyIdx = results.details.monthlyIterations.keys.indexOf(key);
+      if (keyIdx === -1) return 0;
+      return results.details.monthlyIterations
+        .data[key][i * colCount + lastMonth];
+    };
+
+    const buyerFixedTfsa = findAmount("buyerFixed", "assets", "tfsa");
+    const buyerFixedStocks = findAmount("buyerFixed", "assets", "stocks");
+    const buyerVariableTfsa = findAmount("buyerVariable", "assets", "tfsa");
+    const buyerVariableStocks = findAmount("buyerVariable", "assets", "stocks");
+
+    assertEquals(
+      buyerFixedTfsa,
+      0,
+      `Iteration ${i}: buyerFixed TFSA should be 0`,
+    );
+    assertEquals(
+      buyerFixedStocks,
+      0,
+      `Iteration ${i}: buyerFixed stocks should be 0`,
+    );
+    assertEquals(
+      buyerVariableTfsa,
+      0,
+      `Iteration ${i}: buyerVariable TFSA should be 0`,
+    );
+    assertEquals(
+      buyerVariableStocks,
+      0,
+      `Iteration ${i}: buyerVariable stocks should be 0`,
+    );
+  }
 });

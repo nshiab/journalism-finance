@@ -68,6 +68,7 @@ export type RentVsBuyRates =
  *   @param parameters.buyer.sellingFixedFees - Fixed fees associated with selling the home (before sales tax).
  *   @param parameters.buyer.sellingCommissionRate - The real estate commission rate for selling the home (e.g., 0.05 for 5%).
  *   @param parameters.buyer.floorRate - The minimum interest rate (posted + adjustment) for mortgages.
+ *   @param parameters.buyer.investsSavings - Whether the buyer invests any monthly savings (difference between their expenses and the renter's/max expenses) into the stock market. If `false`, these savings are discarded (simulating lifestyle inflation or other spending).
  * @param parameters.values - Shared absolute values over the simulation period. Each array should have a length of `numberOfYears * 12`.
  *   @param parameters.values.employmentIncome - Monthly employment income used for calculating income taxes on investment gains.
  *   @param parameters.values.fiveYearInterestRates - Monthly 5-year fixed mortgage interest rates.
@@ -163,6 +164,7 @@ export type RentVsBuyRates =
  *     sellingFixedFees: 2000,
  *     sellingCommissionRate: 0.05,
  *     floorRate: 0.01,
+ *     investsSavings: true,
  *   },
  *   values,
  *   rates,
@@ -196,6 +198,7 @@ export default function simulateRentVsBuy(
       sellingFixedFees: number;
       sellingCommissionRate: number;
       floorRate: number;
+      investsSavings: boolean;
     };
     values: {
       employmentIncome: number[];
@@ -435,6 +438,7 @@ export default function simulateRentVsBuy(
     sellingFixedFees: 0,
     sellingCommissionRate: 0,
     floorRate: 0,
+    investsSavings: true, // Renter always invests savings
   });
   const insurancePremium = mortgageInsurancePremium(
     parameters.buyer.purchasePrice,
@@ -465,6 +469,7 @@ export default function simulateRentVsBuy(
     sellingFixedFees: parameters.buyer.sellingFixedFees,
     sellingCommissionRate: parameters.buyer.sellingCommissionRate,
     floorRate: parameters.buyer.floorRate,
+    investsSavings: parameters.buyer.investsSavings,
   });
   const buyerVariable = getPersona({
     startingMonthlyRent: 0,
@@ -485,6 +490,7 @@ export default function simulateRentVsBuy(
     sellingFixedFees: parameters.buyer.sellingFixedFees,
     sellingCommissionRate: parameters.buyer.sellingCommissionRate,
     floorRate: parameters.buyer.floorRate,
+    investsSavings: parameters.buyer.investsSavings,
   });
 
   // We precompute the mortgage payments for the buyer for the entire period

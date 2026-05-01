@@ -47,6 +47,7 @@ export default function getParamsRentVsBuyMonteCarlo(
     firstTimeOwner: boolean;
     sellingCommissionRate: number;
     floorRate: number;
+    investsSavings: boolean;
   };
   choleskyMatrix: number[][];
   stochasticParameters: {
@@ -297,6 +298,7 @@ export default function getParamsRentVsBuyMonteCarlo(
       firstTimeOwner: true,
       sellingCommissionRate: params.buyer.sellingCommissionRate,
       floorRate: params.buyer.floorRate,
+      investsSavings: true,
     },
     choleskyMatrix: getRentVsBuyCholeskyMatrix(), // Default identity for all general tests
     stochasticParameters: {

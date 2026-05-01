@@ -88,6 +88,11 @@ export default function computeGains(
   // Now we deal with any savings from reduced expenses
   let monthlySavings = maxMonthlyExpenses - totalMonthlyExpenses;
 
+  // If the buyer doesn't invest their savings, we skip this part
+  if (persona.params.investsSavings === false && monthlySavings > 0) {
+    monthlySavings = 0;
+  }
+
   // We check if we can invest these savings in the TFSA first
   if (tfsaContributions && monthlySavings > 0) {
     let tfsaRoom = getTfsaContribution(
