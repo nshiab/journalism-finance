@@ -53,4 +53,4 @@ bunx @nshiab/setup-data-project
 ```
 
 If you wish to contribute, please check the
-[guidelines](https://github.com/nshiab/journalism-web-scraping/blob/main/CONTRIBUTING.md).
+[guidelines](https://github.com/nshiab/journalism-finance/blob/main/CONTRIBUTING.md).
