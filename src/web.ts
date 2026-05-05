@@ -1,12 +1,22 @@
 /**
- * This module provides a collection of functions to be used in web applications.
+ * @module
+ *
+ * The Journalism library (finance functions) - Web entry point
+ *
+ * To install the library with Deno, use:
+ * ```bash
+ * deno add jsr:@nshiab/journalism-finance
+ * ```
+ *
+ * To install the library with Node.js, use:
+ * ```bash
+ * npm i @nshiab/journalism-finance
+ * ```
  *
  * To import a function, use:
  * ```ts
  * import { functionName } from "@nshiab/journalism-finance/web";
  * ```
- *
- * @module
  */
 
 import adjustToInflation from "./finance/adjustToInflation.ts";
