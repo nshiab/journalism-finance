@@ -1,6 +1,9 @@
 {
   "name": "@nshiab/journalism-finance",
-  "version": "1.5.22",
+  "version": "1.5.23",
+  "description": "Useful TypeScript functions for journalism projects. This library focuses on financial calculations and data fetching.",
+  "repository": "https://github.com/nshiab/journalism-finance",
+  "license": "MIT",
   "exports": {
     ".": "./src/index.ts",
     "./web": "./src/web.ts"
@@ -9,16 +12,18 @@
     "all-tests": "deno install && deno fmt --check && deno lint && deno check src/index.ts && deno doc --lint src/index.ts && deno publish --allow-dirty --dry-run && TZ=America/Toronto deno test -A --fail-fast && deno task llm",
     "llm": "deno doc --json src/index.ts > docs.json && deno run -A src/generateLlmMd.ts && deno fmt llm.md",
     "test-coverage": "deno test -A --fail-fast --coverage=cov_profile && deno coverage cov_profile",
-    "patch-no-tests": "deno run -A src/incrementVersion.ts patch",
-    "minor-no-tests": "deno run -A src/incrementVersion.ts minor",
-    "patch": "deno task all-tests && deno run -A src/incrementVersion.ts patch",
-    "minor": "deno task all-tests && deno run -A src/incrementVersion.ts minor",
-    "major": "deno task all-tests && deno run -A src/incrementVersion.ts major"
+    "patch": "deno task all-tests && deno run -A jsr:@nshiab/bump-version patch",
+    "minor": "deno task all-tests && deno run -A jsr:@nshiab/bump-version minor",
+    "major": "deno task all-tests && deno run -A jsr:@nshiab/bump-version major"
   },
+  "exclude": [
+    "npm/"
+  ],
   "publish": {
     "exclude": [
       "test",
-      ".github"
+      ".github",
+      "npm"
     ]
   },
   "nodeModulesDir": "auto",
