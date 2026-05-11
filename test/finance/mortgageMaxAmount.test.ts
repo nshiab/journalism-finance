@@ -47,46 +47,46 @@ Deno.test("should return a purchase price of $25k with an income of $0k, down pa
     monthlyCondoFees: 0,
   });
 });
-Deno.test("should return a purchase price of $32k with an income of $10k, down payment of $25k, and a rate of 5.25%", () => {
+Deno.test("should return a purchase price of $39k with an income of $10k, down payment of $25k, and a rate of 5.25%", () => {
   const results = mortgageMaxAmount(10_000, 25_000, 5.25);
   assertEquals(results, {
     annualIncome: 10000,
     downPayment: 25000,
     rate: 5.25,
     rateTested: 7.25,
-    purchasePrice: 32000,
-    mortgageAmount: 7000,
+    purchasePrice: 39000,
+    mortgageAmount: 14000,
     insurancePremium: 0,
-    monthlyMortgagePayment: 50,
-    grossDebtServiceRatio: 0.32,
-    totalDebtServiceRatio: 0.32,
+    monthlyMortgagePayment: 100,
+    grossDebtServiceRatio: 0.39,
+    totalDebtServiceRatio: 0.39,
     reason: "debt limit",
     monthlyDebtPayment: 0,
     monthlyHeating: 175,
     isHeatingEstimate: true,
-    monthlyTax: 41,
+    monthlyTax: 50,
     isTaxEstimate: true,
     monthlyCondoFees: 0,
   });
 });
-Deno.test("should return a purchase price of $155k with an income of $50k, down payment of $25k, and a rate of 5.25%", () => {
+Deno.test("should return a purchase price of $189k with an income of $50k, down payment of $25k, and a rate of 5.25%", () => {
   const results = mortgageMaxAmount(50_000, 25_000, 5.25);
   assertEquals(results, {
     annualIncome: 50000,
     downPayment: 25000,
     rate: 5.25,
     rateTested: 7.25,
-    purchasePrice: 155000,
-    mortgageAmount: 133640,
-    insurancePremium: 3640,
-    monthlyMortgagePayment: 957,
-    grossDebtServiceRatio: 0.32,
-    totalDebtServiceRatio: 0.32,
+    purchasePrice: 189000,
+    mortgageAmount: 169084,
+    insurancePremium: 5084,
+    monthlyMortgagePayment: 1211,
+    grossDebtServiceRatio: 0.39,
+    totalDebtServiceRatio: 0.39,
     reason: "debt limit",
     monthlyDebtPayment: 0,
     monthlyHeating: 175,
     isHeatingEstimate: true,
-    monthlyTax: 195,
+    monthlyTax: 238,
     isTaxEstimate: true,
     monthlyCondoFees: 0,
   });
@@ -135,85 +135,173 @@ Deno.test("should return a purchase price of $0k with an income of $100k, down p
     monthlyCondoFees: 0,
   });
 });
-Deno.test("should return a purchase price of $307k with an income of $100k, down payment of $25k, and a rate of 5.25%", () => {
+Deno.test("should return a purchase price of $375k with an income of $100k, down payment of $25k, and a rate of 5.25%", () => {
   const results = mortgageMaxAmount(100_000, 25_000, 5.25);
   assertEquals(results, {
     annualIncome: 100000,
     downPayment: 25000,
     rate: 5.25,
     rateTested: 7.25,
-    purchasePrice: 307000,
-    mortgageAmount: 293280,
-    insurancePremium: 11280,
-    monthlyMortgagePayment: 2100,
-    grossDebtServiceRatio: 0.32,
-    totalDebtServiceRatio: 0.32,
+    purchasePrice: 375000,
+    mortgageAmount: 364000,
+    insurancePremium: 14000,
+    monthlyMortgagePayment: 2606,
+    grossDebtServiceRatio: 0.39,
+    totalDebtServiceRatio: 0.39,
     reason: "debt limit",
     monthlyDebtPayment: 0,
     monthlyHeating: 175,
     isHeatingEstimate: true,
-    monthlyTax: 385,
+    monthlyTax: 470,
     isTaxEstimate: true,
     monthlyCondoFees: 0,
   });
 });
-Deno.test("should return a purchase price of $332k with an income of $100k, down payment of $50k, and a rate of 5.25%", () => {
+Deno.test("should return a purchase price of $399k with an income of $100k, down payment of $50k, and a rate of 5.25%", () => {
   const results = mortgageMaxAmount(100_000, 50_000, 5.25);
   assertEquals(results, {
     annualIncome: 100000,
     downPayment: 50000,
     rate: 5.25,
     rateTested: 7.25,
-    purchasePrice: 332000,
-    mortgageAmount: 289896,
-    insurancePremium: 7896,
-    monthlyMortgagePayment: 2075,
-    grossDebtServiceRatio: 0.32,
-    totalDebtServiceRatio: 0.32,
+    purchasePrice: 399000,
+    mortgageAmount: 359819,
+    insurancePremium: 10819,
+    monthlyMortgagePayment: 2576,
+    grossDebtServiceRatio: 0.39,
+    totalDebtServiceRatio: 0.39,
     reason: "debt limit",
     monthlyDebtPayment: 0,
     monthlyHeating: 175,
     isHeatingEstimate: true,
-    monthlyTax: 416,
+    monthlyTax: 500,
     isTaxEstimate: true,
     monthlyCondoFees: 0,
   });
 });
-Deno.test("should return a purchase price of $360k with an income of $100k, down payment of $75k, and a rate of 5.25%", () => {
+Deno.test("should return a purchase price of $421k with an income of $100k, down payment of $75k, and a rate of 5.25%", () => {
   const results = mortgageMaxAmount(100_000, 75_000, 5.25);
   assertEquals(results, {
     annualIncome: 100000,
     downPayment: 75000,
     rate: 5.25,
     rateTested: 7.25,
-    purchasePrice: 360000,
-    mortgageAmount: 285000,
-    insurancePremium: 0,
-    monthlyMortgagePayment: 2040,
-    grossDebtServiceRatio: 0.32,
-    totalDebtServiceRatio: 0.32,
+    purchasePrice: 421000,
+    mortgageAmount: 355688,
+    insurancePremium: 9688,
+    monthlyMortgagePayment: 2546,
+    grossDebtServiceRatio: 0.39,
+    totalDebtServiceRatio: 0.39,
     reason: "debt limit",
     monthlyDebtPayment: 0,
     monthlyHeating: 175,
     isHeatingEstimate: true,
-    monthlyTax: 451,
+    monthlyTax: 528,
     isTaxEstimate: true,
     monthlyCondoFees: 0,
   });
 });
-Deno.test("should return a purchase price of $381k with an income of $100k, down payment of $100k, and a rate of 5.25%", () => {
+Deno.test("should return a purchase price of $450k with an income of $100k, down payment of $100k, and a rate of 5.25%", () => {
   const results = mortgageMaxAmount(100_000, 100_000, 5.25);
   assertEquals(results, {
     annualIncome: 100000,
     downPayment: 100000,
     rate: 5.25,
     rateTested: 7.25,
-    purchasePrice: 381000,
-    mortgageAmount: 281000,
+    purchasePrice: 450000,
+    mortgageAmount: 350000,
     insurancePremium: 0,
-    monthlyMortgagePayment: 2012,
-    grossDebtServiceRatio: 0.32,
-    totalDebtServiceRatio: 0.32,
+    monthlyMortgagePayment: 2506,
+    grossDebtServiceRatio: 0.39,
+    totalDebtServiceRatio: 0.39,
+    reason: "debt limit",
+    monthlyDebtPayment: 0,
+    monthlyHeating: 175,
+    isHeatingEstimate: true,
+    monthlyTax: 564,
+    isTaxEstimate: true,
+    monthlyCondoFees: 0,
+  });
+});
+Deno.test("should return a purchase price of $433k with an income of $100k, down payment of $25k, and a rate of 1.00%", () => {
+  const results = mortgageMaxAmount(100_000, 25_000, 1);
+  assertEquals(results, {
+    annualIncome: 100000,
+    downPayment: 25000,
+    rate: 1,
+    rateTested: 5.25,
+    purchasePrice: 433000,
+    mortgageAmount: 424320,
+    insurancePremium: 16320,
+    monthlyMortgagePayment: 2529,
+    grossDebtServiceRatio: 0.39,
+    totalDebtServiceRatio: 0.39,
+    reason: "debt limit",
+    monthlyDebtPayment: 0,
+    monthlyHeating: 175,
+    isHeatingEstimate: true,
+    monthlyTax: 543,
+    isTaxEstimate: true,
+    monthlyCondoFees: 0,
+  });
+});
+Deno.test("should return a purchase price of $433k with an income of $100k, down payment of $25k, and a rate of 3.00%", () => {
+  const results = mortgageMaxAmount(100_000, 25_000, 3);
+  assertEquals(results, {
+    annualIncome: 100000,
+    downPayment: 25000,
+    rate: 3,
+    rateTested: 5.25,
+    purchasePrice: 433000,
+    mortgageAmount: 424320,
+    insurancePremium: 16320,
+    monthlyMortgagePayment: 2529,
+    grossDebtServiceRatio: 0.39,
+    totalDebtServiceRatio: 0.39,
+    reason: "debt limit",
+    monthlyDebtPayment: 0,
+    monthlyHeating: 175,
+    isHeatingEstimate: true,
+    monthlyTax: 543,
+    isTaxEstimate: true,
+    monthlyCondoFees: 0,
+  });
+});
+Deno.test("should return a purchase price of $410k with an income of $100k, down payment of $25k, and a rate of 4.00%", () => {
+  const results = mortgageMaxAmount(100_000, 25_000, 4);
+  assertEquals(results, {
+    annualIncome: 100000,
+    downPayment: 25000,
+    rate: 4,
+    rateTested: 6,
+    purchasePrice: 410000,
+    mortgageAmount: 400400,
+    insurancePremium: 15400,
+    monthlyMortgagePayment: 2562,
+    grossDebtServiceRatio: 0.39,
+    totalDebtServiceRatio: 0.39,
+    reason: "debt limit",
+    monthlyDebtPayment: 0,
+    monthlyHeating: 175,
+    isHeatingEstimate: true,
+    monthlyTax: 514,
+    isTaxEstimate: true,
+    monthlyCondoFees: 0,
+  });
+});
+Deno.test("should return a purchase price of $381k with an income of $100k, down payment of $25k, and a rate of 5.00%", () => {
+  const results = mortgageMaxAmount(100_000, 25_000, 5);
+  assertEquals(results, {
+    annualIncome: 100000,
+    downPayment: 25000,
+    rate: 5,
+    rateTested: 7,
+    purchasePrice: 381000,
+    mortgageAmount: 370240,
+    insurancePremium: 14240,
+    monthlyMortgagePayment: 2593,
+    grossDebtServiceRatio: 0.39,
+    totalDebtServiceRatio: 0.39,
     reason: "debt limit",
     monthlyDebtPayment: 0,
     monthlyHeating: 175,
@@ -223,139 +311,51 @@ Deno.test("should return a purchase price of $381k with an income of $100k, down
     monthlyCondoFees: 0,
   });
 });
-Deno.test("should return a purchase price of $355k with an income of $100k, down payment of $25k, and a rate of 1.00%", () => {
-  const results = mortgageMaxAmount(100_000, 25_000, 1);
-  assertEquals(results, {
-    annualIncome: 100000,
-    downPayment: 25000,
-    rate: 1,
-    rateTested: 5.25,
-    purchasePrice: 355000,
-    mortgageAmount: 343200,
-    insurancePremium: 13200,
-    monthlyMortgagePayment: 2045,
-    grossDebtServiceRatio: 0.32,
-    totalDebtServiceRatio: 0.32,
-    reason: "debt limit",
-    monthlyDebtPayment: 0,
-    monthlyHeating: 175,
-    isHeatingEstimate: true,
-    monthlyTax: 445,
-    isTaxEstimate: true,
-    monthlyCondoFees: 0,
-  });
-});
-Deno.test("should return a purchase price of $355k with an income of $100k, down payment of $25k, and a rate of 3.00%", () => {
-  const results = mortgageMaxAmount(100_000, 25_000, 3);
-  assertEquals(results, {
-    annualIncome: 100000,
-    downPayment: 25000,
-    rate: 3,
-    rateTested: 5.25,
-    purchasePrice: 355000,
-    mortgageAmount: 343200,
-    insurancePremium: 13200,
-    monthlyMortgagePayment: 2045,
-    grossDebtServiceRatio: 0.32,
-    totalDebtServiceRatio: 0.32,
-    reason: "debt limit",
-    monthlyDebtPayment: 0,
-    monthlyHeating: 175,
-    isHeatingEstimate: true,
-    monthlyTax: 445,
-    isTaxEstimate: true,
-    monthlyCondoFees: 0,
-  });
-});
-Deno.test("should return a purchase price of $336k with an income of $100k, down payment of $25k, and a rate of 4.00%", () => {
-  const results = mortgageMaxAmount(100_000, 25_000, 4);
-  assertEquals(results, {
-    annualIncome: 100000,
-    downPayment: 25000,
-    rate: 4,
-    rateTested: 6,
-    purchasePrice: 336000,
-    mortgageAmount: 323440,
-    insurancePremium: 12440,
-    monthlyMortgagePayment: 2069,
-    grossDebtServiceRatio: 0.32,
-    totalDebtServiceRatio: 0.32,
-    reason: "debt limit",
-    monthlyDebtPayment: 0,
-    monthlyHeating: 175,
-    isHeatingEstimate: true,
-    monthlyTax: 421,
-    isTaxEstimate: true,
-    monthlyCondoFees: 0,
-  });
-});
-Deno.test("should return a purchase price of $313k with an income of $100k, down payment of $25k, and a rate of 5.00%", () => {
-  const results = mortgageMaxAmount(100_000, 25_000, 5);
-  assertEquals(results, {
-    annualIncome: 100000,
-    downPayment: 25000,
-    rate: 5,
-    rateTested: 7,
-    purchasePrice: 313000,
-    mortgageAmount: 299520,
-    insurancePremium: 11520,
-    monthlyMortgagePayment: 2098,
-    grossDebtServiceRatio: 0.32,
-    totalDebtServiceRatio: 0.32,
-    reason: "debt limit",
-    monthlyDebtPayment: 0,
-    monthlyHeating: 175,
-    isHeatingEstimate: true,
-    monthlyTax: 393,
-    isTaxEstimate: true,
-    monthlyCondoFees: 0,
-  });
-});
-Deno.test("should return a purchase price of $274k with an income of $100k, down payment of $25k, and a rate of 7.00%", () => {
+Deno.test("should return a purchase price of $333k with an income of $100k, down payment of $25k, and a rate of 7.00%", () => {
   const results = mortgageMaxAmount(100_000, 25_000, 7);
   assertEquals(results, {
     annualIncome: 100000,
     downPayment: 25000,
     rate: 7,
     rateTested: 9,
-    purchasePrice: 274000,
-    mortgageAmount: 258960,
-    insurancePremium: 9960,
-    monthlyMortgagePayment: 2144,
-    grossDebtServiceRatio: 0.32,
-    totalDebtServiceRatio: 0.32,
+    purchasePrice: 333000,
+    mortgageAmount: 320320,
+    insurancePremium: 12320,
+    monthlyMortgagePayment: 2652,
+    grossDebtServiceRatio: 0.39,
+    totalDebtServiceRatio: 0.39,
     reason: "debt limit",
     monthlyDebtPayment: 0,
     monthlyHeating: 175,
     isHeatingEstimate: true,
-    monthlyTax: 344,
+    monthlyTax: 418,
     isTaxEstimate: true,
     monthlyCondoFees: 0,
   });
 });
-Deno.test("should return a purchase price of $231k with an income of $100k, down payment of $25k, and a rate of 10.00%", () => {
+Deno.test("should return a purchase price of $279k with an income of $100k, down payment of $25k, and a rate of 10.00%", () => {
   const results = mortgageMaxAmount(100_000, 25_000, 10);
   assertEquals(results, {
     annualIncome: 100000,
     downPayment: 25000,
     rate: 10,
     rateTested: 12,
-    purchasePrice: 231000,
-    mortgageAmount: 212386,
-    insurancePremium: 6386,
-    monthlyMortgagePayment: 2192,
-    grossDebtServiceRatio: 0.32,
-    totalDebtServiceRatio: 0.32,
+    purchasePrice: 279000,
+    mortgageAmount: 264160,
+    insurancePremium: 10160,
+    monthlyMortgagePayment: 2726,
+    grossDebtServiceRatio: 0.39,
+    totalDebtServiceRatio: 0.39,
     reason: "debt limit",
     monthlyDebtPayment: 0,
     monthlyHeating: 175,
     isHeatingEstimate: true,
-    monthlyTax: 290,
+    monthlyTax: 350,
     isTaxEstimate: true,
     monthlyCondoFees: 0,
   });
 });
-Deno.test("should return a purchase price of $313k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly debt payment of $0.", () => {
+Deno.test("should return a purchase price of $381k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly debt payment of $0.", () => {
   const results = mortgageMaxAmount(100_000, 25_000, 5, {
     monthlyDebtPayment: 0,
   });
@@ -364,22 +364,22 @@ Deno.test("should return a purchase price of $313k with an income of $100k, down
     downPayment: 25000,
     rate: 5,
     rateTested: 7,
-    purchasePrice: 313000,
-    mortgageAmount: 299520,
-    insurancePremium: 11520,
-    monthlyMortgagePayment: 2098,
-    grossDebtServiceRatio: 0.32,
-    totalDebtServiceRatio: 0.32,
+    purchasePrice: 381000,
+    mortgageAmount: 370240,
+    insurancePremium: 14240,
+    monthlyMortgagePayment: 2593,
+    grossDebtServiceRatio: 0.39,
+    totalDebtServiceRatio: 0.39,
     reason: "debt limit",
     monthlyDebtPayment: 0,
     monthlyHeating: 175,
     isHeatingEstimate: true,
-    monthlyTax: 393,
+    monthlyTax: 478,
     isTaxEstimate: true,
     monthlyCondoFees: 0,
   });
 });
-Deno.test("should return a purchase price of $313k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly debt payment of $50.", () => {
+Deno.test("should return a purchase price of $381k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly debt payment of $50.", () => {
   const results = mortgageMaxAmount(100_000, 25_000, 5, {
     monthlyDebtPayment: 50,
   });
@@ -388,113 +388,113 @@ Deno.test("should return a purchase price of $313k with an income of $100k, down
     downPayment: 25000,
     rate: 5,
     rateTested: 7,
-    purchasePrice: 313000,
-    mortgageAmount: 299520,
-    insurancePremium: 11520,
-    monthlyMortgagePayment: 2098,
-    grossDebtServiceRatio: 0.32,
-    totalDebtServiceRatio: 0.33,
-    reason: "debt limit",
-    monthlyDebtPayment: 50,
-    monthlyHeating: 175,
-    isHeatingEstimate: true,
-    monthlyTax: 393,
-    isTaxEstimate: true,
-    monthlyCondoFees: 0,
-  });
-});
-Deno.test("should return a purchase price of $313k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly debt payment of $100.", () => {
-  const results = mortgageMaxAmount(100_000, 25_000, 5, {
-    monthlyDebtPayment: 100,
-  });
-  assertEquals(results, {
-    annualIncome: 100000,
-    downPayment: 25000,
-    rate: 5,
-    rateTested: 7,
-    purchasePrice: 313000,
-    mortgageAmount: 299520,
-    insurancePremium: 11520,
-    monthlyMortgagePayment: 2098,
-    grossDebtServiceRatio: 0.32,
-    totalDebtServiceRatio: 0.33,
-    reason: "debt limit",
-    monthlyDebtPayment: 100,
-    monthlyHeating: 175,
-    isHeatingEstimate: true,
-    monthlyTax: 393,
-    isTaxEstimate: true,
-    monthlyCondoFees: 0,
-  });
-});
-Deno.test("should return a purchase price of $313k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly debt payment of $250.", () => {
-  const results = mortgageMaxAmount(100_000, 25_000, 5, {
-    monthlyDebtPayment: 250,
-  });
-  assertEquals(results, {
-    annualIncome: 100000,
-    downPayment: 25000,
-    rate: 5,
-    rateTested: 7,
-    purchasePrice: 313000,
-    mortgageAmount: 299520,
-    insurancePremium: 11520,
-    monthlyMortgagePayment: 2098,
-    grossDebtServiceRatio: 0.32,
-    totalDebtServiceRatio: 0.35,
-    reason: "debt limit",
-    monthlyDebtPayment: 250,
-    monthlyHeating: 175,
-    isHeatingEstimate: true,
-    monthlyTax: 393,
-    isTaxEstimate: true,
-    monthlyCondoFees: 0,
-  });
-});
-Deno.test("should return a purchase price of $313k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly debt payment of $500.", () => {
-  const results = mortgageMaxAmount(100_000, 25_000, 5, {
-    monthlyDebtPayment: 500,
-  });
-  assertEquals(results, {
-    annualIncome: 100000,
-    downPayment: 25000,
-    rate: 5,
-    rateTested: 7,
-    purchasePrice: 313000,
-    mortgageAmount: 299520,
-    insurancePremium: 11520,
-    monthlyMortgagePayment: 2098,
-    grossDebtServiceRatio: 0.32,
-    totalDebtServiceRatio: 0.38,
-    reason: "debt limit",
-    monthlyDebtPayment: 500,
-    monthlyHeating: 175,
-    isHeatingEstimate: true,
-    monthlyTax: 393,
-    isTaxEstimate: true,
-    monthlyCondoFees: 0,
-  });
-});
-Deno.test("should return a purchase price of $303k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly debt payment of $750.", () => {
-  const results = mortgageMaxAmount(100_000, 25_000, 5, {
-    monthlyDebtPayment: 750,
-  });
-  assertEquals(results, {
-    annualIncome: 100000,
-    downPayment: 25000,
-    rate: 5,
-    rateTested: 7,
-    purchasePrice: 303000,
-    mortgageAmount: 289120,
-    insurancePremium: 11120,
-    monthlyMortgagePayment: 2025,
-    grossDebtServiceRatio: 0.31,
+    purchasePrice: 381000,
+    mortgageAmount: 370240,
+    insurancePremium: 14240,
+    monthlyMortgagePayment: 2593,
+    grossDebtServiceRatio: 0.39,
     totalDebtServiceRatio: 0.4,
     reason: "debt limit",
+    monthlyDebtPayment: 50,
+    monthlyHeating: 175,
+    isHeatingEstimate: true,
+    monthlyTax: 478,
+    isTaxEstimate: true,
+    monthlyCondoFees: 0,
+  });
+});
+Deno.test("should return a purchase price of $381k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly debt payment of $100.", () => {
+  const results = mortgageMaxAmount(100_000, 25_000, 5, {
+    monthlyDebtPayment: 100,
+  });
+  assertEquals(results, {
+    annualIncome: 100000,
+    downPayment: 25000,
+    rate: 5,
+    rateTested: 7,
+    purchasePrice: 381000,
+    mortgageAmount: 370240,
+    insurancePremium: 14240,
+    monthlyMortgagePayment: 2593,
+    grossDebtServiceRatio: 0.39,
+    totalDebtServiceRatio: 0.4,
+    reason: "debt limit",
+    monthlyDebtPayment: 100,
+    monthlyHeating: 175,
+    isHeatingEstimate: true,
+    monthlyTax: 478,
+    isTaxEstimate: true,
+    monthlyCondoFees: 0,
+  });
+});
+Deno.test("should return a purchase price of $381k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly debt payment of $250.", () => {
+  const results = mortgageMaxAmount(100_000, 25_000, 5, {
+    monthlyDebtPayment: 250,
+  });
+  assertEquals(results, {
+    annualIncome: 100000,
+    downPayment: 25000,
+    rate: 5,
+    rateTested: 7,
+    purchasePrice: 381000,
+    mortgageAmount: 370240,
+    insurancePremium: 14240,
+    monthlyMortgagePayment: 2593,
+    grossDebtServiceRatio: 0.39,
+    totalDebtServiceRatio: 0.42,
+    reason: "debt limit",
+    monthlyDebtPayment: 250,
+    monthlyHeating: 175,
+    isHeatingEstimate: true,
+    monthlyTax: 478,
+    isTaxEstimate: true,
+    monthlyCondoFees: 0,
+  });
+});
+Deno.test("should return a purchase price of $371k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly debt payment of $500.", () => {
+  const results = mortgageMaxAmount(100_000, 25_000, 5, {
+    monthlyDebtPayment: 500,
+  });
+  assertEquals(results, {
+    annualIncome: 100000,
+    downPayment: 25000,
+    rate: 5,
+    rateTested: 7,
+    purchasePrice: 371000,
+    mortgageAmount: 359840,
+    insurancePremium: 13840,
+    monthlyMortgagePayment: 2520,
+    grossDebtServiceRatio: 0.38,
+    totalDebtServiceRatio: 0.44,
+    reason: "debt limit",
+    monthlyDebtPayment: 500,
+    monthlyHeating: 175,
+    isHeatingEstimate: true,
+    monthlyTax: 465,
+    isTaxEstimate: true,
+    monthlyCondoFees: 0,
+  });
+});
+Deno.test("should return a purchase price of $342k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly debt payment of $750.", () => {
+  const results = mortgageMaxAmount(100_000, 25_000, 5, {
+    monthlyDebtPayment: 750,
+  });
+  assertEquals(results, {
+    annualIncome: 100000,
+    downPayment: 25000,
+    rate: 5,
+    rateTested: 7,
+    purchasePrice: 342000,
+    mortgageAmount: 329680,
+    insurancePremium: 12680,
+    monthlyMortgagePayment: 2309,
+    grossDebtServiceRatio: 0.35,
+    totalDebtServiceRatio: 0.44,
+    reason: "debt limit",
     monthlyDebtPayment: 750,
     monthlyHeating: 175,
     isHeatingEstimate: true,
-    monthlyTax: 380,
+    monthlyTax: 429,
     isTaxEstimate: true,
     monthlyCondoFees: 0,
   });
@@ -508,17 +508,17 @@ Deno.test("should return a purchase price of $333k with an income of $100k, down
     downPayment: 25000,
     rate: 5,
     rateTested: 7,
-    purchasePrice: 333000,
-    mortgageAmount: 320320,
-    insurancePremium: 12320,
-    monthlyMortgagePayment: 2244,
-    grossDebtServiceRatio: 0.32,
-    totalDebtServiceRatio: 0.32,
+    purchasePrice: 402000,
+    mortgageAmount: 392080,
+    insurancePremium: 15080,
+    monthlyMortgagePayment: 2746,
+    grossDebtServiceRatio: 0.39,
+    totalDebtServiceRatio: 0.39,
     reason: "debt limit",
     monthlyDebtPayment: 0,
     monthlyHeating: 1,
     isHeatingEstimate: false,
-    monthlyTax: 418,
+    monthlyTax: 504,
     isTaxEstimate: true,
     monthlyCondoFees: 0,
   });
@@ -532,17 +532,17 @@ Deno.test("should return a purchase price of $322k with an income of $100k, down
     downPayment: 25000,
     rate: 5,
     rateTested: 7,
-    purchasePrice: 322000,
-    mortgageAmount: 308880,
-    insurancePremium: 11880,
-    monthlyMortgagePayment: 2163,
-    grossDebtServiceRatio: 0.32,
-    totalDebtServiceRatio: 0.32,
+    purchasePrice: 390000,
+    mortgageAmount: 379600,
+    insurancePremium: 14600,
+    monthlyMortgagePayment: 2659,
+    grossDebtServiceRatio: 0.39,
+    totalDebtServiceRatio: 0.39,
     reason: "debt limit",
     monthlyDebtPayment: 0,
     monthlyHeating: 100,
     isHeatingEstimate: false,
-    monthlyTax: 404,
+    monthlyTax: 489,
     isTaxEstimate: true,
     monthlyCondoFees: 0,
   });
@@ -556,17 +556,17 @@ Deno.test("should return a purchase price of $304k with an income of $100k, down
     downPayment: 25000,
     rate: 5,
     rateTested: 7,
-    purchasePrice: 304000,
-    mortgageAmount: 290160,
-    insurancePremium: 11160,
-    monthlyMortgagePayment: 2032,
-    grossDebtServiceRatio: 0.32,
-    totalDebtServiceRatio: 0.32,
+    purchasePrice: 372000,
+    mortgageAmount: 360880,
+    insurancePremium: 13880,
+    monthlyMortgagePayment: 2528,
+    grossDebtServiceRatio: 0.39,
+    totalDebtServiceRatio: 0.39,
     reason: "debt limit",
     monthlyDebtPayment: 0,
     monthlyHeating: 250,
     isHeatingEstimate: false,
-    monthlyTax: 381,
+    monthlyTax: 466,
     isTaxEstimate: true,
     monthlyCondoFees: 0,
   });
@@ -580,17 +580,17 @@ Deno.test("should return a purchase price of $304k with an income of $100k, down
     downPayment: 25000,
     rate: 5,
     rateTested: 7,
-    purchasePrice: 275000,
-    mortgageAmount: 260000,
-    insurancePremium: 10000,
-    monthlyMortgagePayment: 1821,
-    grossDebtServiceRatio: 0.32,
-    totalDebtServiceRatio: 0.32,
+    purchasePrice: 343000,
+    mortgageAmount: 330720,
+    insurancePremium: 12720,
+    monthlyMortgagePayment: 2316,
+    grossDebtServiceRatio: 0.39,
+    totalDebtServiceRatio: 0.39,
     reason: "debt limit",
     monthlyDebtPayment: 0,
     monthlyHeating: 500,
     isHeatingEstimate: false,
-    monthlyTax: 345,
+    monthlyTax: 430,
     isTaxEstimate: true,
     monthlyCondoFees: 0,
   });
@@ -604,12 +604,12 @@ Deno.test("should return a purchase price of $366k with an income of $100k, down
     downPayment: 25000,
     rate: 5,
     rateTested: 7,
-    purchasePrice: 366000,
-    mortgageAmount: 354640,
-    insurancePremium: 13640,
-    monthlyMortgagePayment: 2484,
-    grossDebtServiceRatio: 0.32,
-    totalDebtServiceRatio: 0.32,
+    purchasePrice: 447000,
+    mortgageAmount: 438880,
+    insurancePremium: 16880,
+    monthlyMortgagePayment: 3074,
+    grossDebtServiceRatio: 0.39,
+    totalDebtServiceRatio: 0.39,
     reason: "debt limit",
     monthlyDebtPayment: 0,
     monthlyHeating: 175,
@@ -628,12 +628,12 @@ Deno.test("should return a purchase price of $298k with an income of $100k, down
     downPayment: 25000,
     rate: 5,
     rateTested: 7,
-    purchasePrice: 298000,
-    mortgageAmount: 283920,
-    insurancePremium: 10920,
-    monthlyMortgagePayment: 1989,
-    grossDebtServiceRatio: 0.32,
-    totalDebtServiceRatio: 0.32,
+    purchasePrice: 378000,
+    mortgageAmount: 367120,
+    insurancePremium: 14120,
+    monthlyMortgagePayment: 2571,
+    grossDebtServiceRatio: 0.39,
+    totalDebtServiceRatio: 0.39,
     reason: "debt limit",
     monthlyDebtPayment: 0,
     monthlyHeating: 175,
@@ -643,7 +643,7 @@ Deno.test("should return a purchase price of $298k with an income of $100k, down
     monthlyCondoFees: 0,
   });
 });
-Deno.test("should return a purchase price of $231k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly tax cost of $1k.", () => {
+Deno.test("should return a purchase price of $309k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly tax cost of $1k.", () => {
   const results = mortgageMaxAmount(100_000, 25_000, 5, {
     monthlyTax: 1000,
   });
@@ -652,12 +652,12 @@ Deno.test("should return a purchase price of $231k with an income of $100k, down
     downPayment: 25000,
     rate: 5,
     rateTested: 7,
-    purchasePrice: 231000,
-    mortgageAmount: 212386,
-    insurancePremium: 6386,
-    monthlyMortgagePayment: 1488,
-    grossDebtServiceRatio: 0.32,
-    totalDebtServiceRatio: 0.32,
+    purchasePrice: 309000,
+    mortgageAmount: 295360,
+    insurancePremium: 11360,
+    monthlyMortgagePayment: 2069,
+    grossDebtServiceRatio: 0.39,
+    totalDebtServiceRatio: 0.39,
     reason: "debt limit",
     monthlyDebtPayment: 0,
     monthlyHeating: 175,
@@ -667,7 +667,7 @@ Deno.test("should return a purchase price of $231k with an income of $100k, down
     monthlyCondoFees: 0,
   });
 });
-Deno.test("should return a purchase price of $313k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly condo fees of $0.", () => {
+Deno.test("should return a purchase price of $381k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly condo fees of $0.", () => {
   const results = mortgageMaxAmount(100_000, 25_000, 5, {
     monthlyCondoFees: 0,
   });
@@ -676,22 +676,22 @@ Deno.test("should return a purchase price of $313k with an income of $100k, down
     downPayment: 25000,
     rate: 5,
     rateTested: 7,
-    purchasePrice: 313000,
-    mortgageAmount: 299520,
-    insurancePremium: 11520,
-    monthlyMortgagePayment: 2098,
-    grossDebtServiceRatio: 0.32,
-    totalDebtServiceRatio: 0.32,
+    purchasePrice: 381000,
+    mortgageAmount: 370240,
+    insurancePremium: 14240,
+    monthlyMortgagePayment: 2593,
+    grossDebtServiceRatio: 0.39,
+    totalDebtServiceRatio: 0.39,
     reason: "debt limit",
     monthlyDebtPayment: 0,
     monthlyHeating: 175,
     isHeatingEstimate: true,
-    monthlyTax: 393,
+    monthlyTax: 478,
     isTaxEstimate: true,
     monthlyCondoFees: 0,
   });
 });
-Deno.test("should return a purchase price of $301k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly condo fees of $100.", () => {
+Deno.test("should return a purchase price of $369k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly condo fees of $100.", () => {
   const results = mortgageMaxAmount(100_000, 25_000, 5, {
     monthlyCondoFees: 100,
   });
@@ -700,17 +700,17 @@ Deno.test("should return a purchase price of $301k with an income of $100k, down
     downPayment: 25000,
     rate: 5,
     rateTested: 7,
-    purchasePrice: 301000,
-    mortgageAmount: 287040,
-    insurancePremium: 11040,
-    monthlyMortgagePayment: 2010,
-    grossDebtServiceRatio: 0.32,
-    totalDebtServiceRatio: 0.32,
+    purchasePrice: 369000,
+    mortgageAmount: 357760,
+    insurancePremium: 13760,
+    monthlyMortgagePayment: 2506,
+    grossDebtServiceRatio: 0.39,
+    totalDebtServiceRatio: 0.39,
     reason: "debt limit",
     monthlyDebtPayment: 0,
     monthlyHeating: 175,
     isHeatingEstimate: true,
-    monthlyTax: 378,
+    monthlyTax: 463,
     isTaxEstimate: true,
     monthlyCondoFees: 100,
   });
@@ -763,7 +763,7 @@ Deno.test("should return a purchase price of $600k with an income of $250k, down
     monthlyCondoFees: 100,
   });
 });
-Deno.test("should return a purchase price of $600k with an income of $250k, down payment of $50k, a rate of 5.00%, and monthly condo fees of $100.", () => {
+Deno.test("should return a purchase price of $750k with an income of $250k, down payment of $50k, a rate of 5.00%, and monthly condo fees of $100.", () => {
   const results = mortgageMaxAmount(250_000, 50_000, 5, {
     monthlyCondoFees: 100,
   });
@@ -787,7 +787,7 @@ Deno.test("should return a purchase price of $600k with an income of $250k, down
     monthlyCondoFees: 100,
   });
 });
-Deno.test("should return a purchase price of $812k with an income of $250k, down payment of $75k, a rate of 5.00%, and monthly condo fees of $100.", () => {
+Deno.test("should return a purchase price of $983k with an income of $250k, down payment of $75k, a rate of 5.00%, and monthly condo fees of $100.", () => {
   const results = mortgageMaxAmount(250_000, 75_000, 5, {
     monthlyCondoFees: 100,
   });
@@ -796,22 +796,22 @@ Deno.test("should return a purchase price of $812k with an income of $250k, down
     downPayment: 75000,
     rate: 5,
     rateTested: 7,
-    purchasePrice: 812000,
-    mortgageAmount: 766480,
-    insurancePremium: 29480,
-    monthlyMortgagePayment: 5369,
-    grossDebtServiceRatio: 0.32,
-    totalDebtServiceRatio: 0.32,
+    purchasePrice: 983000,
+    mortgageAmount: 944320,
+    insurancePremium: 36320,
+    monthlyMortgagePayment: 6614,
+    grossDebtServiceRatio: 0.39,
+    totalDebtServiceRatio: 0.39,
     reason: "debt limit",
     monthlyDebtPayment: 0,
     monthlyHeating: 175,
     isHeatingEstimate: true,
-    monthlyTax: 1016,
+    monthlyTax: 1230,
     isTaxEstimate: true,
     monthlyCondoFees: 100,
   });
 });
-Deno.test("should return a purchase price of $125k with an income of $500k, down payment of $100k, and a rate of 5.00%", () => {
+Deno.test("should return a purchase price of $1.25m with an income of $500k, down payment of $100k, and a rate of 5.00%", () => {
   const results = mortgageMaxAmount(500_000, 100_000, 5);
   assertEquals(results, {
     annualIncome: 500000,
@@ -862,17 +862,17 @@ Deno.test("should return a purchase price of $2,442,000 with an income of $500k,
     downPayment: 1000000,
     rate: 5,
     rateTested: 7,
-    purchasePrice: 2442000,
-    mortgageAmount: 1442000,
+    purchasePrice: 2796000,
+    mortgageAmount: 1796000,
     insurancePremium: 0,
-    monthlyMortgagePayment: 10100,
-    grossDebtServiceRatio: 0.32,
-    totalDebtServiceRatio: 0.32,
+    monthlyMortgagePayment: 12579,
+    grossDebtServiceRatio: 0.39,
+    totalDebtServiceRatio: 0.39,
     reason: "debt limit",
     monthlyDebtPayment: 0,
     monthlyHeating: 175,
     isHeatingEstimate: true,
-    monthlyTax: 3054,
+    monthlyTax: 3496,
     isTaxEstimate: true,
     monthlyCondoFees: 0,
   });

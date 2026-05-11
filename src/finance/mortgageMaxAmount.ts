@@ -287,7 +287,7 @@ function findMaxAmount(
       monthlyIncome;
 
     // If the GDS or TDS are equal or above the thresholds established by the Financial Consumer Agency of Canada, we break. Otherwise, we update the results values.
-    if (grossDebtServiceRatio >= 0.32 || totalDebtServiceRatio >= 0.4) {
+    if (grossDebtServiceRatio >= 0.39 || totalDebtServiceRatio >= 0.44) {
       results.reason = `debt limit`;
       break;
     } else {
