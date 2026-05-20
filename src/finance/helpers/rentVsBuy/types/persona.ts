@@ -18,6 +18,7 @@ export type Persona = {
     insurancePremium: number;
     floorRate: number;
     investsSavings: boolean;
+    tfsaContributedNominal: number;
   };
   monthlyExpenses: {
     mortgageCapital: number;

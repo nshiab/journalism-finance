@@ -42,6 +42,7 @@ export default function getPersona(parameters: {
       insurancePremium: parameters.insurancePremium,
       floorRate: parameters.floorRate,
       investsSavings: parameters.investsSavings,
+      tfsaContributedNominal: 0,
     },
     monthlyExpenses: {
       mortgageCapital: 0,
