@@ -8,6 +8,7 @@ export default function computeBalances(
   winVariableOnly: boolean,
   monthIndex: number,
   numberOfMonths: number,
+  inflationMultiplier: number,
 ) {
   if (!winVariableOnly || monthIndex === numberOfMonths - 1) {
     // Monthly balance — field names are statically known, avoid Object.keys/reduce
@@ -57,7 +58,7 @@ export default function computeBalances(
       persona.saleNetGains.homeSellingGains +
       persona.saleNetGains.securityDeposit;
     persona.summaryCumulative.balanceAfterSelling = r2(
-      totalSaleNetGains - totalCumulativeExpenses,
+      r2(totalSaleNetGains * inflationMultiplier) - totalCumulativeExpenses,
     );
   }
 }

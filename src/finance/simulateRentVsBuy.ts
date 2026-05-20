@@ -557,13 +557,14 @@ export default function simulateRentVsBuy(
     // We compute the expenses
     const {
       totalMonthlyExpenses: renterTotalMonthlyExpenses,
-    } = computeExpenses(monthIndex, renter, null);
+    } = computeExpenses(monthIndex, renter, null, inflationMultiplier);
     const {
       totalMonthlyExpenses: buyerFixedTotalMonthlyExpenses,
     } = computeExpenses(
       monthIndex,
       buyerFixed,
       currentFixedMortgagePayment,
+      inflationMultiplier,
     );
     const {
       totalMonthlyExpenses: buyerVariableTotalMonthlyExpenses,
@@ -571,6 +572,7 @@ export default function simulateRentVsBuy(
       monthIndex,
       buyerVariable,
       currentVariableMortgagePayment,
+      inflationMultiplier,
     );
 
     // We compute the monthly savings
@@ -591,6 +593,7 @@ export default function simulateRentVsBuy(
       parameters.tfsaContributions,
       parameters.couple,
       parameters.annualInvestmentFeeRate,
+      inflationMultiplier,
     );
     computeGains(
       year,
@@ -602,6 +605,7 @@ export default function simulateRentVsBuy(
       parameters.tfsaContributions,
       parameters.couple,
       parameters.annualInvestmentFeeRate,
+      inflationMultiplier,
     );
     computeGains(
       year,
@@ -613,6 +617,7 @@ export default function simulateRentVsBuy(
       parameters.tfsaContributions,
       parameters.couple,
       parameters.annualInvestmentFeeRate,
+      inflationMultiplier,
     );
 
     // Now we simulate a sale of all assets
@@ -702,18 +707,21 @@ export default function simulateRentVsBuy(
       options.winVariableOnly ?? false,
       monthIndex,
       numberOfMonths,
+      inflationMultiplier,
     );
     computeBalances(
       buyerFixed,
       options.winVariableOnly ?? false,
       monthIndex,
       numberOfMonths,
+      inflationMultiplier,
     );
     computeBalances(
       buyerVariable,
       options.winVariableOnly ?? false,
       monthIndex,
       numberOfMonths,
+      inflationMultiplier,
     );
 
     // We push all results for this month

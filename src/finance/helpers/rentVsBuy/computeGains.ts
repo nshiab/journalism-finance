@@ -15,6 +15,7 @@ export default function computeGains(
   tfsaContributions: boolean,
   couple: boolean | undefined,
   annualInvestmentFeeRate: number,
+  inflationMultiplier: number,
 ) {
   // We start by calculating the current month TFSA and stock gains.
   // The effective monthly rate nets out the annual investment fee (e.g. ETF MER).
@@ -43,10 +44,12 @@ export default function computeGains(
     stocksGrossGain - stocksNetGain,
   );
   persona.cumulativeExpenses.tfsaFees = r2(
-    persona.cumulativeExpenses.tfsaFees + persona.monthlyExpenses.tfsaFees,
+    persona.cumulativeExpenses.tfsaFees +
+      persona.monthlyExpenses.tfsaFees * inflationMultiplier,
   );
   persona.cumulativeExpenses.stocksFees = r2(
-    persona.cumulativeExpenses.stocksFees + persona.monthlyExpenses.stocksFees,
+    persona.cumulativeExpenses.stocksFees +
+      persona.monthlyExpenses.stocksFees * inflationMultiplier,
   );
 
   persona.monthlyGains.tfsaGains = tfsaNetGain;
@@ -54,11 +57,11 @@ export default function computeGains(
 
   persona.cumulativeGains.tfsaGains = r2(
     persona.cumulativeGains.tfsaGains +
-      persona.monthlyGains.tfsaGains,
+      persona.monthlyGains.tfsaGains * inflationMultiplier,
   );
   persona.cumulativeGains.stocksGains = r2(
     persona.cumulativeGains.stocksGains +
-      persona.monthlyGains.stocksGains,
+      persona.monthlyGains.stocksGains * inflationMultiplier,
   );
 
   persona.assets.tfsa = r2(
@@ -81,7 +84,7 @@ export default function computeGains(
     );
     persona.cumulativeGains.homeEquityGains = r2(
       persona.cumulativeGains.homeEquityGains +
-        persona.monthlyGains.homeEquityGains,
+        persona.monthlyGains.homeEquityGains * inflationMultiplier,
     );
   }
 
@@ -98,8 +101,8 @@ export default function computeGains(
     let tfsaRoom = getTfsaContribution(
       year,
       couple
-        ? persona.cumulativeGains.tfsaContribution / 2
-        : persona.cumulativeGains.tfsaContribution,
+        ? persona.params.tfsaContributedNominal / 2
+        : persona.params.tfsaContributedNominal,
     );
 
     if (couple) {
@@ -109,8 +112,12 @@ export default function computeGains(
     const tfsaContribution = Math.min(tfsaRoom, monthlySavings);
 
     persona.monthlyGains.tfsaContribution = tfsaContribution;
+    persona.params.tfsaContributedNominal = r2(
+      persona.params.tfsaContributedNominal + tfsaContribution,
+    );
     persona.cumulativeGains.tfsaContribution = r2(
-      persona.cumulativeGains.tfsaContribution + tfsaContribution,
+      persona.cumulativeGains.tfsaContribution +
+        tfsaContribution * inflationMultiplier,
     );
     persona.assets.tfsa = r2(
       persona.assets.tfsa + tfsaContribution,
@@ -126,7 +133,7 @@ export default function computeGains(
   if (monthlySavings > 0) {
     persona.monthlyGains.newStocks = monthlySavings;
     persona.cumulativeGains.newStocks = r2(
-      persona.cumulativeGains.newStocks + monthlySavings,
+      persona.cumulativeGains.newStocks + monthlySavings * inflationMultiplier,
     );
     persona.assets.stocks = r2(
       persona.assets.stocks + monthlySavings,

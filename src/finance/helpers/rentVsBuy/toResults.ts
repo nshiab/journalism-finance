@@ -33,16 +33,6 @@ const CUMULATIVE_EXPENSES_KEYS = [
   "tfsaFees",
   "stocksFees",
 ] as const;
-// One-time upfront costs paid at month 0: their real value equals their nominal
-// value, so they must NOT be multiplied by the inflation discount factor when
-// accumulating in cumulativeExpenses.
-const CUMULATIVE_EXPENSES_ONE_TIME_SET = new Set([
-  "securityDeposit",
-  "downPayment",
-  "purchaseFixedFees",
-  "landTransferTax",
-  "insurancePremium",
-]);
 const MONTHLY_GAINS_KEYS = [
   "tfsaGains",
   "tfsaContribution",
@@ -100,17 +90,15 @@ function computeTotals(persona: Persona, adj: (x: number) => number) {
       persona.monthlyExpenses.stocksFees,
   );
   const cumulativeExpenses = r2(
-    adj(
-      persona.cumulativeExpenses.rent +
-        persona.cumulativeExpenses.insurance +
-        persona.cumulativeExpenses.mortgageCapital +
-        persona.cumulativeExpenses.mortgageInterests +
-        persona.cumulativeExpenses.maintenance +
-        persona.cumulativeExpenses.propertyTax +
-        persona.cumulativeExpenses.condoFees +
-        persona.cumulativeExpenses.tfsaFees +
-        persona.cumulativeExpenses.stocksFees,
-    ) +
+    persona.cumulativeExpenses.rent +
+      persona.cumulativeExpenses.insurance +
+      persona.cumulativeExpenses.mortgageCapital +
+      persona.cumulativeExpenses.mortgageInterests +
+      persona.cumulativeExpenses.maintenance +
+      persona.cumulativeExpenses.propertyTax +
+      persona.cumulativeExpenses.condoFees +
+      persona.cumulativeExpenses.tfsaFees +
+      persona.cumulativeExpenses.stocksFees +
       persona.cumulativeExpenses.securityDeposit +
       persona.cumulativeExpenses.downPayment +
       persona.cumulativeExpenses.purchaseFixedFees +
@@ -124,7 +112,7 @@ function computeTotals(persona: Persona, adj: (x: number) => number) {
       persona.monthlyGains.newStocks +
       persona.monthlyGains.homeEquityGains,
   );
-  const cumulativeGains = adj(
+  const cumulativeGains = r2(
     persona.cumulativeGains.tfsaGains +
       persona.cumulativeGains.tfsaContribution +
       persona.cumulativeGains.stocksGains +
@@ -302,20 +290,17 @@ export default function toResults(
     }
 
     if (!groups || groups.includes("cumulativeExpenses")) {
-      let totalRecurring = 0;
-      let totalOneTime = 0;
+      let totalCumulativeExpenses = 0;
       for (const variable of CUMULATIVE_EXPENSES_KEYS) {
         const amount = persona.cumulativeExpenses[variable];
-        const isOneTime = CUMULATIVE_EXPENSES_ONE_TIME_SET.has(variable);
-        if (isOneTime) totalOneTime += amount;
-        else totalRecurring += amount;
+        totalCumulativeExpenses += amount;
         if (amount !== 0) {
           onRecord(
             category,
             "cumulativeExpenses",
             variable,
             monthIndex,
-            isOneTime ? r2(amount) : adj(amount),
+            r2(amount),
           );
         }
       }
@@ -324,7 +309,7 @@ export default function toResults(
         "totals",
         "cumulativeExpenses",
         monthIndex,
-        r2(adj(totalRecurring) + totalOneTime),
+        r2(totalCumulativeExpenses),
       );
     }
 
@@ -357,7 +342,7 @@ export default function toResults(
             "cumulativeGains",
             variable,
             monthIndex,
-            adj(amount),
+            r2(amount),
           );
         }
       }
@@ -366,7 +351,7 @@ export default function toResults(
         "totals",
         "cumulativeGains",
         monthIndex,
-        adj(totalCumulativeGains),
+        r2(totalCumulativeGains),
       );
     }
 
@@ -400,7 +385,7 @@ export default function toResults(
             "summaryCumulative",
             variable,
             monthIndex,
-            adj(amount),
+            r2(amount),
           );
         }
       }
@@ -458,7 +443,7 @@ export default function toResults(
         } else {
           results.push({
             monthIndex,
-            amount: adj(persona.summaryCumulative[winVariable]),
+            amount: persona.summaryCumulative[winVariable],
             category,
             group: "summaryCumulative",
             variable: winVariable,
@@ -484,7 +469,7 @@ export default function toResults(
         } else {
           results.push({
             monthIndex,
-            amount: adj(persona.summaryCumulative[winVariable]),
+            amount: persona.summaryCumulative[winVariable],
             category,
             group: "summaryCumulative",
             variable: winVariable,
@@ -551,9 +536,7 @@ export default function toResults(
         if (amount !== 0) {
           results.push({
             monthIndex,
-            amount: CUMULATIVE_EXPENSES_ONE_TIME_SET.has(variable)
-              ? r2(amount)
-              : adj(amount),
+            amount: r2(amount),
             category,
             group: "cumulativeExpenses",
             variable,
@@ -563,17 +546,13 @@ export default function toResults(
     }
 
     if (!groups || groups.includes("totals")) {
-      let totalRecurring = 0;
-      let totalOneTime = 0;
+      let totalCumulativeExpenses = 0;
       for (const variable of CUMULATIVE_EXPENSES_KEYS) {
-        const amount = persona.cumulativeExpenses[variable];
-        if (CUMULATIVE_EXPENSES_ONE_TIME_SET.has(variable)) {
-          totalOneTime += amount;
-        } else totalRecurring += amount;
+        totalCumulativeExpenses += persona.cumulativeExpenses[variable];
       }
       results.push({
         monthIndex,
-        amount: r2(adj(totalRecurring) + totalOneTime),
+        amount: r2(totalCumulativeExpenses),
         category,
         group: "totals",
         variable: "cumulativeExpenses",
@@ -636,7 +615,7 @@ export default function toResults(
         if (amount !== 0) {
           results.push({
             monthIndex,
-            amount: adj(amount),
+            amount: r2(amount),
             category,
             group: "cumulativeGains",
             variable,
@@ -651,7 +630,7 @@ export default function toResults(
       }
       results.push({
         monthIndex,
-        amount: adj(totalCumulativeGains),
+        amount: r2(totalCumulativeGains),
         category,
         group: "totals",
         variable: "cumulativeGains",
@@ -714,7 +693,7 @@ export default function toResults(
         if (persona.summaryCumulative[variable] !== 0) {
           results.push({
             monthIndex,
-            amount: adj(persona.summaryCumulative[variable]),
+            amount: r2(persona.summaryCumulative[variable]),
             category,
             group: "summaryCumulative",
             variable,

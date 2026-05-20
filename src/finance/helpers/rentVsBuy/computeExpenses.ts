@@ -8,6 +8,7 @@ export default function computeExpenses(
   monthIndex: number,
   persona: Persona,
   mortgagePayment: MortgagePayment | null,
+  inflationMultiplier: number,
 ) {
   if (mortgagePayment) {
     // Buyer expenses
@@ -20,25 +21,27 @@ export default function computeExpenses(
 
     persona.cumulativeExpenses.mortgageCapital = r2(
       persona.cumulativeExpenses.mortgageCapital +
-        persona.monthlyExpenses.mortgageCapital,
+        persona.monthlyExpenses.mortgageCapital * inflationMultiplier,
     );
     persona.cumulativeExpenses.mortgageInterests = r2(
       persona.cumulativeExpenses.mortgageInterests +
-        persona.monthlyExpenses.mortgageInterests,
+        persona.monthlyExpenses.mortgageInterests * inflationMultiplier,
     );
     persona.cumulativeExpenses.insurance = r2(
-      persona.cumulativeExpenses.insurance + persona.monthlyExpenses.insurance,
+      persona.cumulativeExpenses.insurance +
+        persona.monthlyExpenses.insurance * inflationMultiplier,
     );
     persona.cumulativeExpenses.maintenance = r2(
       persona.cumulativeExpenses.maintenance +
-        persona.monthlyExpenses.maintenance,
+        persona.monthlyExpenses.maintenance * inflationMultiplier,
     );
     persona.cumulativeExpenses.propertyTax = r2(
       persona.cumulativeExpenses.propertyTax +
-        persona.monthlyExpenses.propertyTax,
+        persona.monthlyExpenses.propertyTax * inflationMultiplier,
     );
     persona.cumulativeExpenses.condoFees = r2(
-      persona.cumulativeExpenses.condoFees + persona.monthlyExpenses.condoFees,
+      persona.cumulativeExpenses.condoFees +
+        persona.monthlyExpenses.condoFees * inflationMultiplier,
     );
 
     // Non recurring expenses
@@ -78,10 +81,12 @@ export default function computeExpenses(
     persona.monthlyExpenses.insurance = persona.params.monthlyInsurance;
 
     persona.cumulativeExpenses.rent = r2(
-      persona.cumulativeExpenses.rent + persona.monthlyExpenses.rent,
+      persona.cumulativeExpenses.rent +
+        persona.monthlyExpenses.rent * inflationMultiplier,
     );
     persona.cumulativeExpenses.insurance = r2(
-      persona.cumulativeExpenses.insurance + persona.monthlyExpenses.insurance,
+      persona.cumulativeExpenses.insurance +
+        persona.monthlyExpenses.insurance * inflationMultiplier,
     );
 
     // Non recurring expenses
