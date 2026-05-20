@@ -1296,13 +1296,16 @@ function simulateRentVsBuy(
   via `details.iterationsGroups`. Restricts which groups are emitted by
   `onRecord` and pushed to results.
 - **`options.adjustToInflation`**: The rate parameter used as a proxy for
-  inflation to discount all future dollar values back to Year 0 (today's
-  dollars). For example, setting this to `"sellingFixedFeesIncrease"` will use
-  that parameter's values to calculate the monthly discount factor. One-time
-  upfront costs (`downPayment`, `purchaseFixedFees`, `landTransferTax`,
-  `insurancePremium`, `securityDeposit`) in `cumulativeExpenses` are **not**
-  discounted — they were paid at month 0, so their real value already equals
-  their nominal value. Defaults to `undefined` (no adjustment).
+  inflation to express future dollar values in today's constant dollars. When
+  set (e.g. to `"sellingFixedFeesIncrease"`), point-in-time metrics (like
+  `monthlyExpenses`, `assets`, and `balance`) are discounted by the current
+  month's inflation factor. Cumulative totals (like `cumulativeExpenses` and
+  `cumulativeGains`) accumulate real values incrementally — meaning each nominal
+  monthly contribution is discounted before being added to the running sum.
+  One-time upfront costs paid at month 0 (`downPayment`, `purchaseFixedFees`,
+  `landTransferTax`, `insurancePremium`, `securityDeposit`) are **not**
+  discounted because their real value already equals their nominal value.
+  Defaults to `undefined` (no adjustment).
 
 ### Returns
 
@@ -1543,13 +1546,16 @@ function simulateRentVsBuyMonteCarlo(
   (e.g. `["assets", "summaryCumulative"]`), reducing memory usage. Also filters
   the shared column-major buffer used by `details.quantiles`.
 - **`options.adjustToInflation`**: The rate parameter used as a proxy for
-  inflation to discount all future dollar values back to Year 0 (today's
-  dollars). For example, setting this to `"sellingFixedFeesIncrease"` will use
-  the simulated path of that parameter to calculate the monthly discount factor.
-  One-time upfront costs (`downPayment`, `purchaseFixedFees`, `landTransferTax`,
-  `insurancePremium`, `securityDeposit`) in `cumulativeExpenses` are **not**
-  discounted — they were paid at month 0, so their real value already equals
-  their nominal value. Defaults to `undefined` (no adjustment).
+  inflation to express future dollar values in today's constant dollars. When
+  set (e.g. to `"sellingFixedFeesIncrease"`), point-in-time metrics (like
+  `monthlyExpenses`, `assets`, and `balance`) are discounted by the current
+  month's simulated inflation factor. Cumulative totals (like
+  `cumulativeExpenses` and `cumulativeGains`) accumulate real values
+  incrementally — meaning each nominal monthly contribution is discounted before
+  being added to the running sum. One-time upfront costs paid at month 0
+  (`downPayment`, `purchaseFixedFees`, `landTransferTax`, `insurancePremium`,
+  `securityDeposit`) are **not** discounted because their real value already
+  equals their nominal value. Defaults to `undefined` (no adjustment).
 
 ### Returns
 

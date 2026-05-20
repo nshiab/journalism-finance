@@ -1,0 +1,272 @@
+all-tests	Set up job	﻿2026-05-20T20:09:41.5063160Z Current runner version: '2.334.0'
+all-tests	Set up job	2026-05-20T20:09:41.5088929Z ##[group]Runner Image Provisioner
+all-tests	Set up job	2026-05-20T20:09:41.5090103Z Hosted Compute Agent
+all-tests	Set up job	2026-05-20T20:09:41.5090829Z Version: 20260213.493
+all-tests	Set up job	2026-05-20T20:09:41.5091414Z Commit: 5c115507f6dd24b8de37d8bbe0bb4509d0cc0fa3
+all-tests	Set up job	2026-05-20T20:09:41.5092114Z Build Date: 2026-02-13T00:28:41Z
+all-tests	Set up job	2026-05-20T20:09:41.5092968Z Worker ID: {d37c551c-c4cd-4169-aed0-2e8aba3d83f5}
+all-tests	Set up job	2026-05-20T20:09:41.5093630Z Azure Region: westus
+all-tests	Set up job	2026-05-20T20:09:41.5094170Z ##[endgroup]
+all-tests	Set up job	2026-05-20T20:09:41.5095699Z ##[group]Operating System
+all-tests	Set up job	2026-05-20T20:09:41.5096352Z Ubuntu
+all-tests	Set up job	2026-05-20T20:09:41.5096819Z 24.04.4
+all-tests	Set up job	2026-05-20T20:09:41.5097375Z LTS
+all-tests	Set up job	2026-05-20T20:09:41.5097819Z ##[endgroup]
+all-tests	Set up job	2026-05-20T20:09:41.5098330Z ##[group]Runner Image
+all-tests	Set up job	2026-05-20T20:09:41.5098981Z Image: ubuntu-24.04
+all-tests	Set up job	2026-05-20T20:09:41.5099688Z Version: 20260513.135.3
+all-tests	Set up job	2026-05-20T20:09:41.5100716Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260513.135/images/ubuntu/Ubuntu2404-Readme.md
+all-tests	Set up job	2026-05-20T20:09:41.5102351Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260513.135
+all-tests	Set up job	2026-05-20T20:09:41.5103298Z ##[endgroup]
+all-tests	Set up job	2026-05-20T20:09:41.5104360Z ##[group]GITHUB_TOKEN Permissions
+all-tests	Set up job	2026-05-20T20:09:41.5106445Z Contents: read
+all-tests	Set up job	2026-05-20T20:09:41.5107099Z Metadata: read
+all-tests	Set up job	2026-05-20T20:09:41.5107609Z ##[endgroup]
+all-tests	Set up job	2026-05-20T20:09:41.5110143Z Secret source: Actions
+all-tests	Set up job	2026-05-20T20:09:41.5110876Z Prepare workflow directory
+all-tests	Set up job	2026-05-20T20:09:41.5444296Z Prepare all required actions
+all-tests	Set up job	2026-05-20T20:09:41.5483334Z Getting action download info
+all-tests	Set up job	2026-05-20T20:09:42.0613797Z Download action repository 'actions/checkout@v6' (SHA:de0fac2e4500dabe0009e67214ff5f5447ce83dd)
+all-tests	Set up job	2026-05-20T20:09:42.1951556Z Download action repository 'denoland/setup-deno@v2' (SHA:667a34cdef165d8d2b2e98dde39547c9daac7282)
+all-tests	Set up job	2026-05-20T20:09:42.7170295Z Complete job name: all-tests
+all-tests	Run actions/checkout@v6	﻿2026-05-20T20:09:42.8012587Z ##[group]Run actions/checkout@v6
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.8013912Z with:
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.8014672Z   repository: nshiab/journalism-finance
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.8015994Z   token: ***
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.8016700Z   ssh-strict: true
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.8017504Z   ssh-user: git
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.8018262Z   persist-credentials: true
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.8019104Z   clean: true
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.8020037Z   sparse-checkout-cone-mode: true
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.8020972Z   fetch-depth: 1
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.8021685Z   fetch-tags: false
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.8022435Z   show-progress: true
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.8023202Z   lfs: false
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.8023891Z   submodules: false
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.8024660Z   set-safe-directory: true
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.8025769Z ##[endgroup]
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.8992639Z Syncing repository: nshiab/journalism-finance
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.8996247Z ##[group]Getting Git version info
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.8997809Z Working directory is '/home/runner/work/journalism-finance/journalism-finance'
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.9000655Z [command]/usr/bin/git version
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.9045350Z git version 2.54.0
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.9101255Z ##[endgroup]
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.9115878Z Temporarily overriding HOME='/home/runner/work/_temp/b3446151-94f4-4fe8-a715-efe27ec57b2d' before making global git config changes
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.9118962Z Adding repository directory to the temporary git global config as a safe directory
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.9122403Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/journalism-finance/journalism-finance
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.9166910Z Deleting the contents of '/home/runner/work/journalism-finance/journalism-finance'
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.9171339Z ##[group]Initializing the repository
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.9175728Z [command]/usr/bin/git init /home/runner/work/journalism-finance/journalism-finance
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.9271767Z hint: Using 'master' as the name for the initial branch. This default branch name
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.9274287Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.9277447Z hint: to use in all of your new repositories, which will suppress this warning,
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.9280110Z hint: call:
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.9280795Z hint:
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.9281664Z hint: 	git config --global init.defaultBranch <name>
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.9283143Z hint:
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.9284707Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.9286512Z hint: 'development'. The just-created branch can be renamed via this command:
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.9288126Z hint:
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.9289150Z hint: 	git branch -m <name>
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.9290520Z hint:
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.9291644Z hint: Disable this message with "git config set advice.defaultBranchName false"
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.9293856Z Initialized empty Git repository in /home/runner/work/journalism-finance/journalism-finance/.git/
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.9297450Z [command]/usr/bin/git remote add origin https://github.com/nshiab/journalism-finance
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.9334820Z ##[endgroup]
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.9336268Z ##[group]Disabling automatic garbage collection
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.9337962Z [command]/usr/bin/git config --local gc.auto 0
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.9367864Z ##[endgroup]
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.9370253Z ##[group]Setting up auth
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.9371809Z Removing SSH command configuration
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.9376461Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.9413431Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.9733372Z Removing HTTP extra header
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.9739300Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.9772188Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.9985306Z Removing includeIf entries pointing to credentials config files
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:42.9990066Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:43.0021564Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:43.0245311Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-31ae8ad1-daf3-439a-87b0-756c50b69c92.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:43.0284281Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/journalism-finance/journalism-finance/.git.path /home/runner/work/_temp/git-credentials-31ae8ad1-daf3-439a-87b0-756c50b69c92.config
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:43.0315692Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/journalism-finance/journalism-finance/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-31ae8ad1-daf3-439a-87b0-756c50b69c92.config
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:43.0348901Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-31ae8ad1-daf3-439a-87b0-756c50b69c92.config
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:43.0382878Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-31ae8ad1-daf3-439a-87b0-756c50b69c92.config
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:43.0407573Z ##[endgroup]
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:43.0409999Z ##[group]Fetching the repository
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:43.0419049Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +f2f4a530e669ee913e5f65701e2372245fb827e8:refs/remotes/pull/27/merge
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:43.5361657Z From https://github.com/nshiab/journalism-finance
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:43.5362425Z  * [new ref]         f2f4a530e669ee913e5f65701e2372245fb827e8 -> pull/27/merge
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:43.5398717Z ##[endgroup]
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:43.5400041Z ##[group]Determining the checkout info
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:43.5401634Z ##[endgroup]
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:43.5406170Z [command]/usr/bin/git sparse-checkout disable
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:43.5449764Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:43.5477507Z ##[group]Checking out the ref
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:43.5481900Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/27/merge
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:43.5600789Z Note: switching to 'refs/remotes/pull/27/merge'.
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:43.5601482Z 
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:43.5602158Z You are in 'detached HEAD' state. You can look around, make experimental
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:43.5603474Z changes and commit them, and you can discard any commits you make in this
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:43.5604673Z state without impacting any branches by switching back to a branch.
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:43.5605554Z 
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:43.5605999Z If you want to create a new branch to retain commits you create, you may
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:43.5607067Z do so (now or later) by using -c with the switch command. Example:
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:43.5607664Z 
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:43.5607913Z   git switch -c <new-branch-name>
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:43.5608294Z 
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:43.5608632Z Or undo this operation with:
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:43.5608963Z 
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:43.5609150Z   git switch -
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:43.5609665Z 
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:43.5610119Z Turn off this advice by setting config variable advice.detachedHead to false
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:43.5610589Z 
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:43.5611072Z HEAD is now at f2f4a53 Merge 6485b64f0966e377226634ea4bfdca096f1fdca9 into e0ed055238724e847cb6888290c383efe1003cee
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:43.5612667Z ##[endgroup]
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:43.5655208Z [command]/usr/bin/git log -1 --format=%H
+all-tests	Run actions/checkout@v6	2026-05-20T20:09:43.5679845Z f2f4a530e669ee913e5f65701e2372245fb827e8
+all-tests	Run denoland/setup-deno@v2	﻿2026-05-20T20:09:43.5941684Z ##[group]Run denoland/setup-deno@v2
+all-tests	Run denoland/setup-deno@v2	2026-05-20T20:09:43.5942203Z with:
+all-tests	Run denoland/setup-deno@v2	2026-05-20T20:09:43.5942556Z   deno-version: v2.x
+all-tests	Run denoland/setup-deno@v2	2026-05-20T20:09:43.5942945Z   deno-binary-name: deno
+all-tests	Run denoland/setup-deno@v2	2026-05-20T20:09:43.5943353Z   cache: false
+all-tests	Run denoland/setup-deno@v2	2026-05-20T20:09:43.5943697Z ##[endgroup]
+all-tests	Run denoland/setup-deno@v2	2026-05-20T20:09:43.9825753Z Going to install stable version 2.7.14.
+all-tests	Run denoland/setup-deno@v2	2026-05-20T20:09:43.9837068Z Downloading Deno from https://github.com/denoland/deno/releases/download/v2.7.14/deno-x86_64-unknown-linux-gnu.zip.
+all-tests	Run denoland/setup-deno@v2	2026-05-20T20:09:44.3268378Z [command]/usr/bin/unzip -o -q /home/runner/work/_temp/927bceda-ed39-422d-817d-82a39055ad0d
+all-tests	Run denoland/setup-deno@v2	2026-05-20T20:09:45.2977846Z Cached Deno to /opt/hostedtoolcache/deno/2.7.14/x64.
+all-tests	Run denoland/setup-deno@v2	2026-05-20T20:09:45.3007054Z Installation complete.
+all-tests	Run deno task all-tests	﻿2026-05-20T20:09:45.3142525Z ##[group]Run deno task all-tests
+all-tests	Run deno task all-tests	2026-05-20T20:09:45.3142929Z ^[[36;1mdeno task all-tests^[[0m
+all-tests	Run deno task all-tests	2026-05-20T20:09:45.3183447Z shell: /usr/bin/bash -e {0}
+all-tests	Run deno task all-tests	2026-05-20T20:09:45.3183762Z ##[endgroup]
+all-tests	Run deno task all-tests	2026-05-20T20:09:45.3331264Z ^[[0m^[[32mDownload^[[0m https://registry.npmjs.org/jstat/-/jstat-1.9.6.tgz
+all-tests	Run deno task all-tests	2026-05-20T20:09:45.3332531Z ^[[0m^[[32mDownload^[[0m https://registry.npmjs.org/d3-dsv/-/d3-dsv-3.0.1.tgz
+all-tests	Run deno task all-tests	2026-05-20T20:09:45.3333787Z ^[[0m^[[32mDownload^[[0m https://registry.npmjs.org/d3-array/-/d3-array-3.2.4.tgz
+all-tests	Run deno task all-tests	2026-05-20T20:09:45.3335094Z ^[[0m^[[32mDownload^[[0m https://registry.npmjs.org/date-fns-tz/-/date-fns-tz-3.2.0.tgz
+all-tests	Run deno task all-tests	2026-05-20T20:09:45.3336244Z ^[[0m^[[32mDownload^[[0m https://registry.npmjs.org/rw/-/rw-1.3.3.tgz
+all-tests	Run deno task all-tests	2026-05-20T20:09:45.3337336Z ^[[0m^[[32mDownload^[[0m https://registry.npmjs.org/commander/-/commander-7.2.0.tgz
+all-tests	Run deno task all-tests	2026-05-20T20:09:45.3338558Z ^[[0m^[[32mDownload^[[0m https://registry.npmjs.org/iconv-lite/-/iconv-lite-0.6.3.tgz
+all-tests	Run deno task all-tests	2026-05-20T20:09:45.3340141Z ^[[0m^[[32mDownload^[[0m https://registry.npmjs.org/internmap/-/internmap-2.0.3.tgz
+all-tests	Run deno task all-tests	2026-05-20T20:09:45.3341300Z ^[[0m^[[32mDownload^[[0m https://registry.npmjs.org/date-fns/-/date-fns-4.1.0.tgz
+all-tests	Run deno task all-tests	2026-05-20T20:09:45.3342446Z ^[[0m^[[32mDownload^[[0m https://registry.npmjs.org/safer-buffer/-/safer-buffer-2.1.2.tgz
+all-tests	Run deno task all-tests	2026-05-20T20:09:45.4516588Z ^[[0m^[[32mInitialize^[[0m d3-dsv@3.0.1
+all-tests	Run deno task all-tests	2026-05-20T20:09:45.4517233Z ^[[0m^[[32mInitialize^[[0m commander@7.2.0
+all-tests	Run deno task all-tests	2026-05-20T20:09:45.4582967Z ^[[0m^[[32mInitialize^[[0m internmap@2.0.3
+all-tests	Run deno task all-tests	2026-05-20T20:09:45.4613205Z ^[[0m^[[32mInitialize^[[0m safer-buffer@2.1.2
+all-tests	Run deno task all-tests	2026-05-20T20:09:45.4630487Z ^[[0m^[[32mInitialize^[[0m d3-array@3.2.4
+all-tests	Run deno task all-tests	2026-05-20T20:09:45.4631342Z ^[[0m^[[32mInitialize^[[0m rw@1.3.3
+all-tests	Run deno task all-tests	2026-05-20T20:09:45.4697626Z ^[[0m^[[32mInitialize^[[0m iconv-lite@0.6.3
+all-tests	Run deno task all-tests	2026-05-20T20:09:45.4757415Z ^[[0m^[[32mInitialize^[[0m date-fns-tz@3.2.0
+all-tests	Run deno task all-tests	2026-05-20T20:09:45.4765398Z ^[[0m^[[32mInitialize^[[0m jstat@1.9.6
+all-tests	Run deno task all-tests	2026-05-20T20:09:45.6522798Z ^[[0m^[[32mInitialize^[[0m date-fns@4.1.0
+all-tests	Run deno task all-tests	2026-05-20T20:09:45.7463632Z ^[[0m^[[32mTask^[[0m ^[[0m^[[36mall-tests^[[0m deno install && deno fmt --check && deno lint && deno check src/index.ts && deno doc --lint src/index.ts && deno publish --allow-dirty --dry-run && TZ=America/Toronto deno test -A --fail-fast && deno task llm
+all-tests	Run deno task all-tests	2026-05-20T20:09:45.7535097Z ^[[0m^[[32mDownload^[[0m https://jsr.io/@nshiab/journalism-statistics/1.5.1_meta.json
+all-tests	Run deno task all-tests	2026-05-20T20:09:45.7537074Z ^[[0m^[[32mDownload^[[0m https://jsr.io/@nshiab/journalism-format/1.1.5_meta.json
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.0409907Z ^[[0m^[[32mDownload^[[0m https://jsr.io/@nshiab/journalism-format/meta.json
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.0411384Z ^[[0m^[[32mDownload^[[0m https://jsr.io/@nshiab/journalism-statistics/meta.json
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.0412378Z ^[[0m^[[32mDownload^[[0m https://registry.npmjs.org/d3-array
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.2539749Z ^[[0m^[[32mDownload^[[0m https://jsr.io/@nshiab/journalism-format/1.1.5/src/index.ts
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.2541035Z ^[[0m^[[32mDownload^[[0m https://jsr.io/@nshiab/journalism-statistics/1.5.1/src/index.ts
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.2542295Z ^[[0m^[[32mDownload^[[0m https://jsr.io/@nshiab/journalism-format/1.1.5/src/format/formatDate.ts
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.2543567Z ^[[0m^[[32mDownload^[[0m https://jsr.io/@nshiab/journalism-format/1.1.5/src/format/formatNumber.ts
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.2544694Z ^[[0m^[[32mDownload^[[0m https://jsr.io/@nshiab/journalism-format/1.1.5/src/format/round.ts
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.2545868Z ^[[0m^[[32mDownload^[[0m https://jsr.io/@nshiab/journalism-format/1.1.5/src/format/prettyDuration.ts
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.2547109Z ^[[0m^[[32mDownload^[[0m https://jsr.io/@nshiab/journalism-format/1.1.5/src/format/arraysToData.ts
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.2548326Z ^[[0m^[[32mDownload^[[0m https://jsr.io/@nshiab/journalism-format/1.1.5/src/format/dataToArrays.ts
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.2549730Z ^[[0m^[[32mDownload^[[0m https://jsr.io/@nshiab/journalism-format/1.1.5/src/format/dataAsCsv.ts
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.2550913Z ^[[0m^[[32mDownload^[[0m https://jsr.io/@nshiab/journalism-format/1.1.5/src/format/capitalize.ts
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.2552076Z ^[[0m^[[32mDownload^[[0m https://jsr.io/@nshiab/journalism-format/1.1.5/src/format/camelCase.ts
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.2553655Z ^[[0m^[[32mDownload^[[0m https://jsr.io/@nshiab/journalism-format/1.1.5/src/format/printTable.ts
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.2554867Z ^[[0m^[[32mDownload^[[0m https://jsr.io/@nshiab/journalism-format/1.1.5/src/format/normalizeString.ts
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.2556203Z ^[[0m^[[32mDownload^[[0m https://jsr.io/@nshiab/journalism-statistics/1.5.1/src/statistics/getCovarianceMatrix.ts
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.2557613Z ^[[0m^[[32mDownload^[[0m https://jsr.io/@nshiab/journalism-statistics/1.5.1/src/statistics/getCorrelationMatrix.ts
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.2559001Z ^[[0m^[[32mDownload^[[0m https://jsr.io/@nshiab/journalism-statistics/1.5.1/src/statistics/invertMatrix.ts
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.2625683Z ^[[0m^[[32mDownload^[[0m https://jsr.io/@nshiab/journalism-statistics/1.5.1/src/statistics/getMahalanobisDistance.ts
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.2627484Z ^[[0m^[[32mDownload^[[0m https://jsr.io/@nshiab/journalism-statistics/1.5.1/src/statistics/addMahalanobisDistance.ts
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.2628512Z ^[[0m^[[32mDownload^[[0m https://jsr.io/@nshiab/journalism-statistics/1.5.1/src/statistics/addZScore.ts
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.2629273Z ^[[0m^[[32mDownload^[[0m https://jsr.io/@nshiab/journalism-statistics/1.5.1/src/statistics/addClusters.ts
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.2630361Z ^[[0m^[[32mDownload^[[0m https://jsr.io/@nshiab/journalism-statistics/1.5.1/src/statistics/euclidianDistance.ts
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.2631213Z ^[[0m^[[32mDownload^[[0m https://jsr.io/@nshiab/journalism-statistics/1.5.1/src/statistics/getSampleSizeProportion.ts
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.2632022Z ^[[0m^[[32mDownload^[[0m https://jsr.io/@nshiab/journalism-statistics/1.5.1/src/statistics/getSampleSizeMean.ts
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.2633046Z ^[[0m^[[32mDownload^[[0m https://jsr.io/@nshiab/journalism-statistics/1.5.1/src/statistics/performZTest.ts
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.2633746Z ^[[0m^[[32mDownload^[[0m https://jsr.io/@nshiab/journalism-statistics/1.5.1/src/statistics/performTTest.ts
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.2634459Z ^[[0m^[[32mDownload^[[0m https://jsr.io/@nshiab/journalism-statistics/1.5.1/src/statistics/performPairedTTest.ts
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.2635288Z ^[[0m^[[32mDownload^[[0m https://jsr.io/@nshiab/journalism-statistics/1.5.1/src/statistics/performTwoSampleTTest.ts
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.2636117Z ^[[0m^[[32mDownload^[[0m https://jsr.io/@nshiab/journalism-statistics/1.5.1/src/statistics/performChiSquaredIndependenceTest.ts
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.2637000Z ^[[0m^[[32mDownload^[[0m https://jsr.io/@nshiab/journalism-statistics/1.5.1/src/statistics/performChiSquaredGoodnessOfFitTest.ts
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.2637824Z ^[[0m^[[32mDownload^[[0m https://jsr.io/@nshiab/journalism-statistics/1.5.1/src/statistics/getCirParameters.ts
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.2638561Z ^[[0m^[[32mDownload^[[0m https://jsr.io/@nshiab/journalism-statistics/1.5.1/src/statistics/generateCirPath.ts
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.2639275Z ^[[0m^[[32mDownload^[[0m https://jsr.io/@nshiab/journalism-statistics/1.5.1/src/statistics/getGbmParameters.ts
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.2640154Z ^[[0m^[[32mDownload^[[0m https://jsr.io/@nshiab/journalism-statistics/1.5.1/src/statistics/generateGbmPath.ts
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.2640869Z ^[[0m^[[32mDownload^[[0m https://jsr.io/@nshiab/journalism-statistics/1.5.1/src/statistics/getCholeskyMatrix.ts
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.2641615Z ^[[0m^[[32mDownload^[[0m https://jsr.io/@nshiab/journalism-statistics/1.5.1/src/statistics/getCorrelatedShocks.ts
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.2642348Z ^[[0m^[[32mDownload^[[0m https://jsr.io/@nshiab/journalism-statistics/1.5.1/src/statistics/stepGbm.ts
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.2642988Z ^[[0m^[[32mDownload^[[0m https://jsr.io/@nshiab/journalism-statistics/1.5.1/src/statistics/stepCir.ts
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.2643665Z ^[[0m^[[32mDownload^[[0m https://jsr.io/@nshiab/journalism-format/1.1.5/src/format/helpers/dateToCBCStyle.ts
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.2644361Z ^[[0m^[[32mDownload^[[0m https://jsr.io/@nshiab/journalism-format/1.1.5/src/format/helpers/dateToRCStyle.ts
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.2645108Z ^[[0m^[[32mDownload^[[0m https://jsr.io/@nshiab/journalism-format/1.1.5/src/format/helpers/isValidDate.ts
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.2645861Z ^[[0m^[[32mDownload^[[0m https://jsr.io/@nshiab/journalism-format/1.1.5/src/format/helpers/transformPositionToCbcStyle.ts
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.2646824Z ^[[0m^[[32mDownload^[[0m https://jsr.io/@nshiab/journalism-format/1.1.5/src/format/helpers/transformPositionToRcStyle.ts
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.2647552Z ^[[0m^[[32mDownload^[[0m https://jsr.io/@nshiab/journalism-format/1.1.5/src/format/helpers/wrapString.ts
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.2648093Z ^[[0m^[[32mDownload^[[0m https://registry.npmjs.org/date-fns-tz
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.2648496Z ^[[0m^[[32mDownload^[[0m https://registry.npmjs.org/d3-dsv
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.2648879Z ^[[0m^[[32mDownload^[[0m https://registry.npmjs.org/jstat
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.6233569Z ^[[0m^[[38;5;245mInstalled^[[0m 2 ^[[0m^[[38;5;245mpackages^[[0m ^[[0m^[[38;5;245min^[[0m 870ms
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.6234509Z ^[[0m^[[38;5;245mReused^[[0m 0 ^[[0m^[[38;5;245mpackages from cache^[[0m
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.6235084Z ^[[0m^[[38;5;245mDownloaded^[[0m 2 ^[[0m^[[38;5;245mpackages from JSR^[[0m
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.6235464Z ^[[0m^[[32m++^[[0m
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.6235796Z ^[[0m^[[38;5;245mDownloaded^[[0m 0 ^[[0m^[[38;5;245mpackages from npm^[[0m
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.6236182Z 
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.6236322Z ^[[0m^[[36mDependencies:^[[0m
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.6236765Z ^[[0m^[[32m+^[[0m ^[[0m^[[38;5;245mjsr:^[[0m@nshiab/journalism-format ^[[0m^[[38;5;245m1.1.5^[[0m
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.6237714Z ^[[0m^[[32m+^[[0m ^[[0m^[[38;5;245mjsr:^[[0m@nshiab/journalism-statistics ^[[0m^[[38;5;245m1.5.1^[[0m
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.6238202Z 
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.7100879Z Checked 54 files
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.7665788Z ^[[0m^[[1m^[[31merror[no-unused-vars]^[[0m: ^[[0m^[[1m`CUMULATIVE_EXPENSES_ONE_TIME_SET` is never used^[[0m
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.7690261Z ##[error]  ^[[0m^[[38;5;12m-->^[[0m ^[[0m^[[36m/home/runner/work/journalism-finance/journalism-finance/src/finance/helpers/rentVsBuy/toResults.ts^[[0m^[[0m^[[33m:39:7^[[0m
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.7696935Z   ^[[0m^[[38;5;12m | ^[[0m
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.7697337Z ^[[0m^[[38;5;12m39 | ^[[0mconst CUMULATIVE_EXPENSES_ONE_TIME_SET = new Set([
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.7697818Z   ^[[0m^[[38;5;12m | ^[[0m      ^[[0m^[[1m^[[31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[[0m
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.7698472Z    ^[[0m^[[38;5;12m=^[[0m ^[[0m^[[1mhint^[[0m: If this is intentional, prefix it with an underscore like `_CUMULATIVE_EXPENSES_ONE_TIME_SET`
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.7698930Z 
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.7699169Z   ^[[0m^[[38;5;12mdocs^[[0m: https://docs.deno.com/lint/rules/no-unused-vars
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.7699733Z 
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.7699741Z 
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.7758405Z Found 1 problem
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.7758813Z Checked 29 files
+all-tests	Run deno task all-tests	2026-05-20T20:09:46.7801804Z ##[error]Process completed with exit code 1.
+all-tests	Post Run denoland/setup-deno@v2	﻿2026-05-20T20:09:46.7868650Z Post job cleanup.
+all-tests	Post Run denoland/setup-deno@v2	2026-05-20T20:09:46.9076746Z Caching is not enabled. Caching is skipped.
+all-tests	Post Run actions/checkout@v6	﻿2026-05-20T20:09:46.9228476Z Post job cleanup.
+all-tests	Post Run actions/checkout@v6	2026-05-20T20:09:47.0044735Z [command]/usr/bin/git version
+all-tests	Post Run actions/checkout@v6	2026-05-20T20:09:47.0082580Z git version 2.54.0
+all-tests	Post Run actions/checkout@v6	2026-05-20T20:09:47.0121670Z Temporarily overriding HOME='/home/runner/work/_temp/dfdc300e-9011-4a16-a7ec-1d23921a7224' before making global git config changes
+all-tests	Post Run actions/checkout@v6	2026-05-20T20:09:47.0122647Z Adding repository directory to the temporary git global config as a safe directory
+all-tests	Post Run actions/checkout@v6	2026-05-20T20:09:47.0127441Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/journalism-finance/journalism-finance
+all-tests	Post Run actions/checkout@v6	2026-05-20T20:09:47.0157859Z Removing SSH command configuration
+all-tests	Post Run actions/checkout@v6	2026-05-20T20:09:47.0164092Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+all-tests	Post Run actions/checkout@v6	2026-05-20T20:09:47.0197060Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+all-tests	Post Run actions/checkout@v6	2026-05-20T20:09:47.0467724Z Removing HTTP extra header
+all-tests	Post Run actions/checkout@v6	2026-05-20T20:09:47.0473547Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+all-tests	Post Run actions/checkout@v6	2026-05-20T20:09:47.0510781Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+all-tests	Post Run actions/checkout@v6	2026-05-20T20:09:47.0745646Z Removing includeIf entries pointing to credentials config files
+all-tests	Post Run actions/checkout@v6	2026-05-20T20:09:47.0755882Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+all-tests	Post Run actions/checkout@v6	2026-05-20T20:09:47.0780244Z includeif.gitdir:/home/runner/work/journalism-finance/journalism-finance/.git.path
+all-tests	Post Run actions/checkout@v6	2026-05-20T20:09:47.0781842Z includeif.gitdir:/home/runner/work/journalism-finance/journalism-finance/.git/worktrees/*.path
+all-tests	Post Run actions/checkout@v6	2026-05-20T20:09:47.0782809Z includeif.gitdir:/github/workspace/.git.path
+all-tests	Post Run actions/checkout@v6	2026-05-20T20:09:47.0783438Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+all-tests	Post Run actions/checkout@v6	2026-05-20T20:09:47.0790548Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/journalism-finance/journalism-finance/.git.path
+all-tests	Post Run actions/checkout@v6	2026-05-20T20:09:47.0812853Z /home/runner/work/_temp/git-credentials-31ae8ad1-daf3-439a-87b0-756c50b69c92.config
+all-tests	Post Run actions/checkout@v6	2026-05-20T20:09:47.0824150Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/journalism-finance/journalism-finance/.git.path /home/runner/work/_temp/git-credentials-31ae8ad1-daf3-439a-87b0-756c50b69c92.config
+all-tests	Post Run actions/checkout@v6	2026-05-20T20:09:47.0859687Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/journalism-finance/journalism-finance/.git/worktrees/*.path
+all-tests	Post Run actions/checkout@v6	2026-05-20T20:09:47.0880392Z /home/runner/work/_temp/git-credentials-31ae8ad1-daf3-439a-87b0-756c50b69c92.config
+all-tests	Post Run actions/checkout@v6	2026-05-20T20:09:47.0890224Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/journalism-finance/journalism-finance/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-31ae8ad1-daf3-439a-87b0-756c50b69c92.config
+all-tests	Post Run actions/checkout@v6	2026-05-20T20:09:47.0921449Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+all-tests	Post Run actions/checkout@v6	2026-05-20T20:09:47.0941087Z /github/runner_temp/git-credentials-31ae8ad1-daf3-439a-87b0-756c50b69c92.config
+all-tests	Post Run actions/checkout@v6	2026-05-20T20:09:47.0949886Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-31ae8ad1-daf3-439a-87b0-756c50b69c92.config
+all-tests	Post Run actions/checkout@v6	2026-05-20T20:09:47.0980783Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+all-tests	Post Run actions/checkout@v6	2026-05-20T20:09:47.1001106Z /github/runner_temp/git-credentials-31ae8ad1-daf3-439a-87b0-756c50b69c92.config
+all-tests	Post Run actions/checkout@v6	2026-05-20T20:09:47.1010369Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-31ae8ad1-daf3-439a-87b0-756c50b69c92.config
+all-tests	Post Run actions/checkout@v6	2026-05-20T20:09:47.1040932Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+all-tests	Post Run actions/checkout@v6	2026-05-20T20:09:47.1248725Z Removing credentials config '/home/runner/work/_temp/git-credentials-31ae8ad1-daf3-439a-87b0-756c50b69c92.config'
+all-tests	Complete job	﻿2026-05-20T20:09:47.1382030Z Cleaning up orphan processes
