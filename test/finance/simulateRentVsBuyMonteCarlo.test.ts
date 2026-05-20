@@ -1487,3 +1487,98 @@ Deno.test("simulateRentVsBuyMonteCarlo: buyer investments should be zero when in
     );
   }
 });
+
+Deno.test("simulateRentVsBuyMonteCarlo: adjustToInflation should not discount one-time upfront costs in cumulativeExpenses", () => {
+  const iterations = 3;
+  const params = getParamsRentVsBuyMonteCarlo(iterations, "Montreal", {
+    downPayment: 0.20,
+    purchaseFixedFees: 0.01,
+  }, {
+    renterMonthlyInsurance: 30,
+    ownerMonthlyInsurance: 100,
+    sellingFixedFees: 2000,
+    condoFees: 300,
+  }, false);
+
+  const nbMonths = params.numberOfYears * 12;
+  const finalMonth = nbMonths - 1;
+
+  const results = simulateRentVsBuyMonteCarlo(params, {
+    verbose: false,
+    adjustToInflation: "sellingFixedFeesIncrease",
+    details: {
+      iterations: true,
+      iterationsGroups: ["cumulativeExpenses"],
+    },
+  });
+
+  const resultsNormal = simulateRentVsBuyMonteCarlo(params, {
+    verbose: false,
+    details: {
+      iterations: true,
+      iterationsGroups: ["cumulativeExpenses"],
+    },
+  });
+
+  const getAmount = (
+    res: typeof results,
+    iteration: number,
+    category: string,
+    variable: string,
+    monthIndex: number,
+  ): number | undefined => {
+    const key = `${category}|cumulativeExpenses|${variable}`;
+    const arr = res.details.monthlyIterations.data[key];
+    if (!arr) return undefined;
+    return arr[iteration * nbMonths + monthIndex];
+  };
+
+  for (let i = 0; i < iterations; i++) {
+    // purchaseFixedFees is a one-time cost paid at month 0 — its cumulative
+    // value must be identical at every subsequent month, unaffected by the
+    // inflation discount factor.
+    const feeAt0 = getAmount(results, i, "buyerFixed", "purchaseFixedFees", 0);
+    const feeAtFinal = getAmount(
+      results,
+      i,
+      "buyerFixed",
+      "purchaseFixedFees",
+      finalMonth,
+    );
+    assert(
+      feeAt0 !== undefined && feeAt0 > 0,
+      `Iteration ${i}: purchaseFixedFees should be non-zero`,
+    );
+    assertEquals(
+      feeAt0,
+      feeAtFinal,
+      `Iteration ${i}: purchaseFixedFees must not be discounted (got ${feeAtFinal}, expected ${feeAt0})`,
+    );
+
+    // Recurring costs (mortgageCapital) should still be lower in adjusted
+    // results than in nominal results at the final month (regression guard).
+    const mortgageAdjusted = getAmount(
+      results,
+      i,
+      "buyerFixed",
+      "mortgageCapital",
+      finalMonth,
+    );
+    const mortgageNormal = getAmount(
+      resultsNormal,
+      i,
+      "buyerFixed",
+      "mortgageCapital",
+      finalMonth,
+    );
+    if (
+      mortgageAdjusted !== undefined && mortgageNormal !== undefined &&
+      mortgageNormal > 0
+    ) {
+      assert(
+        mortgageAdjusted < mortgageNormal,
+        `Iteration ${i}: recurring cumulative cost should be discounted`,
+      );
+    }
+  }
+});

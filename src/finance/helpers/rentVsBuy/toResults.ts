@@ -33,6 +33,16 @@ const CUMULATIVE_EXPENSES_KEYS = [
   "tfsaFees",
   "stocksFees",
 ] as const;
+// One-time upfront costs paid at month 0: their real value equals their nominal
+// value, so they must NOT be multiplied by the inflation discount factor when
+// accumulating in cumulativeExpenses.
+const CUMULATIVE_EXPENSES_ONE_TIME_SET = new Set([
+  "securityDeposit",
+  "downPayment",
+  "purchaseFixedFees",
+  "landTransferTax",
+  "insurancePremium",
+]);
 const MONTHLY_GAINS_KEYS = [
   "tfsaGains",
   "tfsaContribution",
@@ -89,21 +99,23 @@ function computeTotals(persona: Persona, adj: (x: number) => number) {
       persona.monthlyExpenses.tfsaFees +
       persona.monthlyExpenses.stocksFees,
   );
-  const cumulativeExpenses = adj(
-    persona.cumulativeExpenses.rent +
-      persona.cumulativeExpenses.insurance +
+  const cumulativeExpenses = r2(
+    adj(
+      persona.cumulativeExpenses.rent +
+        persona.cumulativeExpenses.insurance +
+        persona.cumulativeExpenses.mortgageCapital +
+        persona.cumulativeExpenses.mortgageInterests +
+        persona.cumulativeExpenses.maintenance +
+        persona.cumulativeExpenses.propertyTax +
+        persona.cumulativeExpenses.condoFees +
+        persona.cumulativeExpenses.tfsaFees +
+        persona.cumulativeExpenses.stocksFees,
+    ) +
       persona.cumulativeExpenses.securityDeposit +
-      persona.cumulativeExpenses.mortgageCapital +
-      persona.cumulativeExpenses.mortgageInterests +
-      persona.cumulativeExpenses.maintenance +
-      persona.cumulativeExpenses.propertyTax +
-      persona.cumulativeExpenses.condoFees +
       persona.cumulativeExpenses.downPayment +
       persona.cumulativeExpenses.purchaseFixedFees +
       persona.cumulativeExpenses.landTransferTax +
-      persona.cumulativeExpenses.insurancePremium +
-      persona.cumulativeExpenses.tfsaFees +
-      persona.cumulativeExpenses.stocksFees,
+      persona.cumulativeExpenses.insurancePremium,
   );
   const monthlyGains = adj(
     persona.monthlyGains.tfsaGains +
@@ -290,17 +302,20 @@ export default function toResults(
     }
 
     if (!groups || groups.includes("cumulativeExpenses")) {
-      let totalCumulativeExpenses = 0;
+      let totalRecurring = 0;
+      let totalOneTime = 0;
       for (const variable of CUMULATIVE_EXPENSES_KEYS) {
         const amount = persona.cumulativeExpenses[variable];
-        totalCumulativeExpenses += amount;
+        const isOneTime = CUMULATIVE_EXPENSES_ONE_TIME_SET.has(variable);
+        if (isOneTime) totalOneTime += amount;
+        else totalRecurring += amount;
         if (amount !== 0) {
           onRecord(
             category,
             "cumulativeExpenses",
             variable,
             monthIndex,
-            adj(amount),
+            isOneTime ? r2(amount) : adj(amount),
           );
         }
       }
@@ -309,7 +324,7 @@ export default function toResults(
         "totals",
         "cumulativeExpenses",
         monthIndex,
-        adj(totalCumulativeExpenses),
+        r2(adj(totalRecurring) + totalOneTime),
       );
     }
 
@@ -536,7 +551,9 @@ export default function toResults(
         if (amount !== 0) {
           results.push({
             monthIndex,
-            amount: adj(amount),
+            amount: CUMULATIVE_EXPENSES_ONE_TIME_SET.has(variable)
+              ? r2(amount)
+              : adj(amount),
             category,
             group: "cumulativeExpenses",
             variable,
@@ -546,13 +563,17 @@ export default function toResults(
     }
 
     if (!groups || groups.includes("totals")) {
-      let totalCumulativeExpenses = 0;
+      let totalRecurring = 0;
+      let totalOneTime = 0;
       for (const variable of CUMULATIVE_EXPENSES_KEYS) {
-        totalCumulativeExpenses += persona.cumulativeExpenses[variable];
+        const amount = persona.cumulativeExpenses[variable];
+        if (CUMULATIVE_EXPENSES_ONE_TIME_SET.has(variable)) {
+          totalOneTime += amount;
+        } else totalRecurring += amount;
       }
       results.push({
         monthIndex,
-        amount: adj(totalCumulativeExpenses),
+        amount: r2(adj(totalRecurring) + totalOneTime),
         category,
         group: "totals",
         variable: "cumulativeExpenses",

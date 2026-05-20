@@ -2735,3 +2735,128 @@ Deno.test("simulateRentVsBuy: adjustToInflation should discount future values", 
   assert(rent60Normal! > 18000);
   assert(Math.abs(rent60Adjusted! - 1000) < 0.1);
 });
+
+Deno.test("simulateRentVsBuy: adjustToInflation should not discount one-time upfront costs in cumulativeExpenses", () => {
+  const years = 5;
+  const inflationRate = 0.05; // 5% per month (extreme, for clear verification)
+
+  const rates = {
+    marketReturnRate: new Array(years * 12).fill(0),
+    rentIncrease: new Array(years * 12).fill(inflationRate),
+    ownerInsuranceIncrease: new Array(years * 12).fill(0),
+    renterInsuranceIncrease: new Array(years * 12).fill(0),
+    maintenanceIncrease: new Array(years * 12).fill(0),
+    propertyTaxIncrease: new Array(years * 12).fill(0),
+    condoFeeIncrease: new Array(years * 12).fill(0),
+    appreciationIncrease: new Array(years * 12).fill(0),
+    sellingFixedFeesIncrease: new Array(years * 12).fill(0),
+  };
+
+  const values = {
+    employmentIncome: new Array(years * 12).fill(80000),
+    fiveYearInterestRates: new Array(years * 12).fill(0.05),
+    fourYearInterestRates: new Array(years * 12).fill(0.05),
+    threeYearInterestRates: new Array(years * 12).fill(0.05),
+    twoYearInterestRates: new Array(years * 12).fill(0.05),
+    oneYearInterestRates: new Array(years * 12).fill(0.05),
+    variableInterestRates: new Array(years * 12).fill(0.05),
+  };
+
+  const purchaseFixedFees = 5000;
+  const securityDeposit = 1500;
+
+  const params = {
+    startingYear: 2024,
+    numberOfYears: years,
+    tfsaContributions: false,
+    annualInvestmentFeeRate: 0,
+    couple: false,
+    city: "Toronto" as const,
+    renter: {
+      startingMonthlyRent: 1000,
+      securityDeposit,
+      startingMonthlyInsurance: 0,
+    },
+    buyer: {
+      downPayment: 100000,
+      purchasePrice: 500000,
+      fixedRateAdjustment: 0,
+      variableRateAdjustment: 0,
+      firstTimeOwner: false,
+      investsSavings: false,
+      purchaseFixedFees,
+      startingAnnualMaintenanceCost: 0,
+      startingAnnualPropertyTax: 0,
+      startingMonthlyCondoFees: 0,
+      startingMonthlyInsurance: 0,
+      sellingFixedFees: 0,
+      sellingCommissionRate: 0,
+      floorRate: 0,
+    },
+    values,
+    rates,
+  };
+
+  const resultsAdjusted = simulateRentVsBuy(params, {
+    adjustToInflation: "rentIncrease",
+  });
+  const resultsNormal = simulateRentVsBuy(params);
+
+  const finalMonth = years * 12 - 1;
+
+  const getCumulative = (
+    results: typeof resultsAdjusted,
+    category: string,
+    variable: string,
+    monthIndex: number,
+  ) =>
+    results.find((r) =>
+      r.category === category &&
+      r.group === "cumulativeExpenses" &&
+      r.variable === variable &&
+      r.monthIndex === monthIndex
+    )?.amount;
+
+  // One-time costs must NOT be discounted: their cumulative value stays constant
+  // regardless of how far into the simulation we are.
+  assertEquals(
+    getCumulative(resultsAdjusted, "buyerFixed", "purchaseFixedFees", 0),
+    purchaseFixedFees,
+  );
+  assertEquals(
+    getCumulative(resultsAdjusted, "buyerFixed", "purchaseFixedFees", 30),
+    purchaseFixedFees,
+  );
+  assertEquals(
+    getCumulative(
+      resultsAdjusted,
+      "buyerFixed",
+      "purchaseFixedFees",
+      finalMonth,
+    ),
+    purchaseFixedFees,
+  );
+  assertEquals(
+    getCumulative(resultsAdjusted, "renter", "securityDeposit", 0),
+    securityDeposit,
+  );
+  assertEquals(
+    getCumulative(resultsAdjusted, "renter", "securityDeposit", 30),
+    securityDeposit,
+  );
+  assertEquals(
+    getCumulative(resultsAdjusted, "renter", "securityDeposit", finalMonth),
+    securityDeposit,
+  );
+
+  // Recurring rent IS still discounted: adjusted cumulative rent at the final
+  // month must be less than the nominal cumulative rent.
+  const rentNormal = getCumulative(resultsNormal, "renter", "rent", finalMonth);
+  const rentAdjusted = getCumulative(
+    resultsAdjusted,
+    "renter",
+    "rent",
+    finalMonth,
+  );
+  assert(rentAdjusted! < rentNormal!);
+});
