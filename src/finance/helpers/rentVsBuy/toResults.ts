@@ -33,16 +33,6 @@ const CUMULATIVE_EXPENSES_KEYS = [
   "tfsaFees",
   "stocksFees",
 ] as const;
-// One-time upfront costs paid at month 0: their real value equals their nominal
-// value, so they must NOT be multiplied by the inflation discount factor when
-// accumulating in cumulativeExpenses.
-const CUMULATIVE_EXPENSES_ONE_TIME_SET = new Set([
-  "securityDeposit",
-  "downPayment",
-  "purchaseFixedFees",
-  "landTransferTax",
-  "insurancePremium",
-]);
 const MONTHLY_GAINS_KEYS = [
   "tfsaGains",
   "tfsaContribution",
