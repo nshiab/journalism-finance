@@ -1298,8 +1298,11 @@ function simulateRentVsBuy(
 - **`options.adjustToInflation`**: The rate parameter used as a proxy for
   inflation to discount all future dollar values back to Year 0 (today's
   dollars). For example, setting this to `"sellingFixedFeesIncrease"` will use
-  that parameter's values to calculate the monthly discount factor. Defaults to
-  `undefined` (no adjustment).
+  that parameter's values to calculate the monthly discount factor. One-time
+  upfront costs (`downPayment`, `purchaseFixedFees`, `landTransferTax`,
+  `insurancePremium`, `securityDeposit`) in `cumulativeExpenses` are **not**
+  discounted — they were paid at month 0, so their real value already equals
+  their nominal value. Defaults to `undefined` (no adjustment).
 
 ### Returns
 
@@ -1543,7 +1546,10 @@ function simulateRentVsBuyMonteCarlo(
   inflation to discount all future dollar values back to Year 0 (today's
   dollars). For example, setting this to `"sellingFixedFeesIncrease"` will use
   the simulated path of that parameter to calculate the monthly discount factor.
-  Defaults to `undefined` (no adjustment).
+  One-time upfront costs (`downPayment`, `purchaseFixedFees`, `landTransferTax`,
+  `insurancePremium`, `securityDeposit`) in `cumulativeExpenses` are **not**
+  discounted — they were paid at month 0, so their real value already equals
+  their nominal value. Defaults to `undefined` (no adjustment).
 
 ### Returns
 
