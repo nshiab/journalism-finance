@@ -1554,8 +1554,13 @@ function simulateRentVsBuyMonteCarlo(
   setting this to `50` will log progress every 50 iterations. Defaults to `1`.
 - **`options.values`**: If `true`, captures the stochastic path values for all
   16 variables (e.g. employment income, market returns, interest rates) across
-  all iterations. Decode with `decodeMonteCarloValues`. Be cautious with high
-  iteration counts as this can consume significant memory.
+  all iterations. Dollar-amount paths (employment income, rent, insurances,
+  maintenance, property tax, condo fees, appreciation, selling fixed fees) are
+  expressed in real (inflation-adjusted) dollars when
+  `options.adjustToInflation` is set, using the same deflation factor as
+  `details`. Rate paths (market returns, all six interest rates) are always
+  nominal. Decode with `decodeMonteCarloValues`. Be cautious with high iteration
+  counts as this can consume significant memory.
 - **`options.details`**: When provided, enables detailed monthly data
   collection. Both sub-options share the same internal column-major buffer, so
   enabling both together is more memory-efficient than the sum of their
