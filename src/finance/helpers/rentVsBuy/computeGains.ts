@@ -132,6 +132,9 @@ export default function computeGains(
   );
   if (monthlySavings > 0) {
     persona.monthlyGains.newStocks = monthlySavings;
+    persona.params.stocksContributedNominal = r2(
+      persona.params.stocksContributedNominal + monthlySavings,
+    );
     persona.cumulativeGains.newStocks = r2(
       persona.cumulativeGains.newStocks + monthlySavings * inflationMultiplier,
     );

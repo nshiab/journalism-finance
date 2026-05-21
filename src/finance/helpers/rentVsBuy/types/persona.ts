@@ -19,6 +19,7 @@ export type Persona = {
     floorRate: number;
     investsSavings: boolean;
     tfsaContributedNominal: number;
+    stocksContributedNominal: number;
   };
   monthlyExpenses: {
     mortgageCapital: number;

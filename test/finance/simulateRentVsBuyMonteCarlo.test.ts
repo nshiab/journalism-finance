@@ -1633,7 +1633,45 @@ Deno.test("simulateRentVsBuyMonteCarlo: dollar-amount paths in values should be 
     `Deflated income ${incomeLastAdjusted.value} should be lower than nominal ${incomeLastNormal.value}`,
   );
 
-  // Take the last record of market returns for iteration 0 (a rate, shouldn't be deflated)
+  // Take the last record of rent for iteration 0
+  const rentLastNormal = valsNormal.find(
+    (v) =>
+      v.iteration === 0 && v.variable === "rent" &&
+      v.monthIndex === p.numberOfYears * 12 - 1,
+  );
+  const rentLastAdjusted = valsAdjusted.find(
+    (v) =>
+      v.iteration === 0 && v.variable === "rent" &&
+      v.monthIndex === p.numberOfYears * 12 - 1,
+  );
+
+  assert(rentLastNormal !== undefined);
+  assert(rentLastAdjusted !== undefined);
+  assert(
+    rentLastAdjusted.value < rentLastNormal.value,
+    `Deflated rent ${rentLastAdjusted.value} should be lower than nominal ${rentLastNormal.value}`,
+  );
+
+  // Take the last record of property appreciation for iteration 0
+  const appreciationLastNormal = valsNormal.find(
+    (v) =>
+      v.iteration === 0 && v.variable === "property appreciation" &&
+      v.monthIndex === p.numberOfYears * 12 - 1,
+  );
+  const appreciationLastAdjusted = valsAdjusted.find(
+    (v) =>
+      v.iteration === 0 && v.variable === "property appreciation" &&
+      v.monthIndex === p.numberOfYears * 12 - 1,
+  );
+
+  assert(appreciationLastNormal !== undefined);
+  assert(appreciationLastAdjusted !== undefined);
+  assert(
+    appreciationLastAdjusted.value < appreciationLastNormal.value,
+    `Deflated appreciation ${appreciationLastAdjusted.value} should be lower than nominal ${appreciationLastNormal.value}`,
+  );
+
+  // Take the last record of market returns for iteration 0
   const marketLastNormal = valsNormal.find(
     (v) =>
       v.iteration === 0 && v.variable === "market returns" &&
@@ -1648,10 +1686,8 @@ Deno.test("simulateRentVsBuyMonteCarlo: dollar-amount paths in values should be 
   assert(marketLastNormal !== undefined);
   assert(marketLastAdjusted !== undefined);
 
-  // The rate paths should be exactly equal
-  assertEquals(
-    marketLastAdjusted.value,
-    marketLastNormal.value,
-    "market returns rate should not be deflated",
+  assert(
+    marketLastAdjusted.value < marketLastNormal.value,
+    `Deflated market returns ${marketLastAdjusted.value} should be lower than nominal ${marketLastNormal.value}`,
   );
 });
