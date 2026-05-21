@@ -277,7 +277,7 @@ export type BaseOptions = {
  * @param options - Additional simulation options.
  *   @param options.verbose - If `true`, logs the current iteration number to the console at the frequency set by `verboseStep`. Also logs the total elapsed time upon completion via `prettyDuration`. Useful for long-running simulations.
  *   @param options.verboseStep - The frequency of progress logging. For example, setting this to `50` will log progress every 50 iterations. Defaults to `1`.
- *   @param options.values - If `true`, captures the stochastic path values for all 16 variables (e.g. employment income, market returns, interest rates) across all iterations. Decode with `decodeMonteCarloValues`. Be cautious with high iteration counts as this can consume significant memory.
+ *   @param options.values - If `true`, captures the stochastic path values for all 16 variables (e.g. employment income, market returns, interest rates) across all iterations. Dollar-amount paths (employment income, rent, insurances, maintenance, property tax, condo fees, appreciation, selling fixed fees) are expressed in real (inflation-adjusted) dollars when `options.adjustToInflation` is set, using the same deflation factor as `details`. Rate paths (market returns, all six interest rates) are always nominal. Decode with `decodeMonteCarloValues`. Be cautious with high iteration counts as this can consume significant memory.
  *   @param options.details - When provided, enables detailed monthly data collection. Both sub-options share the same internal column-major buffer, so enabling both together is more memory-efficient than the sum of their individual costs.
  *   @param options.details.iterations - If `true`, captures and returns the raw monthly financial data for every variable, group, and category for each individual iteration. Requires `details.iterationsGroups` to be set and non-empty — throws otherwise. Each record includes `iteration` (0-based index), `category`, `group`, `variable`, `monthIndex`, and `amount`. Useful for custom aggregations or visualization of individual paths. Be aware that this can produce a very large number of records (iterations × months × variables × 3 categories), so use `iterationsGroups` to limit scope.
  *   @param options.details.quantiles - When provided, pre-computes the specified quantile levels (e.g. `[0, 0.5, 1]` for min/median/max) across all iterations for every variable/group/category/month combination. Layout: `data[key][qIdx * cols + monthIndex]`. Decode with `decodeMonteCarloMonthlyQuantiles`.
@@ -377,6 +377,27 @@ function simulateRentVsBuyMonteCarlo(
     ? new Map<string, Float64Array>()
     : null;
 
+  // Mapping from RentVsBuyRates key to stochastic path index (paths[0..15]).
+  const INFLATION_RATE_TO_PATH_INDEX: Record<string, number> = {
+    marketReturnRate: 1,
+    rentIncrease: 2,
+    ownerInsuranceIncrease: 3,
+    renterInsuranceIncrease: 4,
+    maintenanceIncrease: 5,
+    propertyTaxIncrease: 6,
+    condoFeeIncrease: 7,
+    appreciationIncrease: 8,
+    sellingFixedFeesIncrease: 9,
+  };
+  const inflationPathIndex = options.adjustToInflation !== undefined
+    ? (INFLATION_RATE_TO_PATH_INDEX[options.adjustToInflation] ?? -1)
+    : -1;
+  // Pre-allocated per-iteration deflation factors for values output (reused across iterations).
+  const currentDeflationFactors: Float64Array | null =
+    inflationPathIndex >= 0 && valuesColumnar !== null
+      ? new Float64Array(nbMonths)
+      : null;
+
   // Single column-major flat buffer shared between monthlyIterations and monthlyQuantiles.
   // Layout: detailsColumnar.get(key)[monthIndex * iterations + iterationIndex] = amount.
   // Column-major enables a contiguous subarray per month for sorting (quantiles) then
@@ -414,6 +435,7 @@ function simulateRentVsBuyMonteCarlo(
     iteration: number,
     variable: string,
     path: Float64Array,
+    isDollarAmount: boolean,
   ) => {
     if (valuesColumnar) {
       let bucket = valuesColumnar.get(variable);
@@ -422,7 +444,10 @@ function simulateRentVsBuyMonteCarlo(
         valuesColumnar.set(variable, bucket);
       }
       for (let j = 0; j < nbMonths; j++) {
-        bucket[iteration * nbMonths + j] = path[j];
+        bucket[iteration * nbMonths + j] =
+          isDollarAmount && currentDeflationFactors !== null
+            ? path[j] * currentDeflationFactors[j]
+            : path[j];
       }
     }
   };
@@ -594,22 +619,35 @@ function simulateRentVsBuyMonteCarlo(
       );
     }
 
-    populateValuesColumnar(i, "employment income", paths[0]);
-    populateValuesColumnar(i, "market returns", paths[1]);
-    populateValuesColumnar(i, "rent", paths[2]);
-    populateValuesColumnar(i, "owner insurance", paths[3]);
-    populateValuesColumnar(i, "renter insurance", paths[4]);
-    populateValuesColumnar(i, "maintenance costs", paths[5]);
-    populateValuesColumnar(i, "property taxes", paths[6]);
-    populateValuesColumnar(i, "condo fees", paths[7]);
-    populateValuesColumnar(i, "property appreciation", paths[8]);
-    populateValuesColumnar(i, "selling fixed fees", paths[9]);
-    populateValuesColumnar(i, "five year interest rates", paths[10]);
-    populateValuesColumnar(i, "four year interest rates", paths[11]);
-    populateValuesColumnar(i, "three year interest rates", paths[12]);
-    populateValuesColumnar(i, "two year interest rates", paths[13]);
-    populateValuesColumnar(i, "one year interest rates", paths[14]);
-    populateValuesColumnar(i, "variable interest rates", paths[15]);
+    // Compute per-month deflation factors (path[0] / path[m]) for values inflation adjustment.
+    // Mirrors the inflationMultiplier logic in simulateRentVsBuy: at month m the factor is
+    // paths[inflationPathIndex][0] / paths[inflationPathIndex][m].
+    if (currentDeflationFactors !== null) {
+      const infPath = paths[inflationPathIndex];
+      const initVal = infPath[0];
+      for (let m = 0; m < nbMonths; m++) {
+        currentDeflationFactors[m] = infPath[m] > 0 ? initVal / infPath[m] : 1;
+      }
+    }
+
+    // Dollar-amount GBM paths (0, 2-9) are deflated when adjustToInflation is set.
+    // Rate paths (1 = market returns, 10-15 = interest rates) are never deflated.
+    populateValuesColumnar(i, "employment income", paths[0], true);
+    populateValuesColumnar(i, "market returns", paths[1], false);
+    populateValuesColumnar(i, "rent", paths[2], true);
+    populateValuesColumnar(i, "owner insurance", paths[3], true);
+    populateValuesColumnar(i, "renter insurance", paths[4], true);
+    populateValuesColumnar(i, "maintenance costs", paths[5], true);
+    populateValuesColumnar(i, "property taxes", paths[6], true);
+    populateValuesColumnar(i, "condo fees", paths[7], true);
+    populateValuesColumnar(i, "property appreciation", paths[8], true);
+    populateValuesColumnar(i, "selling fixed fees", paths[9], true);
+    populateValuesColumnar(i, "five year interest rates", paths[10], false);
+    populateValuesColumnar(i, "four year interest rates", paths[11], false);
+    populateValuesColumnar(i, "three year interest rates", paths[12], false);
+    populateValuesColumnar(i, "two year interest rates", paths[13], false);
+    populateValuesColumnar(i, "one year interest rates", paths[14], false);
+    populateValuesColumnar(i, "variable interest rates", paths[15], false);
 
     const getRatesFromPath = (path: Float64Array) => {
       const r = new Array(nbMonths);
