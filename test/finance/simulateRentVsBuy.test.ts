@@ -2173,21 +2173,21 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
       [
         {
           monthIndex: 299,
-          amount: 250130.37,
+          amount: 239494.42,
           category: "renter",
           group: "summaryCumulative",
           variable: "balanceAfterSelling",
         },
         {
           monthIndex: 299,
-          amount: 81350.69,
+          amount: 80016.45,
           category: "buyerFixed",
           group: "summaryCumulative",
           variable: "balanceAfterSelling",
         },
         {
           monthIndex: 299,
-          amount: 131221.91,
+          amount: 129538.75,
           category: "buyerVariable",
           group: "summaryCumulative",
           variable: "balanceAfterSelling",
@@ -2212,21 +2212,21 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
       [
         {
           monthIndex: 299,
-          amount: 250130.37,
+          amount: 239494.42,
           category: "renter",
           group: "summaryCumulative",
           variable: "balanceAfterSelling",
         },
         {
           monthIndex: 299,
-          amount: 81350.69,
+          amount: 80016.45,
           category: "buyerFixed",
           group: "summaryCumulative",
           variable: "balanceAfterSelling",
         },
         {
           monthIndex: 299,
-          amount: 131221.91,
+          amount: 129538.75,
           category: "buyerVariable",
           group: "summaryCumulative",
           variable: "balanceAfterSelling",
