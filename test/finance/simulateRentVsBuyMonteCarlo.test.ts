@@ -1582,3 +1582,68 @@ Deno.test("simulateRentVsBuyMonteCarlo: adjustToInflation should not discount on
     }
   }
 });
+
+Deno.test("simulateRentVsBuyMonteCarlo: dollar-amount paths in values should be deflated when adjustToInflation is set", () => {
+  const p = getParamsRentVsBuyMonteCarlo(2, "Montreal", {
+    downPayment: 50000,
+    purchaseFixedFees: 2000,
+  }, {
+    renterMonthlyInsurance: 30,
+    ownerMonthlyInsurance: 150,
+    sellingFixedFees: 2000,
+    condoFees: 300,
+  }, false);
+
+  // Eliminate randomness by setting sigma to 0 for all stochastics
+  for (const key in p.stochasticParameters) {
+    (p.stochasticParameters as any)[key].sigma = 0;
+  }
+
+  const resultsNormal = simulateRentVsBuyMonteCarlo(p, {
+    values: true,
+  });
+
+  const resultsAdjusted = simulateRentVsBuyMonteCarlo(p, {
+    values: true,
+    adjustToInflation: "sellingFixedFeesIncrease",
+  });
+
+  const valsNormal = decodeMonteCarloValues(resultsNormal.values);
+  const valsAdjusted = decodeMonteCarloValues(resultsAdjusted.values);
+
+  // Take the last record of employment income in iteration 0
+  const incomeLastNormal = valsNormal.find(
+    (v) => v.iteration === 0 && v.variable === "employment income" && v.monthIndex === p.numberOfYears * 12 - 1
+  );
+  const incomeLastAdjusted = valsAdjusted.find(
+    (v) => v.iteration === 0 && v.variable === "employment income" && v.monthIndex === p.numberOfYears * 12 - 1
+  );
+
+  assert(incomeLastNormal !== undefined);
+  assert(incomeLastAdjusted !== undefined);
+
+  // Since sellingFixedFeesIncrease is usually positive (inflation), deflated amounts should be lower than nominal.
+  // We use inequality since they should differ.
+  assert(
+    incomeLastAdjusted.value < incomeLastNormal.value,
+    `Deflated income ${incomeLastAdjusted.value} should be lower than nominal ${incomeLastNormal.value}`
+  );
+
+  // Take the last record of market returns for iteration 0 (a rate, shouldn't be deflated)
+  const marketLastNormal = valsNormal.find(
+    (v) => v.iteration === 0 && v.variable === "market returns" && v.monthIndex === p.numberOfYears * 12 - 1
+  );
+  const marketLastAdjusted = valsAdjusted.find(
+    (v) => v.iteration === 0 && v.variable === "market returns" && v.monthIndex === p.numberOfYears * 12 - 1
+  );
+
+  assert(marketLastNormal !== undefined);
+  assert(marketLastAdjusted !== undefined);
+
+  // The rate paths should be exactly equal
+  assertEquals(
+    marketLastAdjusted.value,
+    marketLastNormal.value,
+    "market returns rate should not be deflated"
+  );
+});
