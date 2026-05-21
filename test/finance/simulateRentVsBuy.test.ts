@@ -743,7 +743,72 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
     },
   );
 
-  // Expenses on the second month
+  await t.step(
+    "monthlyRecurringExpenses + monthlyNonRecurringExpenses totals equal monthlyExpenses total",
+    async () => {
+      for (const cat of ["renter", "buyerFixed", "buyerVariable"] as const) {
+        for (
+          let mi = 0;
+          mi < 3;
+          mi++
+        ) {
+          const expTotal = results.find((d) =>
+            d.group === "totals" && d.variable === "monthlyExpenses" &&
+            d.monthIndex === mi && d.category === cat
+          )?.amount ?? 0;
+          const recurringTotal = results.find((d) =>
+            d.group === "totals" && d.variable === "monthlyRecurringExpenses" &&
+            d.monthIndex === mi && d.category === cat
+          )?.amount ?? 0;
+          const nonRecurringTotal = results.find((d) =>
+            d.group === "totals" &&
+            d.variable === "monthlyNonRecurringExpenses" &&
+            d.monthIndex === mi && d.category === cat
+          )?.amount ?? 0;
+          assertEquals(
+            Math.round((recurringTotal + nonRecurringTotal) * 100) / 100,
+            expTotal,
+            `cat=${cat} month=${mi}: recurring+nonRecurring should equal monthlyExpenses total`,
+          );
+        }
+      }
+    },
+  );
+
+  await t.step(
+    "monthlyNonRecurringExpenses variables are nonzero only at month 0",
+    async () => {
+      const nonRecurringAfterMonth0 = results.filter((d) =>
+        d.group === "monthlyNonRecurringExpenses" &&
+        d.monthIndex > 0 &&
+        d.amount !== 0
+      );
+      assertEquals(
+        nonRecurringAfterMonth0,
+        [],
+        "No nonRecurring expense variables should be nonzero after month 0",
+      );
+    },
+  );
+
+  await t.step(
+    "monthlyRecurringExpenses variables present at month 1 for all categories",
+    async () => {
+      for (const cat of ["renter", "buyerFixed", "buyerVariable"] as const) {
+        const recurringMonth1 = results.filter((d) =>
+          d.group === "monthlyRecurringExpenses" &&
+          d.monthIndex === 1 &&
+          d.category === cat
+        );
+        assertEquals(
+          recurringMonth1.length > 0,
+          true,
+          `Expected monthlyRecurringExpenses records at month 1 for ${cat}`,
+        );
+      }
+    },
+  );
+
   const secondMonthExpenses = results.filter((d) =>
     d.monthIndex === 1 &&
     d.group === "monthlyExpenses"

@@ -28,6 +28,8 @@ export type MqGroup =
   | "summaryCumulative"
   | "saleCosts"
   | "saleNetGains"
+  | "monthlyRecurringExpenses"
+  | "monthlyNonRecurringExpenses"
   | "totals";
 
 /** Union of all variable names used in simulation output records. */
@@ -70,7 +72,9 @@ export type MqVariable =
   | "cumulativeGains"
   | "assets"
   | "saleCosts"
-  | "saleNetGains";
+  | "saleNetGains"
+  | "monthlyRecurringExpenses"
+  | "monthlyNonRecurringExpenses";
 
 /** Simulation scenario category. */
 export type MqCategory = "renter" | "buyerFixed" | "buyerVariable";

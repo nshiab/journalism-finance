@@ -112,7 +112,9 @@ export type RentVsBuyRates =
  * - `summaryCumulative`: `balance` (cumulative net worth), `balanceAfterSelling` (net worth after hypothetical property sale and associated taxes/fees)
  * - `saleCosts`: `stockTaxes` (includes `employmentIncome` used for calculation), `homeSellingCommission`, `homeSellingFixedFees`, `mortgagePenalty`, `mortgageBalance` (hypothetical costs incurred upon selling)
  * - `saleNetGains`: `stockSellingGains`, `tfsaSellingGains`, `homeSellingGains`, `securityDeposit` (hypothetical gains realized upon selling)
- * - `totals`: `monthlyExpenses`, `cumulativeExpenses`, `monthlyGains`, `cumulativeGains`, `assets`, `saleCosts`, `saleNetGains` (sum of all variables in each respective group; always emitted even when zero)
+ * - `monthlyRecurringExpenses`: `rent`, `insurance`, `mortgageCapital`, `mortgageInterests`, `maintenance`, `propertyTax`, `condoFees`, `tfsaFees`, `stocksFees` — same values as the corresponding `monthlyExpenses` variables, restricted to costs that recur every month.
+ * - `monthlyNonRecurringExpenses`: `downPayment`, `purchaseFixedFees`, `landTransferTax`, `insurancePremium`, `securityDeposit` — same values as the corresponding `monthlyExpenses` variables, restricted to one-time upfront costs (nonzero only at month 0).
+ * - `totals`: `monthlyExpenses`, `cumulativeExpenses`, `monthlyGains`, `cumulativeGains`, `assets`, `saleCosts`, `saleNetGains`, `monthlyRecurringExpenses`, `monthlyNonRecurringExpenses` (sum of all variables in each respective group; always emitted even when zero)
  *
  * @example
  * ```ts
@@ -307,6 +309,28 @@ export default function simulateRentVsBuy(
         | "securityDeposit";
     }
     | {
+      group: "monthlyRecurringExpenses";
+      variable:
+        | "rent"
+        | "insurance"
+        | "mortgageCapital"
+        | "mortgageInterests"
+        | "maintenance"
+        | "propertyTax"
+        | "condoFees"
+        | "tfsaFees"
+        | "stocksFees";
+    }
+    | {
+      group: "monthlyNonRecurringExpenses";
+      variable:
+        | "downPayment"
+        | "purchaseFixedFees"
+        | "landTransferTax"
+        | "insurancePremium"
+        | "securityDeposit";
+    }
+    | {
       group: "totals";
       variable:
         | "monthlyExpenses"
@@ -315,7 +339,9 @@ export default function simulateRentVsBuy(
         | "cumulativeGains"
         | "assets"
         | "saleCosts"
-        | "saleNetGains";
+        | "saleNetGains"
+        | "monthlyRecurringExpenses"
+        | "monthlyNonRecurringExpenses";
     }
   )
 )[] {
@@ -391,6 +417,28 @@ export default function simulateRentVsBuy(
           | "securityDeposit";
       }
       | {
+        group: "monthlyRecurringExpenses";
+        variable:
+          | "rent"
+          | "insurance"
+          | "mortgageCapital"
+          | "mortgageInterests"
+          | "maintenance"
+          | "propertyTax"
+          | "condoFees"
+          | "tfsaFees"
+          | "stocksFees";
+      }
+      | {
+        group: "monthlyNonRecurringExpenses";
+        variable:
+          | "downPayment"
+          | "purchaseFixedFees"
+          | "landTransferTax"
+          | "insurancePremium"
+          | "securityDeposit";
+      }
+      | {
         group: "totals";
         variable:
           | "monthlyExpenses"
@@ -399,7 +447,9 @@ export default function simulateRentVsBuy(
           | "cumulativeGains"
           | "assets"
           | "saleCosts"
-          | "saleNetGains";
+          | "saleNetGains"
+          | "monthlyRecurringExpenses"
+          | "monthlyNonRecurringExpenses";
       }
     )
   )[] = [];

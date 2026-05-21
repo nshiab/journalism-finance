@@ -17,6 +17,24 @@ const MONTHLY_EXPENSES_KEYS = [
   "tfsaFees",
   "stocksFees",
 ] as const;
+const MONTHLY_RECURRING_EXPENSES_KEYS = [
+  "mortgageCapital",
+  "mortgageInterests",
+  "rent",
+  "insurance",
+  "maintenance",
+  "propertyTax",
+  "condoFees",
+  "tfsaFees",
+  "stocksFees",
+] as const;
+const MONTHLY_NON_RECURRING_EXPENSES_KEYS = [
+  "downPayment",
+  "purchaseFixedFees",
+  "landTransferTax",
+  "insurancePremium",
+  "securityDeposit",
+] as const;
 const CUMULATIVE_EXPENSES_KEYS = [
   "rent",
   "insurance",
@@ -228,6 +246,28 @@ export default function toResults(
           | "securityDeposit";
       }
       | {
+        group: "monthlyRecurringExpenses";
+        variable:
+          | "mortgageCapital"
+          | "mortgageInterests"
+          | "rent"
+          | "insurance"
+          | "maintenance"
+          | "propertyTax"
+          | "condoFees"
+          | "tfsaFees"
+          | "stocksFees";
+      }
+      | {
+        group: "monthlyNonRecurringExpenses";
+        variable:
+          | "downPayment"
+          | "purchaseFixedFees"
+          | "landTransferTax"
+          | "insurancePremium"
+          | "securityDeposit";
+      }
+      | {
         group: "totals";
         variable:
           | "monthlyExpenses"
@@ -236,7 +276,9 @@ export default function toResults(
           | "cumulativeGains"
           | "assets"
           | "saleCosts"
-          | "saleNetGains";
+          | "saleNetGains"
+          | "monthlyRecurringExpenses"
+          | "monthlyNonRecurringExpenses";
       }
     )
   )[],
@@ -310,6 +352,54 @@ export default function toResults(
         "cumulativeExpenses",
         monthIndex,
         r2(totalCumulativeExpenses),
+      );
+    }
+
+    if (!groups || groups.includes("monthlyRecurringExpenses")) {
+      let totalMonthlyRecurringExpenses = 0;
+      for (const variable of MONTHLY_RECURRING_EXPENSES_KEYS) {
+        const amount = persona.monthlyExpenses[variable];
+        totalMonthlyRecurringExpenses += amount;
+        if (amount !== 0) {
+          onRecord(
+            category,
+            "monthlyRecurringExpenses",
+            variable,
+            monthIndex,
+            adj(amount),
+          );
+        }
+      }
+      onRecord(
+        category,
+        "totals",
+        "monthlyRecurringExpenses",
+        monthIndex,
+        adj(totalMonthlyRecurringExpenses),
+      );
+    }
+
+    if (!groups || groups.includes("monthlyNonRecurringExpenses")) {
+      let totalMonthlyNonRecurringExpenses = 0;
+      for (const variable of MONTHLY_NON_RECURRING_EXPENSES_KEYS) {
+        const amount = persona.monthlyExpenses[variable];
+        totalMonthlyNonRecurringExpenses += amount;
+        if (amount !== 0) {
+          onRecord(
+            category,
+            "monthlyNonRecurringExpenses",
+            variable,
+            monthIndex,
+            adj(amount),
+          );
+        }
+      }
+      onRecord(
+        category,
+        "totals",
+        "monthlyNonRecurringExpenses",
+        monthIndex,
+        adj(totalMonthlyNonRecurringExpenses),
       );
     }
 
@@ -524,6 +614,66 @@ export default function toResults(
         category,
         group: "totals",
         variable: "monthlyExpenses",
+      });
+    }
+
+    // Process monthlyRecurringExpenses
+    if (!groups || groups.includes("monthlyRecurringExpenses")) {
+      for (const variable of MONTHLY_RECURRING_EXPENSES_KEYS) {
+        const amount = persona.monthlyExpenses[variable];
+        if (amount !== 0) {
+          results.push({
+            monthIndex,
+            amount: adj(amount),
+            category,
+            group: "monthlyRecurringExpenses",
+            variable,
+          });
+        }
+      }
+    }
+
+    if (!groups || groups.includes("totals")) {
+      let totalMonthlyRecurringExpenses = 0;
+      for (const variable of MONTHLY_RECURRING_EXPENSES_KEYS) {
+        totalMonthlyRecurringExpenses += persona.monthlyExpenses[variable];
+      }
+      results.push({
+        monthIndex,
+        amount: adj(totalMonthlyRecurringExpenses),
+        category,
+        group: "totals",
+        variable: "monthlyRecurringExpenses",
+      });
+    }
+
+    // Process monthlyNonRecurringExpenses
+    if (!groups || groups.includes("monthlyNonRecurringExpenses")) {
+      for (const variable of MONTHLY_NON_RECURRING_EXPENSES_KEYS) {
+        const amount = persona.monthlyExpenses[variable];
+        if (amount !== 0) {
+          results.push({
+            monthIndex,
+            amount: adj(amount),
+            category,
+            group: "monthlyNonRecurringExpenses",
+            variable,
+          });
+        }
+      }
+    }
+
+    if (!groups || groups.includes("totals")) {
+      let totalMonthlyNonRecurringExpenses = 0;
+      for (const variable of MONTHLY_NON_RECURRING_EXPENSES_KEYS) {
+        totalMonthlyNonRecurringExpenses += persona.monthlyExpenses[variable];
+      }
+      results.push({
+        monthIndex,
+        amount: adj(totalMonthlyNonRecurringExpenses),
+        category,
+        group: "totals",
+        variable: "monthlyNonRecurringExpenses",
       });
     }
 
