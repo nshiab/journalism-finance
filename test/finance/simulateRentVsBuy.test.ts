@@ -2925,3 +2925,99 @@ Deno.test("simulateRentVsBuy: adjustToInflation should not discount one-time upf
   );
   assert(rentAdjusted! < rentNormal!);
 });
+
+Deno.test("simulateRentVsBuy: adjustToInflation should discount home equity gains from appreciation", () => {
+  const years = 10;
+  const appreciationRate = 0.005; // 0.5% monthly
+  const inflationRate = 0.003; // 0.3% monthly
+
+  const rates = {
+    marketReturnRate: new Array(years * 12).fill(0),
+    rentIncrease: new Array(years * 12).fill(inflationRate),
+    ownerInsuranceIncrease: new Array(years * 12).fill(0),
+    renterInsuranceIncrease: new Array(years * 12).fill(0),
+    maintenanceIncrease: new Array(years * 12).fill(0),
+    propertyTaxIncrease: new Array(years * 12).fill(0),
+    condoFeeIncrease: new Array(years * 12).fill(0),
+    appreciationIncrease: new Array(years * 12).fill(appreciationRate),
+    sellingFixedFeesIncrease: new Array(years * 12).fill(0),
+  };
+
+  const values = {
+    employmentIncome: new Array(years * 12).fill(0),
+    fiveYearInterestRates: new Array(years * 12).fill(0.05),
+    fourYearInterestRates: new Array(years * 12).fill(0.05),
+    threeYearInterestRates: new Array(years * 12).fill(0.05),
+    twoYearInterestRates: new Array(years * 12).fill(0.05),
+    oneYearInterestRates: new Array(years * 12).fill(0.05),
+    variableInterestRates: new Array(years * 12).fill(0.05),
+  };
+
+  const params = {
+    startingYear: 2024,
+    numberOfYears: years,
+    tfsaContributions: false,
+    annualInvestmentFeeRate: 0,
+    couple: false,
+    city: "Toronto" as const,
+    renter: {
+      startingMonthlyRent: 1000,
+      securityDeposit: 0,
+      startingMonthlyInsurance: 0,
+    },
+    buyer: {
+      downPayment: 100000,
+      purchasePrice: 500000,
+      fixedRateAdjustment: 0,
+      variableRateAdjustment: 0,
+      firstTimeOwner: false,
+      investsSavings: false,
+      purchaseFixedFees: 0,
+      startingAnnualMaintenanceCost: 0,
+      startingAnnualPropertyTax: 0,
+      startingMonthlyCondoFees: 0,
+      startingMonthlyInsurance: 0,
+      sellingFixedFees: 0,
+      sellingCommissionRate: 0,
+      floorRate: 0,
+    },
+    values,
+    rates,
+  };
+
+  const resultsNormal = simulateRentVsBuy(params);
+  const resultsAdjusted = simulateRentVsBuy(params, {
+    adjustToInflation: "rentIncrease",
+  });
+
+  const finalMonth = years * 12 - 1;
+
+  const getHomeEquityGains = (
+    results: typeof resultsNormal,
+    monthIndex: number,
+  ) =>
+    results.find((r) =>
+      r.category === "buyerFixed" &&
+      r.group === "cumulativeGains" &&
+      r.variable === "homeEquityGains" &&
+      r.monthIndex === monthIndex
+    )?.amount;
+
+  // At month 0 the inflation multiplier is 1, so both should be equal
+  assertEquals(
+    getHomeEquityGains(resultsNormal, 0),
+    getHomeEquityGains(resultsAdjusted, 0),
+  );
+
+  // At the final month, the adjusted cumulative home equity gains should be
+  // lower than the nominal because the inflation multiplier deflates them.
+  const normalGains = getHomeEquityGains(resultsNormal, finalMonth);
+  const adjustedGains = getHomeEquityGains(resultsAdjusted, finalMonth);
+
+  assert(normalGains !== undefined && normalGains > 0);
+  assert(adjustedGains !== undefined && adjustedGains > 0);
+  assert(
+    adjustedGains < normalGains,
+    `Deflated home equity gains ${adjustedGains} should be lower than nominal ${normalGains}`,
+  );
+});
