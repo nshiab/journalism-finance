@@ -1613,10 +1613,14 @@ Deno.test("simulateRentVsBuyMonteCarlo: dollar-amount paths in values should be 
 
   // Take the last record of employment income in iteration 0
   const incomeLastNormal = valsNormal.find(
-    (v) => v.iteration === 0 && v.variable === "employment income" && v.monthIndex === p.numberOfYears * 12 - 1
+    (v) =>
+      v.iteration === 0 && v.variable === "employment income" &&
+      v.monthIndex === p.numberOfYears * 12 - 1,
   );
   const incomeLastAdjusted = valsAdjusted.find(
-    (v) => v.iteration === 0 && v.variable === "employment income" && v.monthIndex === p.numberOfYears * 12 - 1
+    (v) =>
+      v.iteration === 0 && v.variable === "employment income" &&
+      v.monthIndex === p.numberOfYears * 12 - 1,
   );
 
   assert(incomeLastNormal !== undefined);
@@ -1626,15 +1630,19 @@ Deno.test("simulateRentVsBuyMonteCarlo: dollar-amount paths in values should be 
   // We use inequality since they should differ.
   assert(
     incomeLastAdjusted.value < incomeLastNormal.value,
-    `Deflated income ${incomeLastAdjusted.value} should be lower than nominal ${incomeLastNormal.value}`
+    `Deflated income ${incomeLastAdjusted.value} should be lower than nominal ${incomeLastNormal.value}`,
   );
 
   // Take the last record of market returns for iteration 0 (a rate, shouldn't be deflated)
   const marketLastNormal = valsNormal.find(
-    (v) => v.iteration === 0 && v.variable === "market returns" && v.monthIndex === p.numberOfYears * 12 - 1
+    (v) =>
+      v.iteration === 0 && v.variable === "market returns" &&
+      v.monthIndex === p.numberOfYears * 12 - 1,
   );
   const marketLastAdjusted = valsAdjusted.find(
-    (v) => v.iteration === 0 && v.variable === "market returns" && v.monthIndex === p.numberOfYears * 12 - 1
+    (v) =>
+      v.iteration === 0 && v.variable === "market returns" &&
+      v.monthIndex === p.numberOfYears * 12 - 1,
   );
 
   assert(marketLastNormal !== undefined);
@@ -1644,6 +1652,6 @@ Deno.test("simulateRentVsBuyMonteCarlo: dollar-amount paths in values should be 
   assertEquals(
     marketLastAdjusted.value,
     marketLastNormal.value,
-    "market returns rate should not be deflated"
+    "market returns rate should not be deflated",
   );
 });
