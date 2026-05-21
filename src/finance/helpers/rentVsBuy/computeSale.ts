@@ -37,7 +37,7 @@ export default function computeSale(
 
     // First we calculate the sale costs
     const stockGains = persona.assets.stocks -
-      persona.cumulativeGains.newStocks;
+      persona.params.stocksContributedNominal;
 
     // Note: Stock capital gains taxes are calculated using 2025 rates for all simulation years.
     let stockTaxes: number;

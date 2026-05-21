@@ -630,10 +630,10 @@ function simulateRentVsBuyMonteCarlo(
       }
     }
 
-    // Dollar-amount GBM paths (0, 2-9) are deflated when adjustToInflation is set.
-    // Rate paths (1 = market returns, 10-15 = interest rates) are never deflated.
+    // Dollar-amount GBM paths (0-9) are deflated when adjustToInflation is set.
+    // Interest rate paths (10-15 = interest rates) are never deflated.
     populateValuesColumnar(i, "employment income", paths[0], true);
-    populateValuesColumnar(i, "market returns", paths[1], false);
+    populateValuesColumnar(i, "market returns", paths[1], true);
     populateValuesColumnar(i, "rent", paths[2], true);
     populateValuesColumnar(i, "owner insurance", paths[3], true);
     populateValuesColumnar(i, "renter insurance", paths[4], true);
