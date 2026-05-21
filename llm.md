@@ -1552,10 +1552,10 @@ function simulateRentVsBuyMonteCarlo(
   simulations.
 - **`options.verboseStep`**: The frequency of progress logging. For example,
   setting this to `50` will log progress every 50 iterations. Defaults to `1`.
-- **`options.values`**: If `true`, the function will capture and return detailed
-  monthly financial data (such as asset balances and net gains) for every
-  iteration of the simulation. Be cautious with high iteration counts as this
-  can consume significant memory.
+- **`options.values`**: If `true`, captures the stochastic path values for all
+  16 variables (e.g. employment income, market returns, interest rates) across
+  all iterations. Decode with `decodeMonteCarloValues`. Be cautious with high
+  iteration counts as this can consume significant memory.
 - **`options.details`**: When provided, enables detailed monthly data
   collection. Both sub-options share the same internal column-major buffer, so
   enabling both together is more memory-efficient than the sum of their
@@ -1597,19 +1597,22 @@ matrices, transferable via `postMessage`). Use `decodeMonteCarloWinners`,
 `decodeMonteCarloMonthlyQuantiles` from `@nshiab/journalism-finance` to restore
 object-array shapes.
 
+- `winners`: A `WinnersColumnar` with `monthIndex`, `amount` (`Float64Array`)
+  and `category` (`Uint8Array`) indicating which scenario won each iteration.
+  Decode with `decodeMonteCarloWinners`.
+- `values`: A `ColumnarResult` with stochastic path values per iteration
+  (enabled with `options.values`). Decode with `decodeMonteCarloValues`.
+- `details.monthlyIterations`: A `ColumnarResult` with raw monthly records per
+  iteration (enabled with `options.details.iterations`). Decode with
+  `decodeMonteCarloMonthlyIterations`.
+- `details.monthlyQuantiles`: A `ColumnarResult` with pre-computed quantile
+  summaries (enabled with `options.details.quantiles`). Decode with
+  `decodeMonteCarloMonthlyQuantiles`.
+
 ### Throws
 
 - **`Error`**: If the down payment is less than the minimum required down
-  payment in Canada. - `winners`: A `WinnersColumnar` with `monthIndex`,
-  `amount` (`Float64Array`) and `category` (`Uint8Array`) indicating which
-  scenario won each iteration. Decode with `decodeMonteCarloWinners`. -
-  `values`: A `ColumnarResult` with stochastic path values per iteration
-  (enabled with `options.values`). Decode with `decodeMonteCarloValues`. -
-  `details.monthlyIterations`: A `ColumnarResult` with raw monthly records per
-  iteration (enabled with `options.details.iterations`). Decode with
-  `decodeMonteCarloMonthlyIterations`. - `details.monthlyQuantiles`: A
-  `ColumnarResult` with pre-computed quantile summaries (enabled with
-  `options.details.quantiles`). Decode with `decodeMonteCarloMonthlyQuantiles`.
+  payment in Canada.
 
 ### Examples
 
