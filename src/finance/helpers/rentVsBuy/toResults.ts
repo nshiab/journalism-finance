@@ -297,8 +297,11 @@ export default function toResults(
   ) => void,
   winVariable?: "balance" | "balanceAfterSelling" | "assets",
   groups?: string[],
+  variables?: string[],
 ) {
   const adj = (x: number) => r2(x * inflationMultiplier);
+  const allowVar = (v: string) =>
+    !variables || variables.length === 0 || variables.includes(v);
 
   if (onRecord) {
     // Fast path: stream numeric values directly to the accumulator without
@@ -312,7 +315,7 @@ export default function toResults(
       for (const variable of MONTHLY_EXPENSES_KEYS) {
         const amount = persona.monthlyExpenses[variable];
         totalMonthlyExpenses += amount;
-        if (amount !== 0) {
+        if (amount !== 0 && allowVar(variable)) {
           onRecord(
             category,
             "monthlyExpenses",
@@ -322,13 +325,15 @@ export default function toResults(
           );
         }
       }
-      onRecord(
-        category,
-        "totals",
-        "monthlyExpenses",
-        monthIndex,
-        adj(totalMonthlyExpenses),
-      );
+      if (allowVar("monthlyExpenses")) {
+        onRecord(
+          category,
+          "totals",
+          "monthlyExpenses",
+          monthIndex,
+          adj(totalMonthlyExpenses),
+        );
+      }
     }
 
     if (!groups || groups.includes("cumulativeExpenses")) {
@@ -336,7 +341,7 @@ export default function toResults(
       for (const variable of CUMULATIVE_EXPENSES_KEYS) {
         const amount = persona.cumulativeExpenses[variable];
         totalCumulativeExpenses += amount;
-        if (amount !== 0) {
+        if (amount !== 0 && allowVar(variable)) {
           onRecord(
             category,
             "cumulativeExpenses",
@@ -346,13 +351,15 @@ export default function toResults(
           );
         }
       }
-      onRecord(
-        category,
-        "totals",
-        "cumulativeExpenses",
-        monthIndex,
-        r2(totalCumulativeExpenses),
-      );
+      if (allowVar("cumulativeExpenses")) {
+        onRecord(
+          category,
+          "totals",
+          "cumulativeExpenses",
+          monthIndex,
+          r2(totalCumulativeExpenses),
+        );
+      }
     }
 
     if (!groups || groups.includes("monthlyRecurringExpenses")) {
@@ -360,7 +367,7 @@ export default function toResults(
       for (const variable of MONTHLY_RECURRING_EXPENSES_KEYS) {
         const amount = persona.monthlyExpenses[variable];
         totalMonthlyRecurringExpenses += amount;
-        if (amount !== 0) {
+        if (amount !== 0 && allowVar(variable)) {
           onRecord(
             category,
             "monthlyRecurringExpenses",
@@ -370,13 +377,15 @@ export default function toResults(
           );
         }
       }
-      onRecord(
-        category,
-        "totals",
-        "monthlyRecurringExpenses",
-        monthIndex,
-        adj(totalMonthlyRecurringExpenses),
-      );
+      if (allowVar("monthlyRecurringExpenses")) {
+        onRecord(
+          category,
+          "totals",
+          "monthlyRecurringExpenses",
+          monthIndex,
+          adj(totalMonthlyRecurringExpenses),
+        );
+      }
     }
 
     if (!groups || groups.includes("monthlyNonRecurringExpenses")) {
@@ -384,7 +393,7 @@ export default function toResults(
       for (const variable of MONTHLY_NON_RECURRING_EXPENSES_KEYS) {
         const amount = persona.monthlyExpenses[variable];
         totalMonthlyNonRecurringExpenses += amount;
-        if (amount !== 0) {
+        if (amount !== 0 && allowVar(variable)) {
           onRecord(
             category,
             "monthlyNonRecurringExpenses",
@@ -394,13 +403,15 @@ export default function toResults(
           );
         }
       }
-      onRecord(
-        category,
-        "totals",
-        "monthlyNonRecurringExpenses",
-        monthIndex,
-        adj(totalMonthlyNonRecurringExpenses),
-      );
+      if (allowVar("monthlyNonRecurringExpenses")) {
+        onRecord(
+          category,
+          "totals",
+          "monthlyNonRecurringExpenses",
+          monthIndex,
+          adj(totalMonthlyNonRecurringExpenses),
+        );
+      }
     }
 
     if (!groups || groups.includes("monthlyGains")) {
@@ -408,17 +419,19 @@ export default function toResults(
       for (const variable of MONTHLY_GAINS_KEYS) {
         const amount = persona.monthlyGains[variable];
         totalMonthlyGains += amount;
-        if (amount !== 0) {
+        if (amount !== 0 && allowVar(variable)) {
           onRecord(category, "monthlyGains", variable, monthIndex, adj(amount));
         }
       }
-      onRecord(
-        category,
-        "totals",
-        "monthlyGains",
-        monthIndex,
-        adj(totalMonthlyGains),
-      );
+      if (allowVar("monthlyGains")) {
+        onRecord(
+          category,
+          "totals",
+          "monthlyGains",
+          monthIndex,
+          adj(totalMonthlyGains),
+        );
+      }
     }
 
     if (!groups || groups.includes("cumulativeGains")) {
@@ -426,7 +439,7 @@ export default function toResults(
       for (const variable of CUMULATIVE_GAINS_KEYS) {
         const amount = persona.cumulativeGains[variable];
         totalCumulativeGains += amount;
-        if (amount !== 0) {
+        if (amount !== 0 && allowVar(variable)) {
           onRecord(
             category,
             "cumulativeGains",
@@ -436,13 +449,15 @@ export default function toResults(
           );
         }
       }
-      onRecord(
-        category,
-        "totals",
-        "cumulativeGains",
-        monthIndex,
-        r2(totalCumulativeGains),
-      );
+      if (allowVar("cumulativeGains")) {
+        onRecord(
+          category,
+          "totals",
+          "cumulativeGains",
+          monthIndex,
+          r2(totalCumulativeGains),
+        );
+      }
     }
 
     if (!groups || groups.includes("assets")) {
@@ -450,17 +465,19 @@ export default function toResults(
       for (const variable of ASSETS_KEYS) {
         const amount = persona.assets[variable];
         totalAssets += amount;
-        if (amount !== 0) {
+        if (amount !== 0 && allowVar(variable)) {
           onRecord(category, "assets", variable, monthIndex, adj(amount));
         }
       }
-      onRecord(category, "totals", "assets", monthIndex, adj(totalAssets));
+      if (allowVar("assets")) {
+        onRecord(category, "totals", "assets", monthIndex, adj(totalAssets));
+      }
     }
 
     if (!groups || groups.includes("summary")) {
       for (const variable of SUMMARY_KEYS) {
         const amount = persona.summary[variable];
-        if (amount !== 0) {
+        if (amount !== 0 && allowVar(variable)) {
           onRecord(category, "summary", variable, monthIndex, adj(amount));
         }
       }
@@ -469,7 +486,7 @@ export default function toResults(
     if (!groups || groups.includes("summaryCumulative")) {
       for (const variable of SUMMARY_CUMULATIVE_KEYS) {
         const amount = persona.summaryCumulative[variable];
-        if (amount !== 0) {
+        if (amount !== 0 && allowVar(variable)) {
           onRecord(
             category,
             "summaryCumulative",
@@ -486,17 +503,19 @@ export default function toResults(
       for (const variable of SALE_COSTS_KEYS) {
         const amount = persona.saleCosts[variable];
         totalSaleCosts += amount;
-        if (amount !== 0) {
+        if (amount !== 0 && allowVar(variable)) {
           onRecord(category, "saleCosts", variable, monthIndex, adj(amount));
         }
       }
-      onRecord(
-        category,
-        "totals",
-        "saleCosts",
-        monthIndex,
-        adj(totalSaleCosts),
-      );
+      if (allowVar("saleCosts")) {
+        onRecord(
+          category,
+          "totals",
+          "saleCosts",
+          monthIndex,
+          adj(totalSaleCosts),
+        );
+      }
     }
 
     if (!groups || groups.includes("saleNetGains")) {
@@ -504,17 +523,19 @@ export default function toResults(
       for (const variable of SALE_NET_GAINS_KEYS) {
         const amount = persona.saleNetGains[variable];
         totalSaleNetGains += amount;
-        if (amount !== 0) {
+        if (amount !== 0 && allowVar(variable)) {
           onRecord(category, "saleNetGains", variable, monthIndex, adj(amount));
         }
       }
-      onRecord(
-        category,
-        "totals",
-        "saleNetGains",
-        monthIndex,
-        adj(totalSaleNetGains),
-      );
+      if (allowVar("saleNetGains")) {
+        onRecord(
+          category,
+          "totals",
+          "saleNetGains",
+          monthIndex,
+          adj(totalSaleNetGains),
+        );
+      }
     }
 
     // Still push the single winner record at the final month so the

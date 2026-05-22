@@ -1317,7 +1317,7 @@ function simulateRentVsBuy(
   `winVariable` entry) per category is still pushed to the results array for
   winner extraction.
 - **`options.groups`**: Internal filter used by `simulateRentVsBuyMonteCarlo`
-  via `details.iterationsGroups`. Restricts which groups are emitted by
+  via `details.filterGroups`. Restricts which groups are emitted by
   `onRecord` and pushed to results.
 - **`options.adjustToInflation`**: The rate parameter used as a proxy for
   inflation to express future dollar values in today's constant dollars. When
@@ -1567,18 +1567,18 @@ function simulateRentVsBuyMonteCarlo(
   individual costs.
 - **`options.details.iterations`**: If `true`, captures and returns the raw
   monthly financial data for every variable, group, and category for each
-  individual iteration. Requires `details.iterationsGroups` to be set and
+  individual iteration. Requires `details.filterGroups` to be set and
   non-empty — throws otherwise. Each record includes `iteration` (0-based
   index), `category`, `group`, `variable`, `monthIndex`, and `amount`. Useful
   for custom aggregations or visualization of individual paths. Be aware that
   this can produce a very large number of records (iterations × months ×
-  variables × 3 categories), so use `iterationsGroups` to limit scope.
+  variables × 3 categories), so use `filterGroups` to limit scope.
 - **`options.details.quantiles`**: When provided, pre-computes the specified
   quantile levels (e.g. `[0, 0.5, 1]` for min/median/max) across all iterations
   for every variable/group/category/month combination. Layout:
   `data[key][qIdx * cols + monthIndex]`. Decode with
   `decodeMonteCarloMonthlyQuantiles`.
-- **`options.details.iterationsGroups`**: Required when `details.iterations` is
+- **`options.details.filterGroups`**: Required when `details.iterations` is
   `true`. Restricts which groups are included in the `monthlyIterations` output
   (e.g. `["assets", "summaryCumulative"]`), reducing memory usage. Also filters
   the shared column-major buffer used by `details.quantiles`.

@@ -91,7 +91,8 @@ export type RentVsBuyRates =
  *   @param options.winVariableOnly - If `true`, the returned results will only include the final `winVariable` record for each scenario (one entry per scenario at the final month). Requires `winVariable` to be set — throws if `winVariableOnly` is `true` but `winVariable` is not provided. Defaults to `false`.
  *   @param options.winVariable - The variable used to identify the winner when extracting the final record. Use `"balanceAfterSelling"` for net balance after a simulated sale, `"balance"` for cumulative balance, or `"assets"` for total raw assets.
  *   @param options.onRecord - Internal callback used by `simulateRentVsBuyMonteCarlo` when `details.iterations` or `details.quantiles` is enabled. When provided, numeric values are streamed directly to the accumulator instead of being wrapped in result objects, avoiding the per-record heap allocation cost. At the final month, one winner record (the `winVariable` entry) per category is still pushed to the results array for winner extraction.
- *   @param options.groups - Internal filter used by `simulateRentVsBuyMonteCarlo` via `details.iterationsGroups`. Restricts which groups are emitted by `onRecord` and pushed to results.
+ *   @param options.groups - Internal filter used by `simulateRentVsBuyMonteCarlo` via `details.filterGroups`. Restricts which groups are emitted by `onRecord` and pushed to results.
+ *   @param options.variables - Internal filter used by `simulateRentVsBuyMonteCarlo` via `details.filterVariables`. Restricts which individual variables within allowed groups are emitted by `onRecord`. An empty array is treated as no filter.
  *   @param options.adjustToInflation - The rate parameter used as a proxy for inflation to express future dollar values in today's constant dollars. When set (e.g. to `"sellingFixedFeesIncrease"`), point-in-time metrics (like `monthlyExpenses`, `assets`, and `balance`) are discounted by the current month's inflation factor. Cumulative totals (like `cumulativeExpenses` and `cumulativeGains`) accumulate real values incrementally — meaning each nominal monthly contribution is discounted before being added to the running sum. One-time upfront costs paid at month 0 (`downPayment`, `purchaseFixedFees`, `landTransferTax`, `insurancePremium`, `securityDeposit`) are **not** discounted because their real value already equals their nominal value. Defaults to `undefined` (no adjustment).
  *
  * @returns A detailed array of monthly results for each scenario (renter, buyerFixed, buyerVariable).
@@ -234,6 +235,7 @@ export default function simulateRentVsBuy(
     ) => void;
     winVariable?: "balance" | "balanceAfterSelling" | "assets";
     groups?: string[];
+    variables?: string[];
     adjustToInflation?: RentVsBuyRates;
   } = {},
 ): (
@@ -788,6 +790,7 @@ export default function simulateRentVsBuy(
       options.onRecord,
       options.winVariable,
       options.groups,
+      options.variables,
     );
     toResults(
       "buyerFixed",
@@ -802,6 +805,7 @@ export default function simulateRentVsBuy(
       options.onRecord,
       options.winVariable,
       options.groups,
+      options.variables,
     );
     toResults(
       "buyerVariable",
@@ -816,6 +820,7 @@ export default function simulateRentVsBuy(
       options.onRecord,
       options.winVariable,
       options.groups,
+      options.variables,
     );
 
     // We increment the parameters for next month

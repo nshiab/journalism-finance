@@ -282,7 +282,7 @@ Deno.test("should return monthly iterations data when option monthlyIterations i
   const results = simulateRentVsBuyMonteCarlo(params, {
     details: {
       iterations: true,
-      iterationsGroups: [
+      filterGroups: [
         "monthlyExpenses",
         "cumulativeExpenses",
         "monthlyGains",
@@ -423,7 +423,7 @@ Deno.test("columnar: all data values are Float64Arrays and winners are unchanged
     values: true,
     details: {
       iterations: true,
-      iterationsGroups: [
+      filterGroups: [
         "monthlyExpenses",
         "cumulativeExpenses",
         "monthlyGains",
@@ -515,7 +515,7 @@ Deno.test("columnar monthlyIterations: decode matches object-array output", () =
   const col = simulateRentVsBuyMonteCarlo(params, {
     details: {
       iterations: true,
-      iterationsGroups: [
+      filterGroups: [
         "monthlyExpenses",
         "cumulativeExpenses",
         "monthlyGains",
@@ -602,7 +602,7 @@ Deno.test("columnar: buffers are detachable (transfer simulation)", () => {
   const col = simulateRentVsBuyMonteCarlo(params, {
     details: {
       iterations: true,
-      iterationsGroups: [
+      filterGroups: [
         "monthlyExpenses",
         "cumulativeExpenses",
         "monthlyGains",
@@ -738,7 +738,7 @@ Deno.test("should run a monte carlo simulation of rent vs buy with 100 iteration
   const results = simulateRentVsBuyMonteCarlo(params, {
     details: {
       iterations: true,
-      iterationsGroups: [
+      filterGroups: [
         "monthlyExpenses",
         "cumulativeExpenses",
         "monthlyGains",
@@ -1041,7 +1041,7 @@ Deno.test("performance: monthlyQuantiles + monthlyIterations with 100 iterations
     details: {
       quantiles,
       iterations: true,
-      iterationsGroups: [
+      filterGroups: [
         "monthlyExpenses",
         "cumulativeExpenses",
         "monthlyGains",
@@ -1111,7 +1111,7 @@ Deno.test("performance: monthlyQuantiles + monthlyIterations with 100 iterations
   }
 });
 
-Deno.test("simulateRentVsBuyMonteCarlo throws when iterations enabled without iterationsGroups", () => {
+Deno.test("simulateRentVsBuyMonteCarlo throws when iterations enabled without filterGroups", () => {
   const p = getParamsRentVsBuyMonteCarlo(2, "Montreal", {
     downPayment: 50000,
     purchaseFixedFees: 2000,
@@ -1129,12 +1129,12 @@ Deno.test("simulateRentVsBuyMonteCarlo throws when iterations enabled without it
   }
   assertEquals(error instanceof Error, true);
   assertEquals(
-    error.message.includes("requires details.iterationsGroups to be set"),
+    error.message.includes("requires details.filterGroups to be set"),
     true,
   );
 });
 
-Deno.test("simulateRentVsBuyMonteCarlo filters outputs using iterationsGroups", () => {
+Deno.test("simulateRentVsBuyMonteCarlo filters outputs using filterGroups", () => {
   const p = getParamsRentVsBuyMonteCarlo(5, "Montreal", {
     downPayment: 50000,
     purchaseFixedFees: 2000,
@@ -1147,7 +1147,7 @@ Deno.test("simulateRentVsBuyMonteCarlo filters outputs using iterationsGroups", 
   const results = simulateRentVsBuyMonteCarlo(p, {
     details: {
       iterations: true,
-      iterationsGroups: ["totals"],
+      filterGroups: ["totals"],
     },
   });
 
@@ -1159,7 +1159,7 @@ Deno.test("simulateRentVsBuyMonteCarlo filters outputs using iterationsGroups", 
   }
 });
 
-Deno.test("simulateRentVsBuyMonteCarlo performance test with and without iterationsGroups", () => {
+Deno.test("simulateRentVsBuyMonteCarlo performance test with and without filterGroups", () => {
   const p = getParamsRentVsBuyMonteCarlo(100, "Montreal", {
     downPayment: 50000,
     purchaseFixedFees: 2000,
@@ -1174,7 +1174,7 @@ Deno.test("simulateRentVsBuyMonteCarlo performance test with and without iterati
   simulateRentVsBuyMonteCarlo(p, {
     details: {
       iterations: true,
-      iterationsGroups: [
+      filterGroups: [
         "monthlyExpenses",
         "cumulativeExpenses",
         "monthlyGains",
@@ -1194,13 +1194,81 @@ Deno.test("simulateRentVsBuyMonteCarlo performance test with and without iterati
   simulateRentVsBuyMonteCarlo(p, {
     details: {
       iterations: true,
-      iterationsGroups: ["totals"],
+      filterGroups: ["totals"],
     },
   });
   const timeFiltered = performance.now() - startFiltered;
 
   console.log(`\nPerformance with all groups: ${timeAll.toFixed(2)}ms`);
   console.log(`Performance with "totals" only: ${timeFiltered.toFixed(2)}ms`);
+  console.log(`Speedup: ${(timeAll / timeFiltered).toFixed(2)}x`);
+});
+
+Deno.test("simulateRentVsBuyMonteCarlo filters outputs using filterVariables", () => {
+  const p = getParamsRentVsBuyMonteCarlo(5, "Montreal", {
+    downPayment: 50000,
+    purchaseFixedFees: 2000,
+  }, {
+    renterMonthlyInsurance: 30,
+    ownerMonthlyInsurance: 150,
+    sellingFixedFees: 2000,
+    condoFees: 300,
+  }, false);
+  const results = simulateRentVsBuyMonteCarlo(p, {
+    details: {
+      iterations: true,
+      filterGroups: ["assets", "summaryCumulative"],
+      filterVariables: ["homeEquity", "balance"],
+    },
+  });
+
+  const parsed = decodeMonteCarloMonthlyIterations(
+    results.details.monthlyIterations,
+  );
+  for (const record of parsed) {
+    assertEquals(
+      record.variable === "homeEquity" || record.variable === "balance",
+      true,
+    );
+  }
+});
+
+Deno.test("simulateRentVsBuyMonteCarlo performance test with and without filterVariables", () => {
+  const p = getParamsRentVsBuyMonteCarlo(100, "Montreal", {
+    downPayment: 50000,
+    purchaseFixedFees: 2000,
+  }, {
+    renterMonthlyInsurance: 30,
+    ownerMonthlyInsurance: 150,
+    sellingFixedFees: 2000,
+    condoFees: 300,
+  }, false);
+
+  const startAll = performance.now();
+  simulateRentVsBuyMonteCarlo(p, {
+    details: {
+      iterations: true,
+      filterGroups: ["assets"],
+    },
+  });
+  const timeAll = performance.now() - startAll;
+
+  const startFiltered = performance.now();
+  simulateRentVsBuyMonteCarlo(p, {
+    details: {
+      iterations: true,
+      filterGroups: ["assets"],
+      filterVariables: ["homeEquity"],
+    },
+  });
+  const timeFiltered = performance.now() - startFiltered;
+
+  console.log(
+    `\nPerformance with all asset variables: ${timeAll.toFixed(2)}ms`,
+  );
+  console.log(
+    `Performance with "homeEquity" only: ${timeFiltered.toFixed(2)}ms`,
+  );
   console.log(`Speedup: ${(timeAll / timeFiltered).toFixed(2)}x`);
 });
 
@@ -1434,7 +1502,7 @@ Deno.test("simulateRentVsBuyMonteCarlo: buyer investments should be zero when in
   const results = simulateRentVsBuyMonteCarlo(params, {
     details: {
       iterations: true,
-      iterationsGroups: ["assets"],
+      filterGroups: ["assets"],
     },
   });
 
@@ -1508,7 +1576,7 @@ Deno.test("simulateRentVsBuyMonteCarlo: adjustToInflation should not discount on
     adjustToInflation: "sellingFixedFeesIncrease",
     details: {
       iterations: true,
-      iterationsGroups: ["cumulativeExpenses"],
+      filterGroups: ["cumulativeExpenses"],
     },
   });
 
@@ -1516,7 +1584,7 @@ Deno.test("simulateRentVsBuyMonteCarlo: adjustToInflation should not discount on
     verbose: false,
     details: {
       iterations: true,
-      iterationsGroups: ["cumulativeExpenses"],
+      filterGroups: ["cumulativeExpenses"],
     },
   });
 

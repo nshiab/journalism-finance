@@ -198,15 +198,17 @@ export type BaseOptions = {
   values?: boolean;
   /**
    * When provided, enables detailed monthly data collection for all iterations.
-   * - `iterations`: if `true`, captures raw per-iteration monthly records returned in `details.monthlyIterations`. Requires `iterationsGroups` to be set and non-empty — throws otherwise. Decode with `decodeMonteCarloMonthlyIterations`.
+   * - `iterations`: if `true`, captures raw per-iteration monthly records returned in `details.monthlyIterations`. Requires `filterGroups` to be set and non-empty — throws otherwise. Decode with `decodeMonteCarloMonthlyIterations`.
    * - `quantiles`: pre-computes the specified quantile levels (e.g. `[0, 0.5, 1]` for min/median/max) across all iterations for every variable/group/category/month, returned in `details.monthlyQuantiles`. Layout: `data[key][qIdx * cols + monthIndex]`. Decode with `decodeMonteCarloMonthlyQuantiles`.
-   * - `iterationsGroups`: required when `iterations: true`; restricts which groups are collected (e.g. `["assets", "summaryCumulative"]`), reducing memory usage.
+   * - `filterGroups`: required when `iterations: true`; restricts which groups are collected (e.g. `["assets", "summaryCumulative"]`), reducing memory usage. Also filters the shared column-major buffer used by `details.quantiles`.
+   * - `filterVariables`: optional finer-grained filter; restricts which individual variables are stored within the allowed groups (e.g. `["balance", "homeEquity"]`), further reducing memory usage. Also filters the shared column-major buffer used by `details.quantiles`. An empty array is treated as no filter.
    * Both `iterations` and `quantiles` share the same internal column-major buffer, so enabling both together is more memory-efficient than the sum of their individual costs.
    */
   details?: {
     iterations?: boolean;
     quantiles?: number[];
-    iterationsGroups?: MqGroup[];
+    filterGroups?: MqGroup[];
+    filterVariables?: MqVariable[];
   };
   adjustToInflation?: RentVsBuyRates;
 };
@@ -279,9 +281,10 @@ export type BaseOptions = {
  *   @param options.verboseStep - The frequency of progress logging. For example, setting this to `50` will log progress every 50 iterations. Defaults to `1`.
  *   @param options.values - If `true`, captures the stochastic path values for all 16 variables (e.g. employment income, market returns, interest rates) across all iterations. Dollar-amount paths (employment income, rent, insurances, maintenance, property tax, condo fees, appreciation, selling fixed fees) are expressed in real (inflation-adjusted) dollars when `options.adjustToInflation` is set, using the same deflation factor as `details`. Rate paths (market returns, all six interest rates) are always nominal. Decode with `decodeMonteCarloValues`. Be cautious with high iteration counts as this can consume significant memory.
  *   @param options.details - When provided, enables detailed monthly data collection. Both sub-options share the same internal column-major buffer, so enabling both together is more memory-efficient than the sum of their individual costs.
- *   @param options.details.iterations - If `true`, captures and returns the raw monthly financial data for every variable, group, and category for each individual iteration. Requires `details.iterationsGroups` to be set and non-empty — throws otherwise. Each record includes `iteration` (0-based index), `category`, `group`, `variable`, `monthIndex`, and `amount`. Useful for custom aggregations or visualization of individual paths. Be aware that this can produce a very large number of records (iterations × months × variables × 3 categories), so use `iterationsGroups` to limit scope.
+ *   @param options.details.iterations - If `true`, captures and returns the raw monthly financial data for every variable, group, and category for each individual iteration. Requires `details.filterGroups` to be set and non-empty — throws otherwise. Each record includes `iteration` (0-based index), `category`, `group`, `variable`, `monthIndex`, and `amount`. Useful for custom aggregations or visualization of individual paths. Be aware that this can produce a very large number of records (iterations × months × variables × 3 categories), so use `filterGroups` and `filterVariables` to limit scope.
  *   @param options.details.quantiles - When provided, pre-computes the specified quantile levels (e.g. `[0, 0.5, 1]` for min/median/max) across all iterations for every variable/group/category/month combination. Layout: `data[key][qIdx * cols + monthIndex]`. Decode with `decodeMonteCarloMonthlyQuantiles`.
- *   @param options.details.iterationsGroups - Required when `details.iterations` is `true`. Restricts which groups are included in the `monthlyIterations` output (e.g. `["assets", "summaryCumulative"]`), reducing memory usage. Also filters the shared column-major buffer used by `details.quantiles`.
+ *   @param options.details.filterGroups - Required when `details.iterations` is `true`. Restricts which groups are included in the `monthlyIterations` output (e.g. `["assets", "summaryCumulative"]`), reducing memory usage. Also filters the shared column-major buffer used by `details.quantiles`.
+ *   @param options.details.filterVariables - Optional finer-grained filter applied within the allowed groups. Restricts which individual variables are stored in the columnar buffer (e.g. `["balance", "homeEquity"]`), reducing memory usage. Also filters the shared column-major buffer used by `details.quantiles`. An empty array is treated as no filter (all variables are stored).
  *   @param options.adjustToInflation - The rate parameter used as a proxy for inflation to express future dollar values in today's constant dollars. When set (e.g. to `"sellingFixedFeesIncrease"`), point-in-time metrics (like `monthlyExpenses`, `assets`, and `balance`) are discounted by the current month's simulated inflation factor. Cumulative totals (like `cumulativeExpenses` and `cumulativeGains`) accumulate real values incrementally — meaning each nominal monthly contribution is discounted before being added to the running sum. One-time upfront costs paid at month 0 (`downPayment`, `purchaseFixedFees`, `landTransferTax`, `insurancePremium`, `securityDeposit`) are **not** discounted because their real value already equals their nominal value. Defaults to `undefined` (no adjustment).
  *
  * @returns An object with all large arrays in columnar format (flat `Float64Array` matrices, transferable via `postMessage`). Use `decodeMonteCarloWinners`, `decodeMonteCarloValues`, `decodeMonteCarloMonthlyIterations`, and `decodeMonteCarloMonthlyQuantiles` from `@nshiab/journalism-finance` to restore object-array shapes.
@@ -349,11 +352,11 @@ function simulateRentVsBuyMonteCarlo(
 ): ColumnarReturn {
   if (
     options.details?.iterations &&
-    (!options.details.iterationsGroups ||
-      options.details.iterationsGroups.length === 0)
+    (!options.details.filterGroups ||
+      options.details.filterGroups.length === 0)
   ) {
     throw new Error(
-      "simulateRentVsBuyMonteCarlo: details.iterations requires details.iterationsGroups to be set and not empty.",
+      "simulateRentVsBuyMonteCarlo: details.iterations requires details.filterGroups to be set and not empty.",
     );
   }
 
@@ -717,7 +720,8 @@ function simulateRentVsBuyMonteCarlo(
         !options.details?.quantiles,
       onRecord,
       winVariable: parameters.winVariable,
-      groups: options.details?.iterationsGroups,
+      groups: options.details?.filterGroups,
+      variables: options.details?.filterVariables,
       adjustToInflation: options.adjustToInflation,
     });
 
