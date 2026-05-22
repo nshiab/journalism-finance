@@ -1586,12 +1586,30 @@ function simulateRentVsBuyMonteCarlo(
 - **`options.details.filterGroups`**: Required when `details.iterations` is
   `true`. Restricts which groups are included in the `monthlyIterations` output
   (e.g. `["assets", "summaryCumulative"]`), reducing memory usage. Also filters
-  the shared column-major buffer used by `details.quantiles`.
+  the shared column-major buffer used by `details.quantiles`. Available
+  groups: - `monthlyExpenses`: Monthly cash outlays (rent, mortgage, taxes,
+  fees, etc.). - `cumulativeExpenses`: Total cash outlays from start to current
+  month. - `monthlyRecurringExpenses`: Recurring monthly costs (same as
+  monthlyExpenses but excluding one-time items). -
+  `monthlyNonRecurringExpenses`: One-time costs (down payment, closing costs). -
+  `monthlyGains`: Monthly asset appreciation and contribution (market gains,
+  home equity). - `cumulativeGains`: Total accumulated gains from start to
+  current month. - `assets`: Current value of assets (stocks, TFSA, home equity,
+  deposit). - `summary`: Point-in-time metrics like `balance`. -
+  `summaryCumulative`: Final snapshot metrics like `balanceAfterSelling`. -
+  `saleCosts`: Costs incurred upon selling (taxes, commission, penalties). -
+  `saleNetGains`: Gains realized upon selling. - `totals`: Group-level sums of
+  all variables in each of the above groups (e.g., `variable: "monthlyExpenses"`
+  under `group: "totals"`).
 - **`options.details.filterVariables`**: Optional finer-grained filter applied
   within the allowed groups. Restricts which individual variables are stored in
   the columnar buffer (e.g. `["balance", "homeEquity"]`), reducing memory usage.
   Also filters the shared column-major buffer used by `details.quantiles`. An
-  empty array is treated as no filter (all variables are stored).
+  empty array is treated as no filter (all variables are stored). Commonly used
+  variables: - `rent`, `mortgageCapital`, `mortgageInterests`, `maintenance`,
+  `propertyTax`, `condoFees` (expenses). - `tfsa`, `stocks`, `homeEquity`
+  (assets). - `balance`, `balanceAfterSelling` (summary). -
+  `monthlyRecurringExpenses`, `monthlyExpenses`, `assets` (totals).
 - **`options.adjustToInflation`**: The rate parameter used as a proxy for
   inflation to express future dollar values in today's constant dollars. When
   set (e.g. to `"sellingFixedFeesIncrease"`), point-in-time metrics (like

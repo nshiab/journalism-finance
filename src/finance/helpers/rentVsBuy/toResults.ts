@@ -362,12 +362,18 @@ export default function toResults(
       }
     }
 
-    if (!groups || groups.includes("monthlyRecurringExpenses")) {
+    if (
+      !groups || groups.includes("monthlyRecurringExpenses") ||
+      groups.includes("totals")
+    ) {
       let totalMonthlyRecurringExpenses = 0;
       for (const variable of MONTHLY_RECURRING_EXPENSES_KEYS) {
         const amount = persona.monthlyExpenses[variable];
         totalMonthlyRecurringExpenses += amount;
-        if (amount !== 0 && allowVar(variable)) {
+        if (
+          amount !== 0 && allowVar(variable) &&
+          (!groups || groups.includes("monthlyRecurringExpenses"))
+        ) {
           onRecord(
             category,
             "monthlyRecurringExpenses",
@@ -377,7 +383,10 @@ export default function toResults(
           );
         }
       }
-      if (allowVar("monthlyRecurringExpenses")) {
+      if (
+        allowVar("monthlyRecurringExpenses") &&
+        (!groups || groups.includes("totals"))
+      ) {
         onRecord(
           category,
           "totals",
@@ -388,12 +397,18 @@ export default function toResults(
       }
     }
 
-    if (!groups || groups.includes("monthlyNonRecurringExpenses")) {
+    if (
+      !groups || groups.includes("monthlyNonRecurringExpenses") ||
+      groups.includes("totals")
+    ) {
       let totalMonthlyNonRecurringExpenses = 0;
       for (const variable of MONTHLY_NON_RECURRING_EXPENSES_KEYS) {
         const amount = persona.monthlyExpenses[variable];
         totalMonthlyNonRecurringExpenses += amount;
-        if (amount !== 0 && allowVar(variable)) {
+        if (
+          amount !== 0 && allowVar(variable) &&
+          (!groups || groups.includes("monthlyNonRecurringExpenses"))
+        ) {
           onRecord(
             category,
             "monthlyNonRecurringExpenses",
@@ -403,7 +418,10 @@ export default function toResults(
           );
         }
       }
-      if (allowVar("monthlyNonRecurringExpenses")) {
+      if (
+        allowVar("monthlyNonRecurringExpenses") &&
+        (!groups || groups.includes("totals"))
+      ) {
         onRecord(
           category,
           "totals",

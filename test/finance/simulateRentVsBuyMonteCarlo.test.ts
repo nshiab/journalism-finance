@@ -1759,3 +1759,46 @@ Deno.test("simulateRentVsBuyMonteCarlo: dollar-amount paths in values should be 
     `Deflated market returns ${marketLastAdjusted.value} should be lower than nominal ${marketLastNormal.value}`,
   );
 });
+
+Deno.test("should be able to retrieve just the total recurring expenses using filterGroups and filterVariables", () => {
+  const params = getParamsRentVsBuyMonteCarlo(5, "Montreal", {
+    downPayment: 0.10,
+    purchaseFixedFees: 0.02,
+  }, {
+    renterMonthlyInsurance: 70,
+    ownerMonthlyInsurance: 125,
+    sellingFixedFees: 2000,
+    condoFees: 250,
+  }, false);
+
+  const results = simulateRentVsBuyMonteCarlo(params, {
+    details: {
+      iterations: true,
+      filterGroups: ["totals"],
+      filterVariables: ["monthlyRecurringExpenses"],
+    },
+  });
+
+  const decoded = decodeMonteCarloMonthlyIterations(
+    results.details.monthlyIterations,
+  );
+
+  // We should have records
+  assert(decoded.length > 0);
+
+  // All records should be 'totals' and 'monthlyRecurringExpenses'
+  for (const record of decoded) {
+    assertEquals(record.group, "totals");
+    assertEquals(record.variable, "monthlyRecurringExpenses");
+    assert(record.amount > 0);
+  }
+
+  // Ensure we have records for all 5 iterations and for multiple months
+  const iterations = new Set(decoded.map((r) => r.iteration));
+  const months = new Set(decoded.map((r) => r.monthIndex));
+  const categories = new Set(decoded.map((r) => r.category));
+
+  assertEquals(iterations.size, 5);
+  assertEquals(months.size, params.numberOfYears * 12);
+  assertEquals(categories.size, 3); // renter, buyerFixed, buyerVariable
+});
