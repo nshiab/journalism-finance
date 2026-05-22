@@ -961,20 +961,26 @@ Deno.test("decodeMonteCarloMonthlyQuantiles: produces correct shapes and values"
   }
 
   // Quantile ordering holds in decoded output for each (key, monthIndex) group
-  for (const key of results.details.monthlyQuantiles.keys) {
-    const [category, group, variable] = key.split("|");
+  // Optimized verification to avoid O(N^2) complexity
+  const nbQuantiles = quantiles.length;
+  for (let ki = 0; ki < results.details.monthlyQuantiles.keys.length; ki++) {
     for (let mi = 0; mi < nbMonths; mi++) {
-      const monthRecords = decoded
-        .filter((r) =>
-          r.category === category && r.group === group &&
-          r.variable === variable && r.monthIndex === mi
-        )
-        .sort((a, b) => a.quantile - b.quantile);
-      assertEquals(monthRecords.length, quantiles.length);
-      for (let i = 0; i < monthRecords.length - 1; i++) {
+      for (let qi = 0; qi < nbQuantiles - 1; qi++) {
+        // Based on decodeMonteCarloMonthlyQuantiles layout:
+        // key -> quantile -> monthIndex
+        const idx1 = ki * (nbQuantiles * nbMonths) + qi * nbMonths + mi;
+        const idx2 = ki * (nbQuantiles * nbMonths) + (qi + 1) * nbMonths + mi;
+
+        const r1 = decoded[idx1];
+        const r2 = decoded[idx2];
+
+        assertEquals(r1.monthIndex, mi);
+        assertEquals(r2.monthIndex, mi);
         assert(
-          monthRecords[i].value <= monthRecords[i + 1].value,
-          `Quantile ordering violated at key="${key}" monthIndex=${mi}`,
+          r1.value <= r2.value,
+          `Quantile ordering violated at key="${
+            results.details.monthlyQuantiles.keys[ki]
+          }" monthIndex=${mi}`,
         );
       }
     }
