@@ -3,6 +3,7 @@
 // (employmentIncome, province, year, rrsp, ramq, livingAlone) — all fixed for a
 // given simulation run, yielding an effective hit rate of ~100% after the first call.
 const _baseTaxCache = new Map<string, ReturnType<typeof calculateBaseTax>>();
+const MAX_CACHE_SIZE = 10000;
 
 type Province =
   | "Newfoundland and Labrador"
@@ -1117,6 +1118,9 @@ export default function getIncomeTax(
       ...options,
       capitalGains: 0,
     });
+    if (_baseTaxCache.size >= MAX_CACHE_SIZE) {
+      _baseTaxCache.clear();
+    }
     _baseTaxCache.set(_cacheKey, taxWithoutGains);
   }
 
