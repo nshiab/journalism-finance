@@ -1109,7 +1109,9 @@ export default function getIncomeTax(
   totalTaxAndPremiums: number;
 } {
   const rawCapitalGains = options.capitalGains || 0;
-  const _cacheKey = `${employmentIncome}|${province}|${year}|${
+  // Round income to nearest $10 to increase cache hits in Monte Carlo simulations
+  const roundedIncome = Math.round(employmentIncome / 10) * 10;
+  const _cacheKey = `${roundedIncome}|${province}|${year}|${
     options.rrsp ?? 0
   }|${options.quebec?.ramq ?? false}|${options.quebec?.livingAlone ?? false}`;
   let taxWithoutGains = _baseTaxCache.get(_cacheKey);
