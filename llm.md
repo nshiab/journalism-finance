@@ -1583,6 +1583,11 @@ function simulateRentVsBuyMonteCarlo(
   for every variable/group/category/month combination. Layout:
   `data[key][qIdx * cols + monthIndex]`. Decode with
   `decodeMonteCarloMonthlyQuantiles`.
+- **`options.details.firstMonth`**: If `true`, captures data for all available
+  groups and variables for the first month (monthIndex 0) during the first
+  iteration. Returned as an array of objects in `details.firstMonth`. This
+  capture is independent of `filterGroups` and `filterVariables`, making it
+  useful for a complete manifest of initial costs.
 - **`options.details.filterGroups`**: Required when `details.iterations` is
   `true`. Restricts which groups are included in the `monthlyIterations` output
   (e.g. `["assets", "summaryCumulative"]`), reducing memory usage. Also filters

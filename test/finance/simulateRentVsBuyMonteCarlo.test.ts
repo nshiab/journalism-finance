@@ -822,6 +822,88 @@ Deno.test("monthlyQuantiles: empty sentinel when option is not set", () => {
   assertEquals(Object.keys(results.details.monthlyQuantiles.data).length, 0);
 });
 
+Deno.test("firstMonth: should return data for first month when enabled", () => {
+  const params = getParamsRentVsBuyMonteCarlo(2, "Montreal", {
+    downPayment: 100000,
+    purchaseFixedFees: 2000,
+  }, {
+    renterMonthlyInsurance: 30,
+    ownerMonthlyInsurance: 100,
+    sellingFixedFees: 2000,
+    condoFees: 200,
+  }, false);
+
+  const results = simulateRentVsBuyMonteCarlo(params, {
+    details: {
+      firstMonth: true,
+      filterGroups: ["assets"], // Only assets for main output
+      filterVariables: ["tfsa"], // Only tfsa variable for assets group
+    },
+  });
+
+  assert(results.details.firstMonth !== undefined);
+  assert(results.details.firstMonth.length > 0);
+
+  // Check for expected variables at month 0
+  const monthlyExpenses = results.details.firstMonth.filter((r) =>
+    r.group === "monthlyExpenses"
+  );
+  assert(
+    monthlyExpenses.length > 0,
+    "Expected monthlyExpenses to be captured for Month 0",
+  );
+
+  const assets = results.details.firstMonth.filter((r) => r.group === "assets");
+  assert(assets.length > 0, "Expected assets to be captured for Month 0");
+
+  const tfsa = assets.find((r) => r.variable === "tfsa");
+  assert(tfsa !== undefined, "tfsa should be in assets");
+
+  // Verification that it's unfiltered for firstMonth
+  const rent = results.details.firstMonth.find((r) =>
+    r.category === "renter" && r.group === "monthlyExpenses" &&
+    r.variable === "rent"
+  );
+  assert(
+    rent !== undefined,
+    "rent should be captured even if filterGroups only included assets",
+  );
+
+  const stocks = assets.find((r) => r.variable === "stocks");
+  assert(
+    stocks !== undefined,
+    "stocks should be captured in firstMonth even if filterVariables only included tfsa",
+  );
+});
+
+Deno.test("firstMonth: should respect inflation adjustment when enabled", () => {
+  const params = getParamsRentVsBuyMonteCarlo(2, "Montreal", {
+    downPayment: 100000,
+    purchaseFixedFees: 2000,
+  }, {
+    renterMonthlyInsurance: 30,
+    ownerMonthlyInsurance: 100,
+    sellingFixedFees: 2000,
+    condoFees: 200,
+  }, false);
+
+  // We set a custom "inflation" proxy rate to ensure the deflation is detectable.
+  // In reality, year 0 deflation is always 1.0, but simulateRentVsBuy might
+  // still apply its logic. We want to ensure the option is passed through.
+  const results = simulateRentVsBuyMonteCarlo(params, {
+    details: { firstMonth: true },
+    adjustToInflation: "sellingFixedFeesIncrease",
+  });
+
+  assert(results.details.firstMonth !== undefined);
+  // Month 0 amounts should match their nominal counterparts
+  // because deflationFactor = init / current = 1.0 at m=0.
+  const rent = results.details.firstMonth.find((r) =>
+    r.category === "renter" && r.variable === "rent"
+  );
+  assertEquals(rent?.amount, params.stochasticParameters.rent.initialValue);
+});
+
 Deno.test("monthlyQuantiles: q0 <= q50 <= q100 for all keys and months", () => {
   const params = getParamsRentVsBuyMonteCarlo(10, "Montreal", {
     downPayment: 0.10,

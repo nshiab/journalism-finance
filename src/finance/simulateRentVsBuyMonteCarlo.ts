@@ -107,10 +107,12 @@ export type ColumnarReturn = {
    * Per-iteration and per-quantile monthly data, populated when `options.details` is provided.
    * - `monthlyIterations`: raw per-iteration monthly records. Layout: `data[key][iteration * cols + monthIndex]`. Decode with `decodeMonteCarloMonthlyIterations`.
    * - `monthlyQuantiles`: pre-computed quantile summaries. Layout: `data[key][qIdx * cols + monthIndex]`. Decode with `decodeMonteCarloMonthlyQuantiles`.
+   * - `firstMonth`: simple record of all data for category/group/variable at monthIndex 0, captured during the first iteration (assuming month 0 is deterministic).
    */
   details: {
     monthlyIterations: ColumnarResult;
     monthlyQuantiles: ColumnarResult;
+    firstMonth?: ReturnType<typeof simulateRentVsBuy>;
   };
 };
 
@@ -200,6 +202,7 @@ export type BaseOptions = {
    * When provided, enables detailed monthly data collection for all iterations.
    * - `iterations`: if `true`, captures raw per-iteration monthly records returned in `details.monthlyIterations`. Requires `filterGroups` to be set and non-empty — throws otherwise. Decode with `decodeMonteCarloMonthlyIterations`.
    * - `quantiles`: pre-computes the specified quantile levels (e.g. `[0, 0.5, 1]` for min/median/max) across all iterations for every variable/group/category/month, returned in `details.monthlyQuantiles`. Layout: `data[key][qIdx * cols + monthIndex]`. Decode with `decodeMonteCarloMonthlyQuantiles`.
+   * - `firstMonth`: if `true`, captures data for all available groups and variables for the first month (monthIndex 0) during the first iteration. Returned as an array of objects in `details.firstMonth`. This capture is independent of `filterGroups` and `filterVariables`.
    * - `filterGroups`: required when `iterations: true`; restricts which groups are collected (e.g. `["assets", "summaryCumulative"]`), reducing memory usage. Also filters the shared column-major buffer used by `details.quantiles`.
    * - `filterVariables`: optional finer-grained filter; restricts which individual variables are stored within the allowed groups (e.g. `["balance", "homeEquity"]`), further reducing memory usage. Also filters the shared column-major buffer used by `details.quantiles`. An empty array is treated as no filter.
    * Both `iterations` and `quantiles` share the same internal column-major buffer, so enabling both together is more memory-efficient than the sum of their individual costs.
@@ -207,6 +210,7 @@ export type BaseOptions = {
   details?: {
     iterations?: boolean;
     quantiles?: number[];
+    firstMonth?: boolean;
     filterGroups?: MqGroup[];
     filterVariables?: MqVariable[];
   };
@@ -283,6 +287,7 @@ export type BaseOptions = {
  *   @param options.details - When provided, enables detailed monthly data collection. Both sub-options share the same internal column-major buffer, so enabling both together is more memory-efficient than the sum of their individual costs.
  *   @param options.details.iterations - If `true`, captures and returns the raw monthly financial data for every variable, group, and category for each individual iteration. Requires `details.filterGroups` to be set and non-empty — throws otherwise. Each record includes `iteration` (0-based index), `category`, `group`, `variable`, `monthIndex`, and `amount`. Useful for custom aggregations or visualization of individual paths. Be aware that this can produce a very large number of records (iterations × months × variables × 3 categories), so use `filterGroups` and `filterVariables` to limit scope.
  *   @param options.details.quantiles - When provided, pre-computes the specified quantile levels (e.g. `[0, 0.5, 1]` for min/median/max) across all iterations for every variable/group/category/month combination. Layout: `data[key][qIdx * cols + monthIndex]`. Decode with `decodeMonteCarloMonthlyQuantiles`.
+ *   @param options.details.firstMonth - If `true`, captures data for all available groups and variables for the first month (monthIndex 0) during the first iteration. Returned as an array of objects in `details.firstMonth`. This capture is independent of `filterGroups` and `filterVariables`, making it useful for a complete manifest of initial costs.
  *   @param options.details.filterGroups - Required when `details.iterations` is `true`. Restricts which groups are included in the `monthlyIterations` output (e.g. `["assets", "summaryCumulative"]`), reducing memory usage. Also filters the shared column-major buffer used by `details.quantiles`.
  *
  *   Available groups:
@@ -436,6 +441,7 @@ function simulateRentVsBuyMonteCarlo(
   // allocation in toResults. currentI is updated at the start of each iteration
   // so the closure always writes to the correct column.
   let currentI = 0;
+
   const onRecord = detailsColumnar
     ? (
       cat: string,
@@ -452,6 +458,85 @@ function simulateRentVsBuyMonteCarlo(
       }
       bucket[mi * parameters.iterations + currentI] = amt;
     }
+    : undefined;
+
+  const baseSimParams = {
+    startingYear: parameters.startingYear,
+    tfsaContributions: parameters.tfsaContributions,
+    couple: parameters.couple,
+    city: parameters.city,
+    renter: {
+      startingMonthlyRent: parameters.stochasticParameters.rent.initialValue,
+      securityDeposit: parameters.renter.securityDeposit,
+      startingMonthlyInsurance:
+        parameters.stochasticParameters.renterInsurance.initialValue,
+    },
+    buyer: {
+      downPayment: parameters.buyer.downPayment,
+      purchasePrice: parameters.stochasticParameters.appreciation.initialValue,
+      fixedRateAdjustment: parameters.buyer.fixedRateAdjustment,
+      variableRateAdjustment: parameters.buyer.variableRateAdjustment,
+      firstTimeOwner: parameters.buyer.firstTimeOwner,
+      purchaseFixedFees: parameters.buyer.purchaseFixedFees,
+      startingAnnualMaintenanceCost:
+        parameters.stochasticParameters.maintenance.initialValue,
+      startingAnnualPropertyTax:
+        parameters.stochasticParameters.propertyTax.initialValue,
+      startingMonthlyCondoFees:
+        parameters.stochasticParameters.condoFee.initialValue,
+      startingMonthlyInsurance:
+        parameters.stochasticParameters.ownerInsurance.initialValue,
+      sellingFixedFees:
+        parameters.stochasticParameters.sellingFixedFees.initialValue,
+      sellingCommissionRate: parameters.buyer.sellingCommissionRate,
+      floorRate: parameters.buyer.floorRate,
+      investsSavings: parameters.buyer.investsSavings,
+    },
+    annualInvestmentFeeRate: parameters.annualInvestmentFeeRate,
+  };
+
+  // Capture deterministic first-month manifest separately to keep the main loop filtered and fast.
+  const firstMonthCaptured = options.details?.firstMonth
+    ? simulateRentVsBuy({
+      ...baseSimParams,
+      numberOfYears: 1 / 12, // Only 1 month needed
+      values: {
+        employmentIncome: [
+          parameters.stochasticParameters.employmentIncome.initialValue,
+        ],
+        fiveYearInterestRates: [
+          parameters.stochasticParameters.fiveYearInterestRates.initialValue,
+        ],
+        fourYearInterestRates: [
+          parameters.stochasticParameters.fourYearInterestRates.initialValue,
+        ],
+        threeYearInterestRates: [
+          parameters.stochasticParameters.threeYearInterestRates.initialValue,
+        ],
+        twoYearInterestRates: [
+          parameters.stochasticParameters.twoYearInterestRates.initialValue,
+        ],
+        oneYearInterestRates: [
+          parameters.stochasticParameters.oneYearInterestRates.initialValue,
+        ],
+        variableInterestRates: [
+          parameters.stochasticParameters.variableInterestRates.initialValue,
+        ],
+      },
+      rates: {
+        marketReturnRate: [0],
+        rentIncrease: [0],
+        renterInsuranceIncrease: [0],
+        ownerInsuranceIncrease: [0],
+        maintenanceIncrease: [0],
+        propertyTaxIncrease: [0],
+        condoFeeIncrease: [0],
+        appreciationIncrease: [0],
+        sellingFixedFeesIncrease: [0],
+      },
+    }, {
+      adjustToInflation: options.adjustToInflation,
+    })
     : undefined;
 
   const numVars = 16;
@@ -683,40 +768,8 @@ function simulateRentVsBuyMonteCarlo(
     };
 
     const iterationResults = simulateRentVsBuy({
-      startingYear: parameters.startingYear,
+      ...baseSimParams,
       numberOfYears: parameters.numberOfYears,
-      tfsaContributions: parameters.tfsaContributions,
-      couple: parameters.couple,
-      city: parameters.city,
-      renter: {
-        startingMonthlyRent: parameters.stochasticParameters.rent.initialValue,
-        securityDeposit: parameters.renter.securityDeposit,
-        startingMonthlyInsurance:
-          parameters.stochasticParameters.renterInsurance.initialValue,
-      },
-      buyer: {
-        downPayment: parameters.buyer.downPayment,
-        purchasePrice:
-          parameters.stochasticParameters.appreciation.initialValue,
-        fixedRateAdjustment: parameters.buyer.fixedRateAdjustment,
-        variableRateAdjustment: parameters.buyer.variableRateAdjustment,
-        firstTimeOwner: parameters.buyer.firstTimeOwner,
-        purchaseFixedFees: parameters.buyer.purchaseFixedFees,
-        startingAnnualMaintenanceCost:
-          parameters.stochasticParameters.maintenance.initialValue,
-        startingAnnualPropertyTax:
-          parameters.stochasticParameters.propertyTax.initialValue,
-        startingMonthlyCondoFees:
-          parameters.stochasticParameters.condoFee.initialValue,
-        startingMonthlyInsurance:
-          parameters.stochasticParameters.ownerInsurance.initialValue,
-        sellingFixedFees:
-          parameters.stochasticParameters.sellingFixedFees.initialValue,
-        sellingCommissionRate: parameters.buyer.sellingCommissionRate,
-        floorRate: parameters.buyer.floorRate,
-        investsSavings: parameters.buyer.investsSavings,
-      },
-      annualInvestmentFeeRate: parameters.annualInvestmentFeeRate,
       values: {
         employmentIncome: Array.from(paths[0].slice(0, nbMonths)),
         fiveYearInterestRates: Array.from(paths[10].slice(0, nbMonths)),
@@ -865,6 +918,7 @@ function simulateRentVsBuyMonteCarlo(
     details: {
       monthlyIterations: monthlyIterationsResult,
       monthlyQuantiles: monthlyQuantilesResult,
+      firstMonth: firstMonthCaptured,
     },
   } satisfies ColumnarReturn;
 }
