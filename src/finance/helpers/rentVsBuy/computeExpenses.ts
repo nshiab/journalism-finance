@@ -50,8 +50,8 @@ export default function computeExpenses(
       persona.monthlyExpenses.purchaseFixedFees =
         persona.params.purchaseFixedFees;
       persona.monthlyExpenses.landTransferTax = persona.params.landTransferTax;
-      persona.monthlyExpenses.insurancePremium =
-        persona.params.insurancePremium;
+      persona.monthlyExpenses.insurancePremiumTax =
+        persona.params.insurancePremiumTax;
 
       persona.cumulativeExpenses.downPayment = r2(
         persona.cumulativeExpenses.downPayment +
@@ -65,15 +65,15 @@ export default function computeExpenses(
         persona.cumulativeExpenses.landTransferTax +
           persona.monthlyExpenses.landTransferTax,
       );
-      persona.cumulativeExpenses.insurancePremium = r2(
-        persona.cumulativeExpenses.insurancePremium +
-          persona.monthlyExpenses.insurancePremium,
+      persona.cumulativeExpenses.insurancePremiumTax = r2(
+        persona.cumulativeExpenses.insurancePremiumTax +
+          persona.monthlyExpenses.insurancePremiumTax,
       );
     } else {
       persona.monthlyExpenses.downPayment = 0;
       persona.monthlyExpenses.purchaseFixedFees = 0;
       persona.monthlyExpenses.landTransferTax = 0;
-      persona.monthlyExpenses.insurancePremium = 0;
+      persona.monthlyExpenses.insurancePremiumTax = 0;
     }
   } else {
     // Renter expenses
@@ -117,7 +117,7 @@ export default function computeExpenses(
       persona.monthlyExpenses.downPayment +
       persona.monthlyExpenses.purchaseFixedFees +
       persona.monthlyExpenses.landTransferTax +
-      persona.monthlyExpenses.insurancePremium,
+      persona.monthlyExpenses.insurancePremiumTax,
   );
 
   return {

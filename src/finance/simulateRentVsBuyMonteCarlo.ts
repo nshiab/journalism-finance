@@ -45,7 +45,7 @@ export type MqVariable =
   | "downPayment"
   | "purchaseFixedFees"
   | "landTransferTax"
-  | "insurancePremium"
+  | "insurancePremiumTax"
   | "tfsaFees"
   | "stocksFees"
   | "tfsaGains"

@@ -45,7 +45,9 @@ export default function computeBalances(
       persona.monthlyExpenses.downPayment +
       persona.monthlyExpenses.purchaseFixedFees +
       persona.monthlyExpenses.landTransferTax +
-      persona.monthlyExpenses.insurancePremium;
+      persona.monthlyExpenses.insurancePremiumTax +
+      persona.monthlyExpenses.tfsaFees +
+      persona.monthlyExpenses.stocksFees;
     const totalMonthlyGains = persona.monthlyGains.tfsaGains +
       persona.monthlyGains.tfsaContribution +
       persona.monthlyGains.stocksGains +
@@ -68,7 +70,7 @@ export default function computeBalances(
       persona.cumulativeExpenses.downPayment +
       persona.cumulativeExpenses.purchaseFixedFees +
       persona.cumulativeExpenses.landTransferTax +
-      persona.cumulativeExpenses.insurancePremium +
+      persona.cumulativeExpenses.insurancePremiumTax +
       persona.cumulativeExpenses.tfsaFees +
       persona.cumulativeExpenses.stocksFees;
 

@@ -1128,7 +1128,7 @@ function simulateRentVsBuy(
         | "downPayment"
         | "purchaseFixedFees"
         | "landTransferTax"
-        | "insurancePremium"
+        | "insurancePremiumTax"
         | "tfsaFees"
         | "stocksFees";
       effectiveInterestRate?: number;
@@ -1192,7 +1192,7 @@ function simulateRentVsBuy(
         | "downPayment"
         | "purchaseFixedFees"
         | "landTransferTax"
-        | "insurancePremium"
+        | "insurancePremiumTax"
         | "securityDeposit";
     }
     | {
@@ -1269,8 +1269,9 @@ function simulateRentVsBuy(
   lifestyle inflation or other spending).
 - **`parameters.values`**: Shared absolute values over the simulation period.
   Each array should have a length of `numberOfYears * 12`.
-- **`parameters.values.employmentIncome`**: Monthly employment income used for
-  calculating income taxes on investment gains.
+- **`parameters.values.employmentIncome`**: Annual employment income at each
+  simulated month, used for calculating marginal income tax rates on investment
+  gains.
 - **`parameters.values.fiveYearInterestRates`**: Monthly 5-year fixed mortgage
   interest rates.
 - **`parameters.values.fourYearInterestRates`**: Monthly 4-year fixed mortgage

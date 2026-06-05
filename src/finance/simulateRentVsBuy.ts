@@ -8,6 +8,7 @@ import precomputeMortgagePayments from "./helpers/rentVsBuy/precomputeMortgagePa
 import toResults from "./helpers/rentVsBuy/toResults.ts";
 import mortgageInsurancePremium from "./mortgageInsurancePremium.ts";
 import getMinimumDownPayment from "./getMinimumDownPayment.ts";
+import getMortgageInsuranceTax from "./getMortgageInsuranceTax.ts";
 import getSalesTax from "./getSalesTax.ts";
 import getLandTransferTax, {
   type City,
@@ -70,7 +71,7 @@ export type RentVsBuyRates =
  *   @param parameters.buyer.floorRate - The minimum interest rate (posted + adjustment) for mortgages.
  *   @param parameters.buyer.investsSavings - Whether the buyer invests any monthly savings (difference between their expenses and the renter's/max expenses) into the stock market. If `false`, these savings are discarded (simulating lifestyle inflation or other spending).
  * @param parameters.values - Shared absolute values over the simulation period. Each array should have a length of `numberOfYears * 12`.
- *   @param parameters.values.employmentIncome - Monthly employment income used for calculating income taxes on investment gains.
+ *   @param parameters.values.employmentIncome - Annual employment income at each simulated month, used for calculating marginal income tax rates on investment gains.
  *   @param parameters.values.fiveYearInterestRates - Monthly 5-year fixed mortgage interest rates.
  *   @param parameters.values.fourYearInterestRates - Monthly 4-year fixed mortgage interest rates.
  *   @param parameters.values.threeYearInterestRates - Monthly 3-year fixed mortgage interest rates.
@@ -259,7 +260,7 @@ export default function simulateRentVsBuy(
         | "downPayment"
         | "purchaseFixedFees"
         | "landTransferTax"
-        | "insurancePremium"
+        | "insurancePremiumTax"
         | "tfsaFees"
         | "stocksFees";
       effectiveInterestRate?: number;
@@ -329,7 +330,7 @@ export default function simulateRentVsBuy(
         | "downPayment"
         | "purchaseFixedFees"
         | "landTransferTax"
-        | "insurancePremium"
+        | "insurancePremiumTax"
         | "securityDeposit";
     }
     | {
@@ -367,7 +368,7 @@ export default function simulateRentVsBuy(
           | "condoFees"
           | "downPayment"
           | "purchaseFixedFees"
-          | "insurancePremium"
+          | "insurancePremiumTax"
           | "tfsaFees"
           | "stocksFees";
         effectiveInterestRate?: number;
@@ -437,7 +438,7 @@ export default function simulateRentVsBuy(
           | "downPayment"
           | "purchaseFixedFees"
           | "landTransferTax"
-          | "insurancePremium"
+          | "insurancePremiumTax"
           | "securityDeposit";
       }
       | {
@@ -479,7 +480,7 @@ export default function simulateRentVsBuy(
     downPayment: 0,
     purchasePrice: 0,
     homeValue: 0,
-    insurancePremium: 0,
+    insurancePremiumTax: 0,
     fixedRateAdjustment: 0,
     variableRateAdjustment: 0,
     purchaseFixedFees: 0,
@@ -496,6 +497,10 @@ export default function simulateRentVsBuy(
     parameters.buyer.purchasePrice,
     parameters.buyer.downPayment,
   );
+  const insurancePremiumTax = getMortgageInsuranceTax(
+    insurancePremium,
+    province,
+  );
   const landTransferTax = getLandTransferTax(
     parameters.city,
     parameters.buyer.purchasePrice,
@@ -508,7 +513,7 @@ export default function simulateRentVsBuy(
     startingMonthlyInsurance: parameters.buyer.startingMonthlyInsurance,
     downPayment: parameters.buyer.downPayment,
     purchasePrice: parameters.buyer.purchasePrice,
-    insurancePremium,
+    insurancePremiumTax: insurancePremiumTax,
     landTransferTax,
     homeValue: parameters.buyer.purchasePrice,
     fixedRateAdjustment: parameters.buyer.fixedRateAdjustment,
@@ -530,7 +535,7 @@ export default function simulateRentVsBuy(
     downPayment: parameters.buyer.downPayment,
     purchasePrice: parameters.buyer.purchasePrice,
     homeValue: parameters.buyer.purchasePrice,
-    insurancePremium,
+    insurancePremiumTax: insurancePremiumTax,
     landTransferTax,
     fixedRateAdjustment: 0, // No fixed rate adjustment for variable mortgage
     variableRateAdjustment: parameters.buyer.variableRateAdjustment,
@@ -546,10 +551,12 @@ export default function simulateRentVsBuy(
   });
 
   // We precompute the mortgage payments for the buyer for the entire period
+  // The CMHC insurance premium is rolled into the initial mortgage balance.
   const { allFixedMortgagePayments, allVariableMortgagePayments } =
     precomputeMortgagePayments(
       parameters.numberOfYears,
-      parameters.buyer.purchasePrice - parameters.buyer.downPayment,
+      (parameters.buyer.purchasePrice - parameters.buyer.downPayment) +
+        insurancePremium,
       parameters.buyer.fixedRateAdjustment,
       parameters.buyer.variableRateAdjustment,
       parameters.values.fiveYearInterestRates,

@@ -7,7 +7,7 @@ export default function getPersona(parameters: {
   downPayment: number;
   purchasePrice: number;
   homeValue: number;
-  insurancePremium: number;
+  insurancePremiumTax: number;
   fixedRateAdjustment: number;
   variableRateAdjustment: number;
   purchaseFixedFees: number;
@@ -39,7 +39,7 @@ export default function getPersona(parameters: {
       sellingFixedFees: parameters.sellingFixedFees,
       sellingCommissionRate: parameters.sellingCommissionRate,
       landTransferTax: parameters.landTransferTax,
-      insurancePremium: parameters.insurancePremium,
+      insurancePremiumTax: parameters.insurancePremiumTax,
       floorRate: parameters.floorRate,
       investsSavings: parameters.investsSavings,
       tfsaContributedNominal: 0,
@@ -57,7 +57,7 @@ export default function getPersona(parameters: {
       downPayment: 0,
       purchaseFixedFees: 0,
       landTransferTax: 0,
-      insurancePremium: 0,
+      insurancePremiumTax: 0,
       tfsaFees: 0,
       stocksFees: 0,
     },
@@ -73,7 +73,7 @@ export default function getPersona(parameters: {
       downPayment: 0,
       purchaseFixedFees: 0,
       landTransferTax: 0,
-      insurancePremium: 0,
+      insurancePremiumTax: 0,
       tfsaFees: 0,
       stocksFees: 0,
     },

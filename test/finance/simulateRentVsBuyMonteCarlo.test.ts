@@ -364,7 +364,7 @@ Deno.test("should return monthly iterations data when option monthlyIterations i
     "condoFees",
     "downPayment",
     "purchaseFixedFees",
-    "insurancePremium",
+    "insurancePremiumTax",
     "tfsaFees",
     "stocksFees",
     "tfsaGains",

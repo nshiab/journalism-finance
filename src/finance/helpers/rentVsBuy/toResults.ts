@@ -13,7 +13,7 @@ const MONTHLY_EXPENSES_KEYS = [
   "downPayment",
   "purchaseFixedFees",
   "landTransferTax",
-  "insurancePremium",
+  "insurancePremiumTax",
   "tfsaFees",
   "stocksFees",
 ] as const;
@@ -32,7 +32,7 @@ const MONTHLY_NON_RECURRING_EXPENSES_KEYS = [
   "downPayment",
   "purchaseFixedFees",
   "landTransferTax",
-  "insurancePremium",
+  "insurancePremiumTax",
   "securityDeposit",
 ] as const;
 const CUMULATIVE_EXPENSES_KEYS = [
@@ -47,7 +47,7 @@ const CUMULATIVE_EXPENSES_KEYS = [
   "downPayment",
   "purchaseFixedFees",
   "landTransferTax",
-  "insurancePremium",
+  "insurancePremiumTax",
   "tfsaFees",
   "stocksFees",
 ] as const;
@@ -103,7 +103,7 @@ function computeTotals(persona: Persona, adj: (x: number) => number) {
       persona.monthlyExpenses.downPayment +
       persona.monthlyExpenses.purchaseFixedFees +
       persona.monthlyExpenses.landTransferTax +
-      persona.monthlyExpenses.insurancePremium +
+      persona.monthlyExpenses.insurancePremiumTax +
       persona.monthlyExpenses.tfsaFees +
       persona.monthlyExpenses.stocksFees,
   );
@@ -121,7 +121,7 @@ function computeTotals(persona: Persona, adj: (x: number) => number) {
       persona.cumulativeExpenses.downPayment +
       persona.cumulativeExpenses.purchaseFixedFees +
       persona.cumulativeExpenses.landTransferTax +
-      persona.cumulativeExpenses.insurancePremium,
+      persona.cumulativeExpenses.insurancePremiumTax,
   );
   const monthlyGains = adj(
     persona.monthlyGains.tfsaGains +
@@ -191,7 +191,7 @@ export default function toResults(
           | "downPayment"
           | "purchaseFixedFees"
           | "landTransferTax"
-          | "insurancePremium"
+          | "insurancePremiumTax"
           | "tfsaFees"
           | "stocksFees";
         effectiveInterestRate?: number;
@@ -264,7 +264,7 @@ export default function toResults(
           | "downPayment"
           | "purchaseFixedFees"
           | "landTransferTax"
-          | "insurancePremium"
+          | "insurancePremiumTax"
           | "securityDeposit";
       }
       | {
