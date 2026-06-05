@@ -94,14 +94,14 @@ export type RentVsBuyRates =
  *   @param options.onRecord - Internal callback used by `simulateRentVsBuyMonteCarlo` when `details.iterations` or `details.quantiles` is enabled. When provided, numeric values are streamed directly to the accumulator instead of being wrapped in result objects, avoiding the per-record heap allocation cost. At the final month, one winner record (the `winVariable` entry) per category is still pushed to the results array for winner extraction.
  *   @param options.groups - Internal filter used by `simulateRentVsBuyMonteCarlo` via `details.filterGroups`. Restricts which groups are emitted by `onRecord` and pushed to results.
  *   @param options.variables - Internal filter used by `simulateRentVsBuyMonteCarlo` via `details.filterVariables`. Restricts which individual variables within allowed groups are emitted by `onRecord`. An empty array is treated as no filter.
- *   @param options.adjustToInflation - The rate parameter used as a proxy for inflation to express future dollar values in today's constant dollars. When set (e.g. to `"sellingFixedFeesIncrease"`), point-in-time metrics (like `monthlyExpenses`, `assets`, and `balance`) are discounted by the current month's inflation factor. Cumulative totals (like `cumulativeExpenses` and `cumulativeGains`) accumulate real values incrementally — meaning each nominal monthly contribution is discounted before being added to the running sum. One-time upfront costs paid at month 0 (`downPayment`, `purchaseFixedFees`, `landTransferTax`, `insurancePremium`, `securityDeposit`) are **not** discounted because their real value already equals their nominal value. Defaults to `undefined` (no adjustment).
+ *   @param options.adjustToInflation - The rate parameter used as a proxy for inflation to express future dollar values in today's constant dollars. When set (e.g. to `"sellingFixedFeesIncrease"`), point-in-time metrics (like `monthlyExpenses`, `assets`, and `balance`) are discounted by the current month's inflation factor. Cumulative totals (like `cumulativeExpenses` and `cumulativeGains`) accumulate real values incrementally — meaning each nominal monthly contribution is discounted before being added to the running sum. One-time upfront costs paid at month 0 (`downPayment`, `purchaseFixedFees`, `landTransferTax`, `insurancePremiumTax`, `securityDeposit`) are **not** discounted because their real value already equals their nominal value. Defaults to `undefined` (no adjustment).
  *
  * @returns A detailed array of monthly results for each scenario (renter, buyerFixed, buyerVariable).
  * @throws {Error} If the down payment is less than the minimum required down payment in Canada.
  * Each object in the array represents a specific data point for a given month, categorized by:
  * - `monthlyExpenses` or `cumulativeExpenses`:
  *   - `rent`, `insurance`, `securityDeposit` (for Renter)
- *   - `mortgageCapital`, `mortgageInterests`, `maintenance`, `propertyTax`, `condoFees`, `downPayment`, `purchaseFixedFees`, `insurancePremium` (for Buyers)
+ *   - `mortgageCapital`, `mortgageInterests`, `maintenance`, `propertyTax`, `condoFees`, `downPayment`, `purchaseFixedFees`, `insurancePremiumTax` (for Buyers)
  *   - `tfsaFees`, `stocksFees` (for all scenarios)
  * - `monthlyGains` or `cumulativeGains`:
  *   - `tfsaGains`, `tfsaContribution`, `stocksGains`, `newStocks` (for all scenarios)
@@ -115,7 +115,7 @@ export type RentVsBuyRates =
  * - `saleCosts`: `stockTaxes` (includes `employmentIncome` used for calculation), `homeSellingCommission`, `homeSellingFixedFees`, `mortgagePenalty`, `mortgageBalance` (hypothetical costs incurred upon selling)
  * - `saleNetGains`: `stockSellingGains`, `tfsaSellingGains`, `homeSellingGains`, `securityDeposit` (hypothetical gains realized upon selling)
  * - `monthlyRecurringExpenses`: `rent`, `insurance`, `mortgageCapital`, `mortgageInterests`, `maintenance`, `propertyTax`, `condoFees`, `tfsaFees`, `stocksFees` — same values as the corresponding `monthlyExpenses` variables, restricted to costs that recur every month.
- * - `monthlyNonRecurringExpenses`: `downPayment`, `purchaseFixedFees`, `landTransferTax`, `insurancePremium`, `securityDeposit` — same values as the corresponding `monthlyExpenses` variables, restricted to one-time upfront costs (nonzero only at month 0).
+ * - `monthlyNonRecurringExpenses`: `downPayment`, `purchaseFixedFees`, `landTransferTax`, `insurancePremiumTax`, `securityDeposit` — same values as the corresponding `monthlyExpenses` variables, restricted to one-time upfront costs (nonzero only at month 0).
  * - `totals`: `monthlyExpenses`, `cumulativeExpenses`, `monthlyGains`, `cumulativeGains`, `assets`, `saleCosts`, `saleNetGains`, `monthlyRecurringExpenses`, `monthlyNonRecurringExpenses` (sum of all variables in each respective group; always emitted even when zero)
  *
  * @example
