@@ -1488,6 +1488,55 @@ Deno.test("should compute the total expenses and savings of a renter and buyer i
     );
   });
 
+  // Assets on the first month
+  const firstMonthAssets = results.filter((d) =>
+    d.monthIndex === 0 &&
+    d.group === "assets"
+  );
+
+  await t.step("first month assets", async () => {
+    assertEquals(
+      firstMonthAssets,
+      [
+        {
+          monthIndex: 0,
+          amount: 14321.53,
+          category: "renter",
+          group: "assets",
+          variable: "stocks",
+        },
+        {
+          monthIndex: 0,
+          amount: 509,
+          category: "renter",
+          group: "assets",
+          variable: "securityDeposit",
+        },
+        {
+          monthIndex: 0,
+          amount: 75.81,
+          category: "buyerFixed",
+          group: "assets",
+          variable: "stocks",
+        },
+        {
+          monthIndex: 0,
+          amount: 8089.26,
+          category: "buyerFixed",
+          group: "assets",
+          variable: "homeEquity",
+        },
+        {
+          monthIndex: 0,
+          amount: 8064.19,
+          category: "buyerVariable",
+          group: "assets",
+          variable: "homeEquity",
+        },
+      ],
+    );
+  });
+
   // Gains on the second month
   const secondMonthGains = results.filter((d) =>
     d.monthIndex === 1 &&
