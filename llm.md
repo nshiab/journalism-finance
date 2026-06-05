@@ -1333,7 +1333,7 @@ function simulateRentVsBuy(
   `cumulativeGains`) accumulate real values incrementally — meaning each nominal
   monthly contribution is discounted before being added to the running sum.
   One-time upfront costs paid at month 0 (`downPayment`, `purchaseFixedFees`,
-  `landTransferTax`, `insurancePremium`, `securityDeposit`) are **not**
+  `landTransferTax`, `insurancePremiumTax`, `securityDeposit`) are **not**
   discounted because their real value already equals their nominal value.
   Defaults to `undefined` (no adjustment).
 
@@ -1349,7 +1349,7 @@ buyerVariable).
   for a given month, categorized by: - `monthlyExpenses` or
   `cumulativeExpenses`: - `rent`, `insurance`, `securityDeposit` (for Renter) -
   `mortgageCapital`, `mortgageInterests`, `maintenance`, `propertyTax`,
-  `condoFees`, `downPayment`, `purchaseFixedFees`, `insurancePremium` (for
+  `condoFees`, `downPayment`, `purchaseFixedFees`, `insurancePremiumTax` (for
   Buyers) - `tfsaFees`, `stocksFees` (for all scenarios) - `monthlyGains` or
   `cumulativeGains`: - `tfsaGains`, `tfsaContribution`, `stocksGains`,
   `newStocks` (for all scenarios) - `homeEquityGains` (for Buyers) - `assets`: -
@@ -1366,13 +1366,13 @@ buyerVariable).
   `propertyTax`, `condoFees`, `tfsaFees`, `stocksFees` — same values as the
   corresponding `monthlyExpenses` variables, restricted to costs that recur
   every month. - `monthlyNonRecurringExpenses`: `downPayment`,
-  `purchaseFixedFees`, `landTransferTax`, `insurancePremium`, `securityDeposit`
-  — same values as the corresponding `monthlyExpenses` variables, restricted to
-  one-time upfront costs (nonzero only at month 0). - `totals`:
-  `monthlyExpenses`, `cumulativeExpenses`, `monthlyGains`, `cumulativeGains`,
-  `assets`, `saleCosts`, `saleNetGains`, `monthlyRecurringExpenses`,
-  `monthlyNonRecurringExpenses` (sum of all variables in each respective group;
-  always emitted even when zero)
+  `purchaseFixedFees`, `landTransferTax`, `insurancePremiumTax`,
+  `securityDeposit` — same values as the corresponding `monthlyExpenses`
+  variables, restricted to one-time upfront costs (nonzero only at month 0). -
+  `totals`: `monthlyExpenses`, `cumulativeExpenses`, `monthlyGains`,
+  `cumulativeGains`, `assets`, `saleCosts`, `saleNetGains`,
+  `monthlyRecurringExpenses`, `monthlyNonRecurringExpenses` (sum of all
+  variables in each respective group; always emitted even when zero)
 
 ### Examples
 
