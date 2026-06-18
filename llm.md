@@ -157,8 +157,6 @@ function decodeMonteCarloValues(
 
 ## decodeMonteCarloWinners
 
-Decodes a columnar `winners` result back into the original object-array shape.
-
 `category` bytes map to category names via `WINNER_CATEGORIES` (0 = "renter", 1
 = "buyerFixed", 2 = "buyerVariable"). Records are returned in iteration order
 (row 0 = iteration 0).
@@ -173,6 +171,32 @@ function decodeMonteCarloWinners(
   monthIndex: number;
   amount: number;
   category: "renter" | "buyerFixed" | "buyerVariable";
+}[];
+```
+
+## decodeMonteCarloWinnerSnapshots
+
+Decodes a `winnerSnapshots` result into a flat record array.
+
+Each record represents one 5-year checkpoint (strictly before `numberOfYears`).
+`renter`, `buyerFixed`, and `buyerVariable` are win rates in the range [0, 1]
+and sum to 1. The median fields hold the median `winVariable` amount for that
+category at the checkpoint.
+
+### Signature
+
+```typescript
+function decodeMonteCarloWinnerSnapshots(
+  ws: WinnerSnapshots,
+): {
+  year: number;
+  monthIndex: number;
+  renter: number;
+  buyerFixed: number;
+  buyerVariable: number;
+  renterMedian: number;
+  buyerFixedMedian: number;
+  buyerVariableMedian: number;
 }[];
 ```
 
@@ -1102,6 +1126,12 @@ function simulateRentVsBuy(
       monthIndex: number,
       amount: number,
     ) => void;
+    onSnapshotRecord?: (
+      category: string,
+      monthIndex: number,
+      amount: number,
+    ) => void;
+    snapshotMonths?: Set<number>;
     winVariable?: "balance" | "balanceAfterSelling" | "assets";
     groups?: string[];
     variables?: string[];
