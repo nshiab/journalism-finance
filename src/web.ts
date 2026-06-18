@@ -37,6 +37,7 @@ import {
   decodeMonteCarloMonthlyQuantiles,
   decodeMonteCarloValues,
   decodeMonteCarloWinners,
+  decodeMonteCarloWinnerSnapshots,
 } from "./finance/decodeMonteCarloResults.ts";
 import type {
   BaseOptions,
@@ -47,6 +48,7 @@ import type {
   MqVariable,
   SimParams,
   WinnersColumnar,
+  WinnerSnapshots,
 } from "./finance/simulateRentVsBuyMonteCarlo.ts";
 import type {
   StochasticData,
@@ -60,6 +62,7 @@ export {
   decodeMonteCarloMonthlyQuantiles,
   decodeMonteCarloValues,
   decodeMonteCarloWinners,
+  decodeMonteCarloWinnerSnapshots,
   getIncomeTax,
   getLandTransferTax,
   getMortgagePenalty,
@@ -85,4 +88,5 @@ export type {
   StochasticData,
   StochasticVariable,
   WinnersColumnar,
+  WinnerSnapshots,
 };

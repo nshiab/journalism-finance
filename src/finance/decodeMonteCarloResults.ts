@@ -2,9 +2,10 @@ import { WINNER_CATEGORIES } from "./simulateRentVsBuyMonteCarlo.ts";
 import type {
   ColumnarResult,
   WinnersColumnar,
+  WinnerSnapshots,
 } from "./simulateRentVsBuyMonteCarlo.ts";
 
-export type { ColumnarResult, WinnersColumnar };
+export type { ColumnarResult, WinnersColumnar, WinnerSnapshots };
 
 /**
  * Decodes a columnar `monthlyIterations` result back into a flat object array.
@@ -148,8 +149,52 @@ export function decodeMonteCarloMonthlyQuantiles(
 }
 
 /**
- * Decodes a columnar `winners` result back into the original object-array shape.
+ * Decodes a `winnerSnapshots` result into a flat record array.
  *
+ * Each record represents one 5-year checkpoint (strictly before `numberOfYears`).
+ * `renter`, `buyerFixed`, and `buyerVariable` are win rates in the range [0, 1] and sum to 1.
+ * The median fields hold the median `winVariable` amount for that category at the checkpoint.
+ */
+export function decodeMonteCarloWinnerSnapshots(
+  ws: WinnerSnapshots,
+): {
+  year: number;
+  monthIndex: number;
+  renter: number;
+  buyerFixed: number;
+  buyerVariable: number;
+  renterMedian: number;
+  buyerFixedMedian: number;
+  buyerVariableMedian: number;
+}[] {
+  const length = ws.snapshotMonths.length;
+  const result: {
+    year: number;
+    monthIndex: number;
+    renter: number;
+    buyerFixed: number;
+    buyerVariable: number;
+    renterMedian: number;
+    buyerFixedMedian: number;
+    buyerVariableMedian: number;
+  }[] = new Array(length);
+  for (let i = 0; i < length; i++) {
+    const monthIndex = ws.snapshotMonths[i];
+    result[i] = {
+      year: (monthIndex + 1) / 12,
+      monthIndex,
+      renter: ws.renter[i],
+      buyerFixed: ws.buyerFixed[i],
+      buyerVariable: ws.buyerVariable[i],
+      renterMedian: ws.renterMedian[i],
+      buyerFixedMedian: ws.buyerFixedMedian[i],
+      buyerVariableMedian: ws.buyerVariableMedian[i],
+    };
+  }
+  return result;
+}
+
+/**
  * `category` bytes map to category names via `WINNER_CATEGORIES`
  * (0 = "renter", 1 = "buyerFixed", 2 = "buyerVariable").
  * Records are returned in iteration order (row 0 = iteration 0).

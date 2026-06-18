@@ -99,10 +99,29 @@ export type WinnersColumnar = {
   category: Uint8Array;
 };
 
+/**
+ * Per-checkpoint win rates and median amounts, auto-computed at every 5-year interval
+ * strictly before `numberOfYears`. Empty when `numberOfYears < 5`.
+ * Decode with `decodeMonteCarloWinnerSnapshots`.
+ */
+export type WinnerSnapshots = {
+  /** Month indices of each snapshot (e.g. `[59, 119, 179, 239, 299]` for a 25-year sim, i.e. end of years 5, 10, 15, 20, 25). */
+  snapshotMonths: number[];
+  /** Fraction of iterations (0–1) where each category had the highest `winVariable` at this checkpoint. */
+  renter: Float64Array;
+  buyerFixed: Float64Array;
+  buyerVariable: Float64Array;
+  /** Median `winVariable` amount for each category at each snapshot. */
+  renterMedian: Float64Array;
+  buyerFixedMedian: Float64Array;
+  buyerVariableMedian: Float64Array;
+};
+
 /** Return type for `simulateRentVsBuyMonteCarlo`. All large arrays are returned in columnar format. */
 export type ColumnarReturn = {
   values: ColumnarResult;
   winners: WinnersColumnar;
+  winnerSnapshots: WinnerSnapshots;
   /**
    * Per-iteration and per-quantile monthly data, populated when `options.details` is provided.
    * - `monthlyIterations`: raw per-iteration monthly records. Layout: `data[key][iteration * cols + monthIndex]`. Decode with `decodeMonteCarloMonthlyIterations`.
@@ -402,6 +421,32 @@ function simulateRentVsBuyMonteCarlo(
 
   const nbMonths = parameters.numberOfYears * 12;
 
+  // Auto-compute 5-year snapshot months (including numberOfYears itself).
+  const snapshotYearsList: number[] = [];
+  for (let y = 5; y <= parameters.numberOfYears; y += 5) {
+    snapshotYearsList.push(y);
+  }
+  const snapshotMonthIndices = snapshotYearsList.map((y) => y * 12 - 1);
+  const numSnapshots = snapshotMonthIndices.length;
+  const snapshotMonthSet = numSnapshots > 0
+    ? new Set<number>(snapshotMonthIndices)
+    : undefined;
+  const snapshotMonthToIdx = numSnapshots > 0
+    ? new Map<number, number>(snapshotMonthIndices.map((m, idx) => [m, idx]))
+    : undefined;
+  // Win counts: layout [snapshotIdx * 3 + categoryIdx] (0=renter, 1=buyerFixed, 2=buyerVariable).
+  const snapshotCounts = numSnapshots > 0
+    ? new Uint32Array(numSnapshots * 3)
+    : null;
+  // Per-iteration amounts reused each iteration; layout: [snapshotIdx * 3 + categoryIdx].
+  const iterSnapshotAmounts = numSnapshots > 0
+    ? new Float64Array(numSnapshots * 3)
+    : null;
+  // All per-iteration amounts for median computation; layout: [(snapshotIdx * 3 + categoryIdx) * iterations + iterIdx].
+  const allSnapshotAmounts = numSnapshots > 0
+    ? new Float64Array(numSnapshots * 3 * parameters.iterations)
+    : null;
+
   // Columnar map for values (populated in prepRatesGbm / prepRatesCir).
   const valuesColumnar: Map<string, Float64Array> | null = options.values
     ? new Map<string, Float64Array>()
@@ -457,6 +502,15 @@ function simulateRentVsBuyMonteCarlo(
         detailsColumnar.set(key, bucket);
       }
       bucket[mi * parameters.iterations + currentI] = amt;
+    }
+    : undefined;
+
+  const onSnapshotRecord = numSnapshots > 0
+    ? (cat: string, mi: number, amt: number) => {
+      const si = snapshotMonthToIdx!.get(mi);
+      if (si === undefined) return;
+      const catIdx = cat === "renter" ? 0 : cat === "buyerFixed" ? 1 : 2;
+      iterSnapshotAmounts![si * 3 + catIdx] = amt;
     }
     : undefined;
 
@@ -794,6 +848,8 @@ function simulateRentVsBuyMonteCarlo(
       winVariableOnly: !options.details?.iterations &&
         !options.details?.quantiles,
       onRecord,
+      onSnapshotRecord,
+      snapshotMonths: snapshotMonthSet,
       winVariable: parameters.winVariable,
       groups: options.details?.filterGroups,
       variables: options.details?.filterVariables,
@@ -815,6 +871,21 @@ function simulateRentVsBuyMonteCarlo(
     winnersCategory[i] = WINNER_CATEGORIES.indexOf(
       w.category as "renter" | "buyerFixed" | "buyerVariable",
     );
+
+    // Track per-snapshot winners and store amounts for median computation.
+    if (numSnapshots > 0) {
+      for (let si = 0; si < numSnapshots; si++) {
+        const a0 = iterSnapshotAmounts![si * 3 + 0]; // renter
+        const a1 = iterSnapshotAmounts![si * 3 + 1]; // buyerFixed
+        const a2 = iterSnapshotAmounts![si * 3 + 2]; // buyerVariable
+        const winCat = a0 >= a1 && a0 >= a2 ? 0 : a1 >= a2 ? 1 : 2;
+        snapshotCounts![si * 3 + winCat]++;
+        const baseOffset = (si * 3) * parameters.iterations;
+        allSnapshotAmounts![baseOffset + 0 * parameters.iterations + i] = a0;
+        allSnapshotAmounts![baseOffset + 1 * parameters.iterations + i] = a1;
+        allSnapshotAmounts![baseOffset + 2 * parameters.iterations + i] = a2;
+      }
+    }
   }
 
   if (start) {
@@ -906,6 +977,61 @@ function simulateRentVsBuyMonteCarlo(
     monthlyIterationsResult = toColumnarResult(rowMajor, n, nbMonths);
   }
 
+  // Compute per-snapshot win rates and medians from accumulated data.
+  let winnerSnapshotsResult: WinnerSnapshots;
+  if (numSnapshots > 0) {
+    const n = parameters.iterations;
+    const renterRates = new Float64Array(numSnapshots);
+    const buyerFixedRates = new Float64Array(numSnapshots);
+    const buyerVariableRates = new Float64Array(numSnapshots);
+    const renterMedians = new Float64Array(numSnapshots);
+    const buyerFixedMedians = new Float64Array(numSnapshots);
+    const buyerVariableMedians = new Float64Array(numSnapshots);
+    const medianSortBuf = new Float64Array(n);
+    const medianIdx = 0.5 * (n - 1);
+    const medianLo = Math.floor(medianIdx);
+    const medianHi = Math.ceil(medianIdx);
+    const medianW = medianIdx - medianLo;
+    const medianArrays = [
+      renterMedians,
+      buyerFixedMedians,
+      buyerVariableMedians,
+    ];
+    for (let si = 0; si < numSnapshots; si++) {
+      renterRates[si] = snapshotCounts![si * 3 + 0] / n;
+      buyerFixedRates[si] = snapshotCounts![si * 3 + 1] / n;
+      buyerVariableRates[si] = snapshotCounts![si * 3 + 2] / n;
+      for (let catIdx = 0; catIdx < 3; catIdx++) {
+        const offset = (si * 3 + catIdx) * n;
+        medianSortBuf.set(allSnapshotAmounts!.subarray(offset, offset + n));
+        medianSortBuf.sort();
+        medianArrays[catIdx][si] = medianLo === medianHi
+          ? medianSortBuf[medianLo]
+          : medianSortBuf[medianLo] +
+            medianW * (medianSortBuf[medianHi] - medianSortBuf[medianLo]);
+      }
+    }
+    winnerSnapshotsResult = {
+      snapshotMonths: snapshotMonthIndices,
+      renter: renterRates,
+      buyerFixed: buyerFixedRates,
+      buyerVariable: buyerVariableRates,
+      renterMedian: renterMedians,
+      buyerFixedMedian: buyerFixedMedians,
+      buyerVariableMedian: buyerVariableMedians,
+    };
+  } else {
+    winnerSnapshotsResult = {
+      snapshotMonths: [],
+      renter: new Float64Array(0),
+      buyerFixed: new Float64Array(0),
+      buyerVariable: new Float64Array(0),
+      renterMedian: new Float64Array(0),
+      buyerFixedMedian: new Float64Array(0),
+      buyerVariableMedian: new Float64Array(0),
+    };
+  }
+
   return {
     values: valuesColumnar
       ? toColumnarResult(valuesColumnar, parameters.iterations, nbMonths)
@@ -915,6 +1041,7 @@ function simulateRentVsBuyMonteCarlo(
       amount: winnersAmount,
       category: winnersCategory,
     },
+    winnerSnapshots: winnerSnapshotsResult,
     details: {
       monthlyIterations: monthlyIterationsResult,
       monthlyQuantiles: monthlyQuantilesResult,

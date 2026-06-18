@@ -47,6 +47,7 @@ import {
   decodeMonteCarloMonthlyQuantiles,
   decodeMonteCarloValues,
   decodeMonteCarloWinners,
+  decodeMonteCarloWinnerSnapshots,
 } from "./finance/decodeMonteCarloResults.ts";
 import type {
   BaseOptions,
@@ -57,6 +58,7 @@ import type {
   MqVariable,
   SimParams,
   WinnersColumnar,
+  WinnerSnapshots,
 } from "./finance/simulateRentVsBuyMonteCarlo.ts";
 import getLandTransferTax, { type City } from "./finance/getLandTransferTax.ts";
 export {
@@ -65,6 +67,7 @@ export {
   decodeMonteCarloMonthlyQuantiles,
   decodeMonteCarloValues,
   decodeMonteCarloWinners,
+  decodeMonteCarloWinnerSnapshots,
   getIncomeTax,
   getLandTransferTax,
   getMinimumDownPayment,
@@ -93,4 +96,5 @@ export type {
   StochasticData,
   StochasticVariable,
   WinnersColumnar,
+  WinnerSnapshots,
 };

@@ -298,6 +298,12 @@ export default function toResults(
   winVariable?: "balance" | "balanceAfterSelling" | "assets",
   groups?: string[],
   variables?: string[],
+  onSnapshotRecord?: (
+    category: string,
+    monthIndex: number,
+    amount: number,
+  ) => void,
+  snapshotMonths?: Set<number>,
 ) {
   const adj = (x: number) => r2(x * inflationMultiplier);
   const allowVar = (v: string) =>
@@ -580,29 +586,56 @@ export default function toResults(
         }
       }
     }
+    if (
+      onSnapshotRecord && snapshotMonths && snapshotMonths.has(monthIndex) &&
+      winVariable !== undefined
+    ) {
+      if (winVariable === "assets") {
+        const totals = computeTotals(persona, adj);
+        onSnapshotRecord(category, monthIndex, totals.assets);
+      } else {
+        onSnapshotRecord(
+          category,
+          monthIndex,
+          persona.summaryCumulative[winVariable],
+        );
+      }
+    }
     return;
   }
 
   if (winVariableOnly) {
-    if (monthIndex === numberOfMonths - 1) {
-      if (winVariable !== undefined) {
+    if (winVariable !== undefined) {
+      const isFinalMonth = monthIndex === numberOfMonths - 1;
+      const isSnapshotMonth = onSnapshotRecord !== undefined &&
+        snapshotMonths !== undefined && snapshotMonths.has(monthIndex);
+      if (isFinalMonth || isSnapshotMonth) {
         if (winVariable === "assets") {
           const totals = computeTotals(persona, adj);
-          results.push({
-            monthIndex,
-            amount: totals.assets,
-            category,
-            group: "totals",
-            variable: "assets",
-          });
+          if (isFinalMonth) {
+            results.push({
+              monthIndex,
+              amount: totals.assets,
+              category,
+              group: "totals",
+              variable: "assets",
+            });
+          }
+          if (isSnapshotMonth) {
+            onSnapshotRecord!(category, monthIndex, totals.assets);
+          }
         } else {
-          results.push({
-            monthIndex,
-            amount: persona.summaryCumulative[winVariable],
-            category,
-            group: "summaryCumulative",
-            variable: winVariable,
-          });
+          const amount = persona.summaryCumulative[winVariable];
+          if (isFinalMonth) {
+            results.push({
+              monthIndex,
+              amount,
+              category,
+              group: "summaryCumulative",
+              variable: winVariable,
+            });
+          }
+          if (isSnapshotMonth) onSnapshotRecord!(category, monthIndex, amount);
         }
       }
     }

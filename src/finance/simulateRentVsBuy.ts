@@ -234,6 +234,12 @@ export default function simulateRentVsBuy(
       monthIndex: number,
       amount: number,
     ) => void;
+    onSnapshotRecord?: (
+      category: string,
+      monthIndex: number,
+      amount: number,
+    ) => void;
+    snapshotMonths?: Set<number>;
     winVariable?: "balance" | "balanceAfterSelling" | "assets";
     groups?: string[];
     variables?: string[];
@@ -720,6 +726,13 @@ export default function simulateRentVsBuy(
     flooredRatesVariable[4] = Math.max(variableFloor, currentPostedRates[4]);
     flooredRatesVariable[5] = Math.max(variableFloor, currentPostedRates[5]);
 
+    // In winVariableOnly mode, computeSale and computeBalances are normally
+    // skipped for non-final months. However, snapshot months also need accurate
+    // sale/balance figures so that winnerSnapshots reads correct values.
+    const winVariableOnly = options.winVariableOnly ?? false;
+    const effectiveWinOnly = winVariableOnly &&
+      !(options.snapshotMonths?.has(monthIndex));
+
     computeSale(
       monthIndex,
       renter,
@@ -727,7 +740,7 @@ export default function simulateRentVsBuy(
       null,
       null,
       null,
-      options.winVariableOnly ?? false,
+      effectiveWinOnly,
       numberOfMonths,
       province,
       parameters.couple,
@@ -740,7 +753,7 @@ export default function simulateRentVsBuy(
       currentFixedMortgagePayment,
       flooredRatesFixed,
       "fixed",
-      options.winVariableOnly ?? false,
+      effectiveWinOnly,
       numberOfMonths,
       province,
       parameters.couple,
@@ -753,7 +766,7 @@ export default function simulateRentVsBuy(
       currentVariableMortgagePayment,
       flooredRatesVariable,
       "variable",
-      options.winVariableOnly ?? false,
+      effectiveWinOnly,
       numberOfMonths,
       province,
       parameters.couple,
@@ -763,21 +776,21 @@ export default function simulateRentVsBuy(
     // We compute the balances
     computeBalances(
       renter,
-      options.winVariableOnly ?? false,
+      effectiveWinOnly,
       monthIndex,
       numberOfMonths,
       inflationMultiplier,
     );
     computeBalances(
       buyerFixed,
-      options.winVariableOnly ?? false,
+      effectiveWinOnly,
       monthIndex,
       numberOfMonths,
       inflationMultiplier,
     );
     computeBalances(
       buyerVariable,
-      options.winVariableOnly ?? false,
+      effectiveWinOnly,
       monthIndex,
       numberOfMonths,
       inflationMultiplier,
@@ -798,6 +811,8 @@ export default function simulateRentVsBuy(
       options.winVariable,
       options.groups,
       options.variables,
+      options.onSnapshotRecord,
+      options.snapshotMonths,
     );
     toResults(
       "buyerFixed",
@@ -813,6 +828,8 @@ export default function simulateRentVsBuy(
       options.winVariable,
       options.groups,
       options.variables,
+      options.onSnapshotRecord,
+      options.snapshotMonths,
     );
     toResults(
       "buyerVariable",
@@ -828,6 +845,8 @@ export default function simulateRentVsBuy(
       options.winVariable,
       options.groups,
       options.variables,
+      options.onSnapshotRecord,
+      options.snapshotMonths,
     );
 
     // We increment the parameters for next month

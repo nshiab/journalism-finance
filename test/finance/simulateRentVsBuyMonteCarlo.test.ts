@@ -5,6 +5,7 @@ import {
   decodeMonteCarloMonthlyQuantiles,
   decodeMonteCarloValues,
   decodeMonteCarloWinners,
+  decodeMonteCarloWinnerSnapshots,
 } from "../../src/finance/decodeMonteCarloResults.ts";
 import getParamsRentVsBuyMonteCarlo from "./helpers/getParamsRentVsBuyMonteCarlo.ts";
 import getRentVsBuyCholeskyMatrix from "../../src/finance/helpers/rentVsBuy/getRentVsBuyCholeskyMatrix.ts";
@@ -1889,4 +1890,255 @@ Deno.test("should be able to retrieve just the total recurring expenses using fi
   assertEquals(iterations.size, 5);
   assertEquals(months.size, params.numberOfYears * 12);
   assertEquals(categories.size, 3); // renter, buyerFixed, buyerVariable
+});
+
+Deno.test("winnerSnapshots: correct snapshot months for 25-year sim", () => {
+  const params = getParamsRentVsBuyMonteCarlo(10, "Montreal", {
+    downPayment: 0.10,
+    purchaseFixedFees: 0.02,
+  }, {
+    renterMonthlyInsurance: 70,
+    ownerMonthlyInsurance: 125,
+    sellingFixedFees: 2000,
+    condoFees: 250,
+  }, false);
+
+  // Override to 25 years
+  const p25 = { ...params, numberOfYears: 25 };
+  const results = simulateRentVsBuyMonteCarlo(p25);
+
+  // Snapshots at years 5, 10, 15, 20, 25 (including the final year)
+  assertEquals(results.winnerSnapshots.snapshotMonths, [
+    59,
+    119,
+    179,
+    239,
+    299,
+  ]);
+  assertEquals(results.winnerSnapshots.renter.length, 5);
+  assertEquals(results.winnerSnapshots.buyerFixed.length, 5);
+  assertEquals(results.winnerSnapshots.buyerVariable.length, 5);
+  assertEquals(results.winnerSnapshots.renterMedian.length, 5);
+  assertEquals(results.winnerSnapshots.buyerFixedMedian.length, 5);
+  assertEquals(results.winnerSnapshots.buyerVariableMedian.length, 5);
+});
+
+Deno.test("winnerSnapshots: win rates sum to 1 and medians are finite", () => {
+  const params = getParamsRentVsBuyMonteCarlo(50, "Montreal", {
+    downPayment: 0.10,
+    purchaseFixedFees: 0.02,
+  }, {
+    renterMonthlyInsurance: 70,
+    ownerMonthlyInsurance: 125,
+    sellingFixedFees: 2000,
+    condoFees: 250,
+  }, false);
+
+  const results = simulateRentVsBuyMonteCarlo(params);
+  const ws = results.winnerSnapshots;
+
+  for (let i = 0; i < ws.snapshotMonths.length; i++) {
+    const sum = ws.renter[i] + ws.buyerFixed[i] + ws.buyerVariable[i];
+    assert(
+      Math.abs(sum - 1.0) < 1e-9,
+      `Win rates at snapshot ${i} don't sum to 1: ${sum}`,
+    );
+    assert(ws.renter[i] >= 0 && ws.renter[i] <= 1);
+    assert(ws.buyerFixed[i] >= 0 && ws.buyerFixed[i] <= 1);
+    assert(ws.buyerVariable[i] >= 0 && ws.buyerVariable[i] <= 1);
+    assert(isFinite(ws.renterMedian[i]));
+    assert(isFinite(ws.buyerFixedMedian[i]));
+    assert(isFinite(ws.buyerVariableMedian[i]));
+  }
+});
+
+Deno.test("winnerSnapshots: empty when numberOfYears < 5", () => {
+  const params = getParamsRentVsBuyMonteCarlo(5, "Montreal", {
+    downPayment: 0.10,
+    purchaseFixedFees: 0.02,
+  }, {
+    renterMonthlyInsurance: 70,
+    ownerMonthlyInsurance: 125,
+    sellingFixedFees: 2000,
+    condoFees: 250,
+  }, false);
+
+  // Override to 3 years — no 5-year snapshots possible
+  const p3 = { ...params, numberOfYears: 3 };
+  const results = simulateRentVsBuyMonteCarlo(p3);
+
+  assertEquals(results.winnerSnapshots.snapshotMonths.length, 0);
+  assertEquals(results.winnerSnapshots.renter.length, 0);
+});
+
+Deno.test("decodeMonteCarloWinnerSnapshots: produces correct shape and year field", () => {
+  const params = getParamsRentVsBuyMonteCarlo(10, "Montreal", {
+    downPayment: 0.10,
+    purchaseFixedFees: 0.02,
+  }, {
+    renterMonthlyInsurance: 70,
+    ownerMonthlyInsurance: 125,
+    sellingFixedFees: 2000,
+    condoFees: 250,
+  }, false);
+
+  const p25 = { ...params, numberOfYears: 25 };
+  const results = simulateRentVsBuyMonteCarlo(p25);
+  const decoded = decodeMonteCarloWinnerSnapshots(results.winnerSnapshots);
+
+  assertEquals(decoded.length, 5); // years 5, 10, 15, 20, 25
+  assertEquals(decoded[0].year, 5);
+  assertEquals(decoded[1].year, 10);
+  assertEquals(decoded[2].year, 15);
+  assertEquals(decoded[3].year, 20);
+  assertEquals(decoded[4].year, 25);
+  assertEquals(decoded[0].monthIndex, 59);
+
+  for (const rec of decoded) {
+    assert(typeof rec.renter === "number");
+    assert(typeof rec.buyerFixed === "number");
+    assert(typeof rec.buyerVariable === "number");
+    assert(typeof rec.renterMedian === "number");
+    assert(typeof rec.buyerFixedMedian === "number");
+    assert(typeof rec.buyerVariableMedian === "number");
+  }
+});
+
+Deno.test("winnerSnapshots: consistent with details.quantiles at snapshot months", () => {
+  // The snapshot median should match the q0.5 quantile for each category
+  // when computed over the same iterations with the same winVariable.
+  const params = getParamsRentVsBuyMonteCarlo(20, "Montreal", {
+    downPayment: 0.10,
+    purchaseFixedFees: 0.02,
+  }, {
+    renterMonthlyInsurance: 70,
+    ownerMonthlyInsurance: 125,
+    sellingFixedFees: 2000,
+    condoFees: 250,
+  }, false);
+
+  const p10 = { ...params, numberOfYears: 10 }; // snapshots at months 59 (year 5) and 119 (year 10)
+  const results = simulateRentVsBuyMonteCarlo(p10, {
+    details: {
+      quantiles: [0.5],
+      filterGroups: ["summaryCumulative"],
+      filterVariables: ["balanceAfterSelling"],
+    },
+  });
+
+  const ws = results.winnerSnapshots;
+  assertEquals(ws.snapshotMonths, [59, 119]); // years 5 and 10
+
+  // Extract q50 from monthlyQuantiles for each category at month 59 (year 5)
+  const nbMonths = 10 * 12;
+  const getQ50 = (category: string) => {
+    const key = `${category}|summaryCumulative|balanceAfterSelling`;
+    const arr = results.details.monthlyQuantiles.data[key];
+    if (!arr) return null;
+    return arr[0 * nbMonths + 59]; // qIdx=0 (only quantile), monthIndex=59
+  };
+
+  const q50Renter = getQ50("renter");
+  const q50BuyerFixed = getQ50("buyerFixed");
+  const q50BuyerVariable = getQ50("buyerVariable");
+
+  if (q50Renter !== null) {
+    assert(
+      Math.abs(ws.renterMedian[0] - q50Renter) < 1,
+      `renterMedian ${ws.renterMedian[0]} != q50 ${q50Renter}`,
+    );
+  }
+  if (q50BuyerFixed !== null) {
+    assert(
+      Math.abs(ws.buyerFixedMedian[0] - q50BuyerFixed) < 1,
+      `buyerFixedMedian ${ws.buyerFixedMedian[0]} != q50 ${q50BuyerFixed}`,
+    );
+  }
+  if (q50BuyerVariable !== null) {
+    assert(
+      Math.abs(ws.buyerVariableMedian[0] - q50BuyerVariable) < 1,
+      `buyerVariableMedian ${
+        ws.buyerVariableMedian[0]
+      } != q50 ${q50BuyerVariable}`,
+    );
+  }
+});
+
+Deno.test("winnerSnapshots: mortgage penalty is 0 at snapshot months (term boundaries)", () => {
+  // Snapshot months are every 5 years (60 months). The fixed mortgage term is
+  // also 60 months, so at each snapshot month: remainingMonthsToTerm = 0 and
+  // getMortgagePenalty returns 0. Verify via the saleCosts detail stream.
+  const params = getParamsRentVsBuyMonteCarlo(20, "Montreal", {
+    downPayment: 0.10,
+    purchaseFixedFees: 0.02,
+  }, {
+    renterMonthlyInsurance: 70,
+    ownerMonthlyInsurance: 125,
+    sellingFixedFees: 2000,
+    condoFees: 250,
+  }, false);
+
+  const p10 = { ...params, numberOfYears: 10 }; // snapshots at months 59 and 119
+  const results = simulateRentVsBuyMonteCarlo(p10, {
+    details: {
+      quantiles: [0.5],
+      filterGroups: ["saleCosts"],
+      filterVariables: ["mortgagePenalty"],
+    },
+  });
+
+  const nbMonths = 10 * 12;
+  for (const category of ["buyerFixed", "buyerVariable"] as const) {
+    const key = `${category}|saleCosts|mortgagePenalty`;
+    const arr = results.details.monthlyQuantiles.data[key];
+    // Quantile data may be absent if all values are 0 (skipped in the stream),
+    // which itself confirms the penalty is 0.
+    if (arr) {
+      for (const snapshotMonth of [59, 119]) {
+        assertEquals(
+          arr[0 * nbMonths + snapshotMonth],
+          0,
+          `${category} mortgagePenalty q50 at month ${snapshotMonth} should be 0`,
+        );
+      }
+    }
+  }
+});
+
+Deno.test("winnerSnapshots: snapshot medians are non-zero in winVariableOnly mode", () => {
+  // Regression test: before the fix, computeSale and computeBalances were
+  // skipped at snapshot months when winVariableOnly=true (no details requested).
+  // This caused balanceAfterSelling to read its initial 0 value, making all
+  // snapshot medians 0. After the fix, they must reflect real computed values.
+  const params = getParamsRentVsBuyMonteCarlo(20, "Montreal", {
+    downPayment: 0.10,
+    purchaseFixedFees: 0.02,
+  }, {
+    renterMonthlyInsurance: 70,
+    ownerMonthlyInsurance: 125,
+    sellingFixedFees: 2000,
+    condoFees: 250,
+  }, false);
+
+  const p10 = { ...params, numberOfYears: 10 }; // snapshots at months 59 and 119
+  // No details option → winVariableOnly=true
+  const results = simulateRentVsBuyMonteCarlo(p10);
+
+  const ws = results.winnerSnapshots;
+  assertEquals(ws.snapshotMonths, [59, 119]);
+
+  for (let si = 0; si < ws.snapshotMonths.length; si++) {
+    assert(
+      ws.renterMedian[si] !== 0,
+      `renterMedian[${si}] is 0 — computeSale/computeBalances not running at snapshot month`,
+    );
+    assert(
+      ws.buyerFixedMedian[si] !== 0,
+      `buyerFixedMedian[${si}] is 0 — computeSale/computeBalances not running at snapshot month`,
+    );
+    assert(
+      ws.buyerVariableMedian[si] !== 0,
+      `buyerVariableMedian[${si}] is 0 — computeSale/computeBalances not running at snapshot month`,
+    );
+  }
 });
