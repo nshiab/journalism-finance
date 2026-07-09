@@ -179,9 +179,10 @@ function decodeMonteCarloWinners(
 Decodes a `winnerSnapshots` result into a flat record array.
 
 Each record represents one 5-year checkpoint (strictly before `numberOfYears`).
-`renter`, `buyerFixed`, and `buyerVariable` are win rates in the range [0, 1]
-and sum to 1. The median fields hold the median `winVariable` amount for that
-category at the checkpoint.
+`renter`, `buyerFixed`, and `buyerVariable` are win rates strictly in the range
+[0.01, 0.98] (smoothed to [0.01, 0.01, 0.98] in extreme scenarios) and sum to 1.
+The median fields hold the median `winVariable` amount for that category at the
+checkpoint.
 
 ### Signature
 
@@ -1669,6 +1670,12 @@ object-array shapes.
 - `winners`: A `WinnersColumnar` with `monthIndex`, `amount` (`Float64Array`)
   and `category` (`Uint8Array`) indicating which scenario won each iteration.
   Decode with `decodeMonteCarloWinners`.
+- `winnerSnapshots`: A `WinnerSnapshots` containing per-checkpoint win rates and
+  median amounts. Win rates are clipped/smoothed to the range `[0.01, 0.98]`
+  (for a single dominant winner, with other scenarios receiving 1% each,
+  yielding `[0.01, 0.01, 0.98]`) so they never return exactly 0% or 100%,
+  reflecting unmodeled tail risks and preventing deterministic misinterpretation
+  of statistical estimates.
 - `values`: A `ColumnarResult` with stochastic path values per iteration
   (enabled with `options.values`). Decode with `decodeMonteCarloValues`.
 - `details.monthlyIterations`: A `ColumnarResult` with raw monthly records per
