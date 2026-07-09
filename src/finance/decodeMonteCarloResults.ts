@@ -152,7 +152,7 @@ export function decodeMonteCarloMonthlyQuantiles(
  * Decodes a `winnerSnapshots` result into a flat record array.
  *
  * Each record represents one 5-year checkpoint (strictly before `numberOfYears`).
- * `renter`, `buyerFixed`, and `buyerVariable` are win rates in the range [0, 1] and sum to 1.
+ * `renter`, `buyerFixed`, and `buyerVariable` are win rates strictly in the range [0.01, 0.98] (smoothed to [0.01, 0.01, 0.98] in extreme scenarios) and sum to 1.
  * The median fields hold the median `winVariable` amount for that category at the checkpoint.
  */
 export function decodeMonteCarloWinnerSnapshots(

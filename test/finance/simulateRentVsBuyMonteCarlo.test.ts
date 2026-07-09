@@ -2142,3 +2142,35 @@ Deno.test("winnerSnapshots: snapshot medians are non-zero in winVariableOnly mod
     );
   }
 });
+
+Deno.test("winnerSnapshots: win rates are clipped to [0.01, 0.01, 0.98] in extreme scenarios", () => {
+  const params = getParamsRentVsBuyMonteCarlo(50, "Montreal", {
+    downPayment: 0.10,
+    purchaseFixedFees: 0.02,
+  }, {
+    renterMonthlyInsurance: 70,
+    ownerMonthlyInsurance: 125,
+    sellingFixedFees: 2000,
+    condoFees: 250,
+  }, false);
+
+  // Setting extremely high rent so renter has 0% chance, making buying win every single time.
+  params.stochasticParameters.rent.initialValue = 10000000;
+
+  const results = simulateRentVsBuyMonteCarlo(params);
+  const ws = results.winnerSnapshots;
+
+  for (let i = 0; i < ws.snapshotMonths.length; i++) {
+    // Assert that the renter win rate (0% raw) is clipped to 1% (0.01)
+    assertEquals(ws.renter[i], 0.01);
+
+    // Assert that no rate is greater than 0.99 (or 0.98 after redistribution)
+    assert(ws.buyerFixed[i] <= 0.99);
+    assert(ws.buyerVariable[i] <= 0.99);
+    assert(ws.buyerFixed[i] >= 0.01);
+    assert(ws.buyerVariable[i] >= 0.01);
+
+    const sum = ws.renter[i] + ws.buyerFixed[i] + ws.buyerVariable[i];
+    assertEquals(Number(sum.toFixed(10)), 1.0);
+  }
+});

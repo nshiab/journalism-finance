@@ -7,6 +7,7 @@ import {
   stepGbm,
 } from "@nshiab/journalism-statistics";
 import randNormal from "./helpers/rentVsBuy/randNormal.ts";
+import clipRates from "./helpers/rentVsBuy/clipRates.ts";
 import type { City } from "./getLandTransferTax.ts";
 
 /** Flat-matrix result for transferable output. `data[key][row * cols + col]`. */
@@ -107,9 +108,23 @@ export type WinnersColumnar = {
 export type WinnerSnapshots = {
   /** Month indices of each snapshot (e.g. `[59, 119, 179, 239, 299]` for a 25-year sim, i.e. end of years 5, 10, 15, 20, 25). */
   snapshotMonths: number[];
-  /** Fraction of iterations (0–1) where each category had the highest `winVariable` at this checkpoint. */
+  /**
+   * Fraction of iterations (strictly in the range [0.01, 0.98]) where the renter scenario
+   * had the highest `winVariable` at this checkpoint. Win rates are clipped/smoothed to reflect
+   * unmodeled tail risks and prevent deterministic misinterpretation (e.g., [1.0, 0.0, 0.0] becomes [0.98, 0.01, 0.01]).
+   */
   renter: Float64Array;
+  /**
+   * Fraction of iterations (strictly in the range [0.01, 0.98]) where the buyerFixed scenario
+   * had the highest `winVariable` at this checkpoint. Win rates are clipped/smoothed to reflect
+   * unmodeled tail risks and prevent deterministic misinterpretation (e.g., [1.0, 0.0, 0.0] becomes [0.98, 0.01, 0.01]).
+   */
   buyerFixed: Float64Array;
+  /**
+   * Fraction of iterations (strictly in the range [0.01, 0.98]) where the buyerVariable scenario
+   * had the highest `winVariable` at this checkpoint. Win rates are clipped/smoothed to reflect
+   * unmodeled tail risks and prevent deterministic misinterpretation (e.g., [1.0, 0.0, 0.0] becomes [0.98, 0.01, 0.01]).
+   */
   buyerVariable: Float64Array;
   /** Median `winVariable` amount for each category at each snapshot. */
   renterMedian: Float64Array;
@@ -335,6 +350,7 @@ export type BaseOptions = {
  *
  * @returns An object with all large arrays in columnar format (flat `Float64Array` matrices, transferable via `postMessage`). Use `decodeMonteCarloWinners`, `decodeMonteCarloValues`, `decodeMonteCarloMonthlyIterations`, and `decodeMonteCarloMonthlyQuantiles` from `@nshiab/journalism-finance` to restore object-array shapes.
  *   - `winners`: A `WinnersColumnar` with `monthIndex`, `amount` (`Float64Array`) and `category` (`Uint8Array`) indicating which scenario won each iteration. Decode with `decodeMonteCarloWinners`.
+ *   - `winnerSnapshots`: A `WinnerSnapshots` containing per-checkpoint win rates and median amounts. Win rates are clipped/smoothed to the range `[0.01, 0.98]` (for a single dominant winner, with other scenarios receiving 1% each, yielding `[0.01, 0.01, 0.98]`) so they never return exactly 0% or 100%, reflecting unmodeled tail risks and preventing deterministic misinterpretation of statistical estimates.
  *   - `values`: A `ColumnarResult` with stochastic path values per iteration (enabled with `options.values`). Decode with `decodeMonteCarloValues`.
  *   - `details.monthlyIterations`: A `ColumnarResult` with raw monthly records per iteration (enabled with `options.details.iterations`). Decode with `decodeMonteCarloMonthlyIterations`.
  *   - `details.monthlyQuantiles`: A `ColumnarResult` with pre-computed quantile summaries (enabled with `options.details.quantiles`). Decode with `decodeMonteCarloMonthlyQuantiles`.
@@ -998,9 +1014,19 @@ function simulateRentVsBuyMonteCarlo(
       buyerVariableMedians,
     ];
     for (let si = 0; si < numSnapshots; si++) {
-      renterRates[si] = snapshotCounts![si * 3 + 0] / n;
-      buyerFixedRates[si] = snapshotCounts![si * 3 + 1] / n;
-      buyerVariableRates[si] = snapshotCounts![si * 3 + 2] / n;
+      const rawRenter = snapshotCounts![si * 3 + 0] / n;
+      const rawBuyerFixed = snapshotCounts![si * 3 + 1] / n;
+      const rawBuyerVariable = snapshotCounts![si * 3 + 2] / n;
+
+      const [cRenter, cBuyerFixed, cBuyerVariable] = clipRates(
+        rawRenter,
+        rawBuyerFixed,
+        rawBuyerVariable,
+      );
+
+      renterRates[si] = cRenter;
+      buyerFixedRates[si] = cBuyerFixed;
+      buyerVariableRates[si] = cBuyerVariable;
       for (let catIdx = 0; catIdx < 3; catIdx++) {
         const offset = (si * 3 + catIdx) * n;
         medianSortBuf.set(allSnapshotAmounts!.subarray(offset, offset + n));
