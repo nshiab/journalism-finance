@@ -1,25 +1,33 @@
 {
   "version": "5",
   "specifiers": {
-    "jsr:@nshiab/journalism-format@^1.1.5": "1.1.5",
-    "jsr:@nshiab/journalism-statistics@^1.5.1": "1.5.1",
+    "jsr:@nshiab/bump-version@*": "0.1.4",
+    "jsr:@nshiab/deno-docs-to-md@*": "0.1.12",
+    "jsr:@nshiab/journalism-format@^1.1.9": "1.1.9",
+    "jsr:@nshiab/journalism-statistics@^1.5.5": "1.5.5",
     "jsr:@std/assert@*": "1.0.16",
     "jsr:@std/internal@^1.0.12": "1.0.12",
     "npm:d3-array@^3.2.4": "3.2.4",
     "npm:d3-dsv@^3.0.1": "3.0.1",
-    "npm:date-fns-tz@^3.2.0": "3.2.0_date-fns@4.1.0",
+    "npm:date-fns-tz@^3.2.0": "3.2.0_date-fns@4.4.0",
     "npm:jstat@^1.9.6": "1.9.6"
   },
   "jsr": {
-    "@nshiab/journalism-format@1.1.5": {
-      "integrity": "4aae8d0b6801e81506575df44b711c40a435991ff1e297de1052ab841c6eecc5",
+    "@nshiab/bump-version@0.1.4": {
+      "integrity": "f00c57584240d658426fa7b5b5b12eb14c0ecebcf360daf7ca1033946e60ba29"
+    },
+    "@nshiab/deno-docs-to-md@0.1.12": {
+      "integrity": "bfd7872bc6631b071c2785f29bf1fcfd9c5d69ecd109ea45afe912379ef58292"
+    },
+    "@nshiab/journalism-format@1.1.9": {
+      "integrity": "57614fcd2752f7615ff66874be24039c40b61dbcd4e14ec49b9a7f3ef24b7a58",
       "dependencies": [
         "npm:d3-dsv",
         "npm:date-fns-tz"
       ]
     },
-    "@nshiab/journalism-statistics@1.5.1": {
-      "integrity": "9e56a5c15a45810b36dd75a57eb3564fc3448d2faf5845bafc09e0ac2dc73c8d",
+    "@nshiab/journalism-statistics@1.5.5": {
+      "integrity": "c81f6474c712394be5b173638b2caecad2908d0b95de3ae5fd24914ea824c52d",
       "dependencies": [
         "npm:jstat"
       ]
@@ -53,14 +61,14 @@
       ],
       "bin": true
     },
-    "date-fns-tz@3.2.0_date-fns@4.1.0": {
+    "date-fns-tz@3.2.0_date-fns@4.4.0": {
       "integrity": "sha512-sg8HqoTEulcbbbVXeg84u5UnlsQa8GS5QXMqjjYIhS4abEVVKIUwe0/l/UhrZdKaL/W5eWZNlbTeEIiOXTcsBQ==",
       "dependencies": [
         "date-fns"
       ]
     },
-    "date-fns@4.1.0": {
-      "integrity": "sha512-Ukq0owbQXxa/U3EGtsdVBkR1w7KOQ5gIBqdH2hkvknzZPYvBxb/aa6E8L7tmjFtkwZBu3UXBbjIgPo/Ez4xaNg=="
+    "date-fns@4.4.0": {
+      "integrity": "sha512-+1UMbeh68lH1SegH83CGWwpb6OHHbpSgr3+s5Eww5M4CAgswBpoWS0AjTOfEJ33HiYKz1hdj/KTFprzXHmq/6w=="
     },
     "iconv-lite@0.6.3": {
       "integrity": "sha512-4fCk79wshMdzMp2rH06qWrJE4iolqLhCUH+OiuIgU++RB0+94NlDL81atO7GX55uUKueo0txHNtvEyI6D7WdMw==",
@@ -122,8 +130,8 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@nshiab/journalism-format@^1.1.5",
-      "jsr:@nshiab/journalism-statistics@^1.5.1",
+      "jsr:@nshiab/journalism-format@^1.1.9",
+      "jsr:@nshiab/journalism-statistics@^1.5.5",
       "npm:d3-array@^3.2.4"
     ]
   }

@@ -1,6 +1,6 @@
 {
   "name": "@nshiab/journalism-finance",
-  "version": "1.5.41",
+  "version": "1.5.42",
   "description": "Useful TypeScript functions for journalism projects. This library focuses on financial calculations and data fetching.",
   "repository": "https://github.com/nshiab/journalism-finance",
   "license": "MIT",
@@ -28,8 +28,8 @@
   },
   "nodeModulesDir": "auto",
   "imports": {
-    "@nshiab/journalism-format": "jsr:@nshiab/journalism-format@^1.1.5",
-    "@nshiab/journalism-statistics": "jsr:@nshiab/journalism-statistics@^1.5.1",
+    "@nshiab/journalism-format": "jsr:@nshiab/journalism-format@^1.1.9",
+    "@nshiab/journalism-statistics": "jsr:@nshiab/journalism-statistics@^1.5.5",
     "d3-array": "npm:d3-array@^3.2.4"
   },
   "compilerOptions": {
