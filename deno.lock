@@ -4,10 +4,9 @@
     "jsr:@nshiab/bump-version@*": "0.1.4",
     "jsr:@nshiab/bump-version@0.1.4": "0.1.4",
     "jsr:@nshiab/deno-docs-to-md@*": "0.1.12",
-    "jsr:@nshiab/journalism-statistics@^1.5.5": "1.5.5",
+    "jsr:@nshiab/journalism-statistics@^1.5.7": "1.5.7",
     "jsr:@std/assert@*": "1.0.16",
-    "jsr:@std/internal@^1.0.12": "1.0.12",
-    "npm:jstat@^1.9.6": "1.9.6"
+    "jsr:@std/internal@^1.0.12": "1.0.12"
   },
   "jsr": {
     "@nshiab/bump-version@0.1.4": {
@@ -16,11 +15,8 @@
     "@nshiab/deno-docs-to-md@0.1.12": {
       "integrity": "bfd7872bc6631b071c2785f29bf1fcfd9c5d69ecd109ea45afe912379ef58292"
     },
-    "@nshiab/journalism-statistics@1.5.5": {
-      "integrity": "c81f6474c712394be5b173638b2caecad2908d0b95de3ae5fd24914ea824c52d",
-      "dependencies": [
-        "npm:jstat"
-      ]
+    "@nshiab/journalism-statistics@1.5.7": {
+      "integrity": "6eb098392441a9789734e4729ddabbf81e98422d6f228477778a2f1b6fc84381"
     },
     "@std/assert@1.0.16": {
       "integrity": "6a7272ed1eaa77defe76e5ff63ca705d9c495077e2d5fd0126d2b53fc5bd6532",
@@ -30,11 +26,6 @@
     },
     "@std/internal@1.0.12": {
       "integrity": "972a634fd5bc34b242024402972cd5143eac68d8dffaca5eaa4dba30ce17b027"
-    }
-  },
-  "npm": {
-    "jstat@1.9.6": {
-      "integrity": "sha512-rPBkJbK2TnA8pzs93QcDDPlKcrtZWuuCo2dVR0TFLOJSxhqfWOVCSp8aV3/oSbn+4uY4yw1URtLpHQedtmXfug=="
     }
   },
   "redirects": {
@@ -78,7 +69,7 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@nshiab/journalism-statistics@^1.5.5"
+      "jsr:@nshiab/journalism-statistics@^1.5.7"
     ]
   }
 }
