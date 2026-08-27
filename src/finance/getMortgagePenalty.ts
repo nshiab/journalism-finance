@@ -1,4 +1,4 @@
-import { round } from "@nshiab/journalism-format";
+import { round } from "./helpers/format.ts";
 
 const R2 = { decimals: 2 };
 

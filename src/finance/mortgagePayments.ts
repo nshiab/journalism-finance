@@ -1,4 +1,4 @@
-import { round } from "@nshiab/journalism-format";
+import { round } from "./helpers/format.ts";
 
 /**
  * Calculates and returns a detailed schedule of fixed-rate mortgage payments. This function is designed to provide a comprehensive breakdown of each payment, including the principal and interest portions, remaining balance, and cumulative amounts paid. It adheres to Canadian mortgage regulations, which typically require semi-annual compounding, but allows for customization of the compounding frequency.

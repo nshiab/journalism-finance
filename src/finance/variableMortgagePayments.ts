@@ -1,4 +1,4 @@
-import { round } from "@nshiab/journalism-format";
+import { round } from "./helpers/format.ts";
 
 /**
  * Calculates and returns a detailed schedule of variable-rate monthly mortgage payments (VRM). This function models a Variable Rate Mortgage where the payment amount stays FIXED for the term, but rate changes affect how much goes to interest vs. principal. If rates rise too high, payments may not cover interest, causing negative amortization (balance increases).

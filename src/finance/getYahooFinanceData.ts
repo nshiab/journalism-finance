@@ -1,4 +1,4 @@
-import { arraysToData } from "@nshiab/journalism-format";
+import { arraysToData } from "./helpers/format.ts";
 
 /**
  * Fetches historical financial data for a given stock symbol from Yahoo Finance. This function provides a convenient way to access various financial metrics (e.g., open, high, low, close, adjusted close, volume) at specified intervals (daily, hourly, or minute-by-minute).

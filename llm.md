@@ -415,12 +415,18 @@ The calculation follows the Financial Consumer Agency of Canada (FCAC) rules:
 ### Signature
 
 ```typescript
-function getMinimumDownPayment(purchasePrice: number): number;
+function getMinimumDownPayment(
+  purchasePrice: number,
+  options?: { decimals?: number },
+): number;
 ```
 
 ### Parameters
 
 - **`purchasePrice`**: The total price of the property being purchased.
+- **`options`**: Additional calculation options.
+- **`options.decimals`**: The number of decimal places to round the result to.
+  By default, the result is not rounded.
 
 ### Returns
 
@@ -440,6 +446,10 @@ console.log(downPayment600k); // 35000
 // Minimum down payment for a $1,600,000 home (20%)
 const downPayment1600k = getMinimumDownPayment(1_600_000);
 console.log(downPayment1600k); // 320000
+
+// Round the result to two decimal places
+const downPaymentWithDecimals = getMinimumDownPayment(123.456, { decimals: 2 });
+console.log(downPaymentWithDecimals); // 6.17
 ```
 
 Reference:

@@ -1,4 +1,4 @@
-import { round } from "@nshiab/journalism-format";
+import { round } from "../format.ts";
 import mortgagePayments from "../../mortgagePayments.ts";
 import variableMortgagePayments from "../../variableMortgagePayments.ts";
 

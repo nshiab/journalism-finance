@@ -1,4 +1,4 @@
-import { prettyDuration } from "@nshiab/journalism-format";
+import { prettyDuration } from "./helpers/format.ts";
 import simulateRentVsBuy, { type RentVsBuyRates } from "./simulateRentVsBuy.ts";
 import getMinimumDownPayment from "./getMinimumDownPayment.ts";
 import {

@@ -30,3 +30,18 @@ Deno.test("should return 20% for purchase price of $1,600,000", () => {
   const result = getMinimumDownPayment(1_600_000);
   assertEquals(result, 320_000);
 });
+
+Deno.test("should preserve decimal precision by default", () => {
+  const result = getMinimumDownPayment(123.456);
+  assertEquals(result, 123.456 * 0.05);
+});
+
+Deno.test("should round to the requested number of decimal places", () => {
+  const result = getMinimumDownPayment(123.456, { decimals: 2 });
+  assertEquals(result, 6.17);
+});
+
+Deno.test("should support rounding to a whole number", () => {
+  const result = getMinimumDownPayment(499_999, { decimals: 0 });
+  assertEquals(result, 25_000);
+});

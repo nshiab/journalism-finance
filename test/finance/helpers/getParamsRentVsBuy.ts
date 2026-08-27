@@ -1,4 +1,4 @@
-import { round } from "@nshiab/journalism-format";
+import { round } from "../../../src/finance/helpers/format.ts";
 import adjustToInflation from "../../../src/finance/adjustToInflation.ts";
 import allRates from "../../data/allRates.json" with { type: "json" };
 import {

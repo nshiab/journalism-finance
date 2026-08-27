@@ -1,7 +1,7 @@
 import { assert, assertEquals } from "jsr:@std/assert";
 import simulateRentVsBuy from "../../src/finance/simulateRentVsBuy.ts";
 import getParams from "./helpers/getParamsRentVsBuy.ts";
-import { round } from "@nshiab/journalism-format";
+import { round } from "../../src/finance/helpers/format.ts";
 
 const numberOfYears = 25;
 
