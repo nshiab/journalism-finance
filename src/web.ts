@@ -23,14 +23,19 @@ import adjustToInflation from "./finance/adjustToInflation.ts";
 import mortgagePayments from "./finance/mortgagePayments.ts";
 import mortgageInsurancePremium from "./finance/mortgageInsurancePremium.ts";
 import mortgageMaxAmount from "./finance/mortgageMaxAmount.ts";
+import getMinimumDownPayment from "./finance/getMinimumDownPayment.ts";
+import getMortgageInsuranceTax from "./finance/getMortgageInsuranceTax.ts";
 import variableMortgagePayments from "./finance/variableMortgagePayments.ts";
-import simulateRentVsBuy from "./finance/simulateRentVsBuy.ts";
+import simulateRentVsBuy, {
+  type RentVsBuyRates,
+} from "./finance/simulateRentVsBuy.ts";
 import simulateRentVsBuyMonteCarlo, {
   WINNER_CATEGORIES,
 } from "./finance/simulateRentVsBuyMonteCarlo.ts";
 import getMortgagePenalty from "./finance/getMortgagePenalty.ts";
 import getRentVsBuyCholeskyMatrix from "./finance/helpers/rentVsBuy/getRentVsBuyCholeskyMatrix.ts";
 import getSalesTax from "./finance/getSalesTax.ts";
+import type { Province } from "./finance/getSalesTax.ts";
 import getIncomeTax from "./finance/getIncomeTax.ts";
 import {
   decodeMonteCarloMonthlyIterations,
@@ -54,7 +59,7 @@ import type {
   StochasticData,
   StochasticVariable,
 } from "./finance/helpers/rentVsBuy/getRentVsBuyCholeskyMatrix.ts";
-import getLandTransferTax from "./finance/getLandTransferTax.ts";
+import getLandTransferTax, { type City } from "./finance/getLandTransferTax.ts";
 
 export {
   adjustToInflation,
@@ -65,6 +70,8 @@ export {
   decodeMonteCarloWinnerSnapshots,
   getIncomeTax,
   getLandTransferTax,
+  getMinimumDownPayment,
+  getMortgageInsuranceTax,
   getMortgagePenalty,
   getRentVsBuyCholeskyMatrix,
   getSalesTax,
@@ -79,11 +86,14 @@ export {
 
 export type {
   BaseOptions,
+  City,
   ColumnarResult,
   ColumnarReturn,
   MqCategory,
   MqGroup,
   MqVariable,
+  Province,
+  RentVsBuyRates,
   SimParams,
   StochasticData,
   StochasticVariable,

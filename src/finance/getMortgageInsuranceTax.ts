@@ -11,7 +11,14 @@ import type { Province } from "./getSalesTax.ts";
  *
  * @param insurancePremium - The total mortgage insurance premium amount.
  * @param province - The province or territory.
- * @returns The tax amount rounded to the nearest integer.
+ * @returns The tax amount rounded to two decimal places.
+ *
+ * @example
+ * ```ts
+ * const tax = getMortgageInsuranceTax(19_000, "Ontario");
+ * console.log(tax); // 1520
+ * ```
+ * @category Finance
  */
 export default function getMortgageInsuranceTax(
   insurancePremium: number,

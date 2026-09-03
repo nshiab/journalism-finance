@@ -51,6 +51,10 @@ function adjustToInflation(
   adjusted amount should be rounded. If not specified, the result will not be
   rounded.
 
+### Throws
+
+- **`RangeError`**: If either CPI value is not a positive finite number.
+
 ### Examples
 
 ```ts
@@ -340,43 +344,46 @@ capital gains tax baked into them. Summing all itemized deductions plus
 
 ### Examples
 
-// Basic scenario: $100k employment income in Ontario getIncomeTax(100000,
-"Ontario", 2025);
+```ts
+// Basic scenario: $100k employment income in Ontario
+getIncomeTax(100000, "Ontario", 2025);
+```
 
-// With options: $80k employment income in Quebec, with $10k RRSP contribution
-and $5k Capital Gains, excluding RAMQ getIncomeTax(80000, "Quebec", 2025, {
-rrsp: 10000, capitalGains: 5000, quebec: { ramq: false } });
+```ts
+// With options: $80k employment income in Quebec, with $10k RRSP contribution and $5k Capital Gains, excluding RAMQ
+getIncomeTax(80000, "Quebec", 2025, {
+  rrsp: 10000,
+  capitalGains: 5000,
+  quebec: { ramq: false },
+});
+```
 
 ## getLandTransferTax
 
 Calculates the standard Land Transfer Tax (or equivalent registration fee) for a
 given city and property value based on 2026 tax frameworks.
 
--
-  - **Rebate Limitations and Exclusions:** The `firstTimeOwner` parameter
-    applies structural, point-of-sale land transfer tax rebates assuming the
-    buyer meets all idealized programmatic criteria (e.g., absolute zero global
-    ownership history, Canadian citizenship/PR, and continuous provincial
-    residency).
--
-  - The following rebates and subsidies are INTENTIONALLY EXCLUDED from this
-    calculation:
+**Rebate Limitations and Exclusions:** The `firstTimeOwner` parameter applies
+structural, point-of-sale land transfer tax rebates assuming the buyer meets all
+idealized programmatic criteria (e.g., absolute zero global ownership history,
+Canadian citizenship/PR, and continuous provincial residency).
 
-* **Nova Scotia:** The First-Time Home Buyers Rebate is excluded because it is
+The following rebates and subsidies are intentionally excluded from this
+calculation:
+
+- **Nova Scotia:** The First-Time Home Buyers Rebate is excluded because it is
   restricted exclusively to a refund on the provincial portion of the HST for
   _newly built_ properties, not the 1.5% municipal Deed Transfer Tax calculated
   here.
-* **Montreal (HPAP) & Quebec City (Programme Accès Famille):** Excluded because
+- **Montreal (HPAP) & Quebec City (Programme Accès Famille):** Excluded because
   they operate as localized financial grants or down payment assistance loans
   requiring specific household compositions (e.g., dependents under 18) or
   new-build environmental certifications, rather than structural tax base
   reductions.
-* **Manitoba & Quebec (2026 Provincial):** Excluded because their respective
+- **Manitoba & Quebec (2026 Provincial):** Excluded because their respective
   FTHB relief amounts are general income tax credits claimed on annual tax
   returns in the spring/fall, not an upfront point-of-sale deduction from the
   land transfer tax.
-
-- @param city - The metropolitan market.
 
 ### Signature
 
@@ -391,6 +398,7 @@ function getLandTransferTax(
 
 ### Parameters
 
+- **`city`**: The metropolitan market.
 - **`propertyValue`**: The fair market value or purchase price of the property.
 - **`year`**: The tax year (currently only 2026 is supported).
 - **`firstTimeOwner`**: Indicates if the purchaser qualifies for strict FTHB
@@ -399,6 +407,13 @@ function getLandTransferTax(
 ### Returns
 
 The total calculated transaction friction cost in Canadian Dollars.
+
+### Examples
+
+```ts
+const tax = getLandTransferTax("Toronto", 500_000, 2026, true);
+console.log(tax); // 4475
+```
 
 ## getMinimumDownPayment
 
@@ -432,6 +447,10 @@ function getMinimumDownPayment(
 
 The minimum down payment amount.
 
+### Throws
+
+- **`RangeError`**: If `purchasePrice` is negative or not finite.
+
 ### Examples
 
 ```ts
@@ -454,6 +473,41 @@ console.log(downPaymentWithDecimals); // 6.17
 
 Reference:
 https://www.canada.ca/en/financial-consumer-agency/services/mortgages/down-payment.html
+
+## getMortgageInsuranceTax
+
+Calculates the provincial sales tax on a mortgage insurance premium. Mortgage
+insurance premiums are exempt from federal GST/HST, but specific provinces
+charge a provincial sales tax on these premiums.
+
+- Ontario: 8% Retail Sales Tax (RST)
+- Quebec: 9% Tax on Insurance Premiums
+- Saskatchewan: 6% Provincial Sales Tax (PST)
+
+### Signature
+
+```typescript
+function getMortgageInsuranceTax(
+  insurancePremium: number,
+  province: Province,
+): number;
+```
+
+### Parameters
+
+- **`insurancePremium`**: The total mortgage insurance premium amount.
+- **`province`**: The province or territory.
+
+### Returns
+
+The tax amount rounded to two decimal places.
+
+### Examples
+
+```ts
+const tax = getMortgageInsuranceTax(19_000, "Ontario");
+console.log(tax); // 1520
+```
 
 ## getMortgagePenalty
 
@@ -639,17 +693,12 @@ https://www.retailcouncil.org/resources/quick-facts/sales-tax-rates-by-province/
 
 ## getYahooFinanceData
 
-Fetches historical financial data for a given stock symbol from Yahoo Finance.
-This function provides a convenient way to access various financial metrics
-(e.g., open, high, low, close, adjusted close, volume) at specified intervals
-(daily, hourly, or minute-by-minute).
+Fetches historical prices or trading volume for a symbol from Yahoo Finance.
 
-**Important Note on Data Usage:** The use of a small amount of data from Yahoo
-Finance is generally tolerated for educational or public interest purposes.
-However, if you intend to collect and reuse a large volume of this data,
-especially for commercial purposes, it is crucial to contact the Yahoo Finance
-team or consider purchasing a premium subscription to ensure compliance with
-their terms of service.
+**Yahoo Finance notice:** This function uses an undocumented Yahoo Finance
+endpoint and is not affiliated with or endorsed by Yahoo. It is provided for
+educational, research, and journalistic purposes. Before using it, review
+Yahoo's terms and any applicable data-provider restrictions.
 
 ### Signature
 
@@ -660,60 +709,41 @@ async function getYahooFinanceData(
   endDate: Date,
   variable: "open" | "high" | "low" | "close" | "adjclose" | "volume",
   interval: "1d" | "1h" | "1m",
-  useBrowser?: boolean,
 ): Promise<{ timestamp: number; value: number }[]>;
 ```
 
 ### Parameters
 
-- **`symbol`**: The stock symbol (ticker) for which to fetch data (e.g., 'AAPL'
-  for Apple Inc., '^GSPTSE' for S&P/TSX Composite Index).
-- **`startDate`**: The start date for the data range (inclusive). Data will be
-  fetched from this date onwards.
-- **`endDate`**: The end date for the data range (inclusive). Data will be
-  fetched up to this date.
-- **`variable`**: The specific financial variable to retrieve. Can be one of: -
-  `"open"`: The opening price for the period. - `"high"`: The highest price for
-  the period. - `"low"`: The lowest price for the period. - `"close"`: The
-  closing price for the period. - `"adjclose"`: The adjusted closing price,
-  accounting for dividends and stock splits. - `"volume"`: The trading volume
-  for the period.
-- **`interval`**: The time interval for the data points. Can be one of: -
-  `"1d"`: Daily data. - `"1h"`: Hourly data. - `"1m"`: Minute-by-minute data.
-- **`useBrowser`**: If true, the function will use a browser-like User-Agent to
-  fetch the data. This can be useful when facing rate limiting issues with the
-  traditional fetch.
+- **`symbol`**: The stock or index symbol, such as `"AAPL"` or `"^GSPTSE"`.
+- **`startDate`**: The inclusive start of the requested range.
+- **`endDate`**: The inclusive end of the requested range. The observation
+  beginning at this date or time is included when available.
+- **`variable`**: The financial variable to retrieve.
+- **`interval`**: The interval between observations: daily, hourly, or every
+  minute.
 
 ### Returns
 
-A promise that resolves to an array of objects, where each object contains a
-`timestamp` (Unix timestamp in milliseconds) and the `value` of the requested
-financial variable for that period.
+The available observations, with Unix timestamps in milliseconds. Missing values
+reported by Yahoo are omitted.
+
+### Throws
+
+- **`RangeError`**: If either date is invalid or `endDate` is before
+  `startDate`.
+- **`Error`**: If Yahoo rejects the request or returns no data.
 
 ### Examples
 
 ```ts
-// Fetch the adjusted close price for the S&P/TSX Composite Index for a specific period.
-const spTsxData = await getYahooFinanceData(
+const prices = await getYahooFinanceData(
   "^GSPTSE",
   new Date("2025-03-01"),
   new Date("2025-03-15"),
   "adjclose",
   "1d",
 );
-console.log("S&P/TSX Composite Index Data:", spTsxData);
-```
-
-```ts
-// Get hourly trading volume for Apple (AAPL) for a single day.
-const appleVolumeData = await getYahooFinanceData(
-  "AAPL",
-  new Date("2024-07-01T09:30:00"),
-  new Date("2024-07-01T16:00:00"),
-  "volume",
-  "1h",
-);
-console.log("Apple Hourly Volume Data:", appleVolumeData);
+console.log(prices);
 ```
 
 ## mortgageInsurancePremium

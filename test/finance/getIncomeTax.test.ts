@@ -1,4 +1,4 @@
-import { assertEquals } from "jsr:@std/assert";
+import { assertEquals, assertNotEquals } from "jsr:@std/assert";
 import getIncomeTax from "../../src/finance/getIncomeTax.ts";
 
 const PROVINCES = [
@@ -61,3 +61,17 @@ for (const province of PROVINCES) {
     });
   }
 }
+
+Deno.test("getIncomeTax does not share cached results between nearby incomes", () => {
+  const lowerIncomeTax = getIncomeTax(100_001, "Ontario", 2025);
+  const higherIncomeTax = getIncomeTax(100_004, "Ontario", 2025);
+
+  assertNotEquals(
+    lowerIncomeTax.totalTaxAndPremiums,
+    higherIncomeTax.totalTaxAndPremiums,
+  );
+  assertEquals(
+    getIncomeTax(100_001, "Ontario", 2025),
+    lowerIncomeTax,
+  );
+});
