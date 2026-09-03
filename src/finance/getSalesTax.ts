@@ -1,3 +1,6 @@
+/**
+ * A Canadian province or territory supported by the tax calculations.
+ */
 export type Province =
   | "Alberta"
   | "British Columbia"

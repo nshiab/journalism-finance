@@ -45,7 +45,10 @@ export default function computeSale(
       // No taxable gains — skip the income tax call entirely.
       stockTaxes = 0;
     } else {
-      stockTaxes = getIncomeTax(employmentIncome, province, 2025, {
+      // Nearby simulated incomes share a tax calculation to keep large Monte
+      // Carlo runs fast. The public getIncomeTax function remains exact.
+      const roundedEmploymentIncome = Math.round(employmentIncome / 10) * 10;
+      stockTaxes = getIncomeTax(roundedEmploymentIncome, province, 2025, {
         capitalGains: couple ? stockGains / 2 : stockGains,
         quebec: {
           ramq: false,

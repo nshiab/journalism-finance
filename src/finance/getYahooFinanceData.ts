@@ -1,113 +1,161 @@
-import { arraysToData } from "./helpers/format.ts";
+const INTERVAL_SECONDS = {
+  "1d": 24 * 60 * 60,
+  "1h": 60 * 60,
+  "1m": 60,
+} as const;
+
+const USER_AGENT =
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36";
+
+type YahooVariable =
+  | "open"
+  | "high"
+  | "low"
+  | "close"
+  | "adjclose"
+  | "volume";
+
+type YahooFinanceResponse = {
+  chart?: {
+    error?: { description?: string } | null;
+    result?:
+      | Array<{
+        timestamp?: number[];
+        indicators?: {
+          adjclose?: Array<{ adjclose?: Array<number | null> }>;
+          quote?: Array<Partial<Record<YahooVariable, Array<number | null>>>>;
+        };
+      }>
+      | null;
+  };
+};
 
 /**
- * Fetches historical financial data for a given stock symbol from Yahoo Finance. This function provides a convenient way to access various financial metrics (e.g., open, high, low, close, adjusted close, volume) at specified intervals (daily, hourly, or minute-by-minute).
+ * Fetches historical prices or trading volume for a symbol from Yahoo Finance.
  *
- * **Important Note on Data Usage:** The use of a small amount of data from Yahoo Finance is generally tolerated for educational or public interest purposes. However, if you intend to collect and reuse a large volume of this data, especially for commercial purposes, it is crucial to contact the Yahoo Finance team or consider purchasing a premium subscription to ensure compliance with their terms of service.
+ * **Yahoo Finance notice:** This function uses an undocumented Yahoo Finance
+ * endpoint and is not affiliated with or endorsed by Yahoo. It is provided for
+ * educational, research, and journalistic purposes. Before using it, review
+ * Yahoo's terms and any applicable data-provider restrictions.
  *
- * @param symbol - The stock symbol (ticker) for which to fetch data (e.g., 'AAPL' for Apple Inc., '^GSPTSE' for S&P/TSX Composite Index).
- * @param startDate - The start date for the data range (inclusive). Data will be fetched from this date onwards.
- * @param endDate - The end date for the data range (inclusive). Data will be fetched up to this date.
- * @param variable - The specific financial variable to retrieve. Can be one of:
- *   - `"open"`: The opening price for the period.
- *   - `"high"`: The highest price for the period.
- *   - `"low"`: The lowest price for the period.
- *   - `"close"`: The closing price for the period.
- *   - `"adjclose"`: The adjusted closing price, accounting for dividends and stock splits.
- *   - `"volume"`: The trading volume for the period.
- * @param interval - The time interval for the data points. Can be one of:
- *   - `"1d"`: Daily data.
- *   - `"1h"`: Hourly data.
- *   - `"1m"`: Minute-by-minute data.
- * @param useBrowser - If true, the function will use a browser-like User-Agent to fetch the data. This can be useful when facing rate limiting issues with the traditional fetch.
- * @returns A promise that resolves to an array of objects, where each object contains a `timestamp` (Unix timestamp in milliseconds) and the `value` of the requested financial variable for that period.
+ * @param symbol - The stock or index symbol, such as `"AAPL"` or `"^GSPTSE"`.
+ * @param startDate - The inclusive start of the requested range.
+ * @param endDate - The inclusive end of the requested range. The observation
+ * beginning at this date or time is included when available.
+ * @param variable - The financial variable to retrieve.
+ * @param interval - The interval between observations: daily, hourly, or every
+ * minute.
+ * @returns The available observations, with Unix timestamps in milliseconds.
+ * Missing values reported by Yahoo are omitted.
+ * @throws {RangeError} If either date is invalid or `endDate` is before
+ * `startDate`.
+ * @throws {Error} If Yahoo rejects the request or returns no data.
+ * @see https://legal.yahoo.com/us/en/yahoo/terms/otos/index.html
+ * @see https://help.yahoo.com/kb/finance/SLN2310.html
  *
  * @example
  * ```ts
- * // Fetch the adjusted close price for the S&P/TSX Composite Index for a specific period.
- * const spTsxData = await getYahooFinanceData(
+ * const prices = await getYahooFinanceData(
  *   "^GSPTSE",
  *   new Date("2025-03-01"),
  *   new Date("2025-03-15"),
  *   "adjclose",
- *   "1d"
+ *   "1d",
  * );
- * console.log("S&P/TSX Composite Index Data:", spTsxData);
- * ```
- * @example
- * ```ts
- * // Get hourly trading volume for Apple (AAPL) for a single day.
- * const appleVolumeData = await getYahooFinanceData(
- *   "AAPL",
- *   new Date("2024-07-01T09:30:00"),
- *   new Date("2024-07-01T16:00:00"),
- *   "volume",
- *   "1h"
- * );
- * console.log("Apple Hourly Volume Data:", appleVolumeData);
+ * console.log(prices);
  * ```
  * @category Finance
  */
-
 export default async function getYahooFinanceData(
   symbol: string,
   startDate: Date,
   endDate: Date,
   variable: "open" | "high" | "low" | "close" | "adjclose" | "volume",
   interval: "1d" | "1h" | "1m",
-  useBrowser = false,
 ): Promise<{ timestamp: number; value: number }[]> {
-  const period1 = Math.round(startDate.getTime() / 1000);
-  const period2 = Math.round(endDate.getTime() / 1000);
+  const startTime = startDate.getTime();
+  const endTime = endDate.getTime();
 
-  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${
-    encodeURIComponent(symbol)
-  }?events=capitalGain%7Cdiv%7Csplit&formatted=true&includeAdjustedClose=true&interval=${interval}&period1=${period1}&period2=${period2}&symbol=${symbol}&userYfid=true&lang=en-CA&region=CA`;
-
-  const headers: Record<string, string> = {};
-  if (useBrowser) {
-    headers["User-Agent"] =
-      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36";
+  if (!Number.isFinite(startTime) || !Number.isFinite(endTime)) {
+    throw new RangeError("startDate and endDate must be valid dates.");
+  }
+  if (endTime < startTime) {
+    throw new RangeError("endDate must be equal to or later than startDate.");
   }
 
-  const response = await fetch(url, { headers });
+  const period1 = Math.floor(startTime / 1000);
+  // Yahoo treats period2 as exclusive. Advancing it by one interval keeps the
+  // public range inclusive without exposing that upstream detail to callers.
+  const period2 = Math.floor(endTime / 1000) + INTERVAL_SECONDS[interval];
+  const url = new URL(
+    `https://query1.finance.yahoo.com/v8/finance/chart/${
+      encodeURIComponent(symbol)
+    }`,
+  );
+  url.search = new URLSearchParams({
+    events: "capitalGain|div|split",
+    formatted: "true",
+    includeAdjustedClose: "true",
+    interval,
+    period1: String(period1),
+    period2: String(period2),
+    symbol,
+    userYfid: "true",
+    lang: "en-CA",
+    region: "CA",
+  }).toString();
+
+  const response = await fetch(url, {
+    headers: { "User-Agent": USER_AGENT },
+  });
 
   if (!response.ok) {
     const text = await response.text();
     throw new Error(
-      `Failed to fetch data: ${response.status} ${response.statusText}${
+      `Failed to fetch Yahoo Finance data: ${response.status} ${response.statusText}${
         text ? `. ${text}` : ""
-      }${!useBrowser ? ". Try setting the 'useBrowser' option to true." : ""}`,
+      }. Yahoo may have changed, rate-limited, or disabled this undocumented endpoint.`,
     );
   }
 
-  const data = await response.json();
-
-  if (data.chart.result.length === 0) {
-    throw new Error("No data found.");
-  }
-  const timestamp = data.chart.result[0].timestamp.map((d: number) => d * 1000);
-
-  let value;
-  if (variable === "adjclose") {
-    if (!data.chart.result[0].indicators.adjclose) {
-      throw new Error(
-        "adjclose data not available. Please use 'open', 'high', 'low', 'close' or 'volume'.",
-      );
-    }
-    value = data.chart.result[0].indicators.adjclose[0].adjclose;
-  } else if (
-    variable === "open" || variable === "high" || variable === "low" ||
-    variable === "close" || variable === "volume"
-  ) {
-    value = data.chart.result[0].indicators.quote[0][variable];
-  } else {
+  const data = await response.json() as YahooFinanceResponse;
+  if (data.chart?.error) {
     throw new Error(
-      "Unknown variable. Please use 'open', 'high', 'low', 'close', 'adjclose' or 'volume'.",
+      data.chart.error.description ??
+        "Yahoo Finance returned an unknown error.",
     );
   }
 
-  const rows = arraysToData({ timestamp, value });
+  const result = data.chart?.result?.[0];
+  const timestamps = result?.timestamp;
+  if (!result || !timestamps?.length) {
+    throw new Error("No Yahoo Finance data found.");
+  }
 
-  return rows as { timestamp: number; value: number }[];
+  const values = variable === "adjclose"
+    ? result.indicators?.adjclose?.[0]?.adjclose
+    : result.indicators?.quote?.[0]?.[variable];
+
+  if (!values) {
+    throw new Error(`${variable} data is not available for ${symbol}.`);
+  }
+
+  const exclusiveEndTime = period2 * 1000;
+  const rows: { timestamp: number; value: number }[] = [];
+  for (let index = 0; index < timestamps.length; index++) {
+    const timestamp = timestamps[index] * 1000;
+    const value = values[index];
+    if (
+      timestamp >= period1 * 1000 && timestamp < exclusiveEndTime &&
+      typeof value === "number" && Number.isFinite(value)
+    ) {
+      rows.push({ timestamp, value });
+    }
+  }
+
+  if (rows.length === 0) {
+    throw new Error(`No ${variable} data found for ${symbol}.`);
+  }
+
+  return rows;
 }

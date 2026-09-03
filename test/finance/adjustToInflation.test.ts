@@ -1,4 +1,4 @@
-import { assertEquals } from "jsr:@std/assert";
+import { assertEquals, assertThrows } from "jsr:@std/assert";
 import adjustToInflation from "../../src/finance/adjustToInflation.ts";
 
 // Using this as a reference https://www.bankofcanada.ca/rates/related/inflation-calculator/
@@ -35,4 +35,17 @@ Deno.test("should return 100$ in April 2023 adjusted to April 1914 inflation. It
     decimals: 3,
   });
   assertEquals(adjustedAmount, 3.836);
+});
+
+Deno.test("should reject non-positive CPI values", () => {
+  assertThrows(
+    () => adjustToInflation(100, 0, 156.4),
+    RangeError,
+    "amountCPI and targetCPI must be positive numbers",
+  );
+  assertThrows(
+    () => adjustToInflation(100, 156.4, -1),
+    RangeError,
+    "amountCPI and targetCPI must be positive numbers",
+  );
 });
