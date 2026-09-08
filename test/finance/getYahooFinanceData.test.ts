@@ -1,196 +1,151 @@
-import { assertEquals } from "jsr:@std/assert";
+import {
+  assertEquals,
+  assertRejects,
+  assertStringIncludes,
+} from "jsr:@std/assert";
 import getYahooFinanceData from "../../src/finance/getYahooFinanceData.ts";
 
-// Deno.test("should return an array of objects with the S&P/TSX Composite index adjusted prices with a daily interval", async () => {
-//   const data = await getYahooFinanceData(
-//     "^GSPTSE",
-//     new Date("2025-03-01"),
-//     new Date("2025-03-15"),
-//     "adjclose",
-//     "1d",
-//   );
+const originalFetch = globalThis.fetch;
 
-//   assertEquals(data, [
-//     { timestamp: 1741012200000, value: 25001.599609375 },
-//     { timestamp: 1741098600000, value: 24572 },
-//     { timestamp: 1741185000000, value: 24870.80078125 },
-//     { timestamp: 1741271400000, value: 24584 },
-//     { timestamp: 1741357800000, value: 24758.80078125 },
-//     { timestamp: 1741613400000, value: 24380.69921875 },
-//     { timestamp: 1741699800000, value: 24248.19921875 },
-//     { timestamp: 1741786200000, value: 24423.30078125 },
-//     { timestamp: 1741872600000, value: 24203.19921875 },
-//     { timestamp: 1741959000000, value: 24553.400390625 },
-//   ]);
-// });
+function yahooResponse(
+  timestamps: number[],
+  values: Array<number | null>,
+): Response {
+  return Response.json({
+    chart: {
+      error: null,
+      result: [{
+        timestamp: timestamps,
+        indicators: {
+          adjclose: [{ adjclose: values }],
+          quote: [{ close: values }],
+        },
+      }],
+    },
+  });
+}
 
-Deno.test("should return an array of objects with the S&P/TSX Composite index adjusted prices with a daily interval using browser (User-Agent)", async () => {
-  const data = await getYahooFinanceData(
-    "^GSPTSE",
-    new Date("2025-03-01"),
-    new Date("2025-03-15"),
-    "adjclose",
-    "1d",
-    true,
-  );
+Deno.test("getYahooFinanceData uses an inclusive end date and internal request headers", async () => {
+  let requestedUrl: URL | undefined;
+  let requestedHeaders: Headers | undefined;
+  globalThis.fetch = (input, init) => {
+    requestedUrl = new URL(input instanceof Request ? input.url : input);
+    requestedHeaders = new Headers(init?.headers);
+    return Promise.resolve(yahooResponse(
+      [
+        Date.parse("2025-03-13T13:30:00Z") / 1000,
+        Date.parse("2025-03-14T13:30:00Z") / 1000,
+        Date.parse("2025-03-15T13:30:00Z") / 1000,
+      ],
+      [100, 101, 102],
+    ));
+  };
 
-  assertEquals(data[0].timestamp, 1741012200000);
-  assertEquals(data.length > 0, true);
+  try {
+    const data = await getYahooFinanceData(
+      "^GSPTSE",
+      new Date("2025-03-13T00:00:00Z"),
+      new Date("2025-03-14T00:00:00Z"),
+      "adjclose",
+      "1d",
+    );
+
+    assertEquals(data, [
+      { timestamp: Date.parse("2025-03-13T13:30:00Z"), value: 100 },
+      { timestamp: Date.parse("2025-03-14T13:30:00Z"), value: 101 },
+    ]);
+    assertEquals(
+      requestedUrl?.searchParams.get("period2"),
+      String(Date.parse("2025-03-15T00:00:00Z") / 1000),
+    );
+    assertEquals(requestedUrl?.searchParams.get("symbol"), "^GSPTSE");
+    assertStringIncludes(requestedHeaders?.get("User-Agent") ?? "", "Chrome");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
 
-// Deno.test("should return an array of objects with the S&P/TSX Composite index open prices with a daily interval", async () => {
-//   const data = await getYahooFinanceData(
-//     "^GSPTSE",
-//     new Date("2025-03-01"),
-//     new Date("2025-03-15"),
-//     "open",
-//     "1d",
-//   );
+Deno.test("getYahooFinanceData advances the end by the requested interval", async () => {
+  const period2Values: string[] = [];
+  globalThis.fetch = (input) => {
+    const url = new URL(input instanceof Request ? input.url : input);
+    period2Values.push(url.searchParams.get("period2") ?? "");
+    const period1 = Number(url.searchParams.get("period1"));
+    return Promise.resolve(yahooResponse([period1], [100]));
+  };
 
-//   assertEquals(data, [
-//     { timestamp: 1741012200000, value: 25411.599609375 },
-//     { timestamp: 1741098600000, value: 24862.19921875 },
-//     { timestamp: 1741185000000, value: 24555.900390625 },
-//     { timestamp: 1741271400000, value: 24735 },
-//     { timestamp: 1741357800000, value: 24547.19921875 },
-//     { timestamp: 1741613400000, value: 24601.30078125 },
-//     { timestamp: 1741699800000, value: 24363 },
-//     { timestamp: 1741786200000, value: 24334 },
-//     { timestamp: 1741872600000, value: 24375.099609375 },
-//     { timestamp: 1741959000000, value: 24301.69921875 },
-//   ]);
-// });
-// Deno.test("should return an array of objects with the S&P/TSX Composite index high prices with a daily interval", async () => {
-//   const data = await getYahooFinanceData(
-//     "^GSPTSE",
-//     new Date("2025-03-01"),
-//     new Date("2025-03-15"),
-//     "high",
-//     "1d",
-//   );
+  try {
+    const start = new Date("2025-03-14T12:00:00Z");
+    await getYahooFinanceData("AAPL", start, start, "close", "1d");
+    await getYahooFinanceData("AAPL", start, start, "close", "1h");
+    await getYahooFinanceData("AAPL", start, start, "close", "1m");
 
-//   assertEquals(data, [
-//     { timestamp: 1741012200000, value: 25559.5 },
-//     { timestamp: 1741098600000, value: 24862.19921875 },
-//     { timestamp: 1741185000000, value: 24881.80078125 },
-//     { timestamp: 1741271400000, value: 24828.400390625 },
-//     { timestamp: 1741357800000, value: 24825.400390625 },
-//     { timestamp: 1741613400000, value: 24601.30078125 },
-//     { timestamp: 1741699800000, value: 24493.5 },
-//     { timestamp: 1741786200000, value: 24516.30078125 },
-//     { timestamp: 1741872600000, value: 24467.599609375 },
-//     { timestamp: 1741959000000, value: 24565.400390625 },
-//   ]);
-// });
-// Deno.test("should return an array of objects with the S&P/TSX Composite index low prices with a daily interval", async () => {
-//   const data = await getYahooFinanceData(
-//     "^GSPTSE",
-//     new Date("2025-03-01"),
-//     new Date("2025-03-15"),
-//     "low",
-//     "1d",
-//   );
+    const startSeconds = start.getTime() / 1000;
+    assertEquals(period2Values, [
+      String(startSeconds + 86_400),
+      String(startSeconds + 3_600),
+      String(startSeconds + 60),
+    ]);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
 
-//   assertEquals(data, [
-//     { timestamp: 1741012200000, value: 24885.69921875 },
-//     { timestamp: 1741098600000, value: 24344.80078125 },
-//     { timestamp: 1741185000000, value: 24549 },
-//     { timestamp: 1741271400000, value: 24476.5 },
-//     { timestamp: 1741357800000, value: 24458.5 },
-//     { timestamp: 1741613400000, value: 24250 },
-//     { timestamp: 1741699800000, value: 24155.599609375 },
-//     { timestamp: 1741786200000, value: 24227.80078125 },
-//     { timestamp: 1741872600000, value: 24145.599609375 },
-//     { timestamp: 1741959000000, value: 24293.19921875 },
-//   ]);
-// });
-// Deno.test("should return an array of objects with the S&P/TSX Composite index close prices with a daily interval", async () => {
-//   const data = await getYahooFinanceData(
-//     "^GSPTSE",
-//     new Date("2025-03-01"),
-//     new Date("2025-03-15"),
-//     "close",
-//     "1d",
-//   );
+Deno.test("getYahooFinanceData rejects invalid date ranges before fetching", async () => {
+  await assertRejects(
+    () =>
+      getYahooFinanceData(
+        "AAPL",
+        new Date("2025-03-15"),
+        new Date("2025-03-14"),
+        "close",
+        "1d",
+      ),
+    RangeError,
+    "endDate must be equal to or later than startDate",
+  );
+});
 
-//   assertEquals(data, [
-//     { timestamp: 1741012200000, value: 25001.599609375 },
-//     { timestamp: 1741098600000, value: 24572 },
-//     { timestamp: 1741185000000, value: 24870.80078125 },
-//     { timestamp: 1741271400000, value: 24584 },
-//     { timestamp: 1741357800000, value: 24758.80078125 },
-//     { timestamp: 1741613400000, value: 24380.69921875 },
-//     { timestamp: 1741699800000, value: 24248.19921875 },
-//     { timestamp: 1741786200000, value: 24423.30078125 },
-//     { timestamp: 1741872600000, value: 24203.19921875 },
-//     { timestamp: 1741959000000, value: 24553.400390625 },
-//   ]);
-// });
-// Deno.test("should return an array of objects with the S&P/TSX Composite index volume with a daily interval", async () => {
-//   const data = await getYahooFinanceData(
-//     "^GSPTSE",
-//     new Date("2025-03-01"),
-//     new Date("2025-03-15"),
-//     "volume",
-//     "1d",
-//   );
+Deno.test("getYahooFinanceData reports upstream failures without bypass advice", async () => {
+  globalThis.fetch = () =>
+    Promise.resolve(
+      new Response("Too Many Requests", {
+        status: 429,
+        statusText: "Too Many Requests",
+      }),
+    );
 
-//   assertEquals(data, [
-//     { timestamp: 1741012200000, value: 340862200 },
-//     { timestamp: 1741098600000, value: 350240700 },
-//     { timestamp: 1741185000000, value: 323156900 },
-//     { timestamp: 1741271400000, value: 332961300 },
-//     { timestamp: 1741357800000, value: 301444800 },
-//     { timestamp: 1741613400000, value: 459731100 },
-//     { timestamp: 1741699800000, value: 365186900 },
-//     { timestamp: 1741786200000, value: 332655500 },
-//     { timestamp: 1741872600000, value: 343747400 },
-//     { timestamp: 1741959000000, value: 262196500 },
-//   ]);
-// });
-// Deno.test("should return an array of objects with the S&P/TSX Composite index high prices with an hourly interval", async () => {
-//   const data = await getYahooFinanceData(
-//     "^GSPTSE",
-//     new Date("2025-04-07T00:00:00Z"),
-//     new Date("2025-04-08T00:00:00Z"),
-//     "high",
-//     "1h",
-//   );
+  try {
+    await assertRejects(
+      () =>
+        getYahooFinanceData(
+          "AAPL",
+          new Date("2025-03-13"),
+          new Date("2025-03-14"),
+          "close",
+          "1d",
+        ),
+      Error,
+      "Yahoo may have changed, rate-limited, or disabled this undocumented endpoint",
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
 
-//   assertEquals(data.slice(0, 5), [
-//     { timestamp: 1744032600000, value: 23477.8203125 },
-//     { timestamp: 1744036200000, value: 23111.1796875 },
-//     { timestamp: 1744039800000, value: 22879.98046875 },
-//     { timestamp: 1744043400000, value: 22906.80078125 },
-//     { timestamp: 1744047000000, value: 23069.73046875 },
-//   ]);
-// });
-// // Deno.test("should return an array of objects with the S&P/TSX Composite index high prices with a minute interval", async () => {
-// //   const data = await getYahooFinanceData(
-// //     "^GSPTSE",
-// //     new Date("2025-04-08T14:00:00Z"),
-// //     new Date("2025-04-08T14:10:00Z"),
-// //     "high",
-// //     "1m",
-// //   );
+Deno.test({
+  name: "getYahooFinanceData returns live Yahoo Finance data locally",
+  ignore: Deno.env.get("CI") === "true",
+  async fn() {
+    const data = await getYahooFinanceData(
+      "^GSPTSE",
+      new Date("2025-03-13"),
+      new Date("2025-03-14"),
+      "adjclose",
+      "1d",
+    );
 
-// //   assertEquals(data.slice(0, 5), [
-// //     { timestamp: 1744120800000, value: 23316.599609375 },
-// //     { timestamp: 1744120860000, value: 23327.099609375 },
-// //     { timestamp: 1744120920000, value: 23326.7109375 },
-// //     { timestamp: 1744120980000, value: 23381.76953125 },
-// //     { timestamp: 1744121040000, value: 23379.44921875 },
-// //   ]);
-// // });
-// Deno.test("should return an array of objects with the S&P/TSX Composite index adjusted prices with a daily interval", async () => {
-//   const tenDaysAgo = new Date(Date.now() - 1000 * 60 * 60 * 24 * 10);
-//   const data = await getYahooFinanceData(
-//     "^GSPTSE",
-//     tenDaysAgo,
-//     new Date(),
-//     "adjclose",
-//     "1d",
-//   );
-
-//   assertEquals(Array.isArray(data), true);
-// });
+    assertEquals(data.length > 0, true);
+    assertEquals(data.every(({ value }) => Number.isFinite(value)), true);
+  },
+});

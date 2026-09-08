@@ -4,6 +4,20 @@ import mortgagePayments from "../../src/finance/mortgagePayments.ts";
 Deno.test("should throw an error if the amortizationPeriod is smaller than the term", () => {
   assertThrows(() => mortgagePayments(250_000, 6, "monthly", 5, 4));
 });
+Deno.test("should return finite payments for a zero interest rate", () => {
+  const payments = mortgagePayments(120_000, 0, "monthly", 1, 10);
+
+  assertEquals(payments[0], {
+    paymentId: 0,
+    payment: 1_000,
+    interest: 0,
+    capital: 1_000,
+    balance: 119_000,
+    amountPaid: 1_000,
+    interestPaid: 0,
+    capitalPaid: 1_000,
+  });
+});
 Deno.test("should return the monthly mortgage payments for a $250k loan with a 6.00% rate.", () => {
   // Checking against https://www.yorku.ca/amarshal/CMTGMONT.xls
   const payments = mortgagePayments(250_000, 6, "monthly", 5, 25);

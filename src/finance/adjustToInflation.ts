@@ -6,6 +6,7 @@
  * @param targetCPI The Consumer Price Index (CPI) for the period to which the amount is being adjusted.
  * @param options Optional settings for the calculation.
  * @param options.decimals The number of decimal places to which the resulting adjusted amount should be rounded. If not specified, the result will not be rounded.
+ * @throws {RangeError} If either CPI value is not a positive finite number.
  *
  * @example
  * ```ts
@@ -40,6 +41,13 @@ export default function adjustToInflation(
     decimals?: number;
   } = {},
 ): number {
+  if (
+    !Number.isFinite(amountCPI) || amountCPI <= 0 ||
+    !Number.isFinite(targetCPI) || targetCPI <= 0
+  ) {
+    throw new RangeError("amountCPI and targetCPI must be positive numbers.");
+  }
+
   const inflation = (targetCPI - amountCPI) / amountCPI;
   const adjustedAmount = amount + amount * inflation;
 

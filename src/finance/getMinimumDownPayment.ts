@@ -12,6 +12,7 @@ import { round } from "./helpers/format.ts";
  * @param options - Additional calculation options.
  *   @param options.decimals - The number of decimal places to round the result to. By default, the result is not rounded.
  * @returns The minimum down payment amount.
+ * @throws {RangeError} If `purchasePrice` is negative or not finite.
  *
  * @example
  * ```ts
@@ -39,6 +40,10 @@ export default function getMinimumDownPayment(
   purchasePrice: number,
   options: { decimals?: number } = {},
 ): number {
+  if (!Number.isFinite(purchasePrice) || purchasePrice < 0) {
+    throw new RangeError("purchasePrice must be a non-negative number.");
+  }
+
   let downPayment: number;
   if (purchasePrice <= 500_000) {
     downPayment = purchasePrice * 0.05;

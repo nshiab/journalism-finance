@@ -1,4 +1,4 @@
-import { assertEquals } from "jsr:@std/assert";
+import { assertEquals, assertThrows } from "jsr:@std/assert";
 import getMinimumDownPayment from "../../src/finance/getMinimumDownPayment.ts";
 
 Deno.test("should return 5% for purchase price of $400,000", () => {
@@ -44,4 +44,12 @@ Deno.test("should round to the requested number of decimal places", () => {
 Deno.test("should support rounding to a whole number", () => {
   const result = getMinimumDownPayment(499_999, { decimals: 0 });
   assertEquals(result, 25_000);
+});
+
+Deno.test("should reject a negative purchase price", () => {
+  assertThrows(
+    () => getMinimumDownPayment(-1),
+    RangeError,
+    "purchasePrice must be a non-negative number",
+  );
 });

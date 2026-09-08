@@ -128,8 +128,10 @@ export default function mortgagePayments(
   // The monthly rate and the montly payment
   const monthlyRate = computePeriodicRate(1 / 12);
   const amortizationPeriodInMonths = amortizationPeriod * 12;
-  const monthlyPayment = (monthlyRate * mortgageAmount) /
-    (1 - Math.pow(1 + monthlyRate, -amortizationPeriodInMonths));
+  const monthlyPayment = monthlyRate === 0
+    ? mortgageAmount / amortizationPeriodInMonths
+    : (monthlyRate * mortgageAmount) /
+      (1 - Math.pow(1 + monthlyRate, -amortizationPeriodInMonths));
 
   let numberOfPaymentsinTerm: number;
   let periodicInterestRate: number;
