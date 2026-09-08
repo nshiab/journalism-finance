@@ -474,41 +474,6 @@ console.log(downPaymentWithDecimals); // 6.17
 Reference:
 https://www.canada.ca/en/financial-consumer-agency/services/mortgages/down-payment.html
 
-## getMortgageInsuranceTax
-
-Calculates the provincial sales tax on a mortgage insurance premium. Mortgage
-insurance premiums are exempt from federal GST/HST, but specific provinces
-charge a provincial sales tax on these premiums.
-
-- Ontario: 8% Retail Sales Tax (RST)
-- Quebec: 9% Tax on Insurance Premiums
-- Saskatchewan: 6% Provincial Sales Tax (PST)
-
-### Signature
-
-```typescript
-function getMortgageInsuranceTax(
-  insurancePremium: number,
-  province: Province,
-): number;
-```
-
-### Parameters
-
-- **`insurancePremium`**: The total mortgage insurance premium amount.
-- **`province`**: The province or territory.
-
-### Returns
-
-The tax amount rounded to two decimal places.
-
-### Examples
-
-```ts
-const tax = getMortgageInsuranceTax(19_000, "Ontario");
-console.log(tax); // 1520
-```
-
 ## getMortgagePenalty
 
 Calculates the mortgage prepayment penalty.
