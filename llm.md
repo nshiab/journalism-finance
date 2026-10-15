@@ -141,6 +141,225 @@ console.log(`A $45,000 salary in 1990 is equivalent to approximately ${adjustedS
 
 ***
 
+### decodeMonteCarloMonthlyIterations()
+
+> **decodeMonteCarloMonthlyIterations**(`c`): `object`[]
+
+Decodes a columnar `monthlyIterations` result back into a flat object array.
+
+**⚠️ Memory Warning:** This function can allocate millions of small objects during large simulations.
+Proceed with caution or use pagination/UI virtualization if rendering these arrays to the DOM.
+
+Keys are `"category|group|variable"`. Each `Float64Array` has size `iterations × months`.
+Access: `data[key][iteration * cols + monthIndex]`.
+
+Records where `amount === 0` are omitted from the output, matching the zero-filtering
+applied by the `onRecord` callback during data collection.
+
+#### Parameters
+
+##### c
+
+###### cols
+
+`number`
+
+###### data
+
+`Record`\<`string`, `Float64Array`\>
+
+###### keys
+
+`string`[]
+
+###### rows
+
+`number`
+
+#### Returns
+
+`object`[]
+
+***
+
+### decodeMonteCarloMonthlyQuantiles()
+
+> **decodeMonteCarloMonthlyQuantiles**(`c`, `quantiles`): `object`[]
+
+Decodes a columnar `monthlyQuantiles` result back into a flat record array.
+
+Keys are `"category|group|variable"`. Layout: `data[key][qIdx * cols + monthIndex]`
+where `rows` = number of quantile levels and `cols` = number of months.
+
+#### Parameters
+
+##### c
+
+The `ColumnarResult` returned as `monthlyQuantiles` by `simulateRentVsBuyMonteCarlo`.
+
+###### cols
+
+`number`
+
+###### data
+
+`Record`\<`string`, `Float64Array`\>
+
+###### keys
+
+`string`[]
+
+###### rows
+
+`number`
+
+##### quantiles
+
+`number`[]
+
+The same quantile levels passed to `options.monthlyQuantiles` (e.g. `[0, 0.5, 1]`).
+
+#### Returns
+
+`object`[]
+
+***
+
+### decodeMonteCarloValues()
+
+> **decodeMonteCarloValues**(`c`): `object`[]
+
+Decodes a columnar `values` result back into the original object-array shape.
+
+Keys are variable names. Each `Float64Array` has size `iterations × months`.
+
+#### Parameters
+
+##### c
+
+###### cols
+
+`number`
+
+###### data
+
+`Record`\<`string`, `Float64Array`\>
+
+###### keys
+
+`string`[]
+
+###### rows
+
+`number`
+
+#### Returns
+
+`object`[]
+
+***
+
+### decodeMonteCarloWinners()
+
+> **decodeMonteCarloWinners**(`w`): `object`[]
+
+`category` bytes map to category names via `WINNER_CATEGORIES`
+(0 = "renter", 1 = "buyerFixed", 2 = "buyerVariable").
+Records are returned in iteration order (row 0 = iteration 0).
+
+#### Parameters
+
+##### w
+
+###### amount
+
+`Float64Array`
+
+Final `amount` of the winning scenario for each iteration.
+
+###### category
+
+`Uint8Array`
+
+Winning scenario category encoded as a byte.
+Decode with `WINNER_CATEGORIES[category[i]]` or use `decodeMonteCarloWinners`.
+
+###### monthIndex
+
+`Float64Array`
+
+Final `monthIndex` of the winning scenario for each iteration.
+
+#### Returns
+
+`object`[]
+
+***
+
+### decodeMonteCarloWinnerSnapshots()
+
+> **decodeMonteCarloWinnerSnapshots**(`ws`): `object`[]
+
+Decodes a `winnerSnapshots` result into a flat record array.
+
+Each record represents one 5-year checkpoint (strictly before `numberOfYears`).
+`renter`, `buyerFixed`, and `buyerVariable` are win rates strictly in the range [0.01, 0.98] (smoothed to [0.01, 0.01, 0.98] in extreme scenarios) and sum to 1.
+The median fields hold the median `winVariable` amount for that category at the checkpoint.
+
+#### Parameters
+
+##### ws
+
+###### buyerFixed
+
+`Float64Array`
+
+Fraction of iterations (strictly in the range [0.01, 0.98]) where the buyerFixed scenario
+had the highest `winVariable` at this checkpoint. Win rates are clipped/smoothed to reflect
+unmodeled tail risks and prevent deterministic misinterpretation (e.g., [1.0, 0.0, 0.0] becomes [0.98, 0.01, 0.01]).
+
+###### buyerFixedMedian
+
+`Float64Array`
+
+###### buyerVariable
+
+`Float64Array`
+
+Fraction of iterations (strictly in the range [0.01, 0.98]) where the buyerVariable scenario
+had the highest `winVariable` at this checkpoint. Win rates are clipped/smoothed to reflect
+unmodeled tail risks and prevent deterministic misinterpretation (e.g., [1.0, 0.0, 0.0] becomes [0.98, 0.01, 0.01]).
+
+###### buyerVariableMedian
+
+`Float64Array`
+
+###### renter
+
+`Float64Array`
+
+Fraction of iterations (strictly in the range [0.01, 0.98]) where the renter scenario
+had the highest `winVariable` at this checkpoint. Win rates are clipped/smoothed to reflect
+unmodeled tail risks and prevent deterministic misinterpretation (e.g., [1.0, 0.0, 0.0] becomes [0.98, 0.01, 0.01]).
+
+###### renterMedian
+
+`Float64Array`
+
+Median `winVariable` amount for each category at each snapshot.
+
+###### snapshotMonths
+
+`number`[]
+
+Month indices of each snapshot (e.g. `[59, 119, 179, 239, 299]` for a 25-year sim, i.e. end of years 5, 10, 15, 20, 25).
+
+#### Returns
+
+`object`[]
+
+***
+
 ### getIncomeTax()
 
 > **getIncomeTax**(`employmentIncome`, `province`, `year`, `options?`): `object`
@@ -452,6 +671,288 @@ console.log(downPaymentWithDecimals); // 6.17
 ```
 
 Reference: https://www.canada.ca/en/financial-consumer-agency/services/mortgages/down-payment.html
+
+***
+
+### getMortgagePenalty()
+
+> **getMortgagePenalty**(`parameters`): `number`
+
+Calculates the mortgage prepayment penalty.
+
+For variable mortgages, the penalty is typically three months of interest.
+For fixed mortgages, the penalty is usually the greater of three months of interest or the Interest Rate Differential (IRD).
+
+#### Parameters
+
+##### parameters
+
+The mortgage details.
+
+###### currentPostedRates
+
+`Record`\<`number`, `number`\>
+
+A record mapping term lengths (in years) to current posted interest rates.
+
+###### mortgageBalance
+
+`number`
+
+The current outstanding mortgage balance.
+
+###### mortgageType
+
+`"fixed"` \| `"variable"`
+
+Either "fixed" or "variable".
+
+###### postedInterestRate
+
+`number`
+
+The original posted interest rate when the mortgage was signed.
+
+###### rateAdjustmentFixed
+
+`number`
+
+The adjustment applied to the fixed posted interest rate (added to the posted rate).
+
+###### rateAdjustmentVariable
+
+`number`
+
+The adjustment applied to the variable posted interest rate (added to the posted rate).
+
+###### remainingMonthsToTerm
+
+`number`
+
+Number of months left in the current mortgage term.
+
+#### Returns
+
+`number`
+
+The calculated mortgage penalty rounded to 2 decimal places.
+
+#### Throws
+
+Error if no current posted rate is found for the remaining term length.
+
+#### Examples
+
+```ts
+const penalty = getMortgagePenalty({
+  remainingMonthsToTerm: 24,
+  mortgageBalance: 300000,
+  postedInterestRate: 0.05,
+  rateAdjustmentFixed: -0.0125,
+  rateAdjustmentVariable: 0,
+  currentPostedRates: { 1: 0.045, 2: 0.0475, 3: 0.05, 4: 0.0525, 5: 0.055 },
+  mortgageType: "fixed",
+});
+```
+
+```ts
+const penalty = getMortgagePenalty({
+  remainingMonthsToTerm: 36,
+  mortgageBalance: 250000,
+  postedInterestRate: 0.06,
+  rateAdjustmentFixed: 0,
+  rateAdjustmentVariable: 0.0025,
+  currentPostedRates: {}, // Not used for variable
+  mortgageType: "variable",
+});
+```
+
+***
+
+### getRentVsBuyCholeskyMatrix()
+
+> **getRentVsBuyCholeskyMatrix**(`data?`, `options?`): `number`[][]
+
+Generates a Cholesky decomposition matrix from historical variable data,
+formatted specifically for the `simulateRentVsBuyMonteCarlo` function.
+
+This helper calculates the covariance matrix of the provided data arrays,
+normalizes it into a correlation matrix, and computes the Cholesky decomposition,
+mapping variables internally to the correct 16x16 matrix indices.
+
+If no data object is provided, it returns the Cholesky decomposition of an
+identity matrix (which results in independent, uncorrelated paths).
+
+#### Parameters
+
+##### data?
+
+An object containing arrays of equal-length historical values for all 16 variables.
+
+###### appreciation
+
+`number`[]
+
+###### condoFee
+
+`number`[]
+
+###### employmentIncome
+
+`number`[]
+
+###### fiveYearInterestRates
+
+`number`[]
+
+###### fourYearInterestRates
+
+`number`[]
+
+###### maintenance
+
+`number`[]
+
+###### market
+
+`number`[]
+
+###### oneYearInterestRates
+
+`number`[]
+
+###### ownerInsurance
+
+`number`[]
+
+###### propertyTax
+
+`number`[]
+
+###### rent
+
+`number`[]
+
+###### renterInsurance
+
+`number`[]
+
+###### sellingFixedFees
+
+`number`[]
+
+###### threeYearInterestRates
+
+`number`[]
+
+###### twoYearInterestRates
+
+`number`[]
+
+###### variableInterestRates
+
+`number`[]
+
+##### options?
+
+Optional configuration.
+
+###### jitter?
+
+`number`
+
+A tiny positive value (e.g., 1e-9) added to the diagonal of the correlation matrix to force positive-definiteness. This can be useful if the decomposition fails due to numerical precision issues.
+
+#### Returns
+
+`number`[][]
+
+#### Example
+
+```ts
+// Using an identity matrix (no correlation)
+const choleskyMatrixId = getRentVsBuyCholeskyMatrix();
+
+// Using historical data to capture true economic correlations
+const choleskyMatrixCorrelated = getRentVsBuyCholeskyMatrix({
+  employmentIncome: [75000, 76000, 78000, ...],
+  market: [0.05, 0.07, -0.02, ...],
+  rent: [1500, 1550, 1600, ...],
+  // ... and the remaining 13 variables
+});
+
+// Using jitter to handle numerical precision issues
+const choleskyMatrixWithJitter = getRentVsBuyCholeskyMatrix(historicalData, { jitter: 1e-9 });
+
+const results = simulateRentVsBuyMonteCarlo({
+  // ... other parameters
+  choleskyMatrix: choleskyMatrixCorrelated,
+});
+```
+
+***
+
+### getSalesTax()
+
+> **getSalesTax**(`amount`, `province`, `year`): `object`
+
+Calculates the Canadian sales tax for a given amount, province, and year.
+
+#### Parameters
+
+##### amount
+
+`number`
+
+The base amount before tax.
+
+##### province
+
+`"Newfoundland and Labrador"` \| `"Prince Edward Island"` \| `"Nova Scotia"` \| `"New Brunswick"` \| `"Quebec"` \| `"Ontario"` \| `"Manitoba"` \| `"Saskatchewan"` \| `"Alberta"` \| `"British Columbia"` \| `"Yukon"` \| `"Northwest Territories"` \| `"Nunavut"`
+
+The province or territory.
+
+##### year
+
+`2025`
+
+The tax year.
+
+#### Returns
+
+`object`
+
+An object containing the breakdown of taxes and the total amount.
+
+##### gst
+
+> **gst**: `number`
+
+##### hst
+
+> **hst**: `number`
+
+##### pst
+
+> **pst**: `number`
+
+##### totalAmount
+
+> **totalAmount**: `number`
+
+##### totalTax
+
+> **totalTax**: `number`
+
+#### Example
+
+```ts
+const salesTax = getSalesTax(100, "Quebec", 2025);
+console.log(salesTax);
+// { gst: 5, pst: 9.975, hst: 0, totalTax: 14.975, totalAmount: 114.975 }
+```
+
+Reference: https://www.retailcouncil.org/resources/quick-facts/sales-tax-rates-by-province/
 
 ***
 
@@ -919,609 +1420,6 @@ try {
   // Expected output: "Error: The amortizationPeriod should be equal or greater than the term."
 }
 ```
-
-***
-
-### variableMortgagePayments()
-
-> **variableMortgagePayments**(`mortgageAmount`, `rates`, `term`, `amortizationPeriod`, `options?`): `object`[]
-
-Calculates and returns a detailed schedule of variable-rate monthly mortgage payments (VRM). This function models a Variable Rate Mortgage where the payment amount stays FIXED for the term, but rate changes affect how much goes to interest vs. principal. If rates rise too high, payments may not cover interest, causing negative amortization (balance increases).
-
-#### Parameters
-
-##### mortgageAmount
-
-`number`
-
-The total amount of the mortgage loan.
-
-##### rates
-
-`number`[]
-
-An array of annual interest rates (e.g., `[6.00, 6.00, 5.50, 5.50, ...]` for rates in percentages). The array must contain at least as many rates as there are payments in the term. Each element corresponds to the rate for that payment period (0-based index).
-
-##### term
-
-`number`
-
-The term of the mortgage in years. This is the length of the current mortgage contract.
-
-##### amortizationPeriod
-
-`number`
-
-The total amortization period of the mortgage in years. This is the total time it will take to pay off the mortgage.
-
-##### options?
-
-Additional options for customizing the mortgage calculation and output.
-
-###### annualCompounding?
-
-`number`
-
-The number of times the mortgage interest should be compounded per year. Defaults to `12` (monthly compounding). Set to `2` for semi-annual compounding as is standard in Canada.
-
-###### debug?
-
-`boolean`
-
-If `true`, enables debug logging to the console, providing additional insights into the calculation process. Defaults to `false`.
-
-###### decimals?
-
-`number`
-
-The number of decimal places to round the financial values (payment, interest, capital, balance) to. Defaults to `2`.
-
-###### id?
-
-`string`
-
-An optional string ID to be added to each payment object in the returned array. Useful for tracking payments related to a specific mortgage.
-
-#### Returns
-
-`object`[]
-
-An array of objects, where each object represents a single mortgage payment and contains:
-  - `paymentId`: A 0-based index for the payment.
-  - `payment`: The total amount of the payment (fixed for the term).
-  - `interest`: The portion that goes towards interest (varies with rate changes).
-  - `capital`: The portion that goes towards the principal (can be negative during negative amortization).
-  - `balance`: The remaining mortgage balance after the payment (can increase if interest exceeds payment).
-  - `amountPaid`: The cumulative total amount paid so far.
-  - `interestPaid`: The cumulative total interest paid so far.
-  - `capitalPaid`: The cumulative total capital reimbursed so far (can be negative).
-  - `rate`: The annual interest rate in effect for this payment.
-  - `id` (optional): The ID provided in `options.id`.
-
-#### Throws
-
-If the `amortizationPeriod` is less than the `term`, as this is an invalid mortgage configuration.
-
-#### Throws
-
-If the `rates` array does not contain enough rates for all payments in the term.
-
-#### Example
-
-```ts
-// VRM: Payment stays fixed, but rate changes affect interest/principal split
-// If rates rise high enough, balance can increase (negative amortization)
-const rates = [
-  ...Array(12).fill(6),    // Months 0-11 at 6%
-  ...Array(12).fill(5.5),  // Months 12-23 at 5.5% (more goes to principal)
-  ...Array(36).fill(7.5)   // Months 24-59 at 7.5% (might trigger negative amortization)
-];
-const payments = variableMortgagePayments(250_000, rates, 5, 25);
-console.log(payments[0]);  // Payment amount set based on initial rate
-console.log(payments[12]); // Same payment, but less interest (rate dropped)
-console.log(payments[24]); // Same payment, but more interest (rate increased)
-```
-
-## Other
-
-### decodeMonteCarloMonthlyIterations()
-
-> **decodeMonteCarloMonthlyIterations**(`c`): `object`[]
-
-Decodes a columnar `monthlyIterations` result back into a flat object array.
-
-**⚠️ Memory Warning:** This function can allocate millions of small objects during large simulations.
-Proceed with caution or use pagination/UI virtualization if rendering these arrays to the DOM.
-
-Keys are `"category|group|variable"`. Each `Float64Array` has size `iterations × months`.
-Access: `data[key][iteration * cols + monthIndex]`.
-
-Records where `amount === 0` are omitted from the output, matching the zero-filtering
-applied by the `onRecord` callback during data collection.
-
-#### Parameters
-
-##### c
-
-###### cols
-
-`number`
-
-###### data
-
-`Record`\<`string`, `Float64Array`\>
-
-###### keys
-
-`string`[]
-
-###### rows
-
-`number`
-
-#### Returns
-
-`object`[]
-
-***
-
-### decodeMonteCarloMonthlyQuantiles()
-
-> **decodeMonteCarloMonthlyQuantiles**(`c`, `quantiles`): `object`[]
-
-Decodes a columnar `monthlyQuantiles` result back into a flat record array.
-
-Keys are `"category|group|variable"`. Layout: `data[key][qIdx * cols + monthIndex]`
-where `rows` = number of quantile levels and `cols` = number of months.
-
-#### Parameters
-
-##### c
-
-The `ColumnarResult` returned as `monthlyQuantiles` by `simulateRentVsBuyMonteCarlo`.
-
-###### cols
-
-`number`
-
-###### data
-
-`Record`\<`string`, `Float64Array`\>
-
-###### keys
-
-`string`[]
-
-###### rows
-
-`number`
-
-##### quantiles
-
-`number`[]
-
-The same quantile levels passed to `options.monthlyQuantiles` (e.g. `[0, 0.5, 1]`).
-
-#### Returns
-
-`object`[]
-
-***
-
-### decodeMonteCarloValues()
-
-> **decodeMonteCarloValues**(`c`): `object`[]
-
-Decodes a columnar `values` result back into the original object-array shape.
-
-Keys are variable names. Each `Float64Array` has size `iterations × months`.
-
-#### Parameters
-
-##### c
-
-###### cols
-
-`number`
-
-###### data
-
-`Record`\<`string`, `Float64Array`\>
-
-###### keys
-
-`string`[]
-
-###### rows
-
-`number`
-
-#### Returns
-
-`object`[]
-
-***
-
-### decodeMonteCarloWinners()
-
-> **decodeMonteCarloWinners**(`w`): `object`[]
-
-`category` bytes map to category names via `WINNER_CATEGORIES`
-(0 = "renter", 1 = "buyerFixed", 2 = "buyerVariable").
-Records are returned in iteration order (row 0 = iteration 0).
-
-#### Parameters
-
-##### w
-
-###### amount
-
-`Float64Array`
-
-Final `amount` of the winning scenario for each iteration.
-
-###### category
-
-`Uint8Array`
-
-Winning scenario category encoded as a byte.
-Decode with `WINNER_CATEGORIES[category[i]]` or use `decodeMonteCarloWinners`.
-
-###### monthIndex
-
-`Float64Array`
-
-Final `monthIndex` of the winning scenario for each iteration.
-
-#### Returns
-
-`object`[]
-
-***
-
-### decodeMonteCarloWinnerSnapshots()
-
-> **decodeMonteCarloWinnerSnapshots**(`ws`): `object`[]
-
-Decodes a `winnerSnapshots` result into a flat record array.
-
-Each record represents one 5-year checkpoint (strictly before `numberOfYears`).
-`renter`, `buyerFixed`, and `buyerVariable` are win rates strictly in the range [0.01, 0.98] (smoothed to [0.01, 0.01, 0.98] in extreme scenarios) and sum to 1.
-The median fields hold the median `winVariable` amount for that category at the checkpoint.
-
-#### Parameters
-
-##### ws
-
-###### buyerFixed
-
-`Float64Array`
-
-Fraction of iterations (strictly in the range [0.01, 0.98]) where the buyerFixed scenario
-had the highest `winVariable` at this checkpoint. Win rates are clipped/smoothed to reflect
-unmodeled tail risks and prevent deterministic misinterpretation (e.g., [1.0, 0.0, 0.0] becomes [0.98, 0.01, 0.01]).
-
-###### buyerFixedMedian
-
-`Float64Array`
-
-###### buyerVariable
-
-`Float64Array`
-
-Fraction of iterations (strictly in the range [0.01, 0.98]) where the buyerVariable scenario
-had the highest `winVariable` at this checkpoint. Win rates are clipped/smoothed to reflect
-unmodeled tail risks and prevent deterministic misinterpretation (e.g., [1.0, 0.0, 0.0] becomes [0.98, 0.01, 0.01]).
-
-###### buyerVariableMedian
-
-`Float64Array`
-
-###### renter
-
-`Float64Array`
-
-Fraction of iterations (strictly in the range [0.01, 0.98]) where the renter scenario
-had the highest `winVariable` at this checkpoint. Win rates are clipped/smoothed to reflect
-unmodeled tail risks and prevent deterministic misinterpretation (e.g., [1.0, 0.0, 0.0] becomes [0.98, 0.01, 0.01]).
-
-###### renterMedian
-
-`Float64Array`
-
-Median `winVariable` amount for each category at each snapshot.
-
-###### snapshotMonths
-
-`number`[]
-
-Month indices of each snapshot (e.g. `[59, 119, 179, 239, 299]` for a 25-year sim, i.e. end of years 5, 10, 15, 20, 25).
-
-#### Returns
-
-`object`[]
-
-***
-
-### getMortgagePenalty()
-
-> **getMortgagePenalty**(`parameters`): `number`
-
-Calculates the mortgage prepayment penalty.
-
-For variable mortgages, the penalty is typically three months of interest.
-For fixed mortgages, the penalty is usually the greater of three months of interest or the Interest Rate Differential (IRD).
-
-#### Parameters
-
-##### parameters
-
-The mortgage details.
-
-###### currentPostedRates
-
-`Record`\<`number`, `number`\>
-
-A record mapping term lengths (in years) to current posted interest rates.
-
-###### mortgageBalance
-
-`number`
-
-The current outstanding mortgage balance.
-
-###### mortgageType
-
-`"fixed"` \| `"variable"`
-
-Either "fixed" or "variable".
-
-###### postedInterestRate
-
-`number`
-
-The original posted interest rate when the mortgage was signed.
-
-###### rateAdjustmentFixed
-
-`number`
-
-The adjustment applied to the fixed posted interest rate (added to the posted rate).
-
-###### rateAdjustmentVariable
-
-`number`
-
-The adjustment applied to the variable posted interest rate (added to the posted rate).
-
-###### remainingMonthsToTerm
-
-`number`
-
-Number of months left in the current mortgage term.
-
-#### Returns
-
-`number`
-
-The calculated mortgage penalty rounded to 2 decimal places.
-
-#### Throws
-
-Error if no current posted rate is found for the remaining term length.
-
-#### Examples
-
-```ts
-const penalty = getMortgagePenalty({
-  remainingMonthsToTerm: 24,
-  mortgageBalance: 300000,
-  postedInterestRate: 0.05,
-  rateAdjustmentFixed: -0.0125,
-  rateAdjustmentVariable: 0,
-  currentPostedRates: { 1: 0.045, 2: 0.0475, 3: 0.05, 4: 0.0525, 5: 0.055 },
-  mortgageType: "fixed",
-});
-```
-
-```ts
-const penalty = getMortgagePenalty({
-  remainingMonthsToTerm: 36,
-  mortgageBalance: 250000,
-  postedInterestRate: 0.06,
-  rateAdjustmentFixed: 0,
-  rateAdjustmentVariable: 0.0025,
-  currentPostedRates: {}, // Not used for variable
-  mortgageType: "variable",
-});
-```
-
-***
-
-### getRentVsBuyCholeskyMatrix()
-
-> **getRentVsBuyCholeskyMatrix**(`data?`, `options?`): `number`[][]
-
-Generates a Cholesky decomposition matrix from historical variable data,
-formatted specifically for the `simulateRentVsBuyMonteCarlo` function.
-
-This helper calculates the covariance matrix of the provided data arrays,
-normalizes it into a correlation matrix, and computes the Cholesky decomposition,
-mapping variables internally to the correct 16x16 matrix indices.
-
-If no data object is provided, it returns the Cholesky decomposition of an
-identity matrix (which results in independent, uncorrelated paths).
-
-#### Parameters
-
-##### data?
-
-An object containing arrays of equal-length historical values for all 16 variables.
-
-###### appreciation
-
-`number`[]
-
-###### condoFee
-
-`number`[]
-
-###### employmentIncome
-
-`number`[]
-
-###### fiveYearInterestRates
-
-`number`[]
-
-###### fourYearInterestRates
-
-`number`[]
-
-###### maintenance
-
-`number`[]
-
-###### market
-
-`number`[]
-
-###### oneYearInterestRates
-
-`number`[]
-
-###### ownerInsurance
-
-`number`[]
-
-###### propertyTax
-
-`number`[]
-
-###### rent
-
-`number`[]
-
-###### renterInsurance
-
-`number`[]
-
-###### sellingFixedFees
-
-`number`[]
-
-###### threeYearInterestRates
-
-`number`[]
-
-###### twoYearInterestRates
-
-`number`[]
-
-###### variableInterestRates
-
-`number`[]
-
-##### options?
-
-Optional configuration.
-
-###### jitter?
-
-`number`
-
-A tiny positive value (e.g., 1e-9) added to the diagonal of the correlation matrix to force positive-definiteness. This can be useful if the decomposition fails due to numerical precision issues.
-
-#### Returns
-
-`number`[][]
-
-#### Example
-
-```ts
-// Using an identity matrix (no correlation)
-const choleskyMatrixId = getRentVsBuyCholeskyMatrix();
-
-// Using historical data to capture true economic correlations
-const choleskyMatrixCorrelated = getRentVsBuyCholeskyMatrix({
-  employmentIncome: [75000, 76000, 78000, ...],
-  market: [0.05, 0.07, -0.02, ...],
-  rent: [1500, 1550, 1600, ...],
-  // ... and the remaining 13 variables
-});
-
-// Using jitter to handle numerical precision issues
-const choleskyMatrixWithJitter = getRentVsBuyCholeskyMatrix(historicalData, { jitter: 1e-9 });
-
-const results = simulateRentVsBuyMonteCarlo({
-  // ... other parameters
-  choleskyMatrix: choleskyMatrixCorrelated,
-});
-```
-
-***
-
-### getSalesTax()
-
-> **getSalesTax**(`amount`, `province`, `year`): `object`
-
-Calculates the Canadian sales tax for a given amount, province, and year.
-
-#### Parameters
-
-##### amount
-
-`number`
-
-The base amount before tax.
-
-##### province
-
-`"Newfoundland and Labrador"` \| `"Prince Edward Island"` \| `"Nova Scotia"` \| `"New Brunswick"` \| `"Quebec"` \| `"Ontario"` \| `"Manitoba"` \| `"Saskatchewan"` \| `"Alberta"` \| `"British Columbia"` \| `"Yukon"` \| `"Northwest Territories"` \| `"Nunavut"`
-
-The province or territory.
-
-##### year
-
-`2025`
-
-The tax year.
-
-#### Returns
-
-`object`
-
-An object containing the breakdown of taxes and the total amount.
-
-##### gst
-
-> **gst**: `number`
-
-##### hst
-
-> **hst**: `number`
-
-##### pst
-
-> **pst**: `number`
-
-##### totalAmount
-
-> **totalAmount**: `number`
-
-##### totalTax
-
-> **totalTax**: `number`
-
-#### Example
-
-```ts
-const salesTax = getSalesTax(100, "Quebec", 2025);
-console.log(salesTax);
-// { gst: 5, pst: 9.975, hst: 0, totalTax: 14.975, totalAmount: 114.975 }
-```
-
-Reference: https://www.retailcouncil.org/resources/quick-facts/sales-tax-rates-by-province/
 
 ***
 
@@ -2714,4 +2612,106 @@ const results = simulateRentVsBuyMonteCarlo({
     variableInterestRates: { initialValue: 0.06, a: 0.2, b: 0.06, sigma: 0.02 },
   },
 });
+```
+
+***
+
+### variableMortgagePayments()
+
+> **variableMortgagePayments**(`mortgageAmount`, `rates`, `term`, `amortizationPeriod`, `options?`): `object`[]
+
+Calculates and returns a detailed schedule of variable-rate monthly mortgage payments (VRM). This function models a Variable Rate Mortgage where the payment amount stays FIXED for the term, but rate changes affect how much goes to interest vs. principal. If rates rise too high, payments may not cover interest, causing negative amortization (balance increases).
+
+#### Parameters
+
+##### mortgageAmount
+
+`number`
+
+The total amount of the mortgage loan.
+
+##### rates
+
+`number`[]
+
+An array of annual interest rates (e.g., `[6.00, 6.00, 5.50, 5.50, ...]` for rates in percentages). The array must contain at least as many rates as there are payments in the term. Each element corresponds to the rate for that payment period (0-based index).
+
+##### term
+
+`number`
+
+The term of the mortgage in years. This is the length of the current mortgage contract.
+
+##### amortizationPeriod
+
+`number`
+
+The total amortization period of the mortgage in years. This is the total time it will take to pay off the mortgage.
+
+##### options?
+
+Additional options for customizing the mortgage calculation and output.
+
+###### annualCompounding?
+
+`number`
+
+The number of times the mortgage interest should be compounded per year. Defaults to `12` (monthly compounding). Set to `2` for semi-annual compounding as is standard in Canada.
+
+###### debug?
+
+`boolean`
+
+If `true`, enables debug logging to the console, providing additional insights into the calculation process. Defaults to `false`.
+
+###### decimals?
+
+`number`
+
+The number of decimal places to round the financial values (payment, interest, capital, balance) to. Defaults to `2`.
+
+###### id?
+
+`string`
+
+An optional string ID to be added to each payment object in the returned array. Useful for tracking payments related to a specific mortgage.
+
+#### Returns
+
+`object`[]
+
+An array of objects, where each object represents a single mortgage payment and contains:
+  - `paymentId`: A 0-based index for the payment.
+  - `payment`: The total amount of the payment (fixed for the term).
+  - `interest`: The portion that goes towards interest (varies with rate changes).
+  - `capital`: The portion that goes towards the principal (can be negative during negative amortization).
+  - `balance`: The remaining mortgage balance after the payment (can increase if interest exceeds payment).
+  - `amountPaid`: The cumulative total amount paid so far.
+  - `interestPaid`: The cumulative total interest paid so far.
+  - `capitalPaid`: The cumulative total capital reimbursed so far (can be negative).
+  - `rate`: The annual interest rate in effect for this payment.
+  - `id` (optional): The ID provided in `options.id`.
+
+#### Throws
+
+If the `amortizationPeriod` is less than the `term`, as this is an invalid mortgage configuration.
+
+#### Throws
+
+If the `rates` array does not contain enough rates for all payments in the term.
+
+#### Example
+
+```ts
+// VRM: Payment stays fixed, but rate changes affect interest/principal split
+// If rates rise high enough, balance can increase (negative amortization)
+const rates = [
+  ...Array(12).fill(6),    // Months 0-11 at 6%
+  ...Array(12).fill(5.5),  // Months 12-23 at 5.5% (more goes to principal)
+  ...Array(36).fill(7.5)   // Months 24-59 at 7.5% (might trigger negative amortization)
+];
+const payments = variableMortgagePayments(250_000, rates, 5, 25);
+console.log(payments[0]);  // Payment amount set based on initial rate
+console.log(payments[12]); // Same payment, but less interest (rate dropped)
+console.log(payments[24]); // Same payment, but more interest (rate increased)
 ```

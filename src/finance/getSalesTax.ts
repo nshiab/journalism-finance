@@ -56,6 +56,7 @@ const SALES_TAX_RATES: Record<
  * ```
  *
  * Reference: https://www.retailcouncil.org/resources/quick-facts/sales-tax-rates-by-province/
+ * @category Finance
  */
 export default function getSalesTax(
   amount: number,

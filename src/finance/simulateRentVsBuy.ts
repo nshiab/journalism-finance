@@ -172,6 +172,7 @@ export type RentVsBuyRates =
  *   rates,
  * }, { winVariableOnly: true, winVariable: "balanceAfterSelling" });
  * ```
+ * @category Finance
  */
 export default function simulateRentVsBuy(
   parameters: {

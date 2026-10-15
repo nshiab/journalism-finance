@@ -18,6 +18,7 @@ export type { ColumnarResult, WinnersColumnar, WinnerSnapshots };
  *
  * Records where `amount === 0` are omitted from the output, matching the zero-filtering
  * applied by the `onRecord` callback during data collection.
+ * @category Finance
  */
 export function decodeMonteCarloMonthlyIterations(c: ColumnarResult): {
   iteration: number;
@@ -66,6 +67,7 @@ export function decodeMonteCarloMonthlyIterations(c: ColumnarResult): {
  * Decodes a columnar `values` result back into the original object-array shape.
  *
  * Keys are variable names. Each `Float64Array` has size `iterations × months`.
+ * @category Finance
  */
 export function decodeMonteCarloValues(c: ColumnarResult): {
   iteration: number;
@@ -105,6 +107,7 @@ export function decodeMonteCarloValues(c: ColumnarResult): {
  *
  * @param c - The `ColumnarResult` returned as `monthlyQuantiles` by `simulateRentVsBuyMonteCarlo`.
  * @param quantiles - The same quantile levels passed to `options.monthlyQuantiles` (e.g. `[0, 0.5, 1]`).
+ * @category Finance
  */
 export function decodeMonteCarloMonthlyQuantiles(
   c: ColumnarResult,
@@ -154,6 +157,7 @@ export function decodeMonteCarloMonthlyQuantiles(
  * Each record represents one 5-year checkpoint (strictly before `numberOfYears`).
  * `renter`, `buyerFixed`, and `buyerVariable` are win rates strictly in the range [0.01, 0.98] (smoothed to [0.01, 0.01, 0.98] in extreme scenarios) and sum to 1.
  * The median fields hold the median `winVariable` amount for that category at the checkpoint.
+ * @category Finance
  */
 export function decodeMonteCarloWinnerSnapshots(ws: WinnerSnapshots): {
   year: number;
@@ -196,6 +200,7 @@ export function decodeMonteCarloWinnerSnapshots(ws: WinnerSnapshots): {
  * `category` bytes map to category names via `WINNER_CATEGORIES`
  * (0 = "renter", 1 = "buyerFixed", 2 = "buyerVariable").
  * Records are returned in iteration order (row 0 = iteration 0).
+ * @category Finance
  */
 export function decodeMonteCarloWinners(w: WinnersColumnar): {
   iteration: number;

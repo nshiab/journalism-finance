@@ -44,6 +44,7 @@ const R2 = { decimals: 2 };
  *   mortgageType: "variable",
  * });
  * ```
+ * @category Finance
  */
 export default function getMortgagePenalty(parameters: {
   remainingMonthsToTerm: number;

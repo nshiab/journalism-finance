@@ -65,6 +65,7 @@ export type StochasticData = Record<StochasticVariable, number[]>;
  *   choleskyMatrix: choleskyMatrixCorrelated,
  * });
  * ```
+ * @category Finance
  */
 export default function getRentVsBuyCholeskyMatrix(
   data?: StochasticData,

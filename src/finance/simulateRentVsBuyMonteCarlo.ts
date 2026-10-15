@@ -416,6 +416,7 @@ export type BaseOptions = {
  *   },
  * });
  * ```
+ * @category Finance
  */
 function simulateRentVsBuyMonteCarlo(
   parameters: SimParams,
