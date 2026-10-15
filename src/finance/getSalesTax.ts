@@ -1,5 +1,6 @@
 /**
  * A Canadian province or territory supported by the tax calculations.
+ * @inline
  */
 export type Province =
   | "Alberta"
@@ -82,9 +83,7 @@ export default function getSalesTax(
 } {
   const rates = SALES_TAX_RATES[year]?.[province];
   if (!rates) {
-    throw new Error(
-      `Sales tax rates not found for province ${province} and year ${year}`,
-    );
+    throw new Error(`Sales tax rates not found for province ${province} and year ${year}`);
   }
 
   const { gstRate, pstRate, hstRate } = rates;

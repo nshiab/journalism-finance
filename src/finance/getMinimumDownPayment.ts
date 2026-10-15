@@ -53,7 +53,5 @@ export default function getMinimumDownPayment(
     downPayment = purchasePrice * 0.2;
   }
 
-  return typeof options.decimals === "number"
-    ? round(downPayment, options)
-    : downPayment;
+  return typeof options.decimals === "number" ? round(downPayment, options) : downPayment;
 }

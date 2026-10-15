@@ -1,22 +1,6 @@
 /**
- * @module
- *
- * The Journalism library (finance functions) - Web entry point
- *
- * To install the library with Deno, use:
- * ```bash
- * deno add jsr:@nshiab/journalism-finance
- * ```
- *
- * To install the library with Node.js, use:
- * ```bash
- * npm i @nshiab/journalism-finance
- * ```
- *
- * To import a function, use:
- * ```ts
- * import { functionName } from "@nshiab/journalism-finance/web";
- * ```
+ * Browser-safe financial calculations. Import from `@nshiab/journalism-finance/web`.
+ * @module web
  */
 
 import adjustToInflation from "./finance/adjustToInflation.ts";
@@ -39,21 +23,6 @@ import {
   decodeMonteCarloWinners,
   decodeMonteCarloWinnerSnapshots,
 } from "./finance/decodeMonteCarloResults.ts";
-import type {
-  BaseOptions,
-  ColumnarResult,
-  ColumnarReturn,
-  MqCategory,
-  MqGroup,
-  MqVariable,
-  SimParams,
-  WinnersColumnar,
-  WinnerSnapshots,
-} from "./finance/simulateRentVsBuyMonteCarlo.ts";
-import type {
-  StochasticData,
-  StochasticVariable,
-} from "./finance/helpers/rentVsBuy/getRentVsBuyCholeskyMatrix.ts";
 import getLandTransferTax from "./finance/getLandTransferTax.ts";
 
 export {
@@ -75,18 +44,4 @@ export {
   simulateRentVsBuyMonteCarlo,
   variableMortgagePayments,
   WINNER_CATEGORIES,
-};
-
-export type {
-  BaseOptions,
-  ColumnarResult,
-  ColumnarReturn,
-  MqCategory,
-  MqGroup,
-  MqVariable,
-  SimParams,
-  StochasticData,
-  StochasticVariable,
-  WinnersColumnar,
-  WinnerSnapshots,
 };

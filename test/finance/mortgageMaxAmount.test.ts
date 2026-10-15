@@ -1,11 +1,12 @@
-import { assertEquals } from "jsr:@std/assert";
+import { test, expect } from "vite-plus/test";
+
 import mortgageMaxAmount from "../../src/finance/mortgageMaxAmount.ts";
 
 // Tested against https://itools-ioutils.fcac-acfc.gc.ca/MQ-HQ/MQCalc-EAPHCalc-eng.aspx
 
-Deno.test("should return a purchase price of $0k with an income of $0k, down payment of $0k, and a rate of 5.25%", () => {
+test("should return a purchase price of $0k with an income of $0k, down payment of $0k, and a rate of 5.25%", () => {
   const results = mortgageMaxAmount(0, 0, 5.25);
-  assertEquals(results, {
+  expect(results).toEqual({
     annualIncome: 0,
     downPayment: 0,
     rate: 5.25,
@@ -25,9 +26,9 @@ Deno.test("should return a purchase price of $0k with an income of $0k, down pay
     monthlyCondoFees: 0,
   });
 });
-Deno.test("should return a purchase price of $25k with an income of $0k, down payment of $25k, and a rate of 5.25%", () => {
+test("should return a purchase price of $25k with an income of $0k, down payment of $25k, and a rate of 5.25%", () => {
   const results = mortgageMaxAmount(0, 25_000, 5.25);
-  assertEquals(results, {
+  expect(results).toEqual({
     annualIncome: 0,
     downPayment: 25000,
     rate: 5.25,
@@ -47,9 +48,9 @@ Deno.test("should return a purchase price of $25k with an income of $0k, down pa
     monthlyCondoFees: 0,
   });
 });
-Deno.test("should return a purchase price of $39k with an income of $10k, down payment of $25k, and a rate of 5.25%", () => {
+test("should return a purchase price of $39k with an income of $10k, down payment of $25k, and a rate of 5.25%", () => {
   const results = mortgageMaxAmount(10_000, 25_000, 5.25);
-  assertEquals(results, {
+  expect(results).toEqual({
     annualIncome: 10000,
     downPayment: 25000,
     rate: 5.25,
@@ -69,9 +70,9 @@ Deno.test("should return a purchase price of $39k with an income of $10k, down p
     monthlyCondoFees: 0,
   });
 });
-Deno.test("should return a purchase price of $189k with an income of $50k, down payment of $25k, and a rate of 5.25%", () => {
+test("should return a purchase price of $189k with an income of $50k, down payment of $25k, and a rate of 5.25%", () => {
   const results = mortgageMaxAmount(50_000, 25_000, 5.25);
-  assertEquals(results, {
+  expect(results).toEqual({
     annualIncome: 50000,
     downPayment: 25000,
     rate: 5.25,
@@ -91,9 +92,9 @@ Deno.test("should return a purchase price of $189k with an income of $50k, down 
     monthlyCondoFees: 0,
   });
 });
-Deno.test("should return a purchase price of $0k with an income of $100k, down payment of $0k, and a rate of 5.25%", () => {
+test("should return a purchase price of $0k with an income of $100k, down payment of $0k, and a rate of 5.25%", () => {
   const results = mortgageMaxAmount(100_000, 0, 5.25);
-  assertEquals(results, {
+  expect(results).toEqual({
     annualIncome: 100000,
     downPayment: 0,
     rate: 5.25,
@@ -113,9 +114,9 @@ Deno.test("should return a purchase price of $0k with an income of $100k, down p
     monthlyCondoFees: 0,
   });
 });
-Deno.test("should return a purchase price of $0k with an income of $100k, down payment of $5k, and a rate of 5.25%", () => {
+test("should return a purchase price of $0k with an income of $100k, down payment of $5k, and a rate of 5.25%", () => {
   const results = mortgageMaxAmount(100_000, 5_000, 5.25);
-  assertEquals(results, {
+  expect(results).toEqual({
     annualIncome: 100000,
     downPayment: 5000,
     rate: 5.25,
@@ -135,9 +136,9 @@ Deno.test("should return a purchase price of $0k with an income of $100k, down p
     monthlyCondoFees: 0,
   });
 });
-Deno.test("should return a purchase price of $375k with an income of $100k, down payment of $25k, and a rate of 5.25%", () => {
+test("should return a purchase price of $375k with an income of $100k, down payment of $25k, and a rate of 5.25%", () => {
   const results = mortgageMaxAmount(100_000, 25_000, 5.25);
-  assertEquals(results, {
+  expect(results).toEqual({
     annualIncome: 100000,
     downPayment: 25000,
     rate: 5.25,
@@ -157,9 +158,9 @@ Deno.test("should return a purchase price of $375k with an income of $100k, down
     monthlyCondoFees: 0,
   });
 });
-Deno.test("should return a purchase price of $399k with an income of $100k, down payment of $50k, and a rate of 5.25%", () => {
+test("should return a purchase price of $399k with an income of $100k, down payment of $50k, and a rate of 5.25%", () => {
   const results = mortgageMaxAmount(100_000, 50_000, 5.25);
-  assertEquals(results, {
+  expect(results).toEqual({
     annualIncome: 100000,
     downPayment: 50000,
     rate: 5.25,
@@ -179,9 +180,9 @@ Deno.test("should return a purchase price of $399k with an income of $100k, down
     monthlyCondoFees: 0,
   });
 });
-Deno.test("should return a purchase price of $421k with an income of $100k, down payment of $75k, and a rate of 5.25%", () => {
+test("should return a purchase price of $421k with an income of $100k, down payment of $75k, and a rate of 5.25%", () => {
   const results = mortgageMaxAmount(100_000, 75_000, 5.25);
-  assertEquals(results, {
+  expect(results).toEqual({
     annualIncome: 100000,
     downPayment: 75000,
     rate: 5.25,
@@ -201,9 +202,9 @@ Deno.test("should return a purchase price of $421k with an income of $100k, down
     monthlyCondoFees: 0,
   });
 });
-Deno.test("should return a purchase price of $450k with an income of $100k, down payment of $100k, and a rate of 5.25%", () => {
+test("should return a purchase price of $450k with an income of $100k, down payment of $100k, and a rate of 5.25%", () => {
   const results = mortgageMaxAmount(100_000, 100_000, 5.25);
-  assertEquals(results, {
+  expect(results).toEqual({
     annualIncome: 100000,
     downPayment: 100000,
     rate: 5.25,
@@ -223,9 +224,9 @@ Deno.test("should return a purchase price of $450k with an income of $100k, down
     monthlyCondoFees: 0,
   });
 });
-Deno.test("should return a purchase price of $433k with an income of $100k, down payment of $25k, and a rate of 1.00%", () => {
+test("should return a purchase price of $433k with an income of $100k, down payment of $25k, and a rate of 1.00%", () => {
   const results = mortgageMaxAmount(100_000, 25_000, 1);
-  assertEquals(results, {
+  expect(results).toEqual({
     annualIncome: 100000,
     downPayment: 25000,
     rate: 1,
@@ -245,9 +246,9 @@ Deno.test("should return a purchase price of $433k with an income of $100k, down
     monthlyCondoFees: 0,
   });
 });
-Deno.test("should return a purchase price of $433k with an income of $100k, down payment of $25k, and a rate of 3.00%", () => {
+test("should return a purchase price of $433k with an income of $100k, down payment of $25k, and a rate of 3.00%", () => {
   const results = mortgageMaxAmount(100_000, 25_000, 3);
-  assertEquals(results, {
+  expect(results).toEqual({
     annualIncome: 100000,
     downPayment: 25000,
     rate: 3,
@@ -267,9 +268,9 @@ Deno.test("should return a purchase price of $433k with an income of $100k, down
     monthlyCondoFees: 0,
   });
 });
-Deno.test("should return a purchase price of $410k with an income of $100k, down payment of $25k, and a rate of 4.00%", () => {
+test("should return a purchase price of $410k with an income of $100k, down payment of $25k, and a rate of 4.00%", () => {
   const results = mortgageMaxAmount(100_000, 25_000, 4);
-  assertEquals(results, {
+  expect(results).toEqual({
     annualIncome: 100000,
     downPayment: 25000,
     rate: 4,
@@ -289,9 +290,9 @@ Deno.test("should return a purchase price of $410k with an income of $100k, down
     monthlyCondoFees: 0,
   });
 });
-Deno.test("should return a purchase price of $381k with an income of $100k, down payment of $25k, and a rate of 5.00%", () => {
+test("should return a purchase price of $381k with an income of $100k, down payment of $25k, and a rate of 5.00%", () => {
   const results = mortgageMaxAmount(100_000, 25_000, 5);
-  assertEquals(results, {
+  expect(results).toEqual({
     annualIncome: 100000,
     downPayment: 25000,
     rate: 5,
@@ -311,9 +312,9 @@ Deno.test("should return a purchase price of $381k with an income of $100k, down
     monthlyCondoFees: 0,
   });
 });
-Deno.test("should return a purchase price of $333k with an income of $100k, down payment of $25k, and a rate of 7.00%", () => {
+test("should return a purchase price of $333k with an income of $100k, down payment of $25k, and a rate of 7.00%", () => {
   const results = mortgageMaxAmount(100_000, 25_000, 7);
-  assertEquals(results, {
+  expect(results).toEqual({
     annualIncome: 100000,
     downPayment: 25000,
     rate: 7,
@@ -333,9 +334,9 @@ Deno.test("should return a purchase price of $333k with an income of $100k, down
     monthlyCondoFees: 0,
   });
 });
-Deno.test("should return a purchase price of $279k with an income of $100k, down payment of $25k, and a rate of 10.00%", () => {
+test("should return a purchase price of $279k with an income of $100k, down payment of $25k, and a rate of 10.00%", () => {
   const results = mortgageMaxAmount(100_000, 25_000, 10);
-  assertEquals(results, {
+  expect(results).toEqual({
     annualIncome: 100000,
     downPayment: 25000,
     rate: 10,
@@ -355,11 +356,11 @@ Deno.test("should return a purchase price of $279k with an income of $100k, down
     monthlyCondoFees: 0,
   });
 });
-Deno.test("should return a purchase price of $381k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly debt payment of $0.", () => {
+test("should return a purchase price of $381k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly debt payment of $0.", () => {
   const results = mortgageMaxAmount(100_000, 25_000, 5, {
     monthlyDebtPayment: 0,
   });
-  assertEquals(results, {
+  expect(results).toEqual({
     annualIncome: 100000,
     downPayment: 25000,
     rate: 5,
@@ -379,11 +380,11 @@ Deno.test("should return a purchase price of $381k with an income of $100k, down
     monthlyCondoFees: 0,
   });
 });
-Deno.test("should return a purchase price of $381k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly debt payment of $50.", () => {
+test("should return a purchase price of $381k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly debt payment of $50.", () => {
   const results = mortgageMaxAmount(100_000, 25_000, 5, {
     monthlyDebtPayment: 50,
   });
-  assertEquals(results, {
+  expect(results).toEqual({
     annualIncome: 100000,
     downPayment: 25000,
     rate: 5,
@@ -403,11 +404,11 @@ Deno.test("should return a purchase price of $381k with an income of $100k, down
     monthlyCondoFees: 0,
   });
 });
-Deno.test("should return a purchase price of $381k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly debt payment of $100.", () => {
+test("should return a purchase price of $381k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly debt payment of $100.", () => {
   const results = mortgageMaxAmount(100_000, 25_000, 5, {
     monthlyDebtPayment: 100,
   });
-  assertEquals(results, {
+  expect(results).toEqual({
     annualIncome: 100000,
     downPayment: 25000,
     rate: 5,
@@ -427,11 +428,11 @@ Deno.test("should return a purchase price of $381k with an income of $100k, down
     monthlyCondoFees: 0,
   });
 });
-Deno.test("should return a purchase price of $381k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly debt payment of $250.", () => {
+test("should return a purchase price of $381k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly debt payment of $250.", () => {
   const results = mortgageMaxAmount(100_000, 25_000, 5, {
     monthlyDebtPayment: 250,
   });
-  assertEquals(results, {
+  expect(results).toEqual({
     annualIncome: 100000,
     downPayment: 25000,
     rate: 5,
@@ -451,11 +452,11 @@ Deno.test("should return a purchase price of $381k with an income of $100k, down
     monthlyCondoFees: 0,
   });
 });
-Deno.test("should return a purchase price of $371k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly debt payment of $500.", () => {
+test("should return a purchase price of $371k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly debt payment of $500.", () => {
   const results = mortgageMaxAmount(100_000, 25_000, 5, {
     monthlyDebtPayment: 500,
   });
-  assertEquals(results, {
+  expect(results).toEqual({
     annualIncome: 100000,
     downPayment: 25000,
     rate: 5,
@@ -475,11 +476,11 @@ Deno.test("should return a purchase price of $371k with an income of $100k, down
     monthlyCondoFees: 0,
   });
 });
-Deno.test("should return a purchase price of $342k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly debt payment of $750.", () => {
+test("should return a purchase price of $342k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly debt payment of $750.", () => {
   const results = mortgageMaxAmount(100_000, 25_000, 5, {
     monthlyDebtPayment: 750,
   });
-  assertEquals(results, {
+  expect(results).toEqual({
     annualIncome: 100000,
     downPayment: 25000,
     rate: 5,
@@ -499,11 +500,11 @@ Deno.test("should return a purchase price of $342k with an income of $100k, down
     monthlyCondoFees: 0,
   });
 });
-Deno.test("should return a purchase price of $333k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly heating cost of $1.", () => {
+test("should return a purchase price of $333k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly heating cost of $1.", () => {
   const results = mortgageMaxAmount(100_000, 25_000, 5, {
     monthlyHeating: 1,
   });
-  assertEquals(results, {
+  expect(results).toEqual({
     annualIncome: 100000,
     downPayment: 25000,
     rate: 5,
@@ -523,11 +524,11 @@ Deno.test("should return a purchase price of $333k with an income of $100k, down
     monthlyCondoFees: 0,
   });
 });
-Deno.test("should return a purchase price of $322k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly heating cost of $100.", () => {
+test("should return a purchase price of $322k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly heating cost of $100.", () => {
   const results = mortgageMaxAmount(100_000, 25_000, 5, {
     monthlyHeating: 100,
   });
-  assertEquals(results, {
+  expect(results).toEqual({
     annualIncome: 100000,
     downPayment: 25000,
     rate: 5,
@@ -547,11 +548,11 @@ Deno.test("should return a purchase price of $322k with an income of $100k, down
     monthlyCondoFees: 0,
   });
 });
-Deno.test("should return a purchase price of $304k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly heating cost of $250.", () => {
+test("should return a purchase price of $304k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly heating cost of $250.", () => {
   const results = mortgageMaxAmount(100_000, 25_000, 5, {
     monthlyHeating: 250,
   });
-  assertEquals(results, {
+  expect(results).toEqual({
     annualIncome: 100000,
     downPayment: 25000,
     rate: 5,
@@ -571,11 +572,11 @@ Deno.test("should return a purchase price of $304k with an income of $100k, down
     monthlyCondoFees: 0,
   });
 });
-Deno.test("should return a purchase price of $304k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly heating cost of $500.", () => {
+test("should return a purchase price of $304k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly heating cost of $500.", () => {
   const results = mortgageMaxAmount(100_000, 25_000, 5, {
     monthlyHeating: 500,
   });
-  assertEquals(results, {
+  expect(results).toEqual({
     annualIncome: 100000,
     downPayment: 25000,
     rate: 5,
@@ -595,11 +596,11 @@ Deno.test("should return a purchase price of $304k with an income of $100k, down
     monthlyCondoFees: 0,
   });
 });
-Deno.test("should return a purchase price of $366k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly tax cost of $1.", () => {
+test("should return a purchase price of $366k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly tax cost of $1.", () => {
   const results = mortgageMaxAmount(100_000, 25_000, 5, {
     monthlyTax: 1,
   });
-  assertEquals(results, {
+  expect(results).toEqual({
     annualIncome: 100000,
     downPayment: 25000,
     rate: 5,
@@ -619,11 +620,11 @@ Deno.test("should return a purchase price of $366k with an income of $100k, down
     monthlyCondoFees: 0,
   });
 });
-Deno.test("should return a purchase price of $298k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly tax cost of $500.", () => {
+test("should return a purchase price of $298k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly tax cost of $500.", () => {
   const results = mortgageMaxAmount(100_000, 25_000, 5, {
     monthlyTax: 500,
   });
-  assertEquals(results, {
+  expect(results).toEqual({
     annualIncome: 100000,
     downPayment: 25000,
     rate: 5,
@@ -643,11 +644,11 @@ Deno.test("should return a purchase price of $298k with an income of $100k, down
     monthlyCondoFees: 0,
   });
 });
-Deno.test("should return a purchase price of $309k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly tax cost of $1k.", () => {
+test("should return a purchase price of $309k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly tax cost of $1k.", () => {
   const results = mortgageMaxAmount(100_000, 25_000, 5, {
     monthlyTax: 1000,
   });
-  assertEquals(results, {
+  expect(results).toEqual({
     annualIncome: 100000,
     downPayment: 25000,
     rate: 5,
@@ -667,11 +668,11 @@ Deno.test("should return a purchase price of $309k with an income of $100k, down
     monthlyCondoFees: 0,
   });
 });
-Deno.test("should return a purchase price of $381k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly condo fees of $0.", () => {
+test("should return a purchase price of $381k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly condo fees of $0.", () => {
   const results = mortgageMaxAmount(100_000, 25_000, 5, {
     monthlyCondoFees: 0,
   });
-  assertEquals(results, {
+  expect(results).toEqual({
     annualIncome: 100000,
     downPayment: 25000,
     rate: 5,
@@ -691,11 +692,11 @@ Deno.test("should return a purchase price of $381k with an income of $100k, down
     monthlyCondoFees: 0,
   });
 });
-Deno.test("should return a purchase price of $369k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly condo fees of $100.", () => {
+test("should return a purchase price of $369k with an income of $100k, down payment of $25k, a rate of 5.00%, and monthly condo fees of $100.", () => {
   const results = mortgageMaxAmount(100_000, 25_000, 5, {
     monthlyCondoFees: 100,
   });
-  assertEquals(results, {
+  expect(results).toEqual({
     annualIncome: 100000,
     downPayment: 25000,
     rate: 5,
@@ -715,11 +716,11 @@ Deno.test("should return a purchase price of $369k with an income of $100k, down
     monthlyCondoFees: 100,
   });
 });
-Deno.test("should return a purchase price of $500k with an income of $200k, down payment of $25k, a rate of 5.00%, and monthly condo fees of $100.", () => {
+test("should return a purchase price of $500k with an income of $200k, down payment of $25k, a rate of 5.00%, and monthly condo fees of $100.", () => {
   const results = mortgageMaxAmount(200_000, 25_000, 5, {
     monthlyCondoFees: 100,
   });
-  assertEquals(results, {
+  expect(results).toEqual({
     annualIncome: 200000,
     downPayment: 25000,
     rate: 5,
@@ -739,11 +740,11 @@ Deno.test("should return a purchase price of $500k with an income of $200k, down
     monthlyCondoFees: 100,
   });
 });
-Deno.test("should return a purchase price of $600k with an income of $250k, down payment of $35k, a rate of 5.00%, and monthly condo fees of $100.", () => {
+test("should return a purchase price of $600k with an income of $250k, down payment of $35k, a rate of 5.00%, and monthly condo fees of $100.", () => {
   const results = mortgageMaxAmount(250_000, 35_000, 5, {
     monthlyCondoFees: 100,
   });
-  assertEquals(results, {
+  expect(results).toEqual({
     annualIncome: 250000,
     downPayment: 35000,
     rate: 5,
@@ -763,11 +764,11 @@ Deno.test("should return a purchase price of $600k with an income of $250k, down
     monthlyCondoFees: 100,
   });
 });
-Deno.test("should return a purchase price of $750k with an income of $250k, down payment of $50k, a rate of 5.00%, and monthly condo fees of $100.", () => {
+test("should return a purchase price of $750k with an income of $250k, down payment of $50k, a rate of 5.00%, and monthly condo fees of $100.", () => {
   const results = mortgageMaxAmount(250_000, 50_000, 5, {
     monthlyCondoFees: 100,
   });
-  assertEquals(results, {
+  expect(results).toEqual({
     annualIncome: 250000,
     downPayment: 50000,
     rate: 5,
@@ -787,11 +788,11 @@ Deno.test("should return a purchase price of $750k with an income of $250k, down
     monthlyCondoFees: 100,
   });
 });
-Deno.test("should return a purchase price of $983k with an income of $250k, down payment of $75k, a rate of 5.00%, and monthly condo fees of $100.", () => {
+test("should return a purchase price of $983k with an income of $250k, down payment of $75k, a rate of 5.00%, and monthly condo fees of $100.", () => {
   const results = mortgageMaxAmount(250_000, 75_000, 5, {
     monthlyCondoFees: 100,
   });
-  assertEquals(results, {
+  expect(results).toEqual({
     annualIncome: 250000,
     downPayment: 75000,
     rate: 5,
@@ -811,9 +812,9 @@ Deno.test("should return a purchase price of $983k with an income of $250k, down
     monthlyCondoFees: 100,
   });
 });
-Deno.test("should return a purchase price of $1.25m with an income of $500k, down payment of $100k, and a rate of 5.00%", () => {
+test("should return a purchase price of $1.25m with an income of $500k, down payment of $100k, and a rate of 5.00%", () => {
   const results = mortgageMaxAmount(500_000, 100_000, 5);
-  assertEquals(results, {
+  expect(results).toEqual({
     annualIncome: 500000,
     downPayment: 100000,
     rate: 5,
@@ -833,9 +834,9 @@ Deno.test("should return a purchase price of $1.25m with an income of $500k, dow
     monthlyCondoFees: 0,
   });
 });
-Deno.test("should return a purchase price of $1,499,001 with an income of $500k, down payment of $200,001, and a rate of 5.00%", () => {
+test("should return a purchase price of $1,499,001 with an income of $500k, down payment of $200,001, and a rate of 5.00%", () => {
   const results = mortgageMaxAmount(500_000, 200_001, 5);
-  assertEquals(results, {
+  expect(results).toEqual({
     annualIncome: 500000,
     downPayment: 200001,
     rate: 5,
@@ -855,9 +856,9 @@ Deno.test("should return a purchase price of $1,499,001 with an income of $500k,
     monthlyCondoFees: 0,
   });
 });
-Deno.test("should return a purchase price of $2,442,000 with an income of $500k, down payment of $1,000,000, and a rate of 5.00%", () => {
+test("should return a purchase price of $2,442,000 with an income of $500k, down payment of $1,000,000, and a rate of 5.00%", () => {
   const results = mortgageMaxAmount(500_000, 1_000_000, 5);
-  assertEquals(results, {
+  expect(results).toEqual({
     annualIncome: 500000,
     downPayment: 1000000,
     rate: 5,

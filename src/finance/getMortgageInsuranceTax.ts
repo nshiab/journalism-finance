@@ -37,5 +37,5 @@ export default function getMortgageInsuranceTax(
   // Rounding to 2 decimal places to match regular financial transactions,
   // or generally we can return precise and the consumer rounds it,
   // but let's use standard rounding.
-  return Math.round((insurancePremium * taxRate) * 100) / 100;
+  return Math.round(insurancePremium * taxRate * 100) / 100;
 }

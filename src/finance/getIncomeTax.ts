@@ -54,17 +54,17 @@ const FEDERAL_LIMITS: Record<
 
 const PROVINCIAL_BPA: Record<TaxYear, Record<Province, number>> = {
   2025: {
-    "Yukon": FEDERAL_LIMITS[2025].maxBPA,
-    "Manitoba": 15780,
-    "Alberta": 22323,
-    "Saskatchewan": 19491,
-    "Nunavut": 19274,
-    "Quebec": 18571,
+    Yukon: FEDERAL_LIMITS[2025].maxBPA,
+    Manitoba: 15780,
+    Alberta: 22323,
+    Saskatchewan: 19491,
+    Nunavut: 19274,
+    Quebec: 18571,
     "Northwest Territories": 17842,
     "Prince Edward Island": 14650,
     "New Brunswick": 13396,
     "British Columbia": 12932,
-    "Ontario": 12747,
+    Ontario: 12747,
     "Nova Scotia": 11744,
     "Newfoundland and Labrador": 11067,
   },
@@ -136,7 +136,7 @@ const ONTARIO_LIMITS: Record<
     baseOTRAmount: 294,
     surtaxThreshold1: 5710,
     surtaxThreshold2: 7307,
-    surtaxRate1: 0.20,
+    surtaxRate1: 0.2,
     surtaxRate2: 0.36,
     liftMax: 875,
     liftRate: 0.0505,
@@ -273,14 +273,14 @@ const FEDERAL_BRACKETS: Record<TaxYear, TaxBracket[]> = {
 
 const PROVINCIAL_BRACKETS: Record<TaxYear, Record<Province, TaxBracket[]>> = {
   2025: {
-    "Ontario": [
+    Ontario: [
       { rate: 0.0505, threshold: 0 },
       { rate: 0.0915, threshold: 52886 },
       { rate: 0.1116, threshold: 105775 },
       { rate: 0.1216, threshold: 150000 },
       { rate: 0.1316, threshold: 220000 },
     ],
-    "Quebec": [
+    Quebec: [
       { rate: 0.14, threshold: 0 },
       { rate: 0.19, threshold: 53255 },
       { rate: 0.24, threshold: 106495 },
@@ -295,20 +295,20 @@ const PROVINCIAL_BRACKETS: Record<TaxYear, Record<Province, TaxBracket[]>> = {
       { rate: 0.168, threshold: 186306 },
       { rate: 0.205, threshold: 259829 },
     ],
-    "Alberta": [
+    Alberta: [
       { rate: 0.08, threshold: 0 },
-      { rate: 0.10, threshold: 60000 },
+      { rate: 0.1, threshold: 60000 },
       { rate: 0.12, threshold: 151234 },
       { rate: 0.13, threshold: 181481 },
       { rate: 0.14, threshold: 241974 },
       { rate: 0.15, threshold: 362961 },
     ],
-    "Manitoba": [
+    Manitoba: [
       { rate: 0.108, threshold: 0 },
       { rate: 0.1275, threshold: 47000 },
       { rate: 0.174, threshold: 100000 },
     ],
-    "Saskatchewan": [
+    Saskatchewan: [
       { rate: 0.105, threshold: 0 },
       { rate: 0.125, threshold: 53463 },
       { rate: 0.145, threshold: 152750 },
@@ -343,7 +343,7 @@ const PROVINCIAL_BRACKETS: Record<TaxYear, Record<Province, TaxBracket[]>> = {
       { rate: 0.1762, threshold: 105000 },
       { rate: 0.19, threshold: 140000 },
     ],
-    "Yukon": [
+    Yukon: [
       { rate: 0.064, threshold: 0 },
       { rate: 0.09, threshold: 57375 },
       { rate: 0.109, threshold: 114750 },
@@ -356,7 +356,7 @@ const PROVINCIAL_BRACKETS: Record<TaxYear, Record<Province, TaxBracket[]>> = {
       { rate: 0.122, threshold: 103930 },
       { rate: 0.1405, threshold: 168967 },
     ],
-    "Nunavut": [
+    Nunavut: [
       { rate: 0.04, threshold: 0 },
       { rate: 0.07, threshold: 54707 },
       { rate: 0.09, threshold: 109413 },
@@ -393,11 +393,7 @@ function calculateTax(
   return { amount: tax, marginalRate };
 }
 
-function getPayrollDeductions(
-  employmentIncome: number,
-  province: Province,
-  year: TaxYear,
-) {
+function getPayrollDeductions(employmentIncome: number, province: Province, year: TaxYear) {
   const limits = PAYROLL_LIMITS[year];
 
   let cppOrQppBase = 0;
@@ -414,10 +410,7 @@ function getPayrollDeductions(
     cppOrQppBase = qppPensionable * limits.qppBaseRate;
     cppOrQppEnhanced = qppPensionable * limits.qppEnhancedRate;
 
-    const qpp2Pensionable = Math.max(
-      0,
-      Math.min(employmentIncome, limits.yampe) - limits.ympe,
-    );
+    const qpp2Pensionable = Math.max(0, Math.min(employmentIncome, limits.yampe) - limits.ympe);
     cpp2OrQpp2 = qpp2Pensionable * limits.cpp2Rate;
 
     ei = Math.min(employmentIncome, limits.eiMaxEarnings) * limits.eiRateQC;
@@ -430,10 +423,7 @@ function getPayrollDeductions(
     cppOrQppBase = cppPensionable * limits.cppBaseRate;
     cppOrQppEnhanced = cppPensionable * limits.cppEnhancedRate;
 
-    const cpp2Pensionable = Math.max(
-      0,
-      Math.min(employmentIncome, limits.yampe) - limits.ympe,
-    );
+    const cpp2Pensionable = Math.max(0, Math.min(employmentIncome, limits.yampe) - limits.ympe);
     cpp2OrQpp2 = cpp2Pensionable * limits.cpp2Rate;
 
     ei = Math.min(employmentIncome, limits.eiMaxEarnings) * limits.eiRate;
@@ -448,9 +438,9 @@ function getFederalBPA(income: number, year: TaxYear): number {
   if (income <= limits.phaseOutStart) return limits.maxBPA;
   if (income >= limits.phaseOutEnd) return limits.minBPA;
 
-  const phaseOutRatio = (income - limits.phaseOutStart) /
-    (limits.phaseOutEnd - limits.phaseOutStart);
-  return limits.maxBPA - (phaseOutRatio * (limits.maxBPA - limits.minBPA));
+  const phaseOutRatio =
+    (income - limits.phaseOutStart) / (limits.phaseOutEnd - limits.phaseOutStart);
+  return limits.maxBPA - phaseOutRatio * (limits.maxBPA - limits.minBPA);
 }
 
 function applyOntarioTaxReduction(
@@ -459,7 +449,7 @@ function applyOntarioTaxReduction(
 ): { reducedTax: number; reductionAmount: number } {
   const limits = ONTARIO_LIMITS[year];
 
-  const potentialReduction = (limits.baseOTRAmount * 2) - basicTax;
+  const potentialReduction = limits.baseOTRAmount * 2 - basicTax;
   if (potentialReduction > 0) {
     const reducedTax = Math.max(0, basicTax - potentialReduction);
     return { reducedTax, reductionAmount: basicTax - reducedTax };
@@ -477,14 +467,12 @@ function getOntarioSurtax(
   let marginalMultiplier = 1;
 
   if (basicOntarioTax > limits.surtaxThreshold1) {
-    surtaxAmount += limits.surtaxRate1 *
-      (basicOntarioTax - limits.surtaxThreshold1);
+    surtaxAmount += limits.surtaxRate1 * (basicOntarioTax - limits.surtaxThreshold1);
     marginalMultiplier += limits.surtaxRate1;
   }
 
   if (basicOntarioTax > limits.surtaxThreshold2) {
-    surtaxAmount += limits.surtaxRate2 *
-      (basicOntarioTax - limits.surtaxThreshold2);
+    surtaxAmount += limits.surtaxRate2 * (basicOntarioTax - limits.surtaxThreshold2);
     marginalMultiplier += limits.surtaxRate2;
   }
 
@@ -501,10 +489,7 @@ function getOntarioLIFTCredit(
   const limits = ONTARIO_LIMITS[year];
 
   const maxLift = Math.min(limits.liftMax, employmentIncome * limits.liftRate);
-  const phaseOut = Math.max(
-    0,
-    (netIncome - limits.liftPhaseOutStart) * limits.liftPhaseOutRate,
-  );
+  const phaseOut = Math.max(0, (netIncome - limits.liftPhaseOutStart) * limits.liftPhaseOutRate);
   const liftCredit = Math.max(0, maxLift - phaseOut);
 
   return Math.min(basicOntarioTax, liftCredit);
@@ -517,39 +502,34 @@ function getOntarioHealthPremium(taxableIncome: number, year: TaxYear): number {
   if (taxableIncome <= limits.healthPremiumThreshold2) {
     return Math.min(
       limits.healthPremiumBase2,
-      (taxableIncome - limits.healthPremiumThreshold1) *
-        limits.healthPremiumRate1,
+      (taxableIncome - limits.healthPremiumThreshold1) * limits.healthPremiumRate1,
     );
   }
   if (taxableIncome <= limits.healthPremiumThreshold3) {
     return Math.min(
       limits.healthPremiumBase3,
       limits.healthPremiumBase2 +
-        (taxableIncome - limits.healthPremiumThreshold2) *
-          limits.healthPremiumRate1,
+        (taxableIncome - limits.healthPremiumThreshold2) * limits.healthPremiumRate1,
     );
   }
   if (taxableIncome <= limits.healthPremiumThreshold4) {
     return Math.min(
       limits.healthPremiumBase4,
       limits.healthPremiumBase3 +
-        (taxableIncome - limits.healthPremiumThreshold3) *
-          limits.healthPremiumRate2,
+        (taxableIncome - limits.healthPremiumThreshold3) * limits.healthPremiumRate2,
     );
   }
   if (taxableIncome <= limits.healthPremiumThreshold5) {
     return Math.min(
       limits.healthPremiumMax4,
       limits.healthPremiumBase4 +
-        (taxableIncome - limits.healthPremiumThreshold4) *
-          limits.healthPremiumRate2,
+        (taxableIncome - limits.healthPremiumThreshold4) * limits.healthPremiumRate2,
     );
   }
   return Math.min(
     limits.healthPremiumMax5,
     limits.healthPremiumBase5 +
-      (taxableIncome - limits.healthPremiumThreshold5) *
-        limits.healthPremiumRate2,
+      (taxableIncome - limits.healthPremiumThreshold5) * limits.healthPremiumRate2,
   );
 }
 
@@ -579,59 +559,42 @@ function getQuebecRAMQ(netIncome: number, year: TaxYear): number {
   return Math.round(Math.min(limits.ramqMaxPremium, calculatedPremium));
 }
 
-function getBCTaxReduction(
-  netProvincialTax: number,
-  taxableIncome: number,
-  year: TaxYear,
-): number {
+function getBCTaxReduction(netProvincialTax: number, taxableIncome: number, year: TaxYear): number {
   const limits = BC_LIMITS[year];
   if (!limits) return 0;
 
-  const reduction = limits.baseAmount -
-    (taxableIncome - limits.threshold) * limits.reductionFactor;
+  const reduction = limits.baseAmount - (taxableIncome - limits.threshold) * limits.reductionFactor;
 
   return Math.max(0, Math.min(netProvincialTax, reduction));
 }
 
-function getNBTaxReduction(
-  netProvincialTax: number,
-  taxableIncome: number,
-  year: TaxYear,
-): number {
+function getNBTaxReduction(netProvincialTax: number, taxableIncome: number, year: TaxYear): number {
   const limits = NB_LIMITS[year];
   if (!limits) return 0;
 
   const excess = Math.max(0, taxableIncome - limits.threshold);
-  const reduction = limits.baseAmount - (excess * limits.reductionFactor);
+  const reduction = limits.baseAmount - excess * limits.reductionFactor;
 
   return Math.max(0, Math.min(netProvincialTax, reduction));
 }
 
-function getNLTaxReduction(
-  netProvincialTax: number,
-  taxableIncome: number,
-  year: TaxYear,
-): number {
+function getNLTaxReduction(netProvincialTax: number, taxableIncome: number, year: TaxYear): number {
   const limits = NL_LIMITS[year];
   if (!limits) return 0;
 
   const excess = Math.max(0, taxableIncome - limits.threshold);
-  const reduction = limits.baseAmount - (excess * limits.reductionFactor);
+  const reduction = limits.baseAmount - excess * limits.reductionFactor;
 
   return Math.max(0, Math.min(netProvincialTax, reduction));
 }
 
-function getNSTaxReduction(
-  netProvincialTax: number,
-  taxableIncome: number,
-  year: TaxYear,
-): number {
+function getNSTaxReduction(netProvincialTax: number, taxableIncome: number, year: TaxYear): number {
   const limits = NS_LIMITS[year];
   if (!limits) return 0;
 
   // The clawback applies to income over the threshold
   const excess = Math.max(0, taxableIncome - limits.threshold);
-  const reduction = limits.baseAmount - (excess * limits.reductionFactor);
+  const reduction = limits.baseAmount - excess * limits.reductionFactor;
 
   return Math.max(0, Math.min(netProvincialTax, reduction));
 }
@@ -645,7 +608,7 @@ function getPEITaxReduction(
   if (!limits) return 0;
 
   const excess = Math.max(0, taxableIncome - limits.threshold);
-  const reduction = limits.baseAmount - (excess * limits.reductionFactor);
+  const reduction = limits.baseAmount - excess * limits.reductionFactor;
 
   return Math.max(0, Math.min(netProvincialTax, reduction));
 }
@@ -681,10 +644,7 @@ interface TaxBreakdown {
 }
 
 function getTaxableCapitalGains(capitalGains: number, year: TaxYear): number {
-  return Math.max(
-    0,
-    capitalGains * FEDERAL_LIMITS[year].capitalGainsInclusionRate,
-  );
+  return Math.max(0, capitalGains * FEDERAL_LIMITS[year].capitalGainsInclusionRate);
 }
 
 /**
@@ -697,24 +657,21 @@ function calculateBaseTax(
   province: Province,
   year: TaxYear,
   options: IncomeTaxOptions = {},
-): Omit<
-  TaxBreakdown,
-  "taxableCapitalGains" | "capitalGainsTax" | "capitalGainsRate"
-> {
+): Omit<TaxBreakdown, "taxableCapitalGains" | "capitalGainsTax" | "capitalGainsRate"> {
   const deductions = getPayrollDeductions(employmentIncome, province, year);
 
-  const taxableCapitalGains = getTaxableCapitalGains(
-    options.capitalGains || 0,
-    year,
-  );
+  const taxableCapitalGains = getTaxableCapitalGains(options.capitalGains || 0, year);
 
   const rrspDeduction = options.rrsp || 0;
 
   // CRITICAL STEP: Enhanced Tier 1 (CPP/QPP), Tier 2 (CPP2/QPP2), and RRSP contributions are direct deductions from taxable income.
   const taxableIncome = Math.max(
     0,
-    employmentIncome + taxableCapitalGains - deductions.cppOrQppEnhanced -
-      deductions.cpp2OrQpp2 - rrspDeduction,
+    employmentIncome +
+      taxableCapitalGains -
+      deductions.cppOrQppEnhanced -
+      deductions.cpp2OrQpp2 -
+      rrspDeduction,
   );
 
   const federalBrackets = FEDERAL_BRACKETS[year];
@@ -723,14 +680,15 @@ function calculateBaseTax(
 
   const federalLimits = FEDERAL_LIMITS[year];
   const federalBpaAmount = getFederalBPA(taxableIncome, year);
-  const canadaEmploymentAmount = Math.min(
-    employmentIncome,
-    federalLimits.maxCEA,
-  );
+  const canadaEmploymentAmount = Math.min(employmentIncome, federalLimits.maxCEA);
 
   // NRTC base only uses the BASE CPP/QPP contribution.
-  const federalNRTCBase = federalBpaAmount + deductions.cppOrQppBase +
-    deductions.ei + deductions.qpip + canadaEmploymentAmount;
+  const federalNRTCBase =
+    federalBpaAmount +
+    deductions.cppOrQppBase +
+    deductions.ei +
+    deductions.qpip +
+    canadaEmploymentAmount;
 
   // The rate for non-refundable tax credits is reduced to 14.5% in 2025.
   // However, the Top-Up Tax Credit maintains the 15% rate for credits claimed
@@ -739,16 +697,13 @@ function calculateBaseTax(
   const baseNRTCRate = federalBrackets[0].rate;
 
   let federalCreditTotal = 0;
-  if (
-    taxableIncome > firstBracketThreshold &&
-    federalNRTCBase > firstBracketThreshold
-  ) {
+  if (taxableIncome > firstBracketThreshold && federalNRTCBase > firstBracketThreshold) {
     // If NRTC base and taxable income exceed threshold,
     // the portion of NRTC base above threshold gets 15%
     const amountAtFirstRate = firstBracketThreshold;
     const amountAtTopUpRate = federalNRTCBase - firstBracketThreshold;
-    federalCreditTotal = (amountAtFirstRate * baseNRTCRate) +
-      (amountAtTopUpRate * federalLimits.topUpCreditRate);
+    federalCreditTotal =
+      amountAtFirstRate * baseNRTCRate + amountAtTopUpRate * federalLimits.topUpCreditRate;
   } else {
     // Otherwise, the standard reduced rate applies to the whole base
     federalCreditTotal = federalNRTCBase * baseNRTCRate;
@@ -775,10 +730,7 @@ function calculateBaseTax(
   }
 
   const provincialBrackets = PROVINCIAL_BRACKETS[year][province];
-  const provincialResult = calculateTax(
-    provincialTaxableIncome,
-    provincialBrackets,
-  );
+  const provincialResult = calculateTax(provincialTaxableIncome, provincialBrackets);
   const provincialGrossTax = provincialResult.amount;
 
   let provincialBpaAmount = PROVINCIAL_BPA[year][province];
@@ -791,16 +743,17 @@ function calculateBaseTax(
   if (province === "Manitoba") {
     const mbLimits = MB_LIMITS[year];
     if (taxableIncome > mbLimits.phaseOutThreshold1) {
-      const phaseOutRatio = (taxableIncome - mbLimits.phaseOutThreshold1) /
+      const phaseOutRatio =
+        (taxableIncome - mbLimits.phaseOutThreshold1) /
         (mbLimits.phaseOutThreshold2 - mbLimits.phaseOutThreshold1);
-      provincialBpaAmount = taxableIncome >= mbLimits.phaseOutThreshold2
-        ? 0
-        : provincialBpaAmount - (provincialBpaAmount * phaseOutRatio);
+      provincialBpaAmount =
+        taxableIncome >= mbLimits.phaseOutThreshold2
+          ? 0
+          : provincialBpaAmount - provincialBpaAmount * phaseOutRatio;
     }
   }
 
-  let provincialNRTCBase = provincialBpaAmount + deductions.cppOrQppBase +
-    deductions.ei;
+  let provincialNRTCBase = provincialBpaAmount + deductions.cppOrQppBase + deductions.ei;
 
   if (province === "Yukon") {
     provincialNRTCBase += canadaEmploymentAmount;
@@ -821,8 +774,7 @@ function calculateBaseTax(
         0,
         provincialTaxableIncome - qcLimits.personLivingAloneThreshold,
       );
-      const livingAloneClawback = excessIncome *
-        qcLimits.personLivingAloneReductionRate;
+      const livingAloneClawback = excessIncome * qcLimits.personLivingAloneReductionRate;
 
       const netLivingAloneAmount = Math.max(
         0,
@@ -838,22 +790,17 @@ function calculateBaseTax(
     const mbLimits = MB_LIMITS[year];
     const mbFamilyTaxBenefit = Math.max(
       0,
-      mbLimits.familyTaxBenefitBase -
-        (taxableIncome * mbLimits.familyTaxBenefitReductionRate),
+      mbLimits.familyTaxBenefitBase - taxableIncome * mbLimits.familyTaxBenefitReductionRate,
     );
     provincialNRTCBase += mbFamilyTaxBenefit;
   }
 
   // Decoupled Quebec's specific 15% NRTC rate from its 14% lowest tax bracket
-  const provincialNRTCRate = province === "Quebec"
-    ? QUEBEC_LIMITS[year].nrtcRate
-    : provincialBrackets[0].rate;
+  const provincialNRTCRate =
+    province === "Quebec" ? QUEBEC_LIMITS[year].nrtcRate : provincialBrackets[0].rate;
   const provincialCreditTotal = provincialNRTCBase * provincialNRTCRate;
 
-  const appliedProvincialCredits = Math.min(
-    provincialGrossTax,
-    provincialCreditTotal,
-  );
+  const appliedProvincialCredits = Math.min(provincialGrossTax, provincialCreditTotal);
 
   let netProvincialTax = provincialGrossTax - appliedProvincialCredits;
   let provincialMarginalRate = provincialResult.marginalRate;
@@ -868,16 +815,10 @@ function calculateBaseTax(
   let healthPremium = 0;
 
   if (province === "Ontario") {
-    const { surtaxAmount, marginalMultiplier } = getOntarioSurtax(
-      netProvincialTax,
-      year,
-    );
+    const { surtaxAmount, marginalMultiplier } = getOntarioSurtax(netProvincialTax, year);
     ontarioSurtaxAmount = surtaxAmount;
 
-    const otrResult = applyOntarioTaxReduction(
-      netProvincialTax + ontarioSurtaxAmount,
-      year,
-    );
+    const otrResult = applyOntarioTaxReduction(netProvincialTax + ontarioSurtaxAmount, year);
     netProvincialTax = otrResult.reducedTax;
     ontarioTaxReduction = otrResult.reductionAmount;
 
@@ -906,47 +847,27 @@ function calculateBaseTax(
   }
 
   if (province === "British Columbia") {
-    bcTaxReduction = getBCTaxReduction(
-      netProvincialTax,
-      taxableIncome,
-      year,
-    );
+    bcTaxReduction = getBCTaxReduction(netProvincialTax, taxableIncome, year);
     netProvincialTax -= bcTaxReduction;
   }
 
   if (province === "New Brunswick") {
-    nbTaxReduction = getNBTaxReduction(
-      netProvincialTax,
-      taxableIncome,
-      year,
-    );
+    nbTaxReduction = getNBTaxReduction(netProvincialTax, taxableIncome, year);
     netProvincialTax -= nbTaxReduction;
   }
 
   if (province === "Newfoundland and Labrador") {
-    nlTaxReduction = getNLTaxReduction(
-      netProvincialTax,
-      taxableIncome,
-      year,
-    );
+    nlTaxReduction = getNLTaxReduction(netProvincialTax, taxableIncome, year);
     netProvincialTax -= nlTaxReduction;
   }
 
   if (province === "Nova Scotia") {
-    nsTaxReduction = getNSTaxReduction(
-      netProvincialTax,
-      taxableIncome,
-      year,
-    );
+    nsTaxReduction = getNSTaxReduction(netProvincialTax, taxableIncome, year);
     netProvincialTax -= nsTaxReduction;
   }
 
   if (province === "Prince Edward Island") {
-    peiTaxReduction = getPEITaxReduction(
-      netProvincialTax,
-      taxableIncome,
-      year,
-    );
+    peiTaxReduction = getPEITaxReduction(netProvincialTax, taxableIncome, year);
     netProvincialTax -= peiTaxReduction;
   }
 
@@ -957,8 +878,12 @@ function calculateBaseTax(
   const roundedProvGross = Math.round(provincialGrossTax);
   const roundedProvCredits = -Math.round(appliedProvincialCredits);
   const totalProvincialTaxReduction = -Math.round(
-    ontarioTaxReduction + bcTaxReduction + nbTaxReduction + nlTaxReduction +
-      nsTaxReduction + peiTaxReduction,
+    ontarioTaxReduction +
+      bcTaxReduction +
+      nbTaxReduction +
+      nlTaxReduction +
+      nsTaxReduction +
+      peiTaxReduction,
   );
   const roundedOntarioSurtax = Math.round(ontarioSurtaxAmount);
 
@@ -969,7 +894,8 @@ function calculateBaseTax(
   const roundedEi = Math.round(deductions.ei);
   const roundedQpip = Math.round(deductions.qpip);
 
-  const totalSum = roundedFedGross +
+  const totalSum =
+    roundedFedGross +
     roundedFedCredits +
     roundedQcAbatment +
     roundedProvGross +
@@ -1138,12 +1064,7 @@ export default function getIncomeTax(
     };
   }
 
-  const taxWithGains = calculateBaseTax(
-    employmentIncome,
-    province,
-    year,
-    options,
-  );
+  const taxWithGains = calculateBaseTax(employmentIncome, province, year, options);
   const taxableCapitalGains = getTaxableCapitalGains(rawCapitalGains, year);
   const capitalGainsTax = Math.max(
     0,

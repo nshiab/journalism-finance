@@ -1,51 +1,62 @@
-import { assertEquals, assertThrows } from "jsr:@std/assert";
+import { test, expect } from "vite-plus/test";
+
 import adjustToInflation from "../../src/finance/adjustToInflation.ts";
 
 // Using this as a reference https://www.bankofcanada.ca/rates/related/inflation-calculator/
 
-Deno.test("should return 100$ in April 1914 adjusted to April 2023 inflation", () => {
+test("should return 100$ in April 1914 adjusted to April 2023 inflation", () => {
   const adjustedAmount = adjustToInflation(100, 6.0, 156.4);
-  assertEquals(adjustedAmount, 2606.6666666666665);
+  expect(adjustedAmount).toEqual(2606.6666666666665);
 });
-Deno.test("should return 100$ in April 1914 adjusted to April 2023 inflation. It should be rounded to the nearest integer.", () => {
+test("should return 100$ in April 1914 adjusted to April 2023 inflation. It should be rounded to the nearest integer.", () => {
   const adjustedAmount = adjustToInflation(100, 6.0, 156.4, {
     decimals: 0,
   });
-  assertEquals(adjustedAmount, 2607);
+  expect(adjustedAmount).toEqual(2607);
 });
-Deno.test("should return 100$ in April 1914 adjusted to April 2023 inflation. It should be rounded to third decimal.", () => {
+test("should return 100$ in April 1914 adjusted to April 2023 inflation. It should be rounded to third decimal.", () => {
   const adjustedAmount = adjustToInflation(100, 6.0, 156.4, {
     decimals: 3,
   });
-  assertEquals(adjustedAmount, 2606.667);
+  expect(adjustedAmount).toEqual(2606.667);
 });
 
-Deno.test("should return 100$ in April 2023 adjusted to April 1914 inflation", () => {
+test("should return 100$ in April 2023 adjusted to April 1914 inflation", () => {
   const adjustedAmount = adjustToInflation(100, 156.4, 6.0);
-  assertEquals(adjustedAmount, 3.8363171355498764);
+  expect(adjustedAmount).toEqual(3.8363171355498764);
 });
-Deno.test("should return 100$ in April 2023 adjusted to April 1914 inflation. It should be rounded to the nearest integer.", () => {
+test("should return 100$ in April 2023 adjusted to April 1914 inflation. It should be rounded to the nearest integer.", () => {
   const adjustedAmount = adjustToInflation(100, 156.4, 6.0, {
     decimals: 0,
   });
-  assertEquals(adjustedAmount, 4);
+  expect(adjustedAmount).toEqual(4);
 });
-Deno.test("should return 100$ in April 2023 adjusted to April 1914 inflation. It should be rounded to third decimal.", () => {
+test("should return 100$ in April 2023 adjusted to April 1914 inflation. It should be rounded to third decimal.", () => {
   const adjustedAmount = adjustToInflation(100, 156.4, 6.0, {
     decimals: 3,
   });
-  assertEquals(adjustedAmount, 3.836);
+  expect(adjustedAmount).toEqual(3.836);
 });
 
-Deno.test("should reject non-positive CPI values", () => {
-  assertThrows(
-    () => adjustToInflation(100, 0, 156.4),
-    RangeError,
-    "amountCPI and targetCPI must be positive numbers",
+test("should reject non-positive CPI values", () => {
+  expect(() => adjustToInflation(100, 0, 156.4)).toThrow(
+    expect.objectContaining({
+      name: RangeError.name,
+      message: {
+        asymmetricMatch: (value: unknown) =>
+          typeof value === "string" &&
+          value.includes("amountCPI and targetCPI must be positive numbers"),
+      },
+    }),
   );
-  assertThrows(
-    () => adjustToInflation(100, 156.4, -1),
-    RangeError,
-    "amountCPI and targetCPI must be positive numbers",
+  expect(() => adjustToInflation(100, 156.4, -1)).toThrow(
+    expect.objectContaining({
+      name: RangeError.name,
+      message: {
+        asymmetricMatch: (value: unknown) =>
+          typeof value === "string" &&
+          value.includes("amountCPI and targetCPI must be positive numbers"),
+      },
+    }),
   );
 });

@@ -1,28 +1,15 @@
-export function round(
-  number: number,
-  options: { decimals?: number } = {},
-): number {
+export function round(number: number, options: { decimals?: number } = {}): number {
   return typeof options.decimals === "number"
     ? parseFloat(number.toFixed(options.decimals))
     : Math.round(number);
 }
 
-export function arraysToData<T extends Record<string, unknown[]>>(
-  data: T,
-): Array<{ [K in keyof T]: T[K][number] }> {
-  const keys = Object.keys(data) as Array<keyof T>;
+export function arraysToData(data: Record<string, unknown[]>): Record<string, unknown>[] {
+  const keys = Object.keys(data);
   const nbItems = data[keys[0]].length;
-
-  const newData: Array<{ [K in keyof T]: T[K][number] }> = [];
-  for (let i = 0; i < nbItems; i++) {
-    const newItem = {} as { [K in keyof T]: T[K][number] };
-    for (const key of keys) {
-      newItem[key] = data[key][i] as T[typeof key][number];
-    }
-    newData.push(newItem);
-  }
-
-  return newData;
+  return Array.from({ length: nbItems }, (_, i) =>
+    Object.fromEntries(keys.map((key) => [key, data[key][i]])),
+  );
 }
 
 export function prettyDuration(
@@ -35,11 +22,12 @@ export function prettyDuration(
   } = {},
 ): string {
   const startMs = start instanceof Date ? start.getTime() : start;
-  const endMs = options.end instanceof Date
-    ? options.end.getTime()
-    : typeof options.end === "number"
-    ? options.end
-    : Date.now();
+  const endMs =
+    options.end instanceof Date
+      ? options.end.getTime()
+      : typeof options.end === "number"
+        ? options.end
+        : Date.now();
   const differenceInMs = endMs - startMs;
 
   let duration: string;
@@ -59,9 +47,7 @@ export function prettyDuration(
     const minutes = Math.floor(remainingMsAfterHours / 60_000);
     const remainingMsAfterMinutes = remainingMsAfterHours % 60_000;
     const seconds = Math.floor(remainingMsAfterMinutes / 1_000);
-    duration = `${hours} h, ${minutes} min, ${seconds} sec, ${
-      remainingMsAfterMinutes % 1_000
-    } ms`;
+    duration = `${hours} h, ${minutes} min, ${seconds} sec, ${remainingMsAfterMinutes % 1_000} ms`;
   } else if (differenceInMs < 2_592_000_000) {
     const days = Math.floor(differenceInMs / 86_400_000);
     const remainingMsAfterDays = differenceInMs % 86_400_000;
@@ -72,9 +58,7 @@ export function prettyDuration(
     const seconds = Math.floor(remainingMsAfterMinutes / 1_000);
     duration = `${days} ${
       days <= 1 ? "day" : "days"
-    }, ${hours} h, ${minutes} min, ${seconds} sec, ${
-      remainingMsAfterMinutes % 1_000
-    } ms`;
+    }, ${hours} h, ${minutes} min, ${seconds} sec, ${remainingMsAfterMinutes % 1_000} ms`;
   } else if (differenceInMs < 31_536_000_000) {
     const months = Math.floor(differenceInMs / 2_592_000_000);
     const remainingMsAfterMonths = differenceInMs % 2_592_000_000;
@@ -87,9 +71,7 @@ export function prettyDuration(
     const seconds = Math.floor(remainingMsAfterMinutes / 1_000);
     duration = `${months} ${months <= 1 ? "month" : "months"}, ${days} ${
       days <= 1 ? "day" : "days"
-    }, ${hours} h, ${minutes} min, ${seconds} sec, ${
-      remainingMsAfterMinutes % 1_000
-    } ms`;
+    }, ${hours} h, ${minutes} min, ${seconds} sec, ${remainingMsAfterMinutes % 1_000} ms`;
   } else {
     const years = Math.floor(differenceInMs / 31_536_000_000);
     const remainingMsAfterYears = differenceInMs % 31_536_000_000;
@@ -104,9 +86,7 @@ export function prettyDuration(
     const seconds = Math.floor(remainingMsAfterMinutes / 1_000);
     duration = `${years} ${years <= 1 ? "year" : "years"}, ${months} ${
       months <= 1 ? "month" : "months"
-    }, ${days} ${
-      days <= 1 ? "day" : "days"
-    }, ${hours} h, ${minutes} min, ${seconds} sec, ${
+    }, ${days} ${days <= 1 ? "day" : "days"}, ${hours} h, ${minutes} min, ${seconds} sec, ${
       remainingMsAfterMinutes % 1_000
     } ms`;
   }

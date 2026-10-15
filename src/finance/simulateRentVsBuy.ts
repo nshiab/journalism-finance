@@ -10,13 +10,11 @@ import mortgageInsurancePremium from "./mortgageInsurancePremium.ts";
 import getMinimumDownPayment from "./getMinimumDownPayment.ts";
 import getMortgageInsuranceTax from "./getMortgageInsuranceTax.ts";
 import getSalesTax from "./getSalesTax.ts";
-import getLandTransferTax, {
-  type City,
-  getProvinceFromCity,
-} from "./getLandTransferTax.ts";
+import getLandTransferTax, { type City, getProvinceFromCity } from "./getLandTransferTax.ts";
 
 /**
  * This type defines the keys for the various rates used in the rent vs buy simulation.
+ * @inline
  */
 export type RentVsBuyRates =
   | "marketReturnRate"
@@ -234,25 +232,19 @@ export default function simulateRentVsBuy(
       monthIndex: number,
       amount: number,
     ) => void;
-    onSnapshotRecord?: (
-      category: string,
-      monthIndex: number,
-      amount: number,
-    ) => void;
+    onSnapshotRecord?: (category: string, monthIndex: number, amount: number) => void;
     snapshotMonths?: Set<number>;
     winVariable?: "balance" | "balanceAfterSelling" | "assets";
     groups?: string[];
     variables?: string[];
     adjustToInflation?: RentVsBuyRates;
   } = {},
-): (
-  & {
-    monthIndex: number;
-    amount: number;
-    category: "renter" | "buyerFixed" | "buyerVariable";
-  }
-  & (
-    | {
+): ({
+  monthIndex: number;
+  amount: number;
+  category: "renter" | "buyerFixed" | "buyerVariable";
+} & (
+  | {
       group: "monthlyExpenses" | "cumulativeExpenses";
       variable:
         | "rent"
@@ -274,32 +266,21 @@ export default function simulateRentVsBuy(
       fixedRateAdjustment?: number;
       variableRateAdjustment?: number;
     }
-    | {
+  | {
       group: "monthlyGains" | "cumulativeGains";
-      variable:
-        | "tfsaGains"
-        | "tfsaContribution"
-        | "stocksGains"
-        | "newStocks"
-        | "homeEquityGains";
+      variable: "tfsaGains" | "tfsaContribution" | "stocksGains" | "newStocks" | "homeEquityGains";
       homeValue?: number;
     }
-    | {
+  | {
       group: "assets";
-      variable:
-        | "tfsa"
-        | "stocks"
-        | "securityDeposit"
-        | "homeEquity";
+      variable: "tfsa" | "stocks" | "securityDeposit" | "homeEquity";
     }
-    | { group: "summary"; variable: "balance" }
-    | {
+  | { group: "summary"; variable: "balance" }
+  | {
       group: "summaryCumulative";
-      variable:
-        | "balance"
-        | "balanceAfterSelling";
+      variable: "balance" | "balanceAfterSelling";
     }
-    | {
+  | {
       group: "saleCosts";
       variable:
         | "stockTaxes"
@@ -309,15 +290,11 @@ export default function simulateRentVsBuy(
         | "mortgageBalance";
       employmentIncome?: number;
     }
-    | {
+  | {
       group: "saleNetGains";
-      variable:
-        | "stockSellingGains"
-        | "tfsaSellingGains"
-        | "homeSellingGains"
-        | "securityDeposit";
+      variable: "stockSellingGains" | "tfsaSellingGains" | "homeSellingGains" | "securityDeposit";
     }
-    | {
+  | {
       group: "monthlyRecurringExpenses";
       variable:
         | "rent"
@@ -330,7 +307,7 @@ export default function simulateRentVsBuy(
         | "tfsaFees"
         | "stocksFees";
     }
-    | {
+  | {
       group: "monthlyNonRecurringExpenses";
       variable:
         | "downPayment"
@@ -339,7 +316,7 @@ export default function simulateRentVsBuy(
         | "insurancePremiumTax"
         | "securityDeposit";
     }
-    | {
+  | {
       group: "totals";
       variable:
         | "monthlyExpenses"
@@ -352,16 +329,13 @@ export default function simulateRentVsBuy(
         | "monthlyRecurringExpenses"
         | "monthlyNonRecurringExpenses";
     }
-  )
-)[] {
-  const results: (
-    & {
-      monthIndex: number;
-      amount: number;
-      category: "renter" | "buyerFixed" | "buyerVariable";
-    }
-    & (
-      | {
+))[] {
+  const results: ({
+    monthIndex: number;
+    amount: number;
+    category: "renter" | "buyerFixed" | "buyerVariable";
+  } & (
+    | {
         group: "monthlyExpenses" | "cumulativeExpenses";
         variable:
           | "rent"
@@ -382,7 +356,7 @@ export default function simulateRentVsBuy(
         fixedRateAdjustment?: number;
         variableRateAdjustment?: number;
       }
-      | {
+    | {
         group: "monthlyGains" | "cumulativeGains";
         variable:
           | "tfsaGains"
@@ -392,22 +366,16 @@ export default function simulateRentVsBuy(
           | "homeEquityGains";
         homeValue?: number;
       }
-      | {
+    | {
         group: "assets";
-        variable:
-          | "tfsa"
-          | "stocks"
-          | "securityDeposit"
-          | "homeEquity";
+        variable: "tfsa" | "stocks" | "securityDeposit" | "homeEquity";
       }
-      | { group: "summary"; variable: "balance" }
-      | {
+    | { group: "summary"; variable: "balance" }
+    | {
         group: "summaryCumulative";
-        variable:
-          | "balance"
-          | "balanceAfterSelling";
+        variable: "balance" | "balanceAfterSelling";
       }
-      | {
+    | {
         group: "saleCosts";
         variable:
           | "stockTaxes"
@@ -417,15 +385,11 @@ export default function simulateRentVsBuy(
           | "mortgageBalance";
         employmentIncome?: number;
       }
-      | {
+    | {
         group: "saleNetGains";
-        variable:
-          | "stockSellingGains"
-          | "tfsaSellingGains"
-          | "homeSellingGains"
-          | "securityDeposit";
+        variable: "stockSellingGains" | "tfsaSellingGains" | "homeSellingGains" | "securityDeposit";
       }
-      | {
+    | {
         group: "monthlyRecurringExpenses";
         variable:
           | "rent"
@@ -438,7 +402,7 @@ export default function simulateRentVsBuy(
           | "tfsaFees"
           | "stocksFees";
       }
-      | {
+    | {
         group: "monthlyNonRecurringExpenses";
         variable:
           | "downPayment"
@@ -447,7 +411,7 @@ export default function simulateRentVsBuy(
           | "insurancePremiumTax"
           | "securityDeposit";
       }
-      | {
+    | {
         group: "totals";
         variable:
           | "monthlyExpenses"
@@ -460,13 +424,10 @@ export default function simulateRentVsBuy(
           | "monthlyRecurringExpenses"
           | "monthlyNonRecurringExpenses";
       }
-    )
-  )[] = [];
+  ))[] = [];
 
   if (options.winVariableOnly && !options.winVariable) {
-    throw new Error(
-      "simulateRentVsBuy: winVariableOnly requires winVariable to be set.",
-    );
+    throw new Error("simulateRentVsBuy: winVariableOnly requires winVariable to be set.");
   }
 
   const province = getProvinceFromCity(parameters.city);
@@ -503,10 +464,7 @@ export default function simulateRentVsBuy(
     parameters.buyer.purchasePrice,
     parameters.buyer.downPayment,
   );
-  const insurancePremiumTax = getMortgageInsuranceTax(
-    insurancePremium,
-    province,
-  );
+  const insurancePremiumTax = getMortgageInsuranceTax(insurancePremium, province);
   const landTransferTax = getLandTransferTax(
     parameters.city,
     parameters.buyer.purchasePrice,
@@ -525,8 +483,7 @@ export default function simulateRentVsBuy(
     fixedRateAdjustment: parameters.buyer.fixedRateAdjustment,
     variableRateAdjustment: 0, // No variable rate adjustment for fixed mortgage
     purchaseFixedFees: parameters.buyer.purchaseFixedFees,
-    startingAnnualMaintenanceCost:
-      parameters.buyer.startingAnnualMaintenanceCost,
+    startingAnnualMaintenanceCost: parameters.buyer.startingAnnualMaintenanceCost,
     startingAnnualPropertyTax: parameters.buyer.startingAnnualPropertyTax,
     startingMonthlyCondoFees: parameters.buyer.startingMonthlyCondoFees,
     sellingFixedFees: parameters.buyer.sellingFixedFees,
@@ -546,8 +503,7 @@ export default function simulateRentVsBuy(
     fixedRateAdjustment: 0, // No fixed rate adjustment for variable mortgage
     variableRateAdjustment: parameters.buyer.variableRateAdjustment,
     purchaseFixedFees: parameters.buyer.purchaseFixedFees,
-    startingAnnualMaintenanceCost:
-      parameters.buyer.startingAnnualMaintenanceCost,
+    startingAnnualMaintenanceCost: parameters.buyer.startingAnnualMaintenanceCost,
     startingAnnualPropertyTax: parameters.buyer.startingAnnualPropertyTax,
     startingMonthlyCondoFees: parameters.buyer.startingMonthlyCondoFees,
     sellingFixedFees: parameters.buyer.sellingFixedFees,
@@ -558,17 +514,15 @@ export default function simulateRentVsBuy(
 
   // We precompute the mortgage payments for the buyer for the entire period
   // The CMHC insurance premium is rolled into the initial mortgage balance.
-  const { allFixedMortgagePayments, allVariableMortgagePayments } =
-    precomputeMortgagePayments(
-      parameters.numberOfYears,
-      (parameters.buyer.purchasePrice - parameters.buyer.downPayment) +
-        insurancePremium,
-      parameters.buyer.fixedRateAdjustment,
-      parameters.buyer.variableRateAdjustment,
-      parameters.values.fiveYearInterestRates,
-      parameters.values.variableInterestRates,
-      parameters.buyer.floorRate,
-    );
+  const { allFixedMortgagePayments, allVariableMortgagePayments } = precomputeMortgagePayments(
+    parameters.numberOfYears,
+    parameters.buyer.purchasePrice - parameters.buyer.downPayment + insurancePremium,
+    parameters.buyer.fixedRateAdjustment,
+    parameters.buyer.variableRateAdjustment,
+    parameters.values.fiveYearInterestRates,
+    parameters.values.variableInterestRates,
+    parameters.buyer.floorRate,
+  );
 
   const numberOfMonths = parameters.numberOfYears * 12;
 
@@ -578,8 +532,7 @@ export default function simulateRentVsBuy(
   // a given province + year, used inside computeSale every month).
   // Use a large divisor (10000) to avoid toFixed(4) precision loss on rates
   // like Quebec's PST of 0.09975 — getSalesTax(1) would truncate it to 0.0998.
-  const salesTaxMultiplier = getSalesTax(10000, province, 2025).totalTax /
-    10000;
+  const salesTaxMultiplier = getSalesTax(10000, province, 2025).totalTax / 10000;
 
   // Pre-allocate objects that are mutated each month to avoid per-iteration heap allocations.
   const currentPostedRates: Record<number, number> = {
@@ -604,36 +557,29 @@ export default function simulateRentVsBuy(
     5: 0,
   };
 
-  for (
-    let monthIndex = 0;
-    monthIndex < numberOfMonths;
-    monthIndex++
-  ) {
+  for (let monthIndex = 0; monthIndex < numberOfMonths; monthIndex++) {
     const year = parameters.startingYear + Math.floor(monthIndex / 12);
 
     const inflationMultiplier = 1 / cumulativeInflationFactor;
 
     const currentFixedMortgagePayment = allFixedMortgagePayments[monthIndex];
-    const currentVariableMortgagePayment =
-      allVariableMortgagePayments[monthIndex];
-    const currentMarketReturnRate =
-      parameters.rates.marketReturnRate[monthIndex];
+    const currentVariableMortgagePayment = allVariableMortgagePayments[monthIndex];
+    const currentMarketReturnRate = parameters.rates.marketReturnRate[monthIndex];
 
     // We compute the expenses
-    const {
-      totalMonthlyExpenses: renterTotalMonthlyExpenses,
-    } = computeExpenses(monthIndex, renter, null, inflationMultiplier);
-    const {
-      totalMonthlyExpenses: buyerFixedTotalMonthlyExpenses,
-    } = computeExpenses(
+    const { totalMonthlyExpenses: renterTotalMonthlyExpenses } = computeExpenses(
+      monthIndex,
+      renter,
+      null,
+      inflationMultiplier,
+    );
+    const { totalMonthlyExpenses: buyerFixedTotalMonthlyExpenses } = computeExpenses(
       monthIndex,
       buyerFixed,
       currentFixedMortgagePayment,
       inflationMultiplier,
     );
-    const {
-      totalMonthlyExpenses: buyerVariableTotalMonthlyExpenses,
-    } = computeExpenses(
+    const { totalMonthlyExpenses: buyerVariableTotalMonthlyExpenses } = computeExpenses(
       monthIndex,
       buyerVariable,
       currentVariableMortgagePayment,
@@ -689,34 +635,18 @@ export default function simulateRentVsBuy(
     // Mutate pre-allocated objects to avoid per-iteration heap allocations.
     currentPostedRates[1] = parameters.values.oneYearInterestRates[monthIndex];
     currentPostedRates[2] = parameters.values.twoYearInterestRates[monthIndex];
-    currentPostedRates[3] =
-      parameters.values.threeYearInterestRates[monthIndex];
+    currentPostedRates[3] = parameters.values.threeYearInterestRates[monthIndex];
     currentPostedRates[4] = parameters.values.fourYearInterestRates[monthIndex];
     currentPostedRates[5] = parameters.values.fiveYearInterestRates[monthIndex];
 
     // Pre-apply floor rate for fixed buyer.
     const fixedAdj = parameters.buyer.fixedRateAdjustment;
     const fixedFloor = parameters.buyer.floorRate;
-    flooredRatesFixed[1] = Math.max(
-      fixedFloor,
-      currentPostedRates[1] + fixedAdj,
-    );
-    flooredRatesFixed[2] = Math.max(
-      fixedFloor,
-      currentPostedRates[2] + fixedAdj,
-    );
-    flooredRatesFixed[3] = Math.max(
-      fixedFloor,
-      currentPostedRates[3] + fixedAdj,
-    );
-    flooredRatesFixed[4] = Math.max(
-      fixedFloor,
-      currentPostedRates[4] + fixedAdj,
-    );
-    flooredRatesFixed[5] = Math.max(
-      fixedFloor,
-      currentPostedRates[5] + fixedAdj,
-    );
+    flooredRatesFixed[1] = Math.max(fixedFloor, currentPostedRates[1] + fixedAdj);
+    flooredRatesFixed[2] = Math.max(fixedFloor, currentPostedRates[2] + fixedAdj);
+    flooredRatesFixed[3] = Math.max(fixedFloor, currentPostedRates[3] + fixedAdj);
+    flooredRatesFixed[4] = Math.max(fixedFloor, currentPostedRates[4] + fixedAdj);
+    flooredRatesFixed[5] = Math.max(fixedFloor, currentPostedRates[5] + fixedAdj);
 
     // Variable buyer has no fixed-rate adjustment.
     const variableFloor = parameters.buyer.floorRate;
@@ -730,8 +660,7 @@ export default function simulateRentVsBuy(
     // skipped for non-final months. However, snapshot months also need accurate
     // sale/balance figures so that winnerSnapshots reads correct values.
     const winVariableOnly = options.winVariableOnly ?? false;
-    const effectiveWinOnly = winVariableOnly &&
-      !(options.snapshotMonths?.has(monthIndex));
+    const effectiveWinOnly = winVariableOnly && !options.snapshotMonths?.has(monthIndex);
 
     computeSale(
       monthIndex,
@@ -774,20 +703,8 @@ export default function simulateRentVsBuy(
     );
 
     // We compute the balances
-    computeBalances(
-      renter,
-      effectiveWinOnly,
-      monthIndex,
-      numberOfMonths,
-      inflationMultiplier,
-    );
-    computeBalances(
-      buyerFixed,
-      effectiveWinOnly,
-      monthIndex,
-      numberOfMonths,
-      inflationMultiplier,
-    );
+    computeBalances(renter, effectiveWinOnly, monthIndex, numberOfMonths, inflationMultiplier);
+    computeBalances(buyerFixed, effectiveWinOnly, monthIndex, numberOfMonths, inflationMultiplier);
     computeBalances(
       buyerVariable,
       effectiveWinOnly,
@@ -855,8 +772,7 @@ export default function simulateRentVsBuy(
     incrementParameters(monthIndex, buyerVariable, parameters.rates);
 
     if (options.adjustToInflation) {
-      cumulativeInflationFactor *= 1 +
-        parameters.rates[options.adjustToInflation][monthIndex];
+      cumulativeInflationFactor *= 1 + parameters.rates[options.adjustToInflation][monthIndex];
     }
   }
 

@@ -65,12 +65,7 @@ const CUMULATIVE_GAINS_KEYS = [
   "newStocks",
   "homeEquityGains",
 ] as const;
-const ASSETS_KEYS = [
-  "tfsa",
-  "stocks",
-  "securityDeposit",
-  "homeEquity",
-] as const;
+const ASSETS_KEYS = ["tfsa", "stocks", "securityDeposit", "homeEquity"] as const;
 const SUMMARY_KEYS = ["balance"] as const;
 const SUMMARY_CUMULATIVE_KEYS = ["balance", "balanceAfterSelling"] as const;
 const SALE_COSTS_KEYS = [
@@ -170,14 +165,12 @@ function computeTotals(persona: Persona, adj: (x: number) => number) {
 export default function toResults(
   category: "renter" | "buyerFixed" | "buyerVariable",
   persona: Persona,
-  results: (
-    & {
-      monthIndex: number;
-      amount: number;
-      category: "renter" | "buyerFixed" | "buyerVariable";
-    }
-    & (
-      | {
+  results: ({
+    monthIndex: number;
+    amount: number;
+    category: "renter" | "buyerFixed" | "buyerVariable";
+  } & (
+    | {
         group: "monthlyExpenses" | "cumulativeExpenses";
         variable:
           | "rent"
@@ -199,7 +192,7 @@ export default function toResults(
         fixedRateAdjustment?: number;
         variableRateAdjustment?: number;
       }
-      | {
+    | {
         group: "monthlyGains" | "cumulativeGains";
         variable:
           | "tfsaGains"
@@ -209,25 +202,19 @@ export default function toResults(
           | "homeEquityGains";
         homeValue?: number;
       }
-      | {
+    | {
         group: "assets";
-        variable:
-          | "tfsa"
-          | "stocks"
-          | "securityDeposit"
-          | "homeEquity";
+        variable: "tfsa" | "stocks" | "securityDeposit" | "homeEquity";
       }
-      | {
+    | {
         group: "summary";
         variable: "balance";
       }
-      | {
+    | {
         group: "summaryCumulative";
-        variable:
-          | "balance"
-          | "balanceAfterSelling";
+        variable: "balance" | "balanceAfterSelling";
       }
-      | {
+    | {
         group: "saleCosts";
         variable:
           | "stockTaxes"
@@ -237,15 +224,11 @@ export default function toResults(
           | "mortgageBalance";
         employmentIncome?: number;
       }
-      | {
+    | {
         group: "saleNetGains";
-        variable:
-          | "stockSellingGains"
-          | "tfsaSellingGains"
-          | "homeSellingGains"
-          | "securityDeposit";
+        variable: "stockSellingGains" | "tfsaSellingGains" | "homeSellingGains" | "securityDeposit";
       }
-      | {
+    | {
         group: "monthlyRecurringExpenses";
         variable:
           | "mortgageCapital"
@@ -258,7 +241,7 @@ export default function toResults(
           | "tfsaFees"
           | "stocksFees";
       }
-      | {
+    | {
         group: "monthlyNonRecurringExpenses";
         variable:
           | "downPayment"
@@ -267,7 +250,7 @@ export default function toResults(
           | "insurancePremiumTax"
           | "securityDeposit";
       }
-      | {
+    | {
         group: "totals";
         variable:
           | "monthlyExpenses"
@@ -280,8 +263,7 @@ export default function toResults(
           | "monthlyRecurringExpenses"
           | "monthlyNonRecurringExpenses";
       }
-    )
-  )[],
+  ))[],
   monthIndex: number,
   numberOfMonths: number,
   winVariableOnly: boolean,
@@ -298,16 +280,11 @@ export default function toResults(
   winVariable?: "balance" | "balanceAfterSelling" | "assets",
   groups?: string[],
   variables?: string[],
-  onSnapshotRecord?: (
-    category: string,
-    monthIndex: number,
-    amount: number,
-  ) => void,
+  onSnapshotRecord?: (category: string, monthIndex: number, amount: number) => void,
   snapshotMonths?: Set<number>,
 ) {
   const adj = (x: number) => r2(x * inflationMultiplier);
-  const allowVar = (v: string) =>
-    !variables || variables.length === 0 || variables.includes(v);
+  const allowVar = (v: string) => !variables || variables.length === 0 || variables.includes(v);
 
   if (onRecord) {
     // Fast path: stream numeric values directly to the accumulator without
@@ -322,23 +299,11 @@ export default function toResults(
         const amount = persona.monthlyExpenses[variable];
         totalMonthlyExpenses += amount;
         if (amount !== 0 && allowVar(variable)) {
-          onRecord(
-            category,
-            "monthlyExpenses",
-            variable,
-            monthIndex,
-            adj(amount),
-          );
+          onRecord(category, "monthlyExpenses", variable, monthIndex, adj(amount));
         }
       }
       if (allowVar("monthlyExpenses")) {
-        onRecord(
-          category,
-          "totals",
-          "monthlyExpenses",
-          monthIndex,
-          adj(totalMonthlyExpenses),
-        );
+        onRecord(category, "totals", "monthlyExpenses", monthIndex, adj(totalMonthlyExpenses));
       }
     }
 
@@ -348,51 +313,28 @@ export default function toResults(
         const amount = persona.cumulativeExpenses[variable];
         totalCumulativeExpenses += amount;
         if (amount !== 0 && allowVar(variable)) {
-          onRecord(
-            category,
-            "cumulativeExpenses",
-            variable,
-            monthIndex,
-            r2(amount),
-          );
+          onRecord(category, "cumulativeExpenses", variable, monthIndex, r2(amount));
         }
       }
       if (allowVar("cumulativeExpenses")) {
-        onRecord(
-          category,
-          "totals",
-          "cumulativeExpenses",
-          monthIndex,
-          r2(totalCumulativeExpenses),
-        );
+        onRecord(category, "totals", "cumulativeExpenses", monthIndex, r2(totalCumulativeExpenses));
       }
     }
 
-    if (
-      !groups || groups.includes("monthlyRecurringExpenses") ||
-      groups.includes("totals")
-    ) {
+    if (!groups || groups.includes("monthlyRecurringExpenses") || groups.includes("totals")) {
       let totalMonthlyRecurringExpenses = 0;
       for (const variable of MONTHLY_RECURRING_EXPENSES_KEYS) {
         const amount = persona.monthlyExpenses[variable];
         totalMonthlyRecurringExpenses += amount;
         if (
-          amount !== 0 && allowVar(variable) &&
+          amount !== 0 &&
+          allowVar(variable) &&
           (!groups || groups.includes("monthlyRecurringExpenses"))
         ) {
-          onRecord(
-            category,
-            "monthlyRecurringExpenses",
-            variable,
-            monthIndex,
-            adj(amount),
-          );
+          onRecord(category, "monthlyRecurringExpenses", variable, monthIndex, adj(amount));
         }
       }
-      if (
-        allowVar("monthlyRecurringExpenses") &&
-        (!groups || groups.includes("totals"))
-      ) {
+      if (allowVar("monthlyRecurringExpenses") && (!groups || groups.includes("totals"))) {
         onRecord(
           category,
           "totals",
@@ -403,31 +345,20 @@ export default function toResults(
       }
     }
 
-    if (
-      !groups || groups.includes("monthlyNonRecurringExpenses") ||
-      groups.includes("totals")
-    ) {
+    if (!groups || groups.includes("monthlyNonRecurringExpenses") || groups.includes("totals")) {
       let totalMonthlyNonRecurringExpenses = 0;
       for (const variable of MONTHLY_NON_RECURRING_EXPENSES_KEYS) {
         const amount = persona.monthlyExpenses[variable];
         totalMonthlyNonRecurringExpenses += amount;
         if (
-          amount !== 0 && allowVar(variable) &&
+          amount !== 0 &&
+          allowVar(variable) &&
           (!groups || groups.includes("monthlyNonRecurringExpenses"))
         ) {
-          onRecord(
-            category,
-            "monthlyNonRecurringExpenses",
-            variable,
-            monthIndex,
-            adj(amount),
-          );
+          onRecord(category, "monthlyNonRecurringExpenses", variable, monthIndex, adj(amount));
         }
       }
-      if (
-        allowVar("monthlyNonRecurringExpenses") &&
-        (!groups || groups.includes("totals"))
-      ) {
+      if (allowVar("monthlyNonRecurringExpenses") && (!groups || groups.includes("totals"))) {
         onRecord(
           category,
           "totals",
@@ -448,13 +379,7 @@ export default function toResults(
         }
       }
       if (allowVar("monthlyGains")) {
-        onRecord(
-          category,
-          "totals",
-          "monthlyGains",
-          monthIndex,
-          adj(totalMonthlyGains),
-        );
+        onRecord(category, "totals", "monthlyGains", monthIndex, adj(totalMonthlyGains));
       }
     }
 
@@ -464,23 +389,11 @@ export default function toResults(
         const amount = persona.cumulativeGains[variable];
         totalCumulativeGains += amount;
         if (amount !== 0 && allowVar(variable)) {
-          onRecord(
-            category,
-            "cumulativeGains",
-            variable,
-            monthIndex,
-            r2(amount),
-          );
+          onRecord(category, "cumulativeGains", variable, monthIndex, r2(amount));
         }
       }
       if (allowVar("cumulativeGains")) {
-        onRecord(
-          category,
-          "totals",
-          "cumulativeGains",
-          monthIndex,
-          r2(totalCumulativeGains),
-        );
+        onRecord(category, "totals", "cumulativeGains", monthIndex, r2(totalCumulativeGains));
       }
     }
 
@@ -511,13 +424,7 @@ export default function toResults(
       for (const variable of SUMMARY_CUMULATIVE_KEYS) {
         const amount = persona.summaryCumulative[variable];
         if (amount !== 0 && allowVar(variable)) {
-          onRecord(
-            category,
-            "summaryCumulative",
-            variable,
-            monthIndex,
-            r2(amount),
-          );
+          onRecord(category, "summaryCumulative", variable, monthIndex, r2(amount));
         }
       }
     }
@@ -532,13 +439,7 @@ export default function toResults(
         }
       }
       if (allowVar("saleCosts")) {
-        onRecord(
-          category,
-          "totals",
-          "saleCosts",
-          monthIndex,
-          adj(totalSaleCosts),
-        );
+        onRecord(category, "totals", "saleCosts", monthIndex, adj(totalSaleCosts));
       }
     }
 
@@ -552,13 +453,7 @@ export default function toResults(
         }
       }
       if (allowVar("saleNetGains")) {
-        onRecord(
-          category,
-          "totals",
-          "saleNetGains",
-          monthIndex,
-          adj(totalSaleNetGains),
-        );
+        onRecord(category, "totals", "saleNetGains", monthIndex, adj(totalSaleNetGains));
       }
     }
 
@@ -587,18 +482,16 @@ export default function toResults(
       }
     }
     if (
-      onSnapshotRecord && snapshotMonths && snapshotMonths.has(monthIndex) &&
+      onSnapshotRecord &&
+      snapshotMonths &&
+      snapshotMonths.has(monthIndex) &&
       winVariable !== undefined
     ) {
       if (winVariable === "assets") {
         const totals = computeTotals(persona, adj);
         onSnapshotRecord(category, monthIndex, totals.assets);
       } else {
-        onSnapshotRecord(
-          category,
-          monthIndex,
-          persona.summaryCumulative[winVariable],
-        );
+        onSnapshotRecord(category, monthIndex, persona.summaryCumulative[winVariable]);
       }
     }
     return;
@@ -607,8 +500,10 @@ export default function toResults(
   if (winVariableOnly) {
     if (winVariable !== undefined) {
       const isFinalMonth = monthIndex === numberOfMonths - 1;
-      const isSnapshotMonth = onSnapshotRecord !== undefined &&
-        snapshotMonths !== undefined && snapshotMonths.has(monthIndex);
+      const isSnapshotMonth =
+        onSnapshotRecord !== undefined &&
+        snapshotMonths !== undefined &&
+        snapshotMonths.has(monthIndex);
       if (isFinalMonth || isSnapshotMonth) {
         if (winVariable === "assets") {
           const totals = computeTotals(persona, adj);
@@ -642,14 +537,12 @@ export default function toResults(
   } else {
     // Process monthlyExpenses
     if (!groups || groups.includes("monthlyExpenses")) {
-      for (
-        const variable of MONTHLY_EXPENSES_KEYS
-      ) {
+      for (const variable of MONTHLY_EXPENSES_KEYS) {
         const amount = persona.monthlyExpenses[variable];
         if (amount !== 0) {
           if (
-            (variable === "mortgageCapital" ||
-              variable === "mortgageInterests") && mortgagePayment
+            (variable === "mortgageCapital" || variable === "mortgageInterests") &&
+            mortgagePayment
           ) {
             results.push({
               monthIndex,
@@ -751,9 +644,7 @@ export default function toResults(
 
     // Process cumulativeExpenses
     if (!groups || groups.includes("cumulativeExpenses")) {
-      for (
-        const variable of CUMULATIVE_EXPENSES_KEYS
-      ) {
+      for (const variable of CUMULATIVE_EXPENSES_KEYS) {
         const amount = persona.cumulativeExpenses[variable];
         if (amount !== 0) {
           results.push({
@@ -783,17 +674,10 @@ export default function toResults(
 
     // Process monthlyGains
     if (!groups || groups.includes("monthlyGains")) {
-      for (
-        const variable of MONTHLY_GAINS_KEYS
-      ) {
+      for (const variable of MONTHLY_GAINS_KEYS) {
         const amount = persona.monthlyGains[variable];
         if (amount !== 0) {
-          if (
-            (
-              variable === "homeEquityGains"
-            ) &&
-            persona.assets.homeEquity !== undefined
-          ) {
+          if (variable === "homeEquityGains" && persona.assets.homeEquity !== undefined) {
             results.push({
               monthIndex,
               amount: adj(amount),
@@ -830,9 +714,7 @@ export default function toResults(
 
     // Process cumulativeGains
     if (!groups || groups.includes("cumulativeGains")) {
-      for (
-        const variable of CUMULATIVE_GAINS_KEYS
-      ) {
+      for (const variable of CUMULATIVE_GAINS_KEYS) {
         const amount = persona.cumulativeGains[variable];
         if (amount !== 0) {
           results.push({
@@ -861,9 +743,7 @@ export default function toResults(
 
     // Process assets
     if (!groups || groups.includes("assets")) {
-      for (
-        const variable of ASSETS_KEYS
-      ) {
+      for (const variable of ASSETS_KEYS) {
         const amount = persona.assets[variable];
         if (amount !== 0) {
           results.push({
@@ -892,9 +772,7 @@ export default function toResults(
 
     // Process summary
     if (!groups || groups.includes("summary")) {
-      for (
-        const variable of SUMMARY_KEYS
-      ) {
+      for (const variable of SUMMARY_KEYS) {
         if (persona.summary[variable] !== 0) {
           results.push({
             monthIndex,
@@ -909,9 +787,7 @@ export default function toResults(
 
     // Process summaryCumulative
     if (!groups || groups.includes("summaryCumulative")) {
-      for (
-        const variable of SUMMARY_CUMULATIVE_KEYS
-      ) {
+      for (const variable of SUMMARY_CUMULATIVE_KEYS) {
         if (persona.summaryCumulative[variable] !== 0) {
           results.push({
             monthIndex,
@@ -926,9 +802,7 @@ export default function toResults(
 
     // Process saleCosts
     if (!groups || groups.includes("saleCosts")) {
-      for (
-        const variable of SALE_COSTS_KEYS
-      ) {
+      for (const variable of SALE_COSTS_KEYS) {
         const amount = persona.saleCosts[variable];
         if (amount !== 0) {
           if (variable === "stockTaxes" && employmentIncome !== null) {
@@ -968,9 +842,7 @@ export default function toResults(
 
     // Process saleNetGains
     if (!groups || groups.includes("saleNetGains")) {
-      for (
-        const variable of SALE_NET_GAINS_KEYS
-      ) {
+      for (const variable of SALE_NET_GAINS_KEYS) {
         const amount = persona.saleNetGains[variable];
         if (amount !== 0) {
           results.push({
