@@ -96,7 +96,7 @@ export type WinnersColumnar = {
   amount: Float64Array;
   /**
    * Winning scenario category encoded as a byte.
-   * Decode with `WINNER_CATEGORIES[category[i]]` or use `decodeMonteCarloWinners`.
+   * Use `decodeMonteCarloWinners` to decode the category names.
    */
   category: Uint8Array;
 };

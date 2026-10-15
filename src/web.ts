@@ -9,9 +9,7 @@ import mortgageInsurancePremium from "./finance/mortgageInsurancePremium.ts";
 import mortgageMaxAmount from "./finance/mortgageMaxAmount.ts";
 import variableMortgagePayments from "./finance/variableMortgagePayments.ts";
 import simulateRentVsBuy from "./finance/simulateRentVsBuy.ts";
-import simulateRentVsBuyMonteCarlo, {
-  WINNER_CATEGORIES,
-} from "./finance/simulateRentVsBuyMonteCarlo.ts";
+import simulateRentVsBuyMonteCarlo from "./finance/simulateRentVsBuyMonteCarlo.ts";
 import getMortgagePenalty from "./finance/getMortgagePenalty.ts";
 import getRentVsBuyCholeskyMatrix from "./finance/helpers/rentVsBuy/getRentVsBuyCholeskyMatrix.ts";
 import getSalesTax from "./finance/getSalesTax.ts";
@@ -43,5 +41,4 @@ export {
   simulateRentVsBuy,
   simulateRentVsBuyMonteCarlo,
   variableMortgagePayments,
-  WINNER_CATEGORIES,
 };
