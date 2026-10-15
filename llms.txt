@@ -1,26 +1,26 @@
-# Journalism Finance v2.0.1
+# Journalism Finance v2.0.2
 
 > Useful TypeScript functions for journalism projects. This library focuses on financial calculations and data fetching.
 
-- [README](https://raw.githubusercontent.com/nshiab/journalism-finance/v2.0.1/README.md): Installation, examples and usage.
+- [README](https://raw.githubusercontent.com/nshiab/journalism-finance/v2.0.2/README.md): Installation, examples and usage.
 
 ## API
-- [adjustToInflation](https://raw.githubusercontent.com/nshiab/journalism-finance/v2.0.1/docs/functions/adjustToInflation.md): adjustToInflation function
-- [decodeMonteCarloMonthlyIterations](https://raw.githubusercontent.com/nshiab/journalism-finance/v2.0.1/docs/functions/decodeMonteCarloMonthlyIterations.md): decodeMonteCarloMonthlyIterations function
-- [decodeMonteCarloMonthlyQuantiles](https://raw.githubusercontent.com/nshiab/journalism-finance/v2.0.1/docs/functions/decodeMonteCarloMonthlyQuantiles.md): decodeMonteCarloMonthlyQuantiles function
-- [decodeMonteCarloValues](https://raw.githubusercontent.com/nshiab/journalism-finance/v2.0.1/docs/functions/decodeMonteCarloValues.md): decodeMonteCarloValues function
-- [decodeMonteCarloWinners](https://raw.githubusercontent.com/nshiab/journalism-finance/v2.0.1/docs/functions/decodeMonteCarloWinners.md): decodeMonteCarloWinners function
-- [decodeMonteCarloWinnerSnapshots](https://raw.githubusercontent.com/nshiab/journalism-finance/v2.0.1/docs/functions/decodeMonteCarloWinnerSnapshots.md): decodeMonteCarloWinnerSnapshots function
-- [getIncomeTax](https://raw.githubusercontent.com/nshiab/journalism-finance/v2.0.1/docs/functions/getIncomeTax.md): getIncomeTax function
-- [getLandTransferTax](https://raw.githubusercontent.com/nshiab/journalism-finance/v2.0.1/docs/functions/getLandTransferTax.md): getLandTransferTax function
-- [getMinimumDownPayment](https://raw.githubusercontent.com/nshiab/journalism-finance/v2.0.1/docs/functions/getMinimumDownPayment.md): getMinimumDownPayment function
-- [getMortgagePenalty](https://raw.githubusercontent.com/nshiab/journalism-finance/v2.0.1/docs/functions/getMortgagePenalty.md): getMortgagePenalty function
-- [getRentVsBuyCholeskyMatrix](https://raw.githubusercontent.com/nshiab/journalism-finance/v2.0.1/docs/functions/getRentVsBuyCholeskyMatrix.md): getRentVsBuyCholeskyMatrix function
-- [getSalesTax](https://raw.githubusercontent.com/nshiab/journalism-finance/v2.0.1/docs/functions/getSalesTax.md): getSalesTax function
-- [getYahooFinanceData](https://raw.githubusercontent.com/nshiab/journalism-finance/v2.0.1/docs/functions/getYahooFinanceData.md): getYahooFinanceData function
-- [mortgageInsurancePremium](https://raw.githubusercontent.com/nshiab/journalism-finance/v2.0.1/docs/functions/mortgageInsurancePremium.md): mortgageInsurancePremium function
-- [mortgageMaxAmount](https://raw.githubusercontent.com/nshiab/journalism-finance/v2.0.1/docs/functions/mortgageMaxAmount.md): mortgageMaxAmount function
-- [mortgagePayments](https://raw.githubusercontent.com/nshiab/journalism-finance/v2.0.1/docs/functions/mortgagePayments.md): mortgagePayments function
-- [simulateRentVsBuy](https://raw.githubusercontent.com/nshiab/journalism-finance/v2.0.1/docs/functions/simulateRentVsBuy.md): simulateRentVsBuy function
-- [simulateRentVsBuyMonteCarlo](https://raw.githubusercontent.com/nshiab/journalism-finance/v2.0.1/docs/functions/simulateRentVsBuyMonteCarlo.md): simulateRentVsBuyMonteCarlo function
-- [variableMortgagePayments](https://raw.githubusercontent.com/nshiab/journalism-finance/v2.0.1/docs/functions/variableMortgagePayments.md): variableMortgagePayments function
+- [adjustToInflation](https://raw.githubusercontent.com/nshiab/journalism-finance/v2.0.2/docs/functions/adjustToInflation.md): adjustToInflation function
+- [decodeMonteCarloMonthlyIterations](https://raw.githubusercontent.com/nshiab/journalism-finance/v2.0.2/docs/functions/decodeMonteCarloMonthlyIterations.md): decodeMonteCarloMonthlyIterations function
+- [decodeMonteCarloMonthlyQuantiles](https://raw.githubusercontent.com/nshiab/journalism-finance/v2.0.2/docs/functions/decodeMonteCarloMonthlyQuantiles.md): decodeMonteCarloMonthlyQuantiles function
+- [decodeMonteCarloValues](https://raw.githubusercontent.com/nshiab/journalism-finance/v2.0.2/docs/functions/decodeMonteCarloValues.md): decodeMonteCarloValues function
+- [decodeMonteCarloWinners](https://raw.githubusercontent.com/nshiab/journalism-finance/v2.0.2/docs/functions/decodeMonteCarloWinners.md): decodeMonteCarloWinners function
+- [decodeMonteCarloWinnerSnapshots](https://raw.githubusercontent.com/nshiab/journalism-finance/v2.0.2/docs/functions/decodeMonteCarloWinnerSnapshots.md): decodeMonteCarloWinnerSnapshots function
+- [getIncomeTax](https://raw.githubusercontent.com/nshiab/journalism-finance/v2.0.2/docs/functions/getIncomeTax.md): getIncomeTax function
+- [getLandTransferTax](https://raw.githubusercontent.com/nshiab/journalism-finance/v2.0.2/docs/functions/getLandTransferTax.md): getLandTransferTax function
+- [getMinimumDownPayment](https://raw.githubusercontent.com/nshiab/journalism-finance/v2.0.2/docs/functions/getMinimumDownPayment.md): getMinimumDownPayment function
+- [getMortgagePenalty](https://raw.githubusercontent.com/nshiab/journalism-finance/v2.0.2/docs/functions/getMortgagePenalty.md): getMortgagePenalty function
+- [getRentVsBuyCholeskyMatrix](https://raw.githubusercontent.com/nshiab/journalism-finance/v2.0.2/docs/functions/getRentVsBuyCholeskyMatrix.md): getRentVsBuyCholeskyMatrix function
+- [getSalesTax](https://raw.githubusercontent.com/nshiab/journalism-finance/v2.0.2/docs/functions/getSalesTax.md): getSalesTax function
+- [getYahooFinanceData](https://raw.githubusercontent.com/nshiab/journalism-finance/v2.0.2/docs/functions/getYahooFinanceData.md): getYahooFinanceData function
+- [mortgageInsurancePremium](https://raw.githubusercontent.com/nshiab/journalism-finance/v2.0.2/docs/functions/mortgageInsurancePremium.md): mortgageInsurancePremium function
+- [mortgageMaxAmount](https://raw.githubusercontent.com/nshiab/journalism-finance/v2.0.2/docs/functions/mortgageMaxAmount.md): mortgageMaxAmount function
+- [mortgagePayments](https://raw.githubusercontent.com/nshiab/journalism-finance/v2.0.2/docs/functions/mortgagePayments.md): mortgagePayments function
+- [simulateRentVsBuy](https://raw.githubusercontent.com/nshiab/journalism-finance/v2.0.2/docs/functions/simulateRentVsBuy.md): simulateRentVsBuy function
+- [simulateRentVsBuyMonteCarlo](https://raw.githubusercontent.com/nshiab/journalism-finance/v2.0.2/docs/functions/simulateRentVsBuyMonteCarlo.md): simulateRentVsBuyMonteCarlo function
+- [variableMortgagePayments](https://raw.githubusercontent.com/nshiab/journalism-finance/v2.0.2/docs/functions/variableMortgagePayments.md): variableMortgagePayments function

@@ -1,6 +1,6 @@
 {
   "name": "@nshiab/journalism-finance",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Useful TypeScript functions for journalism projects. This library focuses on financial calculations and data fetching.",
   "homepage": "https://nshiab.github.io/journalism-finance/",
   "license": "MIT",
