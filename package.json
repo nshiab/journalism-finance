@@ -45,12 +45,12 @@
     "@nshiab/journalism-statistics": "^1.5.8"
   },
   "devDependencies": {
-    "@types/node": "24.19.1",
+    "@types/node": "24.19.2",
     "typedoc": "0.28.20",
     "typedoc-plugin-llms-txt": "0.1.2",
-    "typedoc-plugin-markdown": "4.13.1",
+    "typedoc-plugin-markdown": "4.14.0",
     "typescript": "6.0.3",
-    "vite-plus": "1.1.0"
+    "vite-plus": "1.2.0"
   },
   "engines": {
     "node": ">=24.21.0"
