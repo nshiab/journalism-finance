@@ -55,10 +55,7 @@ for (const { year, amount } of TFSA_CONTRIBUTIONS) {
 
 const MAX_TFSA_YEAR = TFSA_CONTRIBUTIONS[TFSA_CONTRIBUTIONS.length - 1].year;
 
-export default function getTfsaContribution(
-  year: number,
-  contributionsSoFar: number,
-): number {
+export default function getTfsaContribution(year: number, contributionsSoFar: number): number {
   if (year > MAX_TFSA_YEAR) {
     throw new Error("Year exceeds the latest TFSA contribution limit data.");
   }

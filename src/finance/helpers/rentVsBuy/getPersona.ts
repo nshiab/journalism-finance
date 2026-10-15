@@ -31,9 +31,7 @@ export default function getPersona(parameters: {
       fixedRateAdjustment: parameters.fixedRateAdjustment,
       variableRateAdjustment: parameters.variableRateAdjustment,
       purchaseFixedFees: parameters.purchaseFixedFees,
-      monthlyMaintenanceCost: Math.round(
-        parameters.startingAnnualMaintenanceCost / 12,
-      ),
+      monthlyMaintenanceCost: Math.round(parameters.startingAnnualMaintenanceCost / 12),
       monthlyPropertyTax: Math.round(parameters.startingAnnualPropertyTax / 12),
       monthlyCondoFees: parameters.startingMonthlyCondoFees,
       sellingFixedFees: parameters.sellingFixedFees,

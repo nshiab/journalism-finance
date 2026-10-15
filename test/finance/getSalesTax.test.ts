@@ -1,90 +1,91 @@
-import { assertEquals } from "jsr:@std/assert";
+import { test, expect } from "vite-plus/test";
+
 import getSalesTax from "../../src/finance/getSalesTax.ts";
 
-Deno.test("getSalesTax Alberta - 5% GST only", () => {
+test("getSalesTax Alberta - 5% GST only", () => {
   const amount = 100;
   const result = getSalesTax(amount, "Alberta", 2025);
-  assertEquals(result.gst, 5);
-  assertEquals(result.pst, 0);
-  assertEquals(result.hst, 0);
-  assertEquals(result.totalTax, 5);
-  assertEquals(result.totalAmount, 105);
+  expect(result.gst).toEqual(5);
+  expect(result.pst).toEqual(0);
+  expect(result.hst).toEqual(0);
+  expect(result.totalTax).toEqual(5);
+  expect(result.totalAmount).toEqual(105);
 });
 
-Deno.test("getSalesTax British Columbia - 5% GST + 7% PST", () => {
+test("getSalesTax British Columbia - 5% GST + 7% PST", () => {
   const result = getSalesTax(100, "British Columbia", 2025);
-  assertEquals(result.gst, 5);
-  assertEquals(result.pst, 7);
-  assertEquals(result.totalTax, 12);
+  expect(result.gst).toEqual(5);
+  expect(result.pst).toEqual(7);
+  expect(result.totalTax).toEqual(12);
 });
 
-Deno.test("getSalesTax Ontario - 13% HST", () => {
+test("getSalesTax Ontario - 13% HST", () => {
   const result = getSalesTax(100, "Ontario", 2025);
-  assertEquals(result.hst, 13);
-  assertEquals(result.gst, 0);
-  assertEquals(result.pst, 0);
-  assertEquals(result.totalTax, 13);
+  expect(result.hst).toEqual(13);
+  expect(result.gst).toEqual(0);
+  expect(result.pst).toEqual(0);
+  expect(result.totalTax).toEqual(13);
 });
 
-Deno.test("getSalesTax Quebec - 5% GST + 9.975% QST", () => {
+test("getSalesTax Quebec - 5% GST + 9.975% QST", () => {
   const result = getSalesTax(100, "Quebec", 2025);
-  assertEquals(result.gst, 5);
-  assertEquals(result.pst, 9.975);
-  assertEquals(result.totalTax, 14.975);
+  expect(result.gst).toEqual(5);
+  expect(result.pst).toEqual(9.975);
+  expect(result.totalTax).toEqual(14.975);
 });
 
-Deno.test("getSalesTax Nova Scotia - 14% HST", () => {
+test("getSalesTax Nova Scotia - 14% HST", () => {
   const result = getSalesTax(100, "Nova Scotia", 2025);
-  assertEquals(result.hst, 14);
-  assertEquals(result.totalTax, 14);
+  expect(result.hst).toEqual(14);
+  expect(result.totalTax).toEqual(14);
 });
 
-Deno.test("getSalesTax Saskatchewan - 5% GST + 6% PST", () => {
+test("getSalesTax Saskatchewan - 5% GST + 6% PST", () => {
   const result = getSalesTax(100, "Saskatchewan", 2025);
-  assertEquals(result.gst, 5);
-  assertEquals(result.pst, 6);
-  assertEquals(result.totalTax, 11);
+  expect(result.gst).toEqual(5);
+  expect(result.pst).toEqual(6);
+  expect(result.totalTax).toEqual(11);
 });
 
-Deno.test("getSalesTax Manitoba - 5% GST + 7% PST", () => {
+test("getSalesTax Manitoba - 5% GST + 7% PST", () => {
   const result = getSalesTax(100, "Manitoba", 2025);
-  assertEquals(result.gst, 5);
-  assertEquals(result.pst, 7);
-  assertEquals(result.totalTax, 12);
+  expect(result.gst).toEqual(5);
+  expect(result.pst).toEqual(7);
+  expect(result.totalTax).toEqual(12);
 });
 
-Deno.test("getSalesTax New Brunswick - 15% HST", () => {
+test("getSalesTax New Brunswick - 15% HST", () => {
   const result = getSalesTax(100, "New Brunswick", 2025);
-  assertEquals(result.hst, 15);
-  assertEquals(result.totalTax, 15);
+  expect(result.hst).toEqual(15);
+  expect(result.totalTax).toEqual(15);
 });
 
-Deno.test("getSalesTax Newfoundland and Labrador - 15% HST", () => {
+test("getSalesTax Newfoundland and Labrador - 15% HST", () => {
   const result = getSalesTax(100, "Newfoundland and Labrador", 2025);
-  assertEquals(result.hst, 15);
-  assertEquals(result.totalTax, 15);
+  expect(result.hst).toEqual(15);
+  expect(result.totalTax).toEqual(15);
 });
 
-Deno.test("getSalesTax Prince Edward Island - 15% HST", () => {
+test("getSalesTax Prince Edward Island - 15% HST", () => {
   const result = getSalesTax(100, "Prince Edward Island", 2025);
-  assertEquals(result.hst, 15);
-  assertEquals(result.totalTax, 15);
+  expect(result.hst).toEqual(15);
+  expect(result.totalTax).toEqual(15);
 });
 
-Deno.test("getSalesTax Northwest Territories - 5% GST only", () => {
+test("getSalesTax Northwest Territories - 5% GST only", () => {
   const result = getSalesTax(100, "Northwest Territories", 2025);
-  assertEquals(result.gst, 5);
-  assertEquals(result.totalTax, 5);
+  expect(result.gst).toEqual(5);
+  expect(result.totalTax).toEqual(5);
 });
 
-Deno.test("getSalesTax Nunavut - 5% GST only", () => {
+test("getSalesTax Nunavut - 5% GST only", () => {
   const result = getSalesTax(100, "Nunavut", 2025);
-  assertEquals(result.gst, 5);
-  assertEquals(result.totalTax, 5);
+  expect(result.gst).toEqual(5);
+  expect(result.totalTax).toEqual(5);
 });
 
-Deno.test("getSalesTax Yukon - 5% GST only", () => {
+test("getSalesTax Yukon - 5% GST only", () => {
   const result = getSalesTax(100, "Yukon", 2025);
-  assertEquals(result.gst, 5);
-  assertEquals(result.totalTax, 5);
+  expect(result.gst).toEqual(5);
+  expect(result.totalTax).toEqual(5);
 });

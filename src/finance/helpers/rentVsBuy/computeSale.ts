@@ -36,8 +36,7 @@ export default function computeSale(
     const TERM_MONTHS = 60;
 
     // First we calculate the sale costs
-    const stockGains = persona.assets.stocks -
-      persona.params.stocksContributedNominal;
+    const stockGains = persona.assets.stocks - persona.params.stocksContributedNominal;
 
     // Note: Stock capital gains taxes are calculated using 2025 rates for all simulation years.
     let stockTaxes: number;
@@ -66,15 +65,13 @@ export default function computeSale(
     if (mortgagePayment && currentPostedRates && mortgageType) {
       // Sales tax included. Note: Sales taxes are calculated using 2025 rates for all simulation years.
       persona.saleCosts.homeSellingCommission = r2(
-        persona.params.homeValue * persona.params.sellingCommissionRate *
-          (1 + salesTaxMultiplier),
+        persona.params.homeValue * persona.params.sellingCommissionRate * (1 + salesTaxMultiplier),
       );
       // Sales tax included. Note: Sales taxes are calculated using 2025 rates for all simulation years.
       persona.saleCosts.homeSellingFixedFees = r2(
         persona.params.sellingFixedFees * (1 + salesTaxMultiplier),
       );
-      const remainingMonthsToTerm = TERM_MONTHS - (monthIndex % TERM_MONTHS) -
-        1;
+      const remainingMonthsToTerm = TERM_MONTHS - (monthIndex % TERM_MONTHS) - 1;
 
       const mortgagePenalty = getMortgagePenalty({
         remainingMonthsToTerm,
@@ -91,15 +88,15 @@ export default function computeSale(
 
     // Now we calculate the sale gains
     persona.saleNetGains.stockSellingGains = r2(
-      persona.assets.stocks -
-        persona.saleCosts.stockTaxes,
+      persona.assets.stocks - persona.saleCosts.stockTaxes,
     );
     persona.saleNetGains.tfsaSellingGains = persona.assets.tfsa;
     persona.saleNetGains.homeSellingGains = r2(
       persona.params.homeValue -
         persona.saleCosts.homeSellingCommission -
         persona.saleCosts.homeSellingFixedFees -
-        persona.saleCosts.mortgagePenalty - persona.saleCosts.mortgageBalance,
+        persona.saleCosts.mortgagePenalty -
+        persona.saleCosts.mortgageBalance,
     );
     persona.saleNetGains.securityDeposit = persona.assets.securityDeposit;
   }

@@ -22,13 +22,9 @@ export default function incrementParameters(
   // Renter
   if (persona.params.monthlyRent > 0) {
     persona.params.monthlyInsurance += r2(
-      persona.params.monthlyInsurance *
-        rates.renterInsuranceIncrease[monthIndex],
+      persona.params.monthlyInsurance * rates.renterInsuranceIncrease[monthIndex],
     );
-    persona.params.monthlyRent += r2(
-      persona.params.monthlyRent *
-        rates.rentIncrease[monthIndex],
-    );
+    persona.params.monthlyRent += r2(persona.params.monthlyRent * rates.rentIncrease[monthIndex]);
   }
 
   // Buyer
@@ -38,24 +34,20 @@ export default function incrementParameters(
     );
 
     persona.params.monthlyInsurance += r2(
-      persona.params.monthlyInsurance *
-        rates.ownerInsuranceIncrease[monthIndex],
+      persona.params.monthlyInsurance * rates.ownerInsuranceIncrease[monthIndex],
     );
     persona.params.monthlyPropertyTax += r2(
-      persona.params.monthlyPropertyTax *
-        rates.propertyTaxIncrease[monthIndex],
+      persona.params.monthlyPropertyTax * rates.propertyTaxIncrease[monthIndex],
     );
     persona.params.monthlyCondoFees += r2(
-      persona.params.monthlyCondoFees *
-        rates.condoFeeIncrease[monthIndex],
+      persona.params.monthlyCondoFees * rates.condoFeeIncrease[monthIndex],
     );
     persona.params.sellingFixedFees = r2(
-      persona.params.sellingFixedFees + persona.params.sellingFixedFees *
-          rates.sellingFixedFeesIncrease[monthIndex],
+      persona.params.sellingFixedFees +
+        persona.params.sellingFixedFees * rates.sellingFixedFeesIncrease[monthIndex],
     );
     persona.params.monthlyMaintenanceCost += r2(
-      persona.params.monthlyMaintenanceCost *
-        rates.maintenanceIncrease[monthIndex],
+      persona.params.monthlyMaintenanceCost * rates.maintenanceIncrease[monthIndex],
     );
   }
 }

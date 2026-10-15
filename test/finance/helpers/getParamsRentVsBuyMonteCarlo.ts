@@ -1,14 +1,8 @@
 import allRates from "../../data/allRates.json" with { type: "json" };
-import {
-  getCirParameters,
-  getGbmParameters,
-} from "@nshiab/journalism-statistics";
+import { getCirParameters, getGbmParameters } from "@nshiab/journalism-statistics";
 import getParamsRentVsBuy from "./getParamsRentVsBuy.ts";
 import getRentVsBuyCholeskyMatrix from "../../../src/finance/helpers/rentVsBuy/getRentVsBuyCholeskyMatrix.ts";
-import {
-  type City,
-  getProvinceFromCity,
-} from "../../../src/finance/getLandTransferTax.ts";
+import { type City, getProvinceFromCity } from "../../../src/finance/getLandTransferTax.ts";
 
 /**
  * Helper function to get the parameters for the simulateRentVsBuyMonteCarlo function.
@@ -146,92 +140,82 @@ export default function getParamsRentVsBuyMonteCarlo(
     };
   };
   winVariable: "balance" | "balanceAfterSelling" | "assets";
-  rawHistoricalData: Record<string, number[]>;
+  rawHistoricalData: NonNullable<Parameters<typeof getRentVsBuyCholeskyMatrix>[0]>;
 } {
   console.log("\ncity:", city);
 
   const province = getProvinceFromCity(city);
 
-  const params = getParamsRentVsBuy(
-    city,
-    percentages,
-    endingValues,
-    couple,
-    true,
-  );
+  const params = getParamsRentVsBuy(city, percentages, endingValues, couple, true);
 
   // RATES
   // Yahoo Finance S&P/TSX
-  const marketReturnRate = allRates.filter((d) =>
-    d.geo === "Stock market" && d.variable === "Balanced"
+  const marketReturnRate = allRates.filter(
+    (d) => d.geo === "Stock market" && d.variable === "Balanced",
   );
   // CPI Canada
-  const canadaRenterInsuranceIncrease = allRates.filter((d) =>
-    d.geo === "Canada" && d.variable === "CPI Tenants insurance"
+  const canadaRenterInsuranceIncrease = allRates.filter(
+    (d) => d.geo === "Canada" && d.variable === "CPI Tenants insurance",
   );
   // Bank of Canada
-  const fiveYearInterestRates = allRates.filter((d) =>
-    d.geo === "Canada" && d.variable === "Five-year fixed mortgage rate"
+  const fiveYearInterestRates = allRates.filter(
+    (d) => d.geo === "Canada" && d.variable === "Five-year fixed mortgage rate",
   );
   // Bank of Canada interpolated
-  const fourYearInterestRates = allRates.filter((d) =>
-    d.geo === "Canada" && d.variable === "Four-year fixed mortgage rate"
+  const fourYearInterestRates = allRates.filter(
+    (d) => d.geo === "Canada" && d.variable === "Four-year fixed mortgage rate",
   );
   // Bank of Canada
-  const threeYearInterestRates = allRates.filter((d) =>
-    d.geo === "Canada" && d.variable === "Three-year fixed mortgage rate"
+  const threeYearInterestRates = allRates.filter(
+    (d) => d.geo === "Canada" && d.variable === "Three-year fixed mortgage rate",
   );
   // Bank of Canada interpolated
-  const twoYearInterestRates = allRates.filter((d) =>
-    d.geo === "Canada" && d.variable === "Two-year fixed mortgage rate"
+  const twoYearInterestRates = allRates.filter(
+    (d) => d.geo === "Canada" && d.variable === "Two-year fixed mortgage rate",
   );
   // Bank of Canada
-  const oneYearInterestRates = allRates.filter((d) =>
-    d.geo === "Canada" && d.variable === "One-year fixed mortgage rate"
+  const oneYearInterestRates = allRates.filter(
+    (d) => d.geo === "Canada" && d.variable === "One-year fixed mortgage rate",
   );
-  const variableInterestRates = allRates.filter((d) =>
-    d.geo === "Canada" && d.variable === "Bank of Canada prime rate"
+  const variableInterestRates = allRates.filter(
+    (d) => d.geo === "Canada" && d.variable === "Bank of Canada prime rate",
   );
 
   // CMHC city
-  const rentIncreaseCMCH = allRates.filter((d) =>
-    d.geo === city && d.variable === "Two-bedroom rent"
+  const rentIncreaseCMCH = allRates.filter(
+    (d) => d.geo === city && d.variable === "Two-bedroom rent",
   );
 
   // CPI rent
-  const rentIncreaseCPI = allRates.filter((d) =>
-    d.geo === province && d.variable === "CPI Rent"
+  const rentIncreaseCPI = allRates.filter((d) => d.geo === province && d.variable === "CPI Rent");
+  // CPI province
+  const ownerInsuranceIncrease = allRates.filter(
+    (d) => d.geo === province && d.variable === "CPI Homeowners insurance",
   );
   // CPI province
-  const ownerInsuranceIncrease = allRates.filter((d) =>
-    d.geo === province && d.variable === "CPI Homeowners insurance"
+  const maintenanceIncrease = allRates.filter(
+    (d) => d.geo === province && d.variable === "CPI Homeowners maintenance",
   );
   // CPI province
-  const maintenanceIncrease = allRates.filter((d) =>
-    d.geo === province && d.variable === "CPI Homeowners maintenance"
-  );
-  // CPI province
-  const propertyTaxIncrease = allRates.filter((d) =>
-    d.geo === province && d.variable === "CPI Property taxes & others"
+  const propertyTaxIncrease = allRates.filter(
+    (d) => d.geo === province && d.variable === "CPI Property taxes & others",
   );
   // CREA Apartment city
-  const appreciationIncrease = allRates.filter((d) =>
-    d.geo === city && d.variable === "Apartment price"
+  const appreciationIncrease = allRates.filter(
+    (d) => d.geo === city && d.variable === "Apartment price",
   );
   // All-items CPI province
-  const sellingFixedFeesIncrease = allRates.filter((d) =>
-    d.geo === province && d.variable === "CPI All-items"
+  const sellingFixedFeesIncrease = allRates.filter(
+    (d) => d.geo === province && d.variable === "CPI All-items",
   );
 
   const rawMarket = marketReturnRate.map((d) => d.value);
-  const rawRent = rentIncreaseCPI.map((d) =>
-    d.indexedValue * rentIncreaseCMCH.at(-1)!.value
+  const rawRent = rentIncreaseCPI.map((d) => d.indexedValue * rentIncreaseCMCH.at(-1)!.value);
+  const rawOwnerIns = ownerInsuranceIncrease.map(
+    (d) => d.indexedValue * params.buyer.startingMonthlyInsurance,
   );
-  const rawOwnerIns = ownerInsuranceIncrease.map((d) =>
-    d.indexedValue * params.buyer.startingMonthlyInsurance
-  );
-  const rawRenterIns = canadaRenterInsuranceIncrease.map((d) =>
-    d.indexedValue * params.renter.startingMonthlyInsurance
+  const rawRenterIns = canadaRenterInsuranceIncrease.map(
+    (d) => d.indexedValue * params.renter.startingMonthlyInsurance,
   );
   const raw5Y = fiveYearInterestRates.map((d) => d.value);
   const raw4Y = fourYearInterestRates.map((d) => d.value);
@@ -239,18 +223,18 @@ export default function getParamsRentVsBuyMonteCarlo(
   const raw2Y = twoYearInterestRates.map((d) => d.value);
   const raw1Y = oneYearInterestRates.map((d) => d.value);
   const rawVar = variableInterestRates.map((d) => d.value);
-  const rawMaint = maintenanceIncrease.map((d) =>
-    d.indexedValue * params.buyer.startingAnnualMaintenanceCost
+  const rawMaint = maintenanceIncrease.map(
+    (d) => d.indexedValue * params.buyer.startingAnnualMaintenanceCost,
   );
-  const rawPropTax = propertyTaxIncrease.map((d) =>
-    d.indexedValue * params.buyer.startingAnnualPropertyTax
+  const rawPropTax = propertyTaxIncrease.map(
+    (d) => d.indexedValue * params.buyer.startingAnnualPropertyTax,
   );
-  const rawCondo = maintenanceIncrease.map((d) =>
-    d.indexedValue * params.buyer.startingMonthlyCondoFees
+  const rawCondo = maintenanceIncrease.map(
+    (d) => d.indexedValue * params.buyer.startingMonthlyCondoFees,
   );
   const rawAppreciation = appreciationIncrease.map((d) => d.value);
-  const rawSellingFixed = sellingFixedFeesIncrease.map((d) =>
-    d.indexedValue * params.buyer.sellingFixedFees
+  const rawSellingFixed = sellingFixedFeesIncrease.map(
+    (d) => d.indexedValue * params.buyer.sellingFixedFees,
   );
 
   // We simulate employment income using a standard constant growth for the correlation matrix test
@@ -286,15 +270,13 @@ export default function getParamsRentVsBuyMonteCarlo(
       securityDeposit: params.renter.securityDeposit,
     },
     buyer: {
-      downPayment: Math.round(
-        params.buyer.endingPurchasePrice * percentages.downPayment,
-      ),
+      downPayment: Math.round(params.buyer.endingPurchasePrice * percentages.downPayment),
       purchaseFixedFees: Math.round(
         params.buyer.endingPurchasePrice * percentages.purchaseFixedFees,
       ),
       fixedRateAdjustment: params.buyer.fixedRateAdjustment,
       variableRateAdjustment: params.buyer.variableRateAdjustment,
-      city: city as City,
+      city,
       firstTimeOwner: true,
       sellingCommissionRate: params.buyer.sellingCommissionRate,
       floorRate: params.buyer.floorRate,
@@ -370,10 +352,7 @@ export default function getParamsRentVsBuyMonteCarlo(
     },
     winVariable: "balanceAfterSelling" as const,
     rawHistoricalData: {
-      employmentIncome: Array.from(
-        { length: minLength },
-        (_, i) => 75000 * Math.pow(1.02, i / 12),
-      ),
+      employmentIncome: Array.from({ length: minLength }, (_, i) => 75000 * Math.pow(1.02, i / 12)),
       market: trim(rawMarket),
       rent: trim(rawRent),
       ownerInsurance: trim(rawOwnerIns),

@@ -1,16 +1,15 @@
 import { prettyDuration } from "./helpers/format.ts";
 import simulateRentVsBuy, { type RentVsBuyRates } from "./simulateRentVsBuy.ts";
 import getMinimumDownPayment from "./getMinimumDownPayment.ts";
-import {
-  getCorrelatedShocks,
-  stepCir,
-  stepGbm,
-} from "@nshiab/journalism-statistics";
+import { getCorrelatedShocks, stepCir, stepGbm } from "@nshiab/journalism-statistics";
 import randNormal from "./helpers/rentVsBuy/randNormal.ts";
 import clipRates from "./helpers/rentVsBuy/clipRates.ts";
 import type { City } from "./getLandTransferTax.ts";
 
-/** Flat-matrix result for transferable output. `data[key][row * cols + col]`. */
+/**
+ * Flat-matrix result for transferable output. `data[key][row * cols + col]`.
+ * @inline
+ */
 export type ColumnarResult = {
   data: Record<string, Float64Array>;
   rows: number;
@@ -18,7 +17,10 @@ export type ColumnarResult = {
   keys: string[];
 };
 
-/** Variable / group union types (shared between overload return types). */
+/**
+ * Variable / group union types (shared between overload return types).
+ * @inline
+ */
 export type MqGroup =
   | "monthlyExpenses"
   | "cumulativeExpenses"
@@ -33,7 +35,10 @@ export type MqGroup =
   | "monthlyNonRecurringExpenses"
   | "totals";
 
-/** Union of all variable names used in simulation output records. */
+/**
+ * Union of all variable names used in simulation output records.
+ * @inline
+ */
 export type MqVariable =
   | "rent"
   | "insurance"
@@ -77,17 +82,13 @@ export type MqVariable =
   | "monthlyRecurringExpenses"
   | "monthlyNonRecurringExpenses";
 
-/** Simulation scenario category. */
-export type MqCategory = "renter" | "buyerFixed" | "buyerVariable";
-
 /** Category names indexed by `WinnersColumnar.category` byte (0 = renter, 1 = buyerFixed, 2 = buyerVariable). */
-export const WINNER_CATEGORIES = [
-  "renter",
-  "buyerFixed",
-  "buyerVariable",
-] as const;
+export const WINNER_CATEGORIES = ["renter", "buyerFixed", "buyerVariable"] as const;
 
-/** Columnar encoding of per-iteration winner records. All three arrays have length `iterations`. */
+/**
+ * Columnar encoding of per-iteration winner records. All three arrays have length `iterations`.
+ * @inline
+ */
 export type WinnersColumnar = {
   /** Final `monthIndex` of the winning scenario for each iteration. */
   monthIndex: Float64Array;
@@ -104,6 +105,7 @@ export type WinnersColumnar = {
  * Per-checkpoint win rates and median amounts, auto-computed at every 5-year interval
  * strictly before `numberOfYears`. Empty when `numberOfYears < 5`.
  * Decode with `decodeMonteCarloWinnerSnapshots`.
+ * @inline
  */
 export type WinnerSnapshots = {
   /** Month indices of each snapshot (e.g. `[59, 119, 179, 239, 299]` for a 25-year sim, i.e. end of years 5, 10, 15, 20, 25). */
@@ -132,7 +134,10 @@ export type WinnerSnapshots = {
   buyerVariableMedian: Float64Array;
 };
 
-/** Return type for `simulateRentVsBuyMonteCarlo`. All large arrays are returned in columnar format. */
+/**
+ * Return type for `simulateRentVsBuyMonteCarlo`. All large arrays are returned in columnar format.
+ * @inline
+ */
 export type ColumnarReturn = {
   values: ColumnarResult;
   winners: WinnersColumnar;
@@ -150,7 +155,10 @@ export type ColumnarReturn = {
   };
 };
 
-/** Input parameters for `simulateRentVsBuyMonteCarlo`. */
+/**
+ * Input parameters for `simulateRentVsBuyMonteCarlo`.
+ * @inline
+ */
 export type SimParams = {
   iterations: number;
   winVariable: "balance" | "balanceAfterSelling" | "assets";
@@ -227,7 +235,10 @@ export type SimParams = {
   };
 };
 
-/** Options accepted by `simulateRentVsBuyMonteCarlo`. */
+/**
+ * Options accepted by `simulateRentVsBuyMonteCarlo`.
+ * @inline
+ */
 export type BaseOptions = {
   verbose?: boolean;
   verboseStep?: number;
@@ -283,7 +294,6 @@ export type BaseOptions = {
  *   @param parameters.buyer.sellingCommissionRate - The commission rate paid to real estate agents upon sale (e.g., `0.05` for 5%).
  *   @param parameters.buyer.floorRate - The minimum interest rate (posted + adjustment) for mortgages.
  *   @param parameters.buyer.investsSavings - Whether the buyer invests any monthly savings (difference between their expenses and the renter's/max expenses) into the stock market. If `false`, these savings are discarded.
- * @param parameters.choleskyMatrix - Mandatory Cholesky decomposition matrix for the 16 stochastic variables. Must be pre-computed using `getRentVsBuyCholeskyMatrix` from this library.
  * @param parameters.stochasticParameters - Parameters for the stochastic models.
  *   For all parameters (market return rate, dollar amounts, interest rates), use:
  *   - `initialValue`: The starting value (e.g., `0.07` for 7% market return, `1500` for $1,500 monthly rent, or `0.05` for a 5% interest rate).
@@ -318,7 +328,6 @@ export type BaseOptions = {
  *   @param options.verbose - If `true`, logs the current iteration number to the console at the frequency set by `verboseStep`. Also logs the total elapsed time upon completion via `prettyDuration`. Useful for long-running simulations.
  *   @param options.verboseStep - The frequency of progress logging. For example, setting this to `50` will log progress every 50 iterations. Defaults to `1`.
  *   @param options.values - If `true`, captures the stochastic path values for all 16 variables (e.g. employment income, market returns, interest rates) across all iterations. Dollar-amount paths (employment income, rent, insurances, maintenance, property tax, condo fees, appreciation, selling fixed fees) are expressed in real (inflation-adjusted) dollars when `options.adjustToInflation` is set, using the same deflation factor as `details`. Rate paths (market returns, all six interest rates) are always nominal. Decode with `decodeMonteCarloValues`. Be cautious with high iteration counts as this can consume significant memory.
- *   @param options.details - When provided, enables detailed monthly data collection. Both sub-options share the same internal column-major buffer, so enabling both together is more memory-efficient than the sum of their individual costs.
  *   @param options.details.iterations - If `true`, captures and returns the raw monthly financial data for every variable, group, and category for each individual iteration. Requires `details.filterGroups` to be set and non-empty — throws otherwise. Each record includes `iteration` (0-based index), `category`, `group`, `variable`, `monthIndex`, and `amount`. Useful for custom aggregations or visualization of individual paths. Be aware that this can produce a very large number of records (iterations × months × variables × 3 categories), so use `filterGroups` and `filterVariables` to limit scope.
  *   @param options.details.quantiles - When provided, pre-computes the specified quantile levels (e.g. `[0, 0.5, 1]` for min/median/max) across all iterations for every variable/group/category/month combination. Layout: `data[key][qIdx * cols + monthIndex]`. Decode with `decodeMonteCarloMonthlyQuantiles`.
  *   @param options.details.firstMonth - If `true`, captures data for all available groups and variables for the first month (monthIndex 0) during the first iteration. Returned as an array of objects in `details.firstMonth`. This capture is independent of `filterGroups` and `filterVariables`, making it useful for a complete manifest of initial costs.
@@ -407,6 +416,7 @@ export type BaseOptions = {
  *   },
  * });
  * ```
+ * @category Finance
  */
 function simulateRentVsBuyMonteCarlo(
   parameters: SimParams,
@@ -414,8 +424,7 @@ function simulateRentVsBuyMonteCarlo(
 ): ColumnarReturn {
   if (
     options.details?.iterations &&
-    (!options.details.filterGroups ||
-      options.details.filterGroups.length === 0)
+    (!options.details.filterGroups || options.details.filterGroups.length === 0)
   ) {
     throw new Error(
       "simulateRentVsBuyMonteCarlo: details.iterations requires details.filterGroups to be set and not empty.",
@@ -444,24 +453,18 @@ function simulateRentVsBuyMonteCarlo(
   }
   const snapshotMonthIndices = snapshotYearsList.map((y) => y * 12 - 1);
   const numSnapshots = snapshotMonthIndices.length;
-  const snapshotMonthSet = numSnapshots > 0
-    ? new Set<number>(snapshotMonthIndices)
-    : undefined;
-  const snapshotMonthToIdx = numSnapshots > 0
-    ? new Map<number, number>(snapshotMonthIndices.map((m, idx) => [m, idx]))
-    : undefined;
+  const snapshotMonthSet = numSnapshots > 0 ? new Set<number>(snapshotMonthIndices) : undefined;
+  const snapshotMonthToIdx =
+    numSnapshots > 0
+      ? new Map<number, number>(snapshotMonthIndices.map((m, idx) => [m, idx]))
+      : undefined;
   // Win counts: layout [snapshotIdx * 3 + categoryIdx] (0=renter, 1=buyerFixed, 2=buyerVariable).
-  const snapshotCounts = numSnapshots > 0
-    ? new Uint32Array(numSnapshots * 3)
-    : null;
+  const snapshotCounts = numSnapshots > 0 ? new Uint32Array(numSnapshots * 3) : null;
   // Per-iteration amounts reused each iteration; layout: [snapshotIdx * 3 + categoryIdx].
-  const iterSnapshotAmounts = numSnapshots > 0
-    ? new Float64Array(numSnapshots * 3)
-    : null;
+  const iterSnapshotAmounts = numSnapshots > 0 ? new Float64Array(numSnapshots * 3) : null;
   // All per-iteration amounts for median computation; layout: [(snapshotIdx * 3 + categoryIdx) * iterations + iterIdx].
-  const allSnapshotAmounts = numSnapshots > 0
-    ? new Float64Array(numSnapshots * 3 * parameters.iterations)
-    : null;
+  const allSnapshotAmounts =
+    numSnapshots > 0 ? new Float64Array(numSnapshots * 3 * parameters.iterations) : null;
 
   // Columnar map for values (populated in prepRatesGbm / prepRatesCir).
   const valuesColumnar: Map<string, Float64Array> | null = options.values
@@ -480,21 +483,20 @@ function simulateRentVsBuyMonteCarlo(
     appreciationIncrease: 8,
     sellingFixedFeesIncrease: 9,
   };
-  const inflationPathIndex = options.adjustToInflation !== undefined
-    ? (INFLATION_RATE_TO_PATH_INDEX[options.adjustToInflation] ?? -1)
-    : -1;
+  const inflationPathIndex =
+    options.adjustToInflation !== undefined
+      ? (INFLATION_RATE_TO_PATH_INDEX[options.adjustToInflation] ?? -1)
+      : -1;
   // Pre-allocated per-iteration deflation factors for values output (reused across iterations).
   const currentDeflationFactors: Float64Array | null =
-    inflationPathIndex >= 0 && valuesColumnar !== null
-      ? new Float64Array(nbMonths)
-      : null;
+    inflationPathIndex >= 0 && valuesColumnar !== null ? new Float64Array(nbMonths) : null;
 
   // Single column-major flat buffer shared between monthlyIterations and monthlyQuantiles.
   // Layout: detailsColumnar.get(key)[monthIndex * iterations + iterationIndex] = amount.
   // Column-major enables a contiguous subarray per month for sorting (quantiles) then
   // a single transpose pass to produce the row-major monthlyIterations output.
   const detailsColumnar: Map<string, Float64Array> | null =
-    (options.details?.iterations || options.details?.quantiles)
+    options.details?.iterations || options.details?.quantiles
       ? new Map<string, Float64Array>()
       : null;
 
@@ -504,31 +506,26 @@ function simulateRentVsBuyMonteCarlo(
   let currentI = 0;
 
   const onRecord = detailsColumnar
-    ? (
-      cat: string,
-      grp: string,
-      vr: string,
-      mi: number,
-      amt: number,
-    ) => {
-      const key = `${cat}|${grp}|${vr}`;
-      let bucket = detailsColumnar.get(key);
-      if (!bucket) {
-        bucket = new Float64Array(nbMonths * parameters.iterations);
-        detailsColumnar.set(key, bucket);
+    ? (cat: string, grp: string, vr: string, mi: number, amt: number) => {
+        const key = `${cat}|${grp}|${vr}`;
+        let bucket = detailsColumnar.get(key);
+        if (!bucket) {
+          bucket = new Float64Array(nbMonths * parameters.iterations);
+          detailsColumnar.set(key, bucket);
+        }
+        bucket[mi * parameters.iterations + currentI] = amt;
       }
-      bucket[mi * parameters.iterations + currentI] = amt;
-    }
     : undefined;
 
-  const onSnapshotRecord = numSnapshots > 0
-    ? (cat: string, mi: number, amt: number) => {
-      const si = snapshotMonthToIdx!.get(mi);
-      if (si === undefined) return;
-      const catIdx = cat === "renter" ? 0 : cat === "buyerFixed" ? 1 : 2;
-      iterSnapshotAmounts![si * 3 + catIdx] = amt;
-    }
-    : undefined;
+  const onSnapshotRecord =
+    numSnapshots > 0
+      ? (cat: string, mi: number, amt: number) => {
+          const si = snapshotMonthToIdx!.get(mi);
+          if (si === undefined) return;
+          const catIdx = cat === "renter" ? 0 : cat === "buyerFixed" ? 1 : 2;
+          iterSnapshotAmounts![si * 3 + catIdx] = amt;
+        }
+      : undefined;
 
   const baseSimParams = {
     startingYear: parameters.startingYear,
@@ -538,8 +535,7 @@ function simulateRentVsBuyMonteCarlo(
     renter: {
       startingMonthlyRent: parameters.stochasticParameters.rent.initialValue,
       securityDeposit: parameters.renter.securityDeposit,
-      startingMonthlyInsurance:
-        parameters.stochasticParameters.renterInsurance.initialValue,
+      startingMonthlyInsurance: parameters.stochasticParameters.renterInsurance.initialValue,
     },
     buyer: {
       downPayment: parameters.buyer.downPayment,
@@ -548,16 +544,11 @@ function simulateRentVsBuyMonteCarlo(
       variableRateAdjustment: parameters.buyer.variableRateAdjustment,
       firstTimeOwner: parameters.buyer.firstTimeOwner,
       purchaseFixedFees: parameters.buyer.purchaseFixedFees,
-      startingAnnualMaintenanceCost:
-        parameters.stochasticParameters.maintenance.initialValue,
-      startingAnnualPropertyTax:
-        parameters.stochasticParameters.propertyTax.initialValue,
-      startingMonthlyCondoFees:
-        parameters.stochasticParameters.condoFee.initialValue,
-      startingMonthlyInsurance:
-        parameters.stochasticParameters.ownerInsurance.initialValue,
-      sellingFixedFees:
-        parameters.stochasticParameters.sellingFixedFees.initialValue,
+      startingAnnualMaintenanceCost: parameters.stochasticParameters.maintenance.initialValue,
+      startingAnnualPropertyTax: parameters.stochasticParameters.propertyTax.initialValue,
+      startingMonthlyCondoFees: parameters.stochasticParameters.condoFee.initialValue,
+      startingMonthlyInsurance: parameters.stochasticParameters.ownerInsurance.initialValue,
+      sellingFixedFees: parameters.stochasticParameters.sellingFixedFees.initialValue,
       sellingCommissionRate: parameters.buyer.sellingCommissionRate,
       floorRate: parameters.buyer.floorRate,
       investsSavings: parameters.buyer.investsSavings,
@@ -567,46 +558,47 @@ function simulateRentVsBuyMonteCarlo(
 
   // Capture deterministic first-month manifest separately to keep the main loop filtered and fast.
   const firstMonthCaptured = options.details?.firstMonth
-    ? simulateRentVsBuy({
-      ...baseSimParams,
-      numberOfYears: 1 / 12, // Only 1 month needed
-      values: {
-        employmentIncome: [
-          parameters.stochasticParameters.employmentIncome.initialValue,
-        ],
-        fiveYearInterestRates: [
-          parameters.stochasticParameters.fiveYearInterestRates.initialValue,
-        ],
-        fourYearInterestRates: [
-          parameters.stochasticParameters.fourYearInterestRates.initialValue,
-        ],
-        threeYearInterestRates: [
-          parameters.stochasticParameters.threeYearInterestRates.initialValue,
-        ],
-        twoYearInterestRates: [
-          parameters.stochasticParameters.twoYearInterestRates.initialValue,
-        ],
-        oneYearInterestRates: [
-          parameters.stochasticParameters.oneYearInterestRates.initialValue,
-        ],
-        variableInterestRates: [
-          parameters.stochasticParameters.variableInterestRates.initialValue,
-        ],
-      },
-      rates: {
-        marketReturnRate: [0],
-        rentIncrease: [0],
-        renterInsuranceIncrease: [0],
-        ownerInsuranceIncrease: [0],
-        maintenanceIncrease: [0],
-        propertyTaxIncrease: [0],
-        condoFeeIncrease: [0],
-        appreciationIncrease: [0],
-        sellingFixedFeesIncrease: [0],
-      },
-    }, {
-      adjustToInflation: options.adjustToInflation,
-    })
+    ? simulateRentVsBuy(
+        {
+          ...baseSimParams,
+          numberOfYears: 1 / 12, // Only 1 month needed
+          values: {
+            employmentIncome: [parameters.stochasticParameters.employmentIncome.initialValue],
+            fiveYearInterestRates: [
+              parameters.stochasticParameters.fiveYearInterestRates.initialValue,
+            ],
+            fourYearInterestRates: [
+              parameters.stochasticParameters.fourYearInterestRates.initialValue,
+            ],
+            threeYearInterestRates: [
+              parameters.stochasticParameters.threeYearInterestRates.initialValue,
+            ],
+            twoYearInterestRates: [
+              parameters.stochasticParameters.twoYearInterestRates.initialValue,
+            ],
+            oneYearInterestRates: [
+              parameters.stochasticParameters.oneYearInterestRates.initialValue,
+            ],
+            variableInterestRates: [
+              parameters.stochasticParameters.variableInterestRates.initialValue,
+            ],
+          },
+          rates: {
+            marketReturnRate: [0],
+            rentIncrease: [0],
+            renterInsuranceIncrease: [0],
+            ownerInsuranceIncrease: [0],
+            maintenanceIncrease: [0],
+            propertyTaxIncrease: [0],
+            condoFeeIncrease: [0],
+            appreciationIncrease: [0],
+            sellingFixedFeesIncrease: [0],
+          },
+        },
+        {
+          adjustToInflation: options.adjustToInflation,
+        },
+      )
     : undefined;
 
   const numVars = 16;
@@ -640,10 +632,7 @@ function simulateRentVsBuyMonteCarlo(
       console.log(`Simulation ${i} / ${parameters.iterations}`);
     }
 
-    const paths = Array.from(
-      { length: numVars },
-      () => new Float64Array(nbMonths + 1),
-    );
+    const paths = Array.from({ length: numVars }, () => new Float64Array(nbMonths + 1));
 
     // Seed initial values
     paths[0][0] = parameters.stochasticParameters.employmentIncome.initialValue;
@@ -656,18 +645,12 @@ function simulateRentVsBuyMonteCarlo(
     paths[7][0] = parameters.stochasticParameters.condoFee.initialValue;
     paths[8][0] = parameters.stochasticParameters.appreciation.initialValue;
     paths[9][0] = parameters.stochasticParameters.sellingFixedFees.initialValue;
-    paths[10][0] =
-      parameters.stochasticParameters.fiveYearInterestRates.initialValue;
-    paths[11][0] =
-      parameters.stochasticParameters.fourYearInterestRates.initialValue;
-    paths[12][0] =
-      parameters.stochasticParameters.threeYearInterestRates.initialValue;
-    paths[13][0] =
-      parameters.stochasticParameters.twoYearInterestRates.initialValue;
-    paths[14][0] =
-      parameters.stochasticParameters.oneYearInterestRates.initialValue;
-    paths[15][0] =
-      parameters.stochasticParameters.variableInterestRates.initialValue;
+    paths[10][0] = parameters.stochasticParameters.fiveYearInterestRates.initialValue;
+    paths[11][0] = parameters.stochasticParameters.fourYearInterestRates.initialValue;
+    paths[12][0] = parameters.stochasticParameters.threeYearInterestRates.initialValue;
+    paths[13][0] = parameters.stochasticParameters.twoYearInterestRates.initialValue;
+    paths[14][0] = parameters.stochasticParameters.oneYearInterestRates.initialValue;
+    paths[15][0] = parameters.stochasticParameters.variableInterestRates.initialValue;
 
     const Z = new Float64Array(numVars);
     for (let m = 0; m < nbMonths; m++) {
@@ -830,63 +813,60 @@ function simulateRentVsBuyMonteCarlo(
     populateValuesColumnar(i, "variable interest rates", paths[15], false);
 
     const getRatesFromPath = (path: Float64Array) => {
-      const r = new Array(nbMonths);
+      const r = new Array<number>(nbMonths);
       for (let m = 0; m < nbMonths; m++) {
         r[m] = path[m] === 0 ? 0 : (path[m + 1] - path[m]) / path[m];
       }
       return r;
     };
 
-    const iterationResults = simulateRentVsBuy({
-      ...baseSimParams,
-      numberOfYears: parameters.numberOfYears,
-      values: {
-        employmentIncome: Array.from(paths[0].slice(0, nbMonths)),
-        fiveYearInterestRates: Array.from(paths[10].slice(0, nbMonths)),
-        fourYearInterestRates: Array.from(paths[11].slice(0, nbMonths)),
-        threeYearInterestRates: Array.from(paths[12].slice(0, nbMonths)),
-        twoYearInterestRates: Array.from(paths[13].slice(0, nbMonths)),
-        oneYearInterestRates: Array.from(paths[14].slice(0, nbMonths)),
-        variableInterestRates: Array.from(paths[15].slice(0, nbMonths)),
+    const iterationResults = simulateRentVsBuy(
+      {
+        ...baseSimParams,
+        numberOfYears: parameters.numberOfYears,
+        values: {
+          employmentIncome: Array.from(paths[0].slice(0, nbMonths)),
+          fiveYearInterestRates: Array.from(paths[10].slice(0, nbMonths)),
+          fourYearInterestRates: Array.from(paths[11].slice(0, nbMonths)),
+          threeYearInterestRates: Array.from(paths[12].slice(0, nbMonths)),
+          twoYearInterestRates: Array.from(paths[13].slice(0, nbMonths)),
+          oneYearInterestRates: Array.from(paths[14].slice(0, nbMonths)),
+          variableInterestRates: Array.from(paths[15].slice(0, nbMonths)),
+        },
+        rates: {
+          marketReturnRate: getRatesFromPath(paths[1]),
+          rentIncrease: getRatesFromPath(paths[2]),
+          renterInsuranceIncrease: getRatesFromPath(paths[4]),
+          ownerInsuranceIncrease: getRatesFromPath(paths[3]),
+          maintenanceIncrease: getRatesFromPath(paths[5]),
+          propertyTaxIncrease: getRatesFromPath(paths[6]),
+          condoFeeIncrease: getRatesFromPath(paths[7]),
+          appreciationIncrease: getRatesFromPath(paths[8]),
+          sellingFixedFeesIncrease: getRatesFromPath(paths[9]),
+        },
       },
-      rates: {
-        marketReturnRate: getRatesFromPath(paths[1]),
-        rentIncrease: getRatesFromPath(paths[2]),
-        renterInsuranceIncrease: getRatesFromPath(paths[4]),
-        ownerInsuranceIncrease: getRatesFromPath(paths[3]),
-        maintenanceIncrease: getRatesFromPath(paths[5]),
-        propertyTaxIncrease: getRatesFromPath(paths[6]),
-        condoFeeIncrease: getRatesFromPath(paths[7]),
-        appreciationIncrease: getRatesFromPath(paths[8]),
-        sellingFixedFeesIncrease: getRatesFromPath(paths[9]),
+      {
+        winVariableOnly: !options.details?.iterations && !options.details?.quantiles,
+        onRecord,
+        onSnapshotRecord,
+        snapshotMonths: snapshotMonthSet,
+        winVariable: parameters.winVariable,
+        groups: options.details?.filterGroups,
+        variables: options.details?.filterVariables,
+        adjustToInflation: options.adjustToInflation,
       },
-    }, {
-      winVariableOnly: !options.details?.iterations &&
-        !options.details?.quantiles,
-      onRecord,
-      onSnapshotRecord,
-      snapshotMonths: snapshotMonthSet,
-      winVariable: parameters.winVariable,
-      groups: options.details?.filterGroups,
-      variables: options.details?.filterVariables,
-      adjustToInflation: options.adjustToInflation,
-    });
+    );
 
     // The results array always contains exactly 1 entry per category, pushed in
     // order: renter, buyerFixed, buyerVariable. Stride is always 1.
     const r0 = iterationResults[0]; // renter
     const r1 = iterationResults[1]; // buyerFixed
     const r2 = iterationResults[2]; // buyerVariable
-    const w = r0.amount >= r1.amount && r0.amount >= r2.amount
-      ? r0
-      : r1.amount >= r2.amount
-      ? r1
-      : r2;
+    const w =
+      r0.amount >= r1.amount && r0.amount >= r2.amount ? r0 : r1.amount >= r2.amount ? r1 : r2;
     winnersMonthIndex[i] = w.monthIndex;
     winnersAmount[i] = w.amount;
-    winnersCategory[i] = WINNER_CATEGORIES.indexOf(
-      w.category as "renter" | "buyerFixed" | "buyerVariable",
-    );
+    winnersCategory[i] = WINNER_CATEGORIES.findIndex((category) => category === w.category);
 
     // Track per-snapshot winners and store amounts for median computation.
     if (numSnapshots > 0) {
@@ -896,8 +876,8 @@ function simulateRentVsBuyMonteCarlo(
         const a2 = iterSnapshotAmounts![si * 3 + 2]; // buyerVariable
         const winCat = a0 >= a1 && a0 >= a2 ? 0 : a1 >= a2 ? 1 : 2;
         snapshotCounts![si * 3 + winCat]++;
-        const baseOffset = (si * 3) * parameters.iterations;
-        allSnapshotAmounts![baseOffset + 0 * parameters.iterations + i] = a0;
+        const baseOffset = si * 3 * parameters.iterations;
+        allSnapshotAmounts![baseOffset + i] = a0;
         allSnapshotAmounts![baseOffset + 1 * parameters.iterations + i] = a1;
         allSnapshotAmounts![baseOffset + 2 * parameters.iterations + i] = a2;
       }
@@ -960,17 +940,12 @@ function simulateRentVsBuyMonteCarlo(
           const lo = qLower[qi];
           const hi = qUpper[qi];
           const w = qWeight[qi];
-          out[qi * nbMonths + mi] = lo === hi
-            ? sortBuf[lo]
-            : sortBuf[lo] + w * (sortBuf[hi] - sortBuf[lo]);
+          out[qi * nbMonths + mi] =
+            lo === hi ? sortBuf[lo] : sortBuf[lo] + w * (sortBuf[hi] - sortBuf[lo]);
         }
       }
     }
-    monthlyQuantilesResult = toColumnarResult(
-      monthlyQuantilesColumnar,
-      qs.length,
-      nbMonths,
-    );
+    monthlyQuantilesResult = toColumnarResult(monthlyQuantilesColumnar, qs.length, nbMonths);
   }
 
   // Produce row-major monthlyIterations via a single transpose of detailsColumnar.
@@ -1008,11 +983,7 @@ function simulateRentVsBuyMonteCarlo(
     const medianLo = Math.floor(medianIdx);
     const medianHi = Math.ceil(medianIdx);
     const medianW = medianIdx - medianLo;
-    const medianArrays = [
-      renterMedians,
-      buyerFixedMedians,
-      buyerVariableMedians,
-    ];
+    const medianArrays = [renterMedians, buyerFixedMedians, buyerVariableMedians];
     for (let si = 0; si < numSnapshots; si++) {
       const rawRenter = snapshotCounts![si * 3 + 0] / n;
       const rawBuyerFixed = snapshotCounts![si * 3 + 1] / n;
@@ -1031,10 +1002,11 @@ function simulateRentVsBuyMonteCarlo(
         const offset = (si * 3 + catIdx) * n;
         medianSortBuf.set(allSnapshotAmounts!.subarray(offset, offset + n));
         medianSortBuf.sort();
-        medianArrays[catIdx][si] = medianLo === medianHi
-          ? medianSortBuf[medianLo]
-          : medianSortBuf[medianLo] +
-            medianW * (medianSortBuf[medianHi] - medianSortBuf[medianLo]);
+        medianArrays[catIdx][si] =
+          medianLo === medianHi
+            ? medianSortBuf[medianLo]
+            : medianSortBuf[medianLo] +
+              medianW * (medianSortBuf[medianHi] - medianSortBuf[medianLo]);
       }
     }
     winnerSnapshotsResult = {

@@ -2,6 +2,7 @@ import type { Province } from "./getSalesTax.ts";
 
 /**
  * Valid Canadian metropolitan markets for Land Transfer Tax calculations.
+ * @inline
  */
 export type City =
   | "Toronto"
@@ -125,16 +126,16 @@ export default function getLandTransferTax(
   firstTimeOwner: boolean = false,
 ): number {
   if (year !== 2026) {
-    throw new Error(`Land transfer tax rates not found for year ${year}`);
+    throw new Error(`Land transfer tax rates not found for year ${String(year)}`);
   }
 
   // 1. Ontario Provincial Brackets
   // Tax Source: https://www.ontario.ca/document/land-transfer-tax/calculating-land-transfer-tax
   const ontarioProvincialBrackets: TaxBracket[] = [
     { limit: 55000, rate: 0.005 },
-    { limit: 250000, rate: 0.010 },
+    { limit: 250000, rate: 0.01 },
     { limit: 400000, rate: 0.015 },
-    { limit: 2000000, rate: 0.020 },
+    { limit: 2000000, rate: 0.02 },
     { limit: Infinity, rate: 0.025 },
   ];
 
@@ -163,21 +164,18 @@ export default function getLandTransferTax(
   if (city === "Toronto") {
     const torontoMLTTBrackets: TaxBracket[] = [
       { limit: 55000, rate: 0.005 },
-      { limit: 250000, rate: 0.010 },
+      { limit: 250000, rate: 0.01 },
       { limit: 400000, rate: 0.015 },
-      { limit: 2000000, rate: 0.020 },
+      { limit: 2000000, rate: 0.02 },
       { limit: 3000000, rate: 0.025 },
       { limit: 4000000, rate: 0.044 },
       { limit: 5000000, rate: 0.0545 },
-      { limit: 10000000, rate: 0.0650 },
+      { limit: 10000000, rate: 0.065 },
       { limit: 20000000, rate: 0.0755 },
-      { limit: Infinity, rate: 0.0860 },
+      { limit: Infinity, rate: 0.086 },
     ];
 
-    let provincialTax = calculateMarginalTax(
-      propertyValue,
-      ontarioProvincialBrackets,
-    );
+    let provincialTax = calculateMarginalTax(propertyValue, ontarioProvincialBrackets);
     let municipalTax = calculateMarginalTax(propertyValue, torontoMLTTBrackets);
 
     if (firstTimeOwner) {
@@ -195,9 +193,9 @@ export default function getLandTransferTax(
   // Tax Source: https://www2.gov.bc.ca/gov/content/taxes/property-taxes/property-transfer-tax
   if (city === "Vancouver" || city === "Victoria") {
     const bcBrackets: TaxBracket[] = [
-      { limit: 200000, rate: 0.010 },
-      { limit: 2000000, rate: 0.020 },
-      { limit: Infinity, rate: 0.030 },
+      { limit: 200000, rate: 0.01 },
+      { limit: 2000000, rate: 0.02 },
+      { limit: Infinity, rate: 0.03 },
     ];
 
     let tax = calculateMarginalTax(propertyValue, bcBrackets);
@@ -230,21 +228,21 @@ export default function getLandTransferTax(
     if (city === "Montreal") {
       const montrealBrackets: TaxBracket[] = [
         { limit: 62900, rate: 0.005 },
-        { limit: 315000, rate: 0.010 },
+        { limit: 315000, rate: 0.01 },
         { limit: 552300, rate: 0.015 },
-        { limit: 1104700, rate: 0.020 },
+        { limit: 1104700, rate: 0.02 },
         { limit: 2136500, rate: 0.025 },
         { limit: 3113000, rate: 0.035 },
-        { limit: Infinity, rate: 0.040 },
+        { limit: Infinity, rate: 0.04 },
       ];
       tax = calculateMarginalTax(propertyValue, montrealBrackets);
     } else {
       const quebecCityBrackets: TaxBracket[] = [
         { limit: 62900, rate: 0.005 },
-        { limit: 315000, rate: 0.010 },
+        { limit: 315000, rate: 0.01 },
         { limit: 500000, rate: 0.015 },
         { limit: 750000, rate: 0.025 },
-        { limit: Infinity, rate: 0.030 },
+        { limit: Infinity, rate: 0.03 },
       ];
       tax = calculateMarginalTax(propertyValue, quebecCityBrackets);
     }
@@ -260,11 +258,11 @@ export default function getLandTransferTax(
   // No point-of-sale FTHB land transfer rebate available.
   if (city === "Winnipeg") {
     const manitobaBrackets: TaxBracket[] = [
-      { limit: 30000, rate: 0.000 },
+      { limit: 30000, rate: 0.0 },
       { limit: 90000, rate: 0.005 },
-      { limit: 150000, rate: 0.010 },
+      { limit: 150000, rate: 0.01 },
       { limit: 200000, rate: 0.015 },
-      { limit: Infinity, rate: 0.020 },
+      { limit: Infinity, rate: 0.02 },
     ];
     return calculateMarginalTax(propertyValue, manitobaBrackets);
   }
@@ -274,7 +272,7 @@ export default function getLandTransferTax(
   // No FTHB rebate available for administrative levies.
   if (city === "Calgary" || city === "Edmonton") {
     // $50 base fee + $5 for every $5,000 of value (or portion thereof).
-    return 50 + (Math.ceil(propertyValue / 5000) * 5);
+    return 50 + Math.ceil(propertyValue / 5000) * 5;
   }
 
   // 8. Saskatchewan (Saskatoon, Regina)
@@ -296,10 +294,8 @@ export default function getLandTransferTax(
   // 10. New Brunswick (Fredericton, Moncton, Saint John (NB))
   // Tax Source: https://laws.gnb.ca/en/document/cs/R-2.1
   // No FTHB rebate available for RPTT.
-  if (
-    city === "Fredericton" || city === "Moncton" || city === "Saint John (NB)"
-  ) {
-    return propertyValue * 0.010;
+  if (city === "Fredericton" || city === "Moncton" || city === "Saint John (NB)") {
+    return propertyValue * 0.01;
   }
 
   // 11. Newfoundland and Labrador (Saint John's (NL))

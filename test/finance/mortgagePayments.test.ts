@@ -1,13 +1,14 @@
-import { assertEquals, assertThrows } from "jsr:@std/assert";
+import { test, expect } from "vite-plus/test";
+
 import mortgagePayments from "../../src/finance/mortgagePayments.ts";
 
-Deno.test("should throw an error if the amortizationPeriod is smaller than the term", () => {
-  assertThrows(() => mortgagePayments(250_000, 6, "monthly", 5, 4));
+test("should throw an error if the amortizationPeriod is smaller than the term", () => {
+  expect(() => mortgagePayments(250_000, 6, "monthly", 5, 4)).toThrow();
 });
-Deno.test("should return finite payments for a zero interest rate", () => {
+test("should return finite payments for a zero interest rate", () => {
   const payments = mortgagePayments(120_000, 0, "monthly", 1, 10);
 
-  assertEquals(payments[0], {
+  expect(payments[0]).toEqual({
     paymentId: 0,
     payment: 1_000,
     interest: 0,
@@ -18,601 +19,496 @@ Deno.test("should return finite payments for a zero interest rate", () => {
     capitalPaid: 1_000,
   });
 });
-Deno.test("should return the monthly mortgage payments for a $250k loan with a 6.00% rate.", () => {
+test("should return the monthly mortgage payments for a $250k loan with a 6.00% rate.", () => {
   // Checking against https://www.yorku.ca/amarshal/CMTGMONT.xls
   const payments = mortgagePayments(250_000, 6, "monthly", 5, 25);
   const firstPayment = payments[0];
   const lastPayment = payments[payments.length - 1];
-  assertEquals(
-    { firstPayment, lastPayment },
-    {
-      firstPayment: {
-        paymentId: 0,
-        payment: 1599.52,
-        interest: 1234.66,
-        capital: 364.86,
-        balance: 249635.14,
-        amountPaid: 1599.52,
-        interestPaid: 1234.66,
-        capitalPaid: 364.86,
-      },
-      lastPayment: {
-        paymentId: 59,
-        payment: 1599.52,
-        interest: 1111.58,
-        capital: 487.93,
-        balance: 224591.84,
-        amountPaid: 95970.99,
-        interestPaid: 70562.76,
-        capitalPaid: 25408.23,
-      },
+  expect({ firstPayment, lastPayment }).toEqual({
+    firstPayment: {
+      paymentId: 0,
+      payment: 1599.52,
+      interest: 1234.66,
+      capital: 364.86,
+      balance: 249635.14,
+      amountPaid: 1599.52,
+      interestPaid: 1234.66,
+      capitalPaid: 364.86,
     },
-  );
+    lastPayment: {
+      paymentId: 59,
+      payment: 1599.52,
+      interest: 1111.58,
+      capital: 487.93,
+      balance: 224591.84,
+      amountPaid: 95970.99,
+      interestPaid: 70562.76,
+      capitalPaid: 25408.23,
+    },
+  });
 });
-Deno.test("should return the monthly mortgage payments for a $250k loan with a 6.00% rate, and add an id.", () => {
+test("should return the monthly mortgage payments for a $250k loan with a 6.00% rate, and add an id.", () => {
   const payments = mortgagePayments(250_000, 6, "monthly", 5, 25, {
     id: "monthly",
   });
   const firstPayment = payments[0];
   const lastPayment = payments[payments.length - 1];
-  assertEquals(
-    { firstPayment, lastPayment },
-    {
-      firstPayment: {
-        id: "monthly",
-        paymentId: 0,
-        payment: 1599.52,
-        interest: 1234.66,
-        capital: 364.86,
-        balance: 249635.14,
-        amountPaid: 1599.52,
-        interestPaid: 1234.66,
-        capitalPaid: 364.86,
-      },
-      lastPayment: {
-        id: "monthly",
-        paymentId: 59,
-        payment: 1599.52,
-        interest: 1111.58,
-        capital: 487.93,
-        balance: 224591.84,
-        amountPaid: 95970.99,
-        interestPaid: 70562.76,
-        capitalPaid: 25408.23,
-      },
+  expect({ firstPayment, lastPayment }).toEqual({
+    firstPayment: {
+      id: "monthly",
+      paymentId: 0,
+      payment: 1599.52,
+      interest: 1234.66,
+      capital: 364.86,
+      balance: 249635.14,
+      amountPaid: 1599.52,
+      interestPaid: 1234.66,
+      capitalPaid: 364.86,
     },
-  );
+    lastPayment: {
+      id: "monthly",
+      paymentId: 59,
+      payment: 1599.52,
+      interest: 1111.58,
+      capital: 487.93,
+      balance: 224591.84,
+      amountPaid: 95970.99,
+      interestPaid: 70562.76,
+      capitalPaid: 25408.23,
+    },
+  });
 });
-Deno.test("should return the accelerated weekly mortgage payments for a $250k loan with a 6.00% rate.", () => {
+test("should return the accelerated weekly mortgage payments for a $250k loan with a 6.00% rate.", () => {
   // Checking against https://www.yorku.ca/amarshal/CMTG1WKT.xls
-  const payments = mortgagePayments(
-    250_000,
-    6,
-    "acceleratedWeekly",
-    5,
-    25,
-  );
+  const payments = mortgagePayments(250_000, 6, "acceleratedWeekly", 5, 25);
   const firstPayment = payments[0];
   const lastPayment = payments[payments.length - 1];
-  assertEquals(
-    { firstPayment, lastPayment },
-    {
-      firstPayment: {
-        paymentId: 0,
-        payment: 399.88,
-        interest: 283.6,
-        capital: 116.28,
-        balance: 249883.72,
-        amountPaid: 399.88,
-        interestPaid: 283.6,
-        capitalPaid: 116.28,
-      },
-      lastPayment: {
-        paymentId: 259,
-        payment: 399.88,
-        interest: 243.91,
-        capital: 155.96,
-        balance: 214859.68,
-        amountPaid: 103968.58,
-        interestPaid: 68828.27,
-        capitalPaid: 35140.31,
-      },
+  expect({ firstPayment, lastPayment }).toEqual({
+    firstPayment: {
+      paymentId: 0,
+      payment: 399.88,
+      interest: 283.6,
+      capital: 116.28,
+      balance: 249883.72,
+      amountPaid: 399.88,
+      interestPaid: 283.6,
+      capitalPaid: 116.28,
     },
-  );
+    lastPayment: {
+      paymentId: 259,
+      payment: 399.88,
+      interest: 243.91,
+      capital: 155.96,
+      balance: 214859.68,
+      amountPaid: 103968.58,
+      interestPaid: 68828.27,
+      capitalPaid: 35140.31,
+    },
+  });
 });
-Deno.test("should return the monthly mortgage payments for a $700k loan with a 2.34% rate and a 30-year amortization.", () => {
+test("should return the monthly mortgage payments for a $700k loan with a 2.34% rate and a 30-year amortization.", () => {
   // Checking against https://www.mikesukmanowsky.com/blog/a-guide-to-canadian-mortgage-calculations and https://apps.royalbank.com/apps/mortgages/mortgage-payment-calculator/
   const payments = mortgagePayments(700_000, 2.34, "monthly", 5, 30);
   const firstPayment = payments[0];
   const fifthPayment = payments[4];
 
-  assertEquals(
-    { firstPayment, fifthPayment },
-    {
-      firstPayment: {
-        paymentId: 0,
-        payment: 2703.9,
-        interest: 1358.39,
-        capital: 1345.5,
-        balance: 698654.5,
-        amountPaid: 2703.9,
-        interestPaid: 1358.39,
-        capitalPaid: 1345.5,
-      },
-      fifthPayment: {
-        paymentId: 4,
-        payment: 2703.9,
-        interest: 1347.92,
-        capital: 1355.98,
-        balance: 693246.32,
-        amountPaid: 13519.49,
-        interestPaid: 6765.8,
-        capitalPaid: 6753.68,
-      },
+  expect({ firstPayment, fifthPayment }).toEqual({
+    firstPayment: {
+      paymentId: 0,
+      payment: 2703.9,
+      interest: 1358.39,
+      capital: 1345.5,
+      balance: 698654.5,
+      amountPaid: 2703.9,
+      interestPaid: 1358.39,
+      capitalPaid: 1345.5,
     },
-  );
+    fifthPayment: {
+      paymentId: 4,
+      payment: 2703.9,
+      interest: 1347.92,
+      capital: 1355.98,
+      balance: 693246.32,
+      amountPaid: 13519.49,
+      interestPaid: 6765.8,
+      capitalPaid: 6753.68,
+    },
+  });
 });
-Deno.test("should return the monthly mortgage payments for a $700k loan with a 5% rate and a 30-year amortization.", () => {
+test("should return the monthly mortgage payments for a $700k loan with a 5% rate and a 30-year amortization.", () => {
   // Checking against https://www.mikesukmanowsky.com/blog/a-guide-to-canadian-mortgage-calculations and https://apps.royalbank.com/apps/mortgages/mortgage-payment-calculator/
   const payments = mortgagePayments(700_000, 5, "monthly", 5, 30);
   const firstPayment = payments[0];
   const fifthPayment = payments[4];
 
-  assertEquals(
-    { firstPayment, fifthPayment },
-    {
-      firstPayment: {
-        paymentId: 0,
-        payment: 3735.83,
-        interest: 2886.74,
-        capital: 849.09,
-        balance: 699150.91,
-        amountPaid: 3735.83,
-        interestPaid: 2886.74,
-        capitalPaid: 849.09,
-      },
-      fifthPayment: {
-        paymentId: 4,
-        payment: 3735.83,
-        interest: 2872.65,
-        capital: 863.19,
-        balance: 695719.37,
-        amountPaid: 18679.17,
-        interestPaid: 14398.54,
-        capitalPaid: 4280.63,
-      },
+  expect({ firstPayment, fifthPayment }).toEqual({
+    firstPayment: {
+      paymentId: 0,
+      payment: 3735.83,
+      interest: 2886.74,
+      capital: 849.09,
+      balance: 699150.91,
+      amountPaid: 3735.83,
+      interestPaid: 2886.74,
+      capitalPaid: 849.09,
     },
-  );
+    fifthPayment: {
+      paymentId: 4,
+      payment: 3735.83,
+      interest: 2872.65,
+      capital: 863.19,
+      balance: 695719.37,
+      amountPaid: 18679.17,
+      interestPaid: 14398.54,
+      capitalPaid: 4280.63,
+    },
+  });
 });
-Deno.test("should return the monthly mortgage payments for a $100k loan with a 5.00% rate.", () => {
+test("should return the monthly mortgage payments for a $100k loan with a 5.00% rate.", () => {
   // Checking against https://itools-ioutils.fcac-acfc.gc.ca/MC-CH/MCCalc-CHCalc-eng.aspx and https://apps.royalbank.com/apps/mortgages/mortgage-payment-calculator/
   const payments = mortgagePayments(100_000, 5, "monthly", 5, 25);
   const firstPayment = payments[0];
   const lastPayment = payments[payments.length - 1];
-  assertEquals(
-    { firstPayment, lastPayment },
-    {
-      firstPayment: {
-        paymentId: 0,
-        payment: 581.6,
-        interest: 412.39,
-        capital: 169.21,
-        balance: 99830.79,
-        amountPaid: 581.6,
-        interestPaid: 412.39,
-        capitalPaid: 169.21,
-      },
-      lastPayment: {
-        paymentId: 59,
-        payment: 581.6,
-        interest: 365.89,
-        capital: 215.72,
-        balance: 88507.53,
-        amountPaid: 34896.3,
-        interestPaid: 23403.81,
-        capitalPaid: 11492.49,
-      },
+  expect({ firstPayment, lastPayment }).toEqual({
+    firstPayment: {
+      paymentId: 0,
+      payment: 581.6,
+      interest: 412.39,
+      capital: 169.21,
+      balance: 99830.79,
+      amountPaid: 581.6,
+      interestPaid: 412.39,
+      capitalPaid: 169.21,
     },
-  );
+    lastPayment: {
+      paymentId: 59,
+      payment: 581.6,
+      interest: 365.89,
+      capital: 215.72,
+      balance: 88507.53,
+      amountPaid: 34896.3,
+      interestPaid: 23403.81,
+      capitalPaid: 11492.49,
+    },
+  });
 });
-Deno.test("should return the semi-montlhy mortgage payments for a $100k loan with a 5.00% rate.", () => {
+test("should return the semi-montlhy mortgage payments for a $100k loan with a 5.00% rate.", () => {
   // Checking against https://itools-ioutils.fcac-acfc.gc.ca/MC-CH/MCCalc-CHCalc-eng.aspx and https://apps.royalbank.com/apps/mortgages/mortgage-payment-calculator/
   const payments = mortgagePayments(100_000, 5, "semiMonthly", 5, 25);
   const firstPayment = payments[0];
   const lastPayment = payments[payments.length - 1];
-  assertEquals(
-    { firstPayment, lastPayment },
-    {
-      firstPayment: {
-        paymentId: 0,
-        payment: 290.8,
-        interest: 205.98,
-        capital: 84.82,
-        balance: 99915.18,
-        amountPaid: 290.8,
-        interestPaid: 205.98,
-        capitalPaid: 84.82,
-      },
-      lastPayment: {
-        paymentId: 119,
-        payment: 290.8,
-        interest: 182.45,
-        capital: 108.35,
-        balance: 88466.77,
-        amountPaid: 34896.3,
-        interestPaid: 23363.12,
-        capitalPaid: 11533.18,
-      },
+  expect({ firstPayment, lastPayment }).toEqual({
+    firstPayment: {
+      paymentId: 0,
+      payment: 290.8,
+      interest: 205.98,
+      capital: 84.82,
+      balance: 99915.18,
+      amountPaid: 290.8,
+      interestPaid: 205.98,
+      capitalPaid: 84.82,
     },
-  );
+    lastPayment: {
+      paymentId: 119,
+      payment: 290.8,
+      interest: 182.45,
+      capital: 108.35,
+      balance: 88466.77,
+      amountPaid: 34896.3,
+      interestPaid: 23363.12,
+      capitalPaid: 11533.18,
+    },
+  });
 });
-Deno.test("should return the bi-weekly mortgage payments for a $100k loan with a 5.00% rate.", () => {
+test("should return the bi-weekly mortgage payments for a $100k loan with a 5.00% rate.", () => {
   // Checking against https://itools-ioutils.fcac-acfc.gc.ca/MC-CH/MCCalc-CHCalc-eng.aspx and https://apps.royalbank.com/apps/mortgages/mortgage-payment-calculator/
   const payments = mortgagePayments(100_000, 5, "biWeekly", 5, 25);
   const firstPayment = payments[0];
   const lastPayment = payments[payments.length - 1];
-  assertEquals(
-    { firstPayment, lastPayment },
-    {
-      firstPayment: {
-        paymentId: 0,
-        payment: 268.43,
-        interest: 189.6,
-        capital: 78.83,
-        balance: 99921.17,
-        amountPaid: 268.43,
-        interestPaid: 189.6,
-        capitalPaid: 78.83,
-      },
-      lastPayment: {
-        paymentId: 129,
-        payment: 268.43,
-        interest: 167.78,
-        capital: 100.65,
-        balance: 88390.97,
-        amountPaid: 34896.3,
-        interestPaid: 23287.25,
-        capitalPaid: 11609.05,
-      },
+  expect({ firstPayment, lastPayment }).toEqual({
+    firstPayment: {
+      paymentId: 0,
+      payment: 268.43,
+      interest: 189.6,
+      capital: 78.83,
+      balance: 99921.17,
+      amountPaid: 268.43,
+      interestPaid: 189.6,
+      capitalPaid: 78.83,
     },
-  );
+    lastPayment: {
+      paymentId: 129,
+      payment: 268.43,
+      interest: 167.78,
+      capital: 100.65,
+      balance: 88390.97,
+      amountPaid: 34896.3,
+      interestPaid: 23287.25,
+      capitalPaid: 11609.05,
+    },
+  });
 });
-Deno.test("should return the accelerated bi-weekly mortgage payments for a $100k loan with a 5.00% rate.", () => {
+test("should return the accelerated bi-weekly mortgage payments for a $100k loan with a 5.00% rate.", () => {
   // Checking against https://itools-ioutils.fcac-acfc.gc.ca/MC-CH/MCCalc-CHCalc-eng.aspx and https://apps.royalbank.com/apps/mortgages/mortgage-payment-calculator/
-  const payments = mortgagePayments(
-    100_000,
-    5,
-    "acceleratedBiWeekly",
-    5,
-    25,
-  );
+  const payments = mortgagePayments(100_000, 5, "acceleratedBiWeekly", 5, 25);
   const firstPayment = payments[0];
   const lastPayment = payments[payments.length - 1];
-  assertEquals(
-    { firstPayment, lastPayment },
-    {
-      firstPayment: {
-        paymentId: 0,
-        payment: 290.8,
-        interest: 189.6,
-        capital: 101.2,
-        balance: 99898.8,
-        amountPaid: 290.8,
-        interestPaid: 189.6,
-        capitalPaid: 101.2,
-      },
-      lastPayment: {
-        paymentId: 129,
-        payment: 290.8,
-        interest: 161.59,
-        capital: 129.21,
-        balance: 85096.72,
-        amountPaid: 37804.32,
-        interestPaid: 22901.02,
-        capitalPaid: 14903.3,
-      },
+  expect({ firstPayment, lastPayment }).toEqual({
+    firstPayment: {
+      paymentId: 0,
+      payment: 290.8,
+      interest: 189.6,
+      capital: 101.2,
+      balance: 99898.8,
+      amountPaid: 290.8,
+      interestPaid: 189.6,
+      capitalPaid: 101.2,
     },
-  );
+    lastPayment: {
+      paymentId: 129,
+      payment: 290.8,
+      interest: 161.59,
+      capital: 129.21,
+      balance: 85096.72,
+      amountPaid: 37804.32,
+      interestPaid: 22901.02,
+      capitalPaid: 14903.3,
+    },
+  });
 });
-Deno.test("should return the weekly mortgage payments for a $100k loan with a 5.00% rate.", () => {
+test("should return the weekly mortgage payments for a $100k loan with a 5.00% rate.", () => {
   // Checking against https://itools-ioutils.fcac-acfc.gc.ca/MC-CH/MCCalc-CHCalc-eng.aspx and https://apps.royalbank.com/apps/mortgages/mortgage-payment-calculator/
   const payments = mortgagePayments(100_000, 5, "weekly", 5, 25);
   const firstPayment = payments[0];
   const lastPayment = payments[payments.length - 1];
-  assertEquals(
-    { firstPayment, lastPayment },
-    {
-      firstPayment: {
-        paymentId: 0,
-        payment: 134.22,
-        interest: 94.76,
-        capital: 39.46,
-        balance: 99960.54,
-        amountPaid: 134.22,
-        interestPaid: 94.76,
-        capitalPaid: 39.46,
-      },
-      lastPayment: {
-        paymentId: 259,
-        payment: 134.22,
-        interest: 83.79,
-        capital: 50.43,
-        balance: 88372.08,
-        amountPaid: 34896.3,
-        interestPaid: 23268.49,
-        capitalPaid: 11627.81,
-      },
+  expect({ firstPayment, lastPayment }).toEqual({
+    firstPayment: {
+      paymentId: 0,
+      payment: 134.22,
+      interest: 94.76,
+      capital: 39.46,
+      balance: 99960.54,
+      amountPaid: 134.22,
+      interestPaid: 94.76,
+      capitalPaid: 39.46,
     },
-  );
+    lastPayment: {
+      paymentId: 259,
+      payment: 134.22,
+      interest: 83.79,
+      capital: 50.43,
+      balance: 88372.08,
+      amountPaid: 34896.3,
+      interestPaid: 23268.49,
+      capitalPaid: 11627.81,
+    },
+  });
 });
-Deno.test("should return the accelerated weekly mortgage payments for a $100k loan with a 5.00% rate.", () => {
+test("should return the accelerated weekly mortgage payments for a $100k loan with a 5.00% rate.", () => {
   // Checking against https://itools-ioutils.fcac-acfc.gc.ca/MC-CH/MCCalc-CHCalc-eng.aspx and https://apps.royalbank.com/apps/mortgages/mortgage-payment-calculator/
-  const payments = mortgagePayments(
-    100_000,
-    5,
-    "acceleratedWeekly",
-    5,
-    25,
-  );
+  const payments = mortgagePayments(100_000, 5, "acceleratedWeekly", 5, 25);
   const firstPayment = payments[0];
   const lastPayment = payments[payments.length - 1];
-  assertEquals(
-    { firstPayment, lastPayment },
-    {
-      firstPayment: {
-        paymentId: 0,
-        payment: 145.4,
-        interest: 94.76,
-        capital: 50.64,
-        balance: 99949.36,
-        amountPaid: 145.4,
-        interestPaid: 94.76,
-        capitalPaid: 50.64,
-      },
-      lastPayment: {
-        paymentId: 259,
-        payment: 145.4,
-        interest: 80.68,
-        capital: 64.72,
-        balance: 85076.43,
-        amountPaid: 37804.32,
-        interestPaid: 22880.74,
-        capitalPaid: 14923.59,
-      },
+  expect({ firstPayment, lastPayment }).toEqual({
+    firstPayment: {
+      paymentId: 0,
+      payment: 145.4,
+      interest: 94.76,
+      capital: 50.64,
+      balance: 99949.36,
+      amountPaid: 145.4,
+      interestPaid: 94.76,
+      capitalPaid: 50.64,
     },
-  );
+    lastPayment: {
+      paymentId: 259,
+      payment: 145.4,
+      interest: 80.68,
+      capital: 64.72,
+      balance: 85076.43,
+      amountPaid: 37804.32,
+      interestPaid: 22880.74,
+      capitalPaid: 14923.59,
+    },
+  });
 });
-Deno.test("should return a final balance of 0 for the last weekly mortgage payment for a $100k loan with a 5.00% rate when the term and amortization period are the same.", () => {
+test("should return a final balance of 0 for the last weekly mortgage payment for a $100k loan with a 5.00% rate when the term and amortization period are the same.", () => {
   // Checking against https://itools-ioutils.fcac-acfc.gc.ca/MC-CH/MCCalc-CHCalc-eng.aspx and https://apps.royalbank.com/apps/mortgages/mortgage-payment-calculator/
-  const payments = mortgagePayments(
-    100_000,
-    5,
-    "weekly",
-    5,
-    5,
-  );
+  const payments = mortgagePayments(100_000, 5, "weekly", 5, 5);
   const firstPayment = payments[0];
   const lastPayment = payments[payments.length - 1];
 
-  assertEquals(
-    { firstPayment, lastPayment, nbPayments: payments.length },
-    {
-      firstPayment: {
-        paymentId: 0,
-        payment: 434.95,
-        interest: 94.76,
-        capital: 340.19,
-        balance: 99659.81,
-        amountPaid: 434.95,
-        interestPaid: 94.76,
-        capitalPaid: 340.19,
-      },
-      lastPayment: {
-        paymentId: 259,
-        payment: 190.5,
-        interest: 0.18,
-        capital: 190.32,
-        balance: 0,
-        amountPaid: 112841.99,
-        interestPaid: 12841.99,
-        capitalPaid: 100000,
-      },
-      nbPayments: 260,
+  expect({ firstPayment, lastPayment, nbPayments: payments.length }).toEqual({
+    firstPayment: {
+      paymentId: 0,
+      payment: 434.95,
+      interest: 94.76,
+      capital: 340.19,
+      balance: 99659.81,
+      amountPaid: 434.95,
+      interestPaid: 94.76,
+      capitalPaid: 340.19,
     },
-  );
+    lastPayment: {
+      paymentId: 259,
+      payment: 190.5,
+      interest: 0.18,
+      capital: 190.32,
+      balance: 0,
+      amountPaid: 112841.99,
+      interestPaid: 12841.99,
+      capitalPaid: 100000,
+    },
+    nbPayments: 260,
+  });
 });
-Deno.test("should return a final balance of 0 for the last biWeekly mortgage payment for a $100k loan with a 5.00% rate when the term and amortization period are the same.", () => {
+test("should return a final balance of 0 for the last biWeekly mortgage payment for a $100k loan with a 5.00% rate when the term and amortization period are the same.", () => {
   // Checking against https://itools-ioutils.fcac-acfc.gc.ca/MC-CH/MCCalc-CHCalc-eng.aspx and https://apps.royalbank.com/apps/mortgages/mortgage-payment-calculator/
-  const payments = mortgagePayments(
-    100_000,
-    5,
-    "biWeekly",
-    5,
-    5,
-  );
+  const payments = mortgagePayments(100_000, 5, "biWeekly", 5, 5);
   const firstPayment = payments[0];
   const lastPayment = payments[payments.length - 1];
 
-  assertEquals(
-    { firstPayment, lastPayment, nbPayments: payments.length },
-    {
-      firstPayment: {
-        paymentId: 0,
-        payment: 869.9,
-        interest: 189.6,
-        capital: 680.29,
-        balance: 99319.71,
-        amountPaid: 869.9,
-        interestPaid: 189.6,
-        capitalPaid: 680.29,
-      },
-      lastPayment: {
-        paymentId: 129,
-        payment: 686.14,
-        interest: 1.3,
-        capital: 684.84,
-        balance: 0,
-        amountPaid: 112902.67,
-        interestPaid: 12902.67,
-        capitalPaid: 100000,
-      },
-      nbPayments: 130,
+  expect({ firstPayment, lastPayment, nbPayments: payments.length }).toEqual({
+    firstPayment: {
+      paymentId: 0,
+      payment: 869.9,
+      interest: 189.6,
+      capital: 680.29,
+      balance: 99319.71,
+      amountPaid: 869.9,
+      interestPaid: 189.6,
+      capitalPaid: 680.29,
     },
-  );
+    lastPayment: {
+      paymentId: 129,
+      payment: 686.14,
+      interest: 1.3,
+      capital: 684.84,
+      balance: 0,
+      amountPaid: 112902.67,
+      interestPaid: 12902.67,
+      capitalPaid: 100000,
+    },
+    nbPayments: 130,
+  });
 });
-Deno.test("should return a final balance of 0 for the last monthly mortgage payment for a $100k loan with a 5.00% rate when the term and amortization period are the same.", () => {
+test("should return a final balance of 0 for the last monthly mortgage payment for a $100k loan with a 5.00% rate when the term and amortization period are the same.", () => {
   // Checking against https://itools-ioutils.fcac-acfc.gc.ca/MC-CH/MCCalc-CHCalc-eng.aspx and https://apps.royalbank.com/apps/mortgages/mortgage-payment-calculator/
-  const payments = mortgagePayments(
-    100_000,
-    5,
-    "monthly",
-    5,
-    5,
-  );
+  const payments = mortgagePayments(100_000, 5, "monthly", 5, 5);
   const firstPayment = payments[0];
   const lastPayment = payments[payments.length - 1];
 
-  assertEquals(
-    { firstPayment, lastPayment, nbPayments: payments.length },
-    {
-      firstPayment: {
-        paymentId: 0,
-        payment: 1884.77,
-        interest: 412.39,
-        capital: 1472.38,
-        balance: 98527.62,
-        amountPaid: 1884.77,
-        interestPaid: 412.39,
-        capitalPaid: 1472.38,
-      },
-      lastPayment: {
-        paymentId: 59,
-        payment: 1884.77,
-        interest: 7.74,
-        capital: 1877.03,
-        balance: 0.06,
-        amountPaid: 113086.44,
-        interestPaid: 13086.44,
-        capitalPaid: 99999.99,
-      },
-      nbPayments: 60,
+  expect({ firstPayment, lastPayment, nbPayments: payments.length }).toEqual({
+    firstPayment: {
+      paymentId: 0,
+      payment: 1884.77,
+      interest: 412.39,
+      capital: 1472.38,
+      balance: 98527.62,
+      amountPaid: 1884.77,
+      interestPaid: 412.39,
+      capitalPaid: 1472.38,
     },
-  );
+    lastPayment: {
+      paymentId: 59,
+      payment: 1884.77,
+      interest: 7.74,
+      capital: 1877.03,
+      balance: 0.06,
+      amountPaid: 113086.44,
+      interestPaid: 13086.44,
+      capitalPaid: 99999.99,
+    },
+    nbPayments: 60,
+  });
 });
-Deno.test("should return a final balance of 0 for the last semiMonthly mortgage payment for a $100k loan with a 5.00% rate when the term and amortization period are the same.", () => {
+test("should return a final balance of 0 for the last semiMonthly mortgage payment for a $100k loan with a 5.00% rate when the term and amortization period are the same.", () => {
   // Checking against https://itools-ioutils.fcac-acfc.gc.ca/MC-CH/MCCalc-CHCalc-eng.aspx and https://apps.royalbank.com/apps/mortgages/mortgage-payment-calculator/
-  const payments = mortgagePayments(
-    100_000,
-    5,
-    "semiMonthly",
-    5,
-    5,
-  );
+  const payments = mortgagePayments(100_000, 5, "semiMonthly", 5, 5);
   const firstPayment = payments[0];
   const lastPayment = payments[payments.length - 1];
 
-  assertEquals(
-    { firstPayment, lastPayment, nbPayments: payments.length },
-    {
-      firstPayment: {
-        paymentId: 0,
-        payment: 942.39,
-        interest: 205.98,
-        capital: 736.4,
-        balance: 99263.6,
-        amountPaid: 942.39,
-        interestPaid: 205.98,
-        capitalPaid: 736.4,
-      },
-      lastPayment: {
-        paymentId: 119,
-        payment: 810.55,
-        interest: 1.67,
-        capital: 808.88,
-        balance: 0,
-        amountPaid: 112954.6,
-        interestPaid: 12954.6,
-        capitalPaid: 100000,
-      },
-      nbPayments: 120,
+  expect({ firstPayment, lastPayment, nbPayments: payments.length }).toEqual({
+    firstPayment: {
+      paymentId: 0,
+      payment: 942.39,
+      interest: 205.98,
+      capital: 736.4,
+      balance: 99263.6,
+      amountPaid: 942.39,
+      interestPaid: 205.98,
+      capitalPaid: 736.4,
     },
-  );
+    lastPayment: {
+      paymentId: 119,
+      payment: 810.55,
+      interest: 1.67,
+      capital: 808.88,
+      balance: 0,
+      amountPaid: 112954.6,
+      interestPaid: 12954.6,
+      capitalPaid: 100000,
+    },
+    nbPayments: 120,
+  });
 });
-Deno.test("should return a final balance of 0 for the last acceleratedWeekly mortgage payment for a $100k loan with a 5.00% rate when the term and amortization period are the same.", () => {
+test("should return a final balance of 0 for the last acceleratedWeekly mortgage payment for a $100k loan with a 5.00% rate when the term and amortization period are the same.", () => {
   // Checking against https://itools-ioutils.fcac-acfc.gc.ca/MC-CH/MCCalc-CHCalc-eng.aspx and https://apps.royalbank.com/apps/mortgages/mortgage-payment-calculator/
-  const payments = mortgagePayments(
-    100_000,
-    5,
-    "acceleratedWeekly",
-    5,
-    5,
-  );
+  const payments = mortgagePayments(100_000, 5, "acceleratedWeekly", 5, 5);
   const firstPayment = payments[0];
   const lastPayment = payments[payments.length - 1];
 
-  assertEquals(
-    { firstPayment, lastPayment, nbPayments: payments.length },
-    {
-      firstPayment: {
-        paymentId: 0,
-        payment: 471.19,
-        interest: 94.76,
-        capital: 376.44,
-        balance: 99623.56,
-        amountPaid: 471.19,
-        interestPaid: 94.76,
-        capitalPaid: 376.44,
-      },
-      lastPayment: {
-        paymentId: 237,
-        payment: 25.64,
-        interest: 0.02,
-        capital: 25.61,
-        balance: 0,
-        amountPaid: 111698.49,
-        interestPaid: 11698.49,
-        capitalPaid: 100000,
-      },
-      nbPayments: 238,
+  expect({ firstPayment, lastPayment, nbPayments: payments.length }).toEqual({
+    firstPayment: {
+      paymentId: 0,
+      payment: 471.19,
+      interest: 94.76,
+      capital: 376.44,
+      balance: 99623.56,
+      amountPaid: 471.19,
+      interestPaid: 94.76,
+      capitalPaid: 376.44,
     },
-  );
+    lastPayment: {
+      paymentId: 237,
+      payment: 25.64,
+      interest: 0.02,
+      capital: 25.61,
+      balance: 0,
+      amountPaid: 111698.49,
+      interestPaid: 11698.49,
+      capitalPaid: 100000,
+    },
+    nbPayments: 238,
+  });
 });
-Deno.test("should return a final balance of 0 for the last acceleratedWeekly mortgage payment for a $100k loan with a 5.00% rate when the term and amortization period are the same.", () => {
+test("should return a final balance of 0 for the last acceleratedWeekly mortgage payment for a $100k loan with a 5.00% rate when the term and amortization period are the same.", () => {
   // Checking against https://itools-ioutils.fcac-acfc.gc.ca/MC-CH/MCCalc-CHCalc-eng.aspx and https://apps.royalbank.com/apps/mortgages/mortgage-payment-calculator/
-  const payments = mortgagePayments(
-    100_000,
-    5,
-    "acceleratedBiWeekly",
-    5,
-    5,
-  );
+  const payments = mortgagePayments(100_000, 5, "acceleratedBiWeekly", 5, 5);
   const firstPayment = payments[0];
   const lastPayment = payments[payments.length - 1];
 
-  assertEquals(
-    { firstPayment, lastPayment, nbPayments: payments.length },
-    {
-      firstPayment: {
-        paymentId: 0,
-        payment: 942.39,
-        interest: 189.6,
-        capital: 752.78,
-        balance: 99247.22,
-        amountPaid: 942.39,
-        interestPaid: 189.6,
-        capitalPaid: 752.78,
-      },
-      lastPayment: {
-        paymentId: 118,
-        payment: 556.37,
-        interest: 1.05,
-        capital: 555.32,
-        balance: 0,
-        amountPaid: 111758.03,
-        interestPaid: 11758.03,
-        capitalPaid: 100000,
-      },
-      nbPayments: 119,
+  expect({ firstPayment, lastPayment, nbPayments: payments.length }).toEqual({
+    firstPayment: {
+      paymentId: 0,
+      payment: 942.39,
+      interest: 189.6,
+      capital: 752.78,
+      balance: 99247.22,
+      amountPaid: 942.39,
+      interestPaid: 189.6,
+      capitalPaid: 752.78,
     },
-  );
+    lastPayment: {
+      paymentId: 118,
+      payment: 556.37,
+      interest: 1.05,
+      capital: 555.32,
+      balance: 0,
+      amountPaid: 111758.03,
+      interestPaid: 11758.03,
+      capitalPaid: 100000,
+    },
+    nbPayments: 119,
+  });
 });

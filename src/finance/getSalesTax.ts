@@ -1,5 +1,6 @@
 /**
  * A Canadian province or territory supported by the tax calculations.
+ * @inline
  */
 export type Province =
   | "Alberta"
@@ -55,6 +56,7 @@ const SALES_TAX_RATES: Record<
  * ```
  *
  * Reference: https://www.retailcouncil.org/resources/quick-facts/sales-tax-rates-by-province/
+ * @category Finance
  */
 export default function getSalesTax(
   amount: number,
@@ -82,9 +84,7 @@ export default function getSalesTax(
 } {
   const rates = SALES_TAX_RATES[year]?.[province];
   if (!rates) {
-    throw new Error(
-      `Sales tax rates not found for province ${province} and year ${year}`,
-    );
+    throw new Error(`Sales tax rates not found for province ${province} and year ${year}`);
   }
 
   const { gstRate, pstRate, hstRate } = rates;

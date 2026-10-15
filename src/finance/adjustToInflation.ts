@@ -42,8 +42,10 @@ export default function adjustToInflation(
   } = {},
 ): number {
   if (
-    !Number.isFinite(amountCPI) || amountCPI <= 0 ||
-    !Number.isFinite(targetCPI) || targetCPI <= 0
+    !Number.isFinite(amountCPI) ||
+    amountCPI <= 0 ||
+    !Number.isFinite(targetCPI) ||
+    targetCPI <= 0
   ) {
     throw new RangeError("amountCPI and targetCPI must be positive numbers.");
   }

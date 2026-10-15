@@ -47,23 +47,18 @@ export default function computeExpenses(
     // Non recurring expenses
     if (monthIndex === 0) {
       persona.monthlyExpenses.downPayment = persona.params.downPayment;
-      persona.monthlyExpenses.purchaseFixedFees =
-        persona.params.purchaseFixedFees;
+      persona.monthlyExpenses.purchaseFixedFees = persona.params.purchaseFixedFees;
       persona.monthlyExpenses.landTransferTax = persona.params.landTransferTax;
-      persona.monthlyExpenses.insurancePremiumTax =
-        persona.params.insurancePremiumTax;
+      persona.monthlyExpenses.insurancePremiumTax = persona.params.insurancePremiumTax;
 
       persona.cumulativeExpenses.downPayment = r2(
-        persona.cumulativeExpenses.downPayment +
-          persona.monthlyExpenses.downPayment,
+        persona.cumulativeExpenses.downPayment + persona.monthlyExpenses.downPayment,
       );
       persona.cumulativeExpenses.purchaseFixedFees = r2(
-        persona.cumulativeExpenses.purchaseFixedFees +
-          persona.monthlyExpenses.purchaseFixedFees,
+        persona.cumulativeExpenses.purchaseFixedFees + persona.monthlyExpenses.purchaseFixedFees,
       );
       persona.cumulativeExpenses.landTransferTax = r2(
-        persona.cumulativeExpenses.landTransferTax +
-          persona.monthlyExpenses.landTransferTax,
+        persona.cumulativeExpenses.landTransferTax + persona.monthlyExpenses.landTransferTax,
       );
       persona.cumulativeExpenses.insurancePremiumTax = r2(
         persona.cumulativeExpenses.insurancePremiumTax +
@@ -81,8 +76,7 @@ export default function computeExpenses(
     persona.monthlyExpenses.insurance = persona.params.monthlyInsurance;
 
     persona.cumulativeExpenses.rent = r2(
-      persona.cumulativeExpenses.rent +
-        persona.monthlyExpenses.rent * inflationMultiplier,
+      persona.cumulativeExpenses.rent + persona.monthlyExpenses.rent * inflationMultiplier,
     );
     persona.cumulativeExpenses.insurance = r2(
       persona.cumulativeExpenses.insurance +
@@ -94,8 +88,7 @@ export default function computeExpenses(
       persona.monthlyExpenses.securityDeposit = persona.params.securityDeposit;
 
       persona.cumulativeExpenses.securityDeposit = r2(
-        persona.cumulativeExpenses.securityDeposit +
-          persona.monthlyExpenses.securityDeposit,
+        persona.cumulativeExpenses.securityDeposit + persona.monthlyExpenses.securityDeposit,
       );
 
       // Security deposit is also an asset for the renter

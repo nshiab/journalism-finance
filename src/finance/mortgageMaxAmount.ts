@@ -113,9 +113,7 @@ export default function mortgageMaxAmount(
 
   // Default monthly heating is $175, like Royal Bank of Canada.
   const monthlyHeating = options.monthlyHeating ?? 175;
-  const isHeatingEstimate = typeof options.monthlyHeating === "number"
-    ? false
-    : true;
+  const isHeatingEstimate = typeof options.monthlyHeating === "number" ? false : true;
 
   // Default condo fees is $0
   const monthlyCondoFees = options.monthlyCondoFees ?? 0;
@@ -236,11 +234,7 @@ function findMaxAmount(
 
   // We test amount up to $10,000,000
   let downPaymentTooLow = false;
-  for (
-    let purchasePrice = startPrice;
-    purchasePrice <= 10_000_000;
-    purchasePrice += increment
-  ) {
+  for (let purchasePrice = startPrice; purchasePrice <= 10_000_000; purchasePrice += increment) {
     // We check that the down payment is enough
     const downPaymentMin = getMinimumDownPayment(purchasePrice);
     if (downPayment < downPaymentMin) {
@@ -253,38 +247,27 @@ function findMaxAmount(
     }
 
     // We calculate the insurance premium
-    const insurancePremium = mortgageInsurancePremium(
-      purchasePrice,
-      downPayment,
-    );
+    const insurancePremium = mortgageInsurancePremium(purchasePrice, downPayment);
 
     // Then the actual mortgage amount
-    const mortgageAmount = Math.max(purchasePrice - downPayment, 0) +
-      insurancePremium;
+    const mortgageAmount = Math.max(purchasePrice - downPayment, 0) + insurancePremium;
 
     // And monthly mortgage payment
     const monthlyMortgagePayment = Math.round(
-      (monthlyRate * mortgageAmount) /
-        (1 - Math.pow(1 + monthlyRate, -amortizationPeriodinMonths)),
+      (monthlyRate * mortgageAmount) / (1 - Math.pow(1 + monthlyRate, -amortizationPeriodinMonths)),
     );
 
     // The default annual tax rate is 1.5% of purchase price, like Royal Bank of Canada.
-    const monthlyTax = options.monthlyTax ??
-      Math.round((purchasePrice * 0.015) / 12);
+    const monthlyTax = options.monthlyTax ?? Math.round((purchasePrice * 0.015) / 12);
     results.monthlyTax = monthlyTax;
-    results.isTaxEstimate = typeof options.monthlyTax === "number"
-      ? false
-      : true;
+    results.isTaxEstimate = typeof options.monthlyTax === "number" ? false : true;
 
-    const monthlyHomeExpenses = monthlyMortgagePayment +
-      monthlyHeating +
-      monthlyTax +
-      monthlyCondoFees;
+    const monthlyHomeExpenses =
+      monthlyMortgagePayment + monthlyHeating + monthlyTax + monthlyCondoFees;
 
     // We update the ratios.
     grossDebtServiceRatio = monthlyHomeExpenses / monthlyIncome;
-    totalDebtServiceRatio = (monthlyHomeExpenses + monthlyDebtPayment) /
-      monthlyIncome;
+    totalDebtServiceRatio = (monthlyHomeExpenses + monthlyDebtPayment) / monthlyIncome;
 
     // If the GDS or TDS are equal or above the thresholds established by the Financial Consumer Agency of Canada, we break. Otherwise, we update the results values.
     if (grossDebtServiceRatio >= 0.39 || totalDebtServiceRatio >= 0.44) {
@@ -296,12 +279,8 @@ function findMaxAmount(
       results.insurancePremium = insurancePremium;
       results.monthlyMortgagePayment = monthlyMortgagePayment;
 
-      results.grossDebtServiceRatio = parseFloat(
-        grossDebtServiceRatio.toFixed(2),
-      );
-      results.totalDebtServiceRatio = parseFloat(
-        totalDebtServiceRatio.toFixed(2),
-      );
+      results.grossDebtServiceRatio = parseFloat(grossDebtServiceRatio.toFixed(2));
+      results.totalDebtServiceRatio = parseFloat(totalDebtServiceRatio.toFixed(2));
     }
   }
 }

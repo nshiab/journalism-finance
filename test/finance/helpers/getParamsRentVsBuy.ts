@@ -1,10 +1,7 @@
 import { round } from "../../../src/finance/helpers/format.ts";
 import adjustToInflation from "../../../src/finance/adjustToInflation.ts";
 import allRates from "../../data/allRates.json" with { type: "json" };
-import {
-  type City,
-  getProvinceFromCity,
-} from "../../../src/finance/getLandTransferTax.ts";
+import { type City, getProvinceFromCity } from "../../../src/finance/getLandTransferTax.ts";
 
 /**
  * Helper function to get the parameters for the simulateRentVsBuy function.
@@ -125,7 +122,7 @@ export default function getParamsRentVsBuy(
     oneYearInterestRates: number[];
     variableInterestRates: number[];
   };
-  allRatesFiltered: any[];
+  allRatesFiltered: typeof allRates;
 };
 export default function getParamsRentVsBuy(
   city: City,
@@ -149,19 +146,17 @@ export default function getParamsRentVsBuy(
   const numberOfYears = 25;
 
   // Renter
-  const startingMonthlyRent = allRates.find((d) =>
-    d.geo === city && d.variable === "Two-bedroom rent" && d.year === 2001 &&
-    d.month === 1
+  const startingMonthlyRent = allRates.find(
+    (d) => d.geo === city && d.variable === "Two-bedroom rent" && d.year === 2001 && d.month === 1,
   )?.value;
   // console.log(
   //   "startingMonthlyRent:",
   //   startingMonthlyRent,
   // );
 
-  const endingMonthlyRent = allRates.find((d) =>
-    d.geo === city && d.variable === "Two-bedroom rent" && d.year === 2025 &&
-    d.month === 12
-  )?.value!;
+  const endingMonthlyRent = allRates.find(
+    (d) => d.geo === city && d.variable === "Two-bedroom rent" && d.year === 2025 && d.month === 12,
+  )!.value;
   // console.log(
   //   "endingMonthlyRent:",
   //   endingMonthlyRent,
@@ -172,14 +167,9 @@ export default function getParamsRentVsBuy(
   }
 
   let securityDeposit;
-  if (
-    ["Ontario", "Alberta", "Saskatchewan", "New Brunswick"]
-      .includes(province)
-  ) {
+  if (["Ontario", "Alberta", "Saskatchewan", "New Brunswick"].includes(province)) {
     securityDeposit = startingMonthlyRent;
-  } else if (
-    ["British Columbia", "Manitoba", "Nova Scotia"].includes(province)
-  ) {
+  } else if (["British Columbia", "Manitoba", "Nova Scotia"].includes(province)) {
     securityDeposit = startingMonthlyRent / 2;
   } else if (province === "Newfoundland and Labrador") {
     securityDeposit = Math.round(startingMonthlyRent * 0.75);
@@ -193,31 +183,33 @@ export default function getParamsRentVsBuy(
 
   const renterStartingMonthlyInsurance = adjustToInflation(
     endingValues.renterMonthlyInsurance,
-    allRates.find((d) =>
-      d.geo === "Canada" && d.variable === "CPI Tenants insurance" &&
-      d.year === 2025 &&
-      d.month === 12
+    allRates.find(
+      (d) =>
+        d.geo === "Canada" &&
+        d.variable === "CPI Tenants insurance" &&
+        d.year === 2025 &&
+        d.month === 12,
     )!.indexedValue,
-    allRates.find((d) =>
-      d.geo === "Canada" && d.variable === "CPI Tenants insurance" &&
-      d.year === 2001 &&
-      d.month === 1
+    allRates.find(
+      (d) =>
+        d.geo === "Canada" &&
+        d.variable === "CPI Tenants insurance" &&
+        d.year === 2001 &&
+        d.month === 1,
     )!.indexedValue,
     { decimals: 0 },
   );
 
   // Homeowner
-  const purchasePrice = allRates.find((d) =>
-    d.geo === city && d.variable === "Apartment price" && d.year === 2001 &&
-    d.month === 1
+  const purchasePrice = allRates.find(
+    (d) => d.geo === city && d.variable === "Apartment price" && d.year === 2001 && d.month === 1,
   )?.value;
 
   if (purchasePrice === undefined) {
     throw new Error(`No purchase price data for city: ${city}`);
   }
-  const endingHomeValue = allRates.find((d) =>
-    d.geo === city && d.variable === "Apartment price" && d.year === 2025 &&
-    d.month === 12
+  const endingHomeValue = allRates.find(
+    (d) => d.geo === city && d.variable === "Apartment price" && d.year === 2025 && d.month === 12,
   )?.value;
   // console.log("endingHomeValue:", endingHomeValue);
 
@@ -229,25 +221,25 @@ export default function getParamsRentVsBuy(
 
   // https://wowa.ca/taxes/montreal-property-tax 2024
   if (city === "Montreal") {
-    taxRate = 0.00710320;
+    taxRate = 0.0071032;
   } else if (city === "Toronto") {
     taxRate = 0.00715289;
   } else if (city === "Vancouver") {
-    taxRate = 0.00296650;
+    taxRate = 0.0029665;
   } else if (city === "Calgary") {
-    taxRate = 0.00648610;
+    taxRate = 0.0064861;
   } else if (city === "Halifax") {
-    taxRate = 0.01101000;
+    taxRate = 0.01101;
   } else if (city === "Ottawa") {
     taxRate = 0.01195643;
   } else if (city === "Edmonton") {
-    taxRate = 0.01017380;
+    taxRate = 0.0101738;
   } else if (city === "Winnipeg") {
-    taxRate = 0.02728200;
+    taxRate = 0.027282;
   } else if (city === "Hamilton") {
-    taxRate = 0.01424000;
+    taxRate = 0.01424;
   } else if (city === "Quebec") {
-    taxRate = 0.00998720;
+    taxRate = 0.0099872;
   } else if (city === "London") {
     taxRate = 0.01573126;
   } else if (city === "Saskatoon") {
@@ -257,7 +249,7 @@ export default function getParamsRentVsBuy(
   } else if (city === "Regina") {
     taxRate = 0.01485783;
   } else if (city === "Victoria") {
-    taxRate = 0.00474160;
+    taxRate = 0.0047416;
   } else if (city === "Barrie") {
     taxRate = 0.01353416;
   } else if (city === "Guelph") {
@@ -265,13 +257,13 @@ export default function getParamsRentVsBuy(
   } else if (city === "Kingston") {
     taxRate = 0.01478321;
   } else if (city === "Fredericton") {
-    taxRate = 0.01328600;
+    taxRate = 0.013286;
   } else if (city === "Moncton") {
-    taxRate = 0.01423100;
+    taxRate = 0.014231;
   } else if (city === "Saint John (NB)") {
-    taxRate = 0.01580000;
+    taxRate = 0.0158;
   } else if (city === "Saint John's (NL)") {
-    taxRate = 0.00910000;
+    taxRate = 0.0091;
   }
 
   if (taxRate === undefined) {
@@ -283,13 +275,19 @@ export default function getParamsRentVsBuy(
   });
   const startingAnnualPropertyTax = adjustToInflation(
     endingAnnualPropertyTax,
-    allRates.find((d) =>
-      d.geo === province && d.variable === "CPI Property taxes & others" &&
-      d.year === 2025 && d.month === 12
+    allRates.find(
+      (d) =>
+        d.geo === province &&
+        d.variable === "CPI Property taxes & others" &&
+        d.year === 2025 &&
+        d.month === 12,
     )!.indexedValue,
-    allRates.find((d) =>
-      d.geo === province && d.variable === "CPI Property taxes & others" &&
-      d.year === 2001 && d.month === 1
+    allRates.find(
+      (d) =>
+        d.geo === province &&
+        d.variable === "CPI Property taxes & others" &&
+        d.year === 2001 &&
+        d.month === 1,
     )!.indexedValue,
     { decimals: 0 },
   );
@@ -298,26 +296,32 @@ export default function getParamsRentVsBuy(
 
   const ownerStartingMonthlyInsurance = adjustToInflation(
     endingValues.ownerMonthlyInsurance,
-    allRates.find((d) =>
-      d.geo === province && d.variable === "CPI Homeowners insurance" &&
-      d.year === 2025 && d.month === 12
+    allRates.find(
+      (d) =>
+        d.geo === province &&
+        d.variable === "CPI Homeowners insurance" &&
+        d.year === 2025 &&
+        d.month === 12,
     )!.indexedValue,
-    allRates.find((d) =>
-      d.geo === province && d.variable === "CPI Homeowners insurance" &&
-      d.year === 2001 && d.month === 1
+    allRates.find(
+      (d) =>
+        d.geo === province &&
+        d.variable === "CPI Homeowners insurance" &&
+        d.year === 2001 &&
+        d.month === 1,
     )!.indexedValue,
     { decimals: 0 },
   );
 
   const startingSellingFixedFees = adjustToInflation(
     endingValues.sellingFixedFees,
-    allRates.find((d) =>
-      d.geo === province && d.variable === "CPI All-items" && d.year === 2025 &&
-      d.month === 12
+    allRates.find(
+      (d) =>
+        d.geo === province && d.variable === "CPI All-items" && d.year === 2025 && d.month === 12,
     )!.indexedValue,
-    allRates.find((d) =>
-      d.geo === province && d.variable === "CPI All-items" && d.year === 2001 &&
-      d.month === 1
+    allRates.find(
+      (d) =>
+        d.geo === province && d.variable === "CPI All-items" && d.year === 2001 && d.month === 1,
     )!.indexedValue,
     { decimals: 0 },
   );
@@ -325,46 +329,51 @@ export default function getParamsRentVsBuy(
 
   const startingMonthlyCondoFees = adjustToInflation(
     endingValues.condoFees,
-    allRates.find((d) =>
-      d.geo === province && d.variable === "CPI Homeowners maintenance" &&
-      d.year === 2025 &&
-      d.month === 12
+    allRates.find(
+      (d) =>
+        d.geo === province &&
+        d.variable === "CPI Homeowners maintenance" &&
+        d.year === 2025 &&
+        d.month === 12,
     )!.indexedValue,
-    allRates.find((d) =>
-      d.geo === province && d.variable === "CPI Homeowners maintenance" &&
-      d.year === 2001 &&
-      d.month === 1
+    allRates.find(
+      (d) =>
+        d.geo === province &&
+        d.variable === "CPI Homeowners maintenance" &&
+        d.year === 2001 &&
+        d.month === 1,
     )!.indexedValue,
     { decimals: 0 },
   );
   // console.log("startingMonthlyCondoFees:", startingMonthlyCondoFees);
 
   // We use 1% overall estimate, which a minimum of $1
-  const endingMonthlyMaintenanceCost = ((endingHomeValue * 0.01) / 12) -
-    endingValues.condoFees;
-  const endingAnnualMaintenanceCost = endingMonthlyMaintenanceCost > 0
-    ? Math.round(endingMonthlyMaintenanceCost * 12)
-    : 1;
+  const endingMonthlyMaintenanceCost = (endingHomeValue * 0.01) / 12 - endingValues.condoFees;
+  const endingAnnualMaintenanceCost =
+    endingMonthlyMaintenanceCost > 0 ? Math.round(endingMonthlyMaintenanceCost * 12) : 1;
   // console.log("endingAnnualMaintenanceCost:", endingAnnualMaintenanceCost);
 
   let startingAnnualMaintenanceCost = adjustToInflation(
     endingAnnualMaintenanceCost,
-    allRates.find((d) =>
-      d.geo === province && d.variable === "CPI Homeowners maintenance" &&
-      d.year === 2025 &&
-      d.month === 12
+    allRates.find(
+      (d) =>
+        d.geo === province &&
+        d.variable === "CPI Homeowners maintenance" &&
+        d.year === 2025 &&
+        d.month === 12,
     )!.indexedValue,
-    allRates.find((d) =>
-      d.geo === province && d.variable === "CPI Homeowners maintenance" &&
-      d.year === 2001 &&
-      d.month === 1
+    allRates.find(
+      (d) =>
+        d.geo === province &&
+        d.variable === "CPI Homeowners maintenance" &&
+        d.year === 2001 &&
+        d.month === 1,
     )!.indexedValue,
     { decimals: 0 },
   );
   // Minimum of $1, otherwise we have issues with the monte carlo simulation when maintenance costs go to 0
-  startingAnnualMaintenanceCost = startingAnnualMaintenanceCost > 0
-    ? startingAnnualMaintenanceCost
-    : 1;
+  startingAnnualMaintenanceCost =
+    startingAnnualMaintenanceCost > 0 ? startingAnnualMaintenanceCost : 1;
   // console.log("startingAnnualMaintenanceCost:", startingAnnualMaintenanceCost);
 
   const baseParams = {
@@ -384,9 +393,7 @@ export default function getParamsRentVsBuy(
       purchasePrice,
       endingPurchasePrice: endingHomeValue,
       downPayment: Math.round(purchasePrice * percentages.downPayment),
-      purchaseFixedFees: Math.round(
-        purchasePrice * percentages.purchaseFixedFees,
-      ),
+      purchaseFixedFees: Math.round(purchasePrice * percentages.purchaseFixedFees),
       fixedRateAdjustment: -0.0191,
       variableRateAdjustment: -0.0035,
       firstTimeOwner: false,
@@ -408,64 +415,62 @@ export default function getParamsRentVsBuy(
   } else {
     // RATES
     const nbMonths = numberOfYears * 12;
-    const employmentIncome = new Array(nbMonths).fill(75_000);
+    const employmentIncome = new Array<number>(nbMonths).fill(75_000);
 
     // Yahoo Finance S&P/TSX
-    const marketReturnRate = allRates.filter((d) =>
-      d.geo === "Stock market" && d.variable === "Balanced"
+    const marketReturnRate = allRates.filter(
+      (d) => d.geo === "Stock market" && d.variable === "Balanced",
     );
     // CPI Canada
-    const canadaRenterInsuranceIncrease = allRates.filter((d) =>
-      d.geo === "Canada" && d.variable === "CPI Tenants insurance"
+    const canadaRenterInsuranceIncrease = allRates.filter(
+      (d) => d.geo === "Canada" && d.variable === "CPI Tenants insurance",
     );
     // Bank of Canada
-    const fiveYearInterestRates = allRates.filter((d) =>
-      d.geo === "Canada" && d.variable === "Five-year fixed mortgage rate"
+    const fiveYearInterestRates = allRates.filter(
+      (d) => d.geo === "Canada" && d.variable === "Five-year fixed mortgage rate",
     );
     // Bank of Canada interpolated
-    const fourYearInterestRates = allRates.filter((d) =>
-      d.geo === "Canada" && d.variable === "Four-year fixed mortgage rate"
+    const fourYearInterestRates = allRates.filter(
+      (d) => d.geo === "Canada" && d.variable === "Four-year fixed mortgage rate",
     );
     // Bank of Canada
-    const threeYearInterestRates = allRates.filter((d) =>
-      d.geo === "Canada" && d.variable === "Three-year fixed mortgage rate"
+    const threeYearInterestRates = allRates.filter(
+      (d) => d.geo === "Canada" && d.variable === "Three-year fixed mortgage rate",
     );
     // Bank of Canada interpolated
-    const twoYearInterestRates = allRates.filter((d) =>
-      d.geo === "Canada" && d.variable === "Two-year fixed mortgage rate"
+    const twoYearInterestRates = allRates.filter(
+      (d) => d.geo === "Canada" && d.variable === "Two-year fixed mortgage rate",
     );
     // Bank of Canada
-    const oneYearInterestRates = allRates.filter((d) =>
-      d.geo === "Canada" && d.variable === "One-year fixed mortgage rate"
+    const oneYearInterestRates = allRates.filter(
+      (d) => d.geo === "Canada" && d.variable === "One-year fixed mortgage rate",
     );
-    const variableInterestRates = allRates.filter((d) =>
-      d.geo === "Canada" && d.variable === "Bank of Canada prime rate"
+    const variableInterestRates = allRates.filter(
+      (d) => d.geo === "Canada" && d.variable === "Bank of Canada prime rate",
     );
 
     // Rent CPI city
-    const rentIncreaseCPI = allRates.filter((d) =>
-      d.geo === province && d.variable === "CPI Rent"
-    );
+    const rentIncreaseCPI = allRates.filter((d) => d.geo === province && d.variable === "CPI Rent");
 
     // CPI province
-    const ownerInsuranceIncrease = allRates.filter((d) =>
-      d.geo === province && d.variable === "CPI Homeowners insurance"
+    const ownerInsuranceIncrease = allRates.filter(
+      (d) => d.geo === province && d.variable === "CPI Homeowners insurance",
     );
     // CPI province
-    const maintenanceIncrease = allRates.filter((d) =>
-      d.geo === province && d.variable === "CPI Homeowners maintenance"
+    const maintenanceIncrease = allRates.filter(
+      (d) => d.geo === province && d.variable === "CPI Homeowners maintenance",
     );
     // CPI province
-    const propertyTaxIncrease = allRates.filter((d) =>
-      d.geo === province && d.variable === "CPI Property taxes & others"
+    const propertyTaxIncrease = allRates.filter(
+      (d) => d.geo === province && d.variable === "CPI Property taxes & others",
     );
     // CREA Apartment city
-    const appreciationIncrease = allRates.filter((d) =>
-      d.geo === city && d.variable === "Apartment price"
+    const appreciationIncrease = allRates.filter(
+      (d) => d.geo === city && d.variable === "Apartment price",
     );
     // All-items CPI province
-    const sellingFixedFeesIncrease = allRates.filter((d) =>
-      d.geo === province && d.variable === "CPI All-items"
+    const sellingFixedFeesIncrease = allRates.filter(
+      (d) => d.geo === province && d.variable === "CPI All-items",
     );
 
     return {
@@ -483,16 +488,12 @@ export default function getParamsRentVsBuy(
         marketReturnRate: marketReturnRate.map((d) => d.pctChange),
         rentIncrease: rentIncreaseCPI.map((d) => d.pctChange),
         ownerInsuranceIncrease: ownerInsuranceIncrease.map((d) => d.pctChange),
-        renterInsuranceIncrease: canadaRenterInsuranceIncrease.map((d) =>
-          d.pctChange
-        ),
+        renterInsuranceIncrease: canadaRenterInsuranceIncrease.map((d) => d.pctChange),
         maintenanceIncrease: maintenanceIncrease.map((d) => d.pctChange),
         propertyTaxIncrease: propertyTaxIncrease.map((d) => d.pctChange),
         condoFeeIncrease: maintenanceIncrease.map((d) => d.pctChange),
         appreciationIncrease: appreciationIncrease.map((d) => d.pctChange),
-        sellingFixedFeesIncrease: sellingFixedFeesIncrease.map((d) =>
-          d.pctChange
-        ),
+        sellingFixedFeesIncrease: sellingFixedFeesIncrease.map((d) => d.pctChange),
       },
       allRatesFiltered: [
         ...appreciationIncrease,

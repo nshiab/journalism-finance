@@ -33,20 +33,18 @@ export default function precomputeMortgagePayments(
 
   for (let month = 0; month < numberOfYears * 12; month += TERM_MONTHS) {
     const effectiveInterestRate = round(
-      Math.max(floorRate, fixedInterestRates[month] + fixedRateAdjustment) *
-        100,
+      Math.max(floorRate, fixedInterestRates[month] + fixedRateAdjustment) * 100,
       { decimals: 2 },
     );
-    const mortgageAmount =
-      allFixedMortgagePayments[allFixedMortgagePayments.length - 1]
-        ? allFixedMortgagePayments[allFixedMortgagePayments.length - 1].balance
-        : startingMortgageAmount;
+    const mortgageAmount = allFixedMortgagePayments[allFixedMortgagePayments.length - 1]
+      ? allFixedMortgagePayments[allFixedMortgagePayments.length - 1].balance
+      : startingMortgageAmount;
     const payments = mortgagePayments(
       mortgageAmount,
       effectiveInterestRate,
       "monthly",
       TERM_YEARS,
-      AMORTIZATION_YEARS - (month / 12),
+      AMORTIZATION_YEARS - month / 12,
       { decimals: 2 },
     );
 
@@ -92,18 +90,13 @@ export default function precomputeMortgagePayments(
   }
 
   for (let month = 0; month < numberOfYears * 12; month += TERM_MONTHS) {
-    const mortgageAmount =
-      allVariableMortgagePayments[allVariableMortgagePayments.length - 1]
-        ? allVariableMortgagePayments[allVariableMortgagePayments.length - 1]
-          .balance
-        : startingMortgageAmount;
-    const monthlyEffectiveRates = new Array(TERM_MONTHS);
+    const mortgageAmount = allVariableMortgagePayments[allVariableMortgagePayments.length - 1]
+      ? allVariableMortgagePayments[allVariableMortgagePayments.length - 1].balance
+      : startingMortgageAmount;
+    const monthlyEffectiveRates = new Array<number>(TERM_MONTHS);
     for (let i = 0; i < TERM_MONTHS; i++) {
       monthlyEffectiveRates[i] = round(
-        Math.max(
-          floorRate,
-          variableInterestRates[month + i] + variableRateAdjustment,
-        ) * 100,
+        Math.max(floorRate, variableInterestRates[month + i] + variableRateAdjustment) * 100,
         { decimals: 2 },
       );
     }
@@ -111,7 +104,7 @@ export default function precomputeMortgagePayments(
       mortgageAmount,
       monthlyEffectiveRates,
       TERM_YEARS,
-      AMORTIZATION_YEARS - (month / 12),
+      AMORTIZATION_YEARS - month / 12,
       {
         decimals: 2,
       },

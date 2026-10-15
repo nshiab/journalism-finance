@@ -34,7 +34,8 @@ export default function computeBalances(
 ) {
   if (!winVariableOnly || monthIndex === numberOfMonths - 1) {
     // Monthly balance — nominal net cash flow for the month.
-    const totalMonthlyExpenses = persona.monthlyExpenses.mortgageCapital +
+    const totalMonthlyExpenses =
+      persona.monthlyExpenses.mortgageCapital +
       persona.monthlyExpenses.mortgageInterests +
       persona.monthlyExpenses.rent +
       persona.monthlyExpenses.insurance +
@@ -48,18 +49,18 @@ export default function computeBalances(
       persona.monthlyExpenses.insurancePremiumTax +
       persona.monthlyExpenses.tfsaFees +
       persona.monthlyExpenses.stocksFees;
-    const totalMonthlyGains = persona.monthlyGains.tfsaGains +
+    const totalMonthlyGains =
+      persona.monthlyGains.tfsaGains +
       persona.monthlyGains.tfsaContribution +
       persona.monthlyGains.stocksGains +
       persona.monthlyGains.newStocks +
       persona.monthlyGains.homeEquityGains;
-    persona.summary.balance = r2(
-      totalMonthlyGains - totalMonthlyExpenses,
-    );
+    persona.summary.balance = r2(totalMonthlyGains - totalMonthlyExpenses);
 
     // Total cumulative expenses (NPV — each month discounted at its own
     // inflationMultiplier when accumulated in computeExpenses/computeGains).
-    const totalCumulativeExpenses = persona.cumulativeExpenses.mortgageCapital +
+    const totalCumulativeExpenses =
+      persona.cumulativeExpenses.mortgageCapital +
       persona.cumulativeExpenses.mortgageInterests +
       persona.cumulativeExpenses.rent +
       persona.cumulativeExpenses.insurance +
@@ -75,7 +76,8 @@ export default function computeBalances(
       persona.cumulativeExpenses.stocksFees;
 
     // adj(assets) — current asset value in today's dollars.
-    const totalAssets = persona.assets.tfsa +
+    const totalAssets =
+      persona.assets.tfsa +
       persona.assets.stocks +
       persona.assets.securityDeposit +
       persona.assets.homeEquity;
@@ -85,7 +87,8 @@ export default function computeBalances(
 
     // adj(saleNetGains) — liquidation proceeds in today's dollars (selling
     // costs, mortgage payoff, and capital gains taxes already deducted).
-    const totalSaleNetGains = persona.saleNetGains.stockSellingGains +
+    const totalSaleNetGains =
+      persona.saleNetGains.stockSellingGains +
       persona.saleNetGains.tfsaSellingGains +
       persona.saleNetGains.homeSellingGains +
       persona.saleNetGains.securityDeposit;

@@ -44,18 +44,17 @@ const R2 = { decimals: 2 };
  *   mortgageType: "variable",
  * });
  * ```
+ * @category Finance
  */
-export default function getMortgagePenalty(
-  parameters: {
-    remainingMonthsToTerm: number;
-    mortgageBalance: number;
-    postedInterestRate: number;
-    rateAdjustmentFixed: number;
-    rateAdjustmentVariable: number;
-    currentPostedRates: Record<number, number>;
-    mortgageType: "fixed" | "variable";
-  },
-): number {
+export default function getMortgagePenalty(parameters: {
+  remainingMonthsToTerm: number;
+  mortgageBalance: number;
+  postedInterestRate: number;
+  rateAdjustmentFixed: number;
+  rateAdjustmentVariable: number;
+  currentPostedRates: Record<number, number>;
+  mortgageType: "fixed" | "variable";
+}): number {
   const {
     remainingMonthsToTerm,
     mortgageBalance,
@@ -79,45 +78,29 @@ export default function getMortgagePenalty(
 
   const effectiveRate = Math.max(
     0,
-    postedInterestRate + rateAdjustmentFixed +
-      rateAdjustmentVariable,
+    postedInterestRate + rateAdjustmentFixed + rateAdjustmentVariable,
   );
 
   if (mortgageType === "variable") {
     // Three months interest penalty
-    const threeMonthsPenalty = round(
-      (mortgageBalance * effectiveRate * 3) / 12,
-      R2,
-    );
+    const threeMonthsPenalty = round((mortgageBalance * effectiveRate * 3) / 12, R2);
 
     return threeMonthsPenalty;
   } else {
     // Looking for current rate
     const remainingYearsToTerm = remainingMonthsToTerm / 12;
     const termForRate = Math.round(remainingYearsToTerm);
-    const comparisonRate =
-      currentPostedRates[termForRate === 0 ? 1 : termForRate];
+    const comparisonRate = currentPostedRates[termForRate === 0 ? 1 : termForRate];
     if (comparisonRate === undefined) {
-      throw new Error(
-        `No current posted rate provided for a ${termForRate} year term.`,
-      );
+      throw new Error(`No current posted rate provided for a ${termForRate} year term.`);
     }
 
     // Three months interest penalty
-    const threeMonthsPenalty = round(
-      (mortgageBalance * effectiveRate * 3) / 12,
-      R2,
-    );
+    const threeMonthsPenalty = round((mortgageBalance * effectiveRate * 3) / 12, R2);
 
     // IRD (Interest Rate Differential) penalty
-    const irdRate = Math.max(
-      0,
-      effectiveRate - (comparisonRate + rateAdjustmentFixed),
-    );
-    const fixedMortgagePenalty = round(
-      mortgageBalance * irdRate * remainingYearsToTerm,
-      R2,
-    );
+    const irdRate = Math.max(0, effectiveRate - (comparisonRate + rateAdjustmentFixed));
+    const fixedMortgagePenalty = round(mortgageBalance * irdRate * remainingYearsToTerm, R2);
 
     // Return the greater of three months interest or IRD penalty
     return Math.max(threeMonthsPenalty, fixedMortgagePenalty);

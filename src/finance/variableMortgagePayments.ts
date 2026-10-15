@@ -66,9 +66,7 @@ export default function variableMortgagePayments(
   rate: number;
 }[] {
   if (amortizationPeriod < term) {
-    throw new Error(
-      "The amortizationPeriod should be equal or greater than the term.",
-    );
+    throw new Error("The amortizationPeriod should be equal or greater than the term.");
   }
 
   // Calculate number of monthly payments in the term
@@ -88,20 +86,14 @@ export default function variableMortgagePayments(
   };
 
   const annualCompounding = options.annualCompounding;
-  if (
-    typeof annualCompounding !== "number" ||
-    annualCompounding <= 0
-  ) {
+  if (typeof annualCompounding !== "number" || annualCompounding <= 0) {
     throw new Error("annualCompounding must be a positive number.");
   }
 
   // Helper function to calculate monthly periodic rate from annual rate
   const calculateMonthlyRate = (rate: number): number => {
     const nominalRate = rate / 100;
-    const annualEffectiveRate = Math.pow(
-      1 + nominalRate / annualCompounding,
-      annualCompounding,
-    );
+    const annualEffectiveRate = Math.pow(1 + nominalRate / annualCompounding, annualCompounding);
     return Math.pow(annualEffectiveRate, 1 / 12) - 1;
   };
 
@@ -111,10 +103,11 @@ export default function variableMortgagePayments(
   const initialMonthlyRate = calculateMonthlyRate(initialRate);
   const totalPaymentsInAmortization = amortizationPeriod * 12;
 
-  const fixedPayment = initialMonthlyRate === 0
-    ? mortgageAmount / totalPaymentsInAmortization
-    : (initialMonthlyRate * mortgageAmount) /
-      (1 - Math.pow(1 + initialMonthlyRate, -totalPaymentsInAmortization));
+  const fixedPayment =
+    initialMonthlyRate === 0
+      ? mortgageAmount / totalPaymentsInAmortization
+      : (initialMonthlyRate * mortgageAmount) /
+        (1 - Math.pow(1 + initialMonthlyRate, -totalPaymentsInAmortization));
 
   const paymentSchedule: {
     id?: string;
@@ -192,7 +185,7 @@ export default function variableMortgagePayments(
   // If there is an id as options, add it to the objects before returning
   return options.id
     ? paymentSchedule.map((d) => {
-      return { ...d, id: options.id };
-    })
+        return { ...d, id: options.id };
+      })
     : paymentSchedule;
 }

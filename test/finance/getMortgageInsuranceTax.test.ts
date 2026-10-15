@@ -1,9 +1,10 @@
-import { assertEquals } from "jsr:@std/assert";
+import { test, expect } from "vite-plus/test";
+
 import getMortgageInsuranceTax from "../../src/finance/getMortgageInsuranceTax.ts";
 
-Deno.test("getMortgageInsuranceTax applies provincial premium taxes", () => {
-  assertEquals(getMortgageInsuranceTax(19_000, "Ontario"), 1_520);
-  assertEquals(getMortgageInsuranceTax(19_000, "Quebec"), 1_710);
-  assertEquals(getMortgageInsuranceTax(19_000, "Saskatchewan"), 1_140);
-  assertEquals(getMortgageInsuranceTax(19_000, "Alberta"), 0);
+test("getMortgageInsuranceTax applies provincial premium taxes", () => {
+  expect(getMortgageInsuranceTax(19_000, "Ontario")).toEqual(1_520);
+  expect(getMortgageInsuranceTax(19_000, "Quebec")).toEqual(1_710);
+  expect(getMortgageInsuranceTax(19_000, "Saskatchewan")).toEqual(1_140);
+  expect(getMortgageInsuranceTax(19_000, "Alberta")).toEqual(0);
 });

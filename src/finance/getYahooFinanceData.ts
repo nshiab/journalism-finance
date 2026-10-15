@@ -4,31 +4,24 @@ const INTERVAL_SECONDS = {
   "1m": 60,
 } as const;
 
-const USER_AGENT =
-  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36";
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
 
-type YahooVariable =
-  | "open"
-  | "high"
-  | "low"
-  | "close"
-  | "adjclose"
-  | "volume";
+function property(value: unknown, key: string): unknown {
+  if (isRecord(value)) {
+    return value[key];
+  }
+  return undefined;
+}
 
-type YahooFinanceResponse = {
-  chart?: {
-    error?: { description?: string } | null;
-    result?:
-      | Array<{
-        timestamp?: number[];
-        indicators?: {
-          adjclose?: Array<{ adjclose?: Array<number | null> }>;
-          quote?: Array<Partial<Record<YahooVariable, Array<number | null>>>>;
-        };
-      }>
-      | null;
-  };
-};
+function first(value: unknown): unknown {
+  return Array.isArray(value) ? value[0] : undefined;
+}
+
+function isArray(value: unknown): value is unknown[] {
+  return Array.isArray(value);
+}
 
 /**
  * Fetches historical prices or trading volume for a symbol from Yahoo Finance.
@@ -37,21 +30,6 @@ type YahooFinanceResponse = {
  * endpoint and is not affiliated with or endorsed by Yahoo. It is provided for
  * educational, research, and journalistic purposes. Before using it, review
  * Yahoo's terms and any applicable data-provider restrictions.
- *
- * @param symbol - The stock or index symbol, such as `"AAPL"` or `"^GSPTSE"`.
- * @param startDate - The inclusive start of the requested range.
- * @param endDate - The inclusive end of the requested range. The observation
- * beginning at this date or time is included when available.
- * @param variable - The financial variable to retrieve.
- * @param interval - The interval between observations: daily, hourly, or every
- * minute.
- * @returns The available observations, with Unix timestamps in milliseconds.
- * Missing values reported by Yahoo are omitted.
- * @throws {RangeError} If either date is invalid or `endDate` is before
- * `startDate`.
- * @throws {Error} If Yahoo rejects the request or returns no data.
- * @see https://legal.yahoo.com/us/en/yahoo/terms/otos/index.html
- * @see https://help.yahoo.com/kb/finance/SLN2310.html
  *
  * @example
  * ```ts
@@ -64,6 +42,22 @@ type YahooFinanceResponse = {
  * );
  * console.log(prices);
  * ```
+ *
+ * @param symbol - The stock or index symbol, such as `"AAPL"` or `"^GSPTSE"`.
+ * @param startDate - The inclusive start of the requested range.
+ * @param endDate - The inclusive end of the requested range. The observation
+ * beginning at this date or time is included when available.
+ * @param variable - The financial variable to retrieve.
+ * @param interval - The interval between observations: daily, hourly, or every
+ * minute.
+ * @returns The available observations, with Unix timestamps in milliseconds.
+ * Missing values reported by Yahoo are omitted.
+ * @throws {RangeError} If either date is invalid or `endDate` is before
+ * `startDate`.
+ * @throws {Error} If Yahoo rejects the request, returns no data, or provides invalid timestamps.
+ * @see https://legal.yahoo.com/us/en/yahoo/terms/otos/index.html
+ * @see https://help.yahoo.com/kb/finance/SLN2310.html
+ *
  * @category Finance
  */
 export default async function getYahooFinanceData(
@@ -88,9 +82,7 @@ export default async function getYahooFinanceData(
   // public range inclusive without exposing that upstream detail to callers.
   const period2 = Math.floor(endTime / 1000) + INTERVAL_SECONDS[interval];
   const url = new URL(
-    `https://query1.finance.yahoo.com/v8/finance/chart/${
-      encodeURIComponent(symbol)
-    }`,
+    `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}`,
   );
   url.search = new URLSearchParams({
     events: "capitalGain|div|split",
@@ -105,9 +97,7 @@ export default async function getYahooFinanceData(
     region: "CA",
   }).toString();
 
-  const response = await fetch(url, {
-    headers: { "User-Agent": USER_AGENT },
-  });
+  const response = await fetch(url);
 
   if (!response.ok) {
     const text = await response.text();
@@ -118,36 +108,47 @@ export default async function getYahooFinanceData(
     );
   }
 
-  const data = await response.json() as YahooFinanceResponse;
-  if (data.chart?.error) {
+  const data: unknown = await response.json();
+  const chart = property(data, "chart");
+  const error = property(chart, "error");
+  if (error) {
     throw new Error(
-      data.chart.error.description ??
-        "Yahoo Finance returned an unknown error.",
+      typeof property(error, "description") === "string"
+        ? String(property(error, "description"))
+        : "Yahoo Finance returned an unknown error.",
     );
   }
 
-  const result = data.chart?.result?.[0];
-  const timestamps = result?.timestamp;
-  if (!result || !timestamps?.length) {
+  const result = first(property(chart, "result"));
+  const timestamps = property(result, "timestamp");
+  if (!isArray(timestamps) || !timestamps.length) {
     throw new Error("No Yahoo Finance data found.");
   }
 
-  const values = variable === "adjclose"
-    ? result.indicators?.adjclose?.[0]?.adjclose
-    : result.indicators?.quote?.[0]?.[variable];
+  const indicators = property(result, "indicators");
+  const values = property(
+    first(property(indicators, variable === "adjclose" ? "adjclose" : "quote")),
+    variable,
+  );
 
-  if (!values) {
+  if (!isArray(values)) {
     throw new Error(`${variable} data is not available for ${symbol}.`);
   }
 
   const exclusiveEndTime = period2 * 1000;
   const rows: { timestamp: number; value: number }[] = [];
   for (let index = 0; index < timestamps.length; index++) {
-    const timestamp = timestamps[index] * 1000;
+    const seconds = timestamps[index];
+    if (typeof seconds !== "number" || !Number.isFinite(seconds)) {
+      throw new Error("Yahoo Finance returned an invalid timestamp.");
+    }
+    const timestamp = seconds * 1000;
     const value = values[index];
     if (
-      timestamp >= period1 * 1000 && timestamp < exclusiveEndTime &&
-      typeof value === "number" && Number.isFinite(value)
+      timestamp >= period1 * 1000 &&
+      timestamp < exclusiveEndTime &&
+      typeof value === "number" &&
+      Number.isFinite(value)
     ) {
       rows.push({ timestamp, value });
     }

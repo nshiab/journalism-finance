@@ -1,10 +1,8 @@
-import {
-  getCholeskyMatrix,
-  getCorrelationMatrix,
-} from "@nshiab/journalism-statistics";
+import { getCholeskyMatrix, getCorrelationMatrix } from "@nshiab/journalism-statistics";
 
 /**
  * Valid stochastic variable names used in the Rent vs Buy Monte Carlo simulation.
+ * @inline
  */
 export type StochasticVariable =
   | "employmentIncome"
@@ -27,6 +25,7 @@ export type StochasticVariable =
 /**
  * Historical data object representing the 16 stochastic variables.
  * Each variable must map to an array of equal-length historical values.
+ * @inline
  */
 export type StochasticData = Record<StochasticVariable, number[]>;
 
@@ -66,6 +65,7 @@ export type StochasticData = Record<StochasticVariable, number[]>;
  *   choleskyMatrix: choleskyMatrixCorrelated,
  * });
  * ```
+ * @category Finance
  */
 export default function getRentVsBuyCholeskyMatrix(
   data?: StochasticData,
@@ -74,13 +74,8 @@ export default function getRentVsBuyCholeskyMatrix(
   const numVars = 16;
 
   if (!data) {
-    const identityMatrix = Array.from(
-      { length: numVars },
-      (_, i) =>
-        Array.from(
-          { length: numVars },
-          (_, j) => (i === j ? 1 : 0),
-        ) as number[],
+    const identityMatrix = Array.from({ length: numVars }, (_, i) =>
+      Array.from({ length: numVars }, (_, j) => (i === j ? 1 : 0)),
     );
     return getCholeskyMatrix(identityMatrix, options.jitter);
   }
@@ -110,16 +105,14 @@ export default function getRentVsBuyCholeskyMatrix(
   }
   for (let i = 1; i < numVars; i++) {
     if (arrays[i].length !== length) {
-      throw new Error(
-        "All historical data arrays must have the exact same length.",
-      );
+      throw new Error("All historical data arrays must have the exact same length.");
     }
   }
 
   // Transpose to observations: rows = time, cols = variables
-  const observations: number[][] = new Array(length);
+  const observations: number[][] = new Array<number[]>(length);
   for (let i = 0; i < length; i++) {
-    observations[i] = new Array(numVars);
+    observations[i] = new Array<number>(numVars);
     for (let v = 0; v < numVars; v++) {
       observations[i][v] = arrays[v][i];
     }

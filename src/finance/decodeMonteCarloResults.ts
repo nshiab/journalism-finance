@@ -18,10 +18,9 @@ export type { ColumnarResult, WinnersColumnar, WinnerSnapshots };
  *
  * Records where `amount === 0` are omitted from the output, matching the zero-filtering
  * applied by the `onRecord` callback during data collection.
+ * @category Finance
  */
-export function decodeMonteCarloMonthlyIterations(
-  c: ColumnarResult,
-): {
+export function decodeMonteCarloMonthlyIterations(c: ColumnarResult): {
   iteration: number;
   category: string;
   group: string;
@@ -37,7 +36,9 @@ export function decodeMonteCarloMonthlyIterations(
     variable: string;
     monthIndex: number;
     amount: number;
-  }[] = new Array(keys.length * rows * cols);
+  }[] = new Array<ReturnType<typeof decodeMonteCarloMonthlyIterations>[number]>(
+    keys.length * rows * cols,
+  );
   let idx = 0;
   for (const key of keys) {
     const [category, group, variable] = key.split("|");
@@ -66,10 +67,9 @@ export function decodeMonteCarloMonthlyIterations(
  * Decodes a columnar `values` result back into the original object-array shape.
  *
  * Keys are variable names. Each `Float64Array` has size `iterations × months`.
+ * @category Finance
  */
-export function decodeMonteCarloValues(
-  c: ColumnarResult,
-): {
+export function decodeMonteCarloValues(c: ColumnarResult): {
   iteration: number;
   variable: string;
   value: number;
@@ -81,7 +81,7 @@ export function decodeMonteCarloValues(
     variable: string;
     value: number;
     monthIndex: number;
-  }[] = new Array(keys.length * rows * cols);
+  }[] = new Array<ReturnType<typeof decodeMonteCarloValues>[number]>(keys.length * rows * cols);
   let idx = 0;
   for (const variable of keys) {
     const arr = data[variable];
@@ -107,6 +107,7 @@ export function decodeMonteCarloValues(
  *
  * @param c - The `ColumnarResult` returned as `monthlyQuantiles` by `simulateRentVsBuyMonteCarlo`.
  * @param quantiles - The same quantile levels passed to `options.monthlyQuantiles` (e.g. `[0, 0.5, 1]`).
+ * @category Finance
  */
 export function decodeMonteCarloMonthlyQuantiles(
   c: ColumnarResult,
@@ -127,7 +128,9 @@ export function decodeMonteCarloMonthlyQuantiles(
     monthIndex: number;
     quantile: number;
     value: number;
-  }[] = new Array(keys.length * quantiles.length * cols);
+  }[] = new Array<ReturnType<typeof decodeMonteCarloMonthlyQuantiles>[number]>(
+    keys.length * quantiles.length * cols,
+  );
   let idx = 0;
   for (const key of keys) {
     const [category, group, variable] = key.split("|");
@@ -154,10 +157,9 @@ export function decodeMonteCarloMonthlyQuantiles(
  * Each record represents one 5-year checkpoint (strictly before `numberOfYears`).
  * `renter`, `buyerFixed`, and `buyerVariable` are win rates strictly in the range [0.01, 0.98] (smoothed to [0.01, 0.01, 0.98] in extreme scenarios) and sum to 1.
  * The median fields hold the median `winVariable` amount for that category at the checkpoint.
+ * @category Finance
  */
-export function decodeMonteCarloWinnerSnapshots(
-  ws: WinnerSnapshots,
-): {
+export function decodeMonteCarloWinnerSnapshots(ws: WinnerSnapshots): {
   year: number;
   monthIndex: number;
   renter: number;
@@ -177,7 +179,7 @@ export function decodeMonteCarloWinnerSnapshots(
     renterMedian: number;
     buyerFixedMedian: number;
     buyerVariableMedian: number;
-  }[] = new Array(length);
+  }[] = new Array<ReturnType<typeof decodeMonteCarloWinnerSnapshots>[number]>(length);
   for (let i = 0; i < length; i++) {
     const monthIndex = ws.snapshotMonths[i];
     result[i] = {
@@ -198,10 +200,9 @@ export function decodeMonteCarloWinnerSnapshots(
  * `category` bytes map to category names via `WINNER_CATEGORIES`
  * (0 = "renter", 1 = "buyerFixed", 2 = "buyerVariable").
  * Records are returned in iteration order (row 0 = iteration 0).
+ * @category Finance
  */
-export function decodeMonteCarloWinners(
-  w: WinnersColumnar,
-): {
+export function decodeMonteCarloWinners(w: WinnersColumnar): {
   iteration: number;
   monthIndex: number;
   amount: number;
@@ -213,16 +214,13 @@ export function decodeMonteCarloWinners(
     monthIndex: number;
     amount: number;
     category: "renter" | "buyerFixed" | "buyerVariable";
-  }[] = new Array(length);
+  }[] = new Array<ReturnType<typeof decodeMonteCarloWinners>[number]>(length);
   for (let i = 0; i < length; i++) {
     result[i] = {
       iteration: i,
       monthIndex: w.monthIndex[i],
       amount: w.amount[i],
-      category: WINNER_CATEGORIES[w.category[i]] as
-        | "renter"
-        | "buyerFixed"
-        | "buyerVariable",
+      category: WINNER_CATEGORIES[w.category[i]],
     };
   }
   return result;

@@ -99,9 +99,7 @@ export default function mortgagePayments(
   capitalPaid: number;
 }[] {
   if (amortizationPeriod < term) {
-    throw new Error(
-      "The amortizationPeriod should be equal or greater than the term.",
-    );
+    throw new Error("The amortizationPeriod should be equal or greater than the term.");
   }
 
   options = {
@@ -128,10 +126,11 @@ export default function mortgagePayments(
   // The monthly rate and the montly payment
   const monthlyRate = computePeriodicRate(1 / 12);
   const amortizationPeriodInMonths = amortizationPeriod * 12;
-  const monthlyPayment = monthlyRate === 0
-    ? mortgageAmount / amortizationPeriodInMonths
-    : (monthlyRate * mortgageAmount) /
-      (1 - Math.pow(1 + monthlyRate, -amortizationPeriodInMonths));
+  const monthlyPayment =
+    monthlyRate === 0
+      ? mortgageAmount / amortizationPeriodInMonths
+      : (monthlyRate * mortgageAmount) /
+        (1 - Math.pow(1 + monthlyRate, -amortizationPeriodInMonths));
 
   let numberOfPaymentsinTerm: number;
   let periodicInterestRate: number;
@@ -168,7 +167,7 @@ export default function mortgagePayments(
     periodicInterestRate = computePeriodicRate(7 / 365);
     periodicPayment = monthlyPayment / 4;
   } else {
-    throw new Error(`Unknown paymentFrequency ${paymentFrequency}`);
+    throw new Error(`Unknown paymentFrequency ${String(paymentFrequency)}`);
   }
 
   // The expected shape of the data we want to return.
@@ -185,7 +184,7 @@ export default function mortgagePayments(
   }[] = [];
 
   // If options.debug is true, let's log some extra information.
-  options.debug &&
+  if (options.debug) {
     console.log({
       monthlyRate,
       monthlyPayment,
@@ -193,6 +192,7 @@ export default function mortgagePayments(
       numberOfPaymentsinTerm,
       amortizationPeriodInMonths,
     });
+  }
 
   // Three variables we will increment as we loop over the payments.
   let amountPaid = 0;
@@ -242,7 +242,7 @@ export default function mortgagePayments(
   // If there is an id as options, we add it to the objects before returning the array.
   return options.id
     ? paymentSchedule.map((d) => {
-      return { ...d, id: options.id };
-    })
+        return { ...d, id: options.id };
+      })
     : paymentSchedule;
 }
