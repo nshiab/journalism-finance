@@ -1,4 +1,4 @@
-**Journalism Finance v2.0.2**
+**Journalism Finance v2.0.3**
 
 ***
 
