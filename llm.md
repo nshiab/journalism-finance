@@ -19,8 +19,7 @@ journalist and senior data producer for [CBC News](https://www.cbc.ca/news).
 
 ## Installation
 
-Requires **Node.js 24.21.0 or later**. Use `import`
-and set `"type": "module"` in your project's `package.json`.
+Requires **Node.js 24.21.0 or later**.
 
 ```sh
 npm install @nshiab/journalism-finance
@@ -41,6 +40,13 @@ console.log(prices);
 
 For browser applications, import browser-safe calculations from
 `@nshiab/journalism-finance/web` with your JavaScript bundler.
+
+```ts
+import { adjustToInflation } from "@nshiab/journalism-finance/web";
+
+const adjustedAmount = adjustToInflation(100, 120, 150);
+console.log(adjustedAmount); // 125
+```
 
 To start a data project with folders, configuration and documentation for AI
 agents, run:
