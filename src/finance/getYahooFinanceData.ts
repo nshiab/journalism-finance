@@ -4,9 +4,6 @@ const INTERVAL_SECONDS = {
   "1m": 60,
 } as const;
 
-const USER_AGENT =
-  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36";
-
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
@@ -100,9 +97,7 @@ export default async function getYahooFinanceData(
     region: "CA",
   }).toString();
 
-  const response = await fetch(url, {
-    headers: { "User-Agent": USER_AGENT },
-  });
+  const response = await fetch(url);
 
   if (!response.ok) {
     const text = await response.text();

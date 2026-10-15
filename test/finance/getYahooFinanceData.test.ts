@@ -21,7 +21,7 @@ function yahooResponse(timestamps: number[], values: Array<number | null>): Resp
   });
 }
 
-test("getYahooFinanceData uses an inclusive end date and internal request headers", async () => {
+test("getYahooFinanceData uses an inclusive end date without overriding the runtime User-Agent", async () => {
   let requestedUrl: URL | undefined;
   let requestedHeaders: Headers | undefined;
   globalThis.fetch = (input, init) => {
@@ -56,7 +56,7 @@ test("getYahooFinanceData uses an inclusive end date and internal request header
       String(Date.parse("2025-03-15T00:00:00Z") / 1000),
     );
     expect(requestedUrl?.searchParams.get("symbol")).toEqual("^GSPTSE");
-    expect(requestedHeaders?.get("User-Agent") ?? "").toContain("Chrome");
+    expect(requestedHeaders?.has("User-Agent")).toEqual(false);
   } finally {
     globalThis.fetch = originalFetch;
   }
