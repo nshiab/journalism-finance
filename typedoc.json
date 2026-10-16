@@ -10,20 +10,14 @@
   "treatValidationWarningsAsErrors": true,
   "excludePrivate": true,
   "excludeProtected": true,
-  "plugin": ["typedoc-plugin-markdown", "typedoc-plugin-llms-txt"],
+  "plugin": ["typedoc-plugin-markdown", "typedoc-plugin-llms-txt", "typedoc-github-theme"],
   "hostedBaseUrl": "https://nshiab.github.io/journalism-finance/",
   "outputs": [
-    {
-      "name": "html",
-      "path": "site",
-      "options": {
-        "llmsTxt": false
-      }
-    },
     {
       "name": "markdown",
       "path": ".",
       "options": {
+        "theme": "default",
         "router": "module",
         "entryFileName": "llm.md",
         "mergeReadme": true,
@@ -35,11 +29,19 @@
       "name": "markdown",
       "path": "docs",
       "options": {
+        "theme": "default",
         "entryFileName": "index.md",
         "out": "docs",
         "llmsTxtHeader": {
           "features": ["[README](../README.md): Installation, examples and usage."]
         }
+      }
+    },
+    {
+      "name": "html",
+      "path": "site",
+      "options": {
+        "llmsTxt": false
       }
     }
   ],
