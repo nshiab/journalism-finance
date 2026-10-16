@@ -1,8 +1,8 @@
-[**Journalism Finance v2.0.4**](index.md)
+[**Journalism Finance v2.0.5**](index.md)
 
 ***
 
-# Journalism Finance v2.0.4
+# Journalism Finance v2.0.5
 
 Financial calculations and data fetching.
 
