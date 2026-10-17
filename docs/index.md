@@ -19,8 +19,6 @@ journalist and senior data producer for [CBC News](https://www.cbc.ca/news).
 
 ## Installation
 
-Requires **Node.js 24.21.0 or later**.
-
 ```sh
 npm install @nshiab/journalism-finance
 ```
